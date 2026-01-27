@@ -9,29 +9,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SuperAdminMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        // Check if user is super admin
         $user = Auth::user();
         if ($user->role !== 'super_admin') {
-            // If not super admin, redirect based on role
-            if ($user->role === 'branch_admin') {
-                return redirect()->route('branch-admin.dashboard')->with('error', 'Access denied. Super admin only.');
-            } elseif ($user->role === 'customer') {
-                return redirect()->route('customer.dashboard')->with('error', 'Access denied. Admin access required.');
-            } else {
-                return redirect()->route('home')->with('error', 'Unauthorized access.');
-            }
+            return redirect()->route('home')->with('error', 'Access denied. Super admin only.');
         }
 
         return $next($request);

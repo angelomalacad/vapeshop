@@ -21,10 +21,10 @@ class CustomerMiddleware
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        // Check if user is customer (or any role except maybe staff)
+        // Check if user is customer (or admin for testing)
         $user = Auth::user();
         if (!in_array($user->role, ['customer', 'super_admin', 'branch_admin', 'staff'])) {
-            return redirect()->route('home')->with('error', 'Unauthorized access.');
+            return redirect()->route('home')->with('error', 'Unauthorized access. Customer area only.');
         }
 
         return $next($request);

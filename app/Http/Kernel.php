@@ -65,10 +65,9 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         
-        // Custom Middleware for VapeShop
+        // Custom Middleware for VapeShop - CORRECT NAMES
         'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         'branch_admin' => \App\Http\Middleware\BranchAdminMiddleware::class,
-        'customer' => \App\Http\Middleware\CustomerMiddleware::class,
-        'staff' => \App\Http\Middleware\StaffMiddleware::class, // Optional: if you need staff middleware
+        'customer' => \App\Http\Middleware\CustomerMiddleware::class, // This should exist
     ];
 }
