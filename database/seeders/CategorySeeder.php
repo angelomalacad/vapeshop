@@ -1,27 +1,51 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Models;
 
-use App\Models\Category;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
-class CategorySeeder extends Seeder
+class Category extends Model
 {
-    public function run()
-    {
-        $categories = [
-            ['name' => 'Disposable Vapes', 'slug' => 'disposable-vapes', 'order' => 1],
-            ['name' => 'Pod Systems', 'slug' => 'pod-systems', 'order' => 2],
-            ['name' => 'Box Mods', 'slug' => 'box-mods', 'order' => 3],
-            ['name' => 'E-Liquids', 'slug' => 'e-liquids', 'order' => 4],
-            ['name' => 'Coils', 'slug' => 'coils', 'order' => 5],
-            ['name' => 'Accessories', 'slug' => 'accessories', 'order' => 6],
-            ['name' => 'Batteries', 'slug' => 'batteries', 'order' => 7],
-            ['name' => 'Starter Kits', 'slug' => 'starter-kits', 'order' => 8],
-        ];
+    use HasFactory;
 
-        foreach ($categories as $category) {
-            Category::create($category);
-        }
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'is_active'
+    ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            if (empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+
+        static::updating(function ($category) {
+            if ($category->isDirty('name') && empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+    }
+
+    /**
+     * Get the products for the category.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

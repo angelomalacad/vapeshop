@@ -34,6 +34,15 @@
                         <a href="{{ route('branch-admin.dashboard') }}" class="list-group-item list-group-item-action active">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
+                        <a href="{{ route('branch-admin.inventory.index') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-box-seam me-2"></i> Inventory
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-cart me-2"></i> Orders
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-graph-up me-2"></i> Reports
+                        </a>
                         <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-house me-2"></i> Back to Home
                         </a>
@@ -67,16 +76,16 @@
                     <div class="col-md-4 mb-4">
                         <div class="card bg-primary text-white">
                             <div class="card-body">
-                                <h5 class="card-title">Inventory</h5>
-                                <p>Manage branch stock</p>
-                                <a href="#" class="btn btn-light">View Inventory</a>
+                                <h5 class="card-title"><i class="bi bi-box-seam me-2"></i> Inventory</h5>
+                                <p>Manage branch stock and products</p>
+                                <a href="{{ route('branch-admin.inventory.index') }}" class="btn btn-light">View Inventory</a>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4 mb-4">
                         <div class="card bg-success text-white">
                             <div class="card-body">
-                                <h5 class="card-title">Orders</h5>
+                                <h5 class="card-title"><i class="bi bi-cart me-2"></i> Orders</h5>
                                 <p>Process customer orders</p>
                                 <a href="#" class="btn btn-light">View Orders</a>
                             </div>
@@ -85,13 +94,74 @@
                     <div class="col-md-4 mb-4">
                         <div class="card bg-warning text-white">
                             <div class="card-body">
-                                <h5 class="card-title">Reports</h5>
-                                <p>Branch performance</p>
+                                <h5 class="card-title"><i class="bi bi-graph-up me-2"></i> Reports</h5>
+                                <p>Branch performance analytics</p>
                                 <a href="#" class="btn btn-light">View Reports</a>
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Quick Stats Section -->
+                @if($branch)
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i> Quick Stats</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary rounded-circle p-3 me-3">
+                                                <i class="bi bi-box text-white fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Total Products</h6>
+                                                <h4 class="mb-0">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning rounded-circle p-3 me-3">
+                                                <i class="bi bi-exclamation-triangle text-white fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Low Stock</h6>
+                                                <h4 class="mb-0">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success rounded-circle p-3 me-3">
+                                                <i class="bi bi-cart-check text-white fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Today's Orders</h6>
+                                                <h4 class="mb-0">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info rounded-circle p-3 me-3">
+                                                <i class="bi bi-currency-dollar text-white fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Today's Revenue</h6>
+                                                <h4 class="mb-0">Php0.00</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
