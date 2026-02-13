@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VapeShop</title>
+    <title>Login - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -25,7 +25,7 @@
             <div class="col-md-6">
                 <div class="card login-card">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Login to VapeShop</h4>
+                        <h4 class="mb-0">Login to Vape Expo</h4>
                     </div>
                     <div class="card-body">
                         @if($errors->any())
@@ -60,21 +60,9 @@
                             <p class="mb-0"><a href="{{ route('home') }}">Back to Home</a></p>
                         </div>
                         
-                        <hr class="my-4">
+                      
                         
-                        <div class="text-center">
-                            <p class="text-muted small">Test Accounts:</p>
-                            <div class="row">
-                                <div class="col-6">
-                                    <p class="small mb-1">Super Admin:</p>
-                                    <p class="small mb-1">superadmin@vapehub.com</p>
-                                    <p class="small">password123</p>
-                                </div>
-                                <div class="col-6">
-                                    <p class="small mb-1">Customer:</p>
-                                    <p class="small mb-1">customer@example.com</p>
-                                    <p class="small">password123</p>
-                                </div>
+                        
                             </div>
                         </div>
                     </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - VapeShop</title>
+    <title>Register - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -25,7 +25,7 @@
             <div class="col-md-8">
                 <div class="card register-card">
                     <div class="card-header bg-success text-white">
-                        <h4 class="mb-0">Register for VapeShop</h4>
+                        <h4 class="mb-0">Register for Vape Expo</h4>
                     </div>
                     <div class="card-body">
                         @if($errors->any())
