@@ -5,72 +5,528 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: #f8f9fa;
-            height: 100vh;
+            background: linear-gradient(135deg, #0B0C10 0%, #1F2833 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .register-card {
-            max-width: 500px;
+            max-width: 550px;
             margin: 0 auto;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #1F2833 0%, #2C3E50 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 3px solid #66FCF1;
+        }
+        .card-header img {
+            margin-bottom: 1rem;
+        }
+        .card-header h4 {
+            color: #66FCF1;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .card-header p {
+            color: #C5C6C7;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        .card-body {
+            background: #1F2833;
+            padding: 2rem;
+        }
+        .form-label {
+            color: #C5C6C7;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            background-color: #0B0C10;
+            border: 1px solid #2C3E50;
+            color: #FFFFFF;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #0B0C10;
+            border-color: #66FCF1;
+            box-shadow: 0 0 0 0.2rem rgba(102, 252, 241, 0.25);
+            color: #FFFFFF;
+        }
+        .form-control::placeholder {
+            color: #6c757d;
+            opacity: 0.5;
+        }
+        .form-text {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        .btn-register {
+            background: #66FCF1;
+            border: none;
+            color: #0B0C10;
+            font-weight: 600;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+        .btn-register:hover {
+            background: #45a29e;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 252, 241, 0.3);
+        }
+        .btn-outline-secondary {
+            border-color: #2C3E50;
+            color: #C5C6C7;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #2C3E50;
+            color: #FFFFFF;
+        }
+        .text-primary-custom {
+            color: #66FCF1 !important;
+        }
+        .text-primary-custom:hover {
+            color: #45a29e !important;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #C5C6C7;
+            margin: 1.5rem 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #2C3E50;
+        }
+        .divider span {
+            padding: 0 10px;
+            font-size: 0.9rem;
+        }
+        .shop-badge {
+            background: rgba(102, 252, 241, 0.1);
+            border: 1px solid #66FCF1;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        .shop-badge span {
+            color: #C5C6C7;
+            font-size: 0.85rem;
+        }
+        .password-requirements {
+            background: #0B0C10;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 3px solid #66FCF1;
+        }
+        .password-requirements p {
+            color: #C5C6C7;
+            margin-bottom: 0.25rem;
+            font-size: 0.85rem;
+        }
+        .password-requirements i {
+            color: #66FCF1;
+            width: 20px;
+        }
+        .invalid-feedback {
+            color: #ff6b6b;
+        }
+        .modal-content {
+            background-color: #1F2833;
+            border: 1px solid #66FCF1;
+        }
+        .modal-header {
+            border-bottom: 1px solid #2C3E50;
+        }
+        .modal-footer {
+            border-top: 1px solid #2C3E50;
+        }
+        .modal-title {
+            color: #66FCF1;
+        }
+        .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        .policy-content {
+            max-height: 400px;
+            overflow-y: auto;
+            color: #C5C6C7;
+            padding: 1rem;
+            background-color: #0B0C10;
+            border-radius: 8px;
+        }
+        .policy-content h6 {
+            color: #66FCF1;
+            margin-top: 1rem;
+        }
+        .policy-content h6:first-child {
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-10 col-lg-8">
                 <div class="card register-card">
-                    <div class="card-header bg-success text-white">
-                        <h4 class="mb-0">Register for Vape Expo</h4>
+                    <!-- Header with Logo -->
+                    <div class="card-header">
+                        <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="60" class="mb-3" onerror="this.src='https://via.placeholder.com/60x60?text=VE'">
+                        <h4 class="mb-2">Create Account</h4>
+                        <p>Join Vape Expo and start ordering</p>
+                        <div class="shop-badge">
+                            <i class="bi bi-shop text-primary-custom me-2"></i>
+                            <span>Vape Expo - 5 Branches in Calamba</span>
+                        </div>
                     </div>
+
                     <div class="card-body">
+                        <!-- Error Messages -->
                         @if($errors->any())
-                            <div class="alert alert-danger">
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Registration failed!</strong>
                                 @foreach($errors->all() as $error)
-                                    <p class="mb-0">{{ $error }}</p>
+                                    <p class="mb-0 small">{{ $error }}</p>
                                 @endforeach
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
                         
+                        <!-- Registration Form -->
                         <form method="POST" action="{{ route('register') }}">
                             @csrf
+                            
+                            <!-- Personal Information -->
+                            <h6 class="text-white mb-3"><i class="bi bi-person-fill text-primary-custom me-2"></i>Personal Information</h6>
+                            
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="name" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
+                                    <label for="name" class="form-label">
+                                        <i class="bi bi-person-circle me-2 text-primary-custom"></i>Full Name *
+                                    </label>
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                           id="name" name="name" value="{{ old('name') }}" 
+                                           placeholder="Enter your full name" required>
+                                    @error('name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
+                                
                                 <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required>
+                                    <label for="email" class="form-label">
+                                        <i class="bi bi-envelope-fill me-2 text-primary-custom"></i>Email Address *
+                                    </label>
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                           id="email" name="email" value="{{ old('email') }}" 
+                                           placeholder="Enter your email" required>
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="form-text">Minimum 8 characters</div>
+                                    <label for="phone" class="form-label">
+                                        <i class="bi bi-telephone-fill me-2 text-primary-custom"></i>Phone Number *
+                                    </label>
+                                    <input type="text" class="form-control @error('phone') is-invalid @enderror" 
+                                           id="phone" name="phone" value="{{ old('phone') }}" 
+                                           placeholder="e.g., 09123456789" required>
+                                    <div class="form-text">Philippine mobile number (e.g., 09123456789)</div>
+                                    @error('phone')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
+                                
                                 <div class="col-md-6 mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                                    <label for="birthdate" class="form-label">
+                                        <i class="bi bi-calendar-date me-2 text-primary-custom"></i>Birthdate
+                                    </label>
+                                    <input type="date" class="form-control" id="birthdate" name="birthdate" 
+                                           value="{{ old('birthdate') }}">
+                                    <div class="form-text">Must be 18+ to purchase vape products</div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-success w-100">Register</button>
+
+                            <!-- Address Information -->
+                            <h6 class="text-white mt-4 mb-3"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
+                            
+                            <div class="mb-3">
+                                <label for="address" class="form-label">
+                                    <i class="bi bi-house-fill me-2 text-primary-custom"></i>Complete Address *
+                                </label>
+                                <textarea class="form-control @error('address') is-invalid @enderror" 
+                                          id="address" name="address" rows="2" 
+                                          placeholder="Street, Barangay, City, Province" required>{{ old('address') }}</textarea>
+                                @error('address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <select class="form-select" id="city" name="city">
+                                        <option value="Calamba" selected>Calamba</option>
+                                        <option value="Los Baños">Los Baños</option>
+                                        <option value="Cabuyao">Cabuyao</option>
+                                        <option value="Santa Rosa">Santa Rosa</option>
+                                        <option value="Biñan">Biñan</option>
+                                        <option value="San Pedro">San Pedro</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="province" class="form-label">Province</label>
+                                    <input type="text" class="form-control" id="province" name="province" 
+                                           value="Laguna" readonly>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="zip_code" class="form-label">Zip Code</label>
+                                    <input type="text" class="form-control" id="zip_code" name="zip_code" 
+                                           value="{{ old('zip_code') }}" placeholder="e.g., 4027">
+                                </div>
+                            </div>
+
+                            <!-- Security Information -->
+                            <h6 class="text-white mt-4 mb-3"><i class="bi bi-shield-lock-fill text-primary-custom me-2"></i>Security</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">
+                                        <i class="bi bi-lock-fill me-2 text-primary-custom"></i>Password *
+                                    </label>
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                           id="password" name="password" 
+                                           placeholder="Create password" required>
+                                    @error('password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="password_confirmation" class="form-label">
+                                        <i class="bi bi-lock-fill me-2 text-primary-custom"></i>Confirm Password *
+                                    </label>
+                                    <input type="password" class="form-control" 
+                                           id="password_confirmation" name="password_confirmation" 
+                                           placeholder="Confirm password" required>
+                                </div>
+                            </div>
+
+                            <!-- Password Requirements -->
+                            <div class="password-requirements">
+                                <p><i class="bi bi-check-circle-fill text-success"></i> Minimum 8 characters</p>
+                                <p><i class="bi bi-check-circle-fill text-success"></i> At least one uppercase letter</p>
+                                <p><i class="bi bi-check-circle-fill text-success"></i> At least one number</p>
+                            </div>
+
+                            <!-- Terms and Conditions with Modals -->
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label text-white-50 small" for="terms">
+                                    I agree to the 
+                                    <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> and 
+                                    <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>. 
+                                    I confirm that I am at least 18 years old.
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
+                                <label class="form-check-label text-white-50 small" for="newsletter">
+                                    I want to receive updates about new products and promotions
+                                </label>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-register w-100">
+                                <i class="bi bi-person-plus me-2"></i>Create Account
+                            </button>
                         </form>
                         
-                        <div class="mt-3 text-center">
-                            <p class="mb-0">Already have an account? <a href="{{ route('login') }}">Login here</a></p>
-                            <p class="mb-0"><a href="{{ route('home') }}">Back to Home</a></p>
+                        <!-- Divider -->
+                        <div class="divider">
+                            <span>Already have an account?</span>
+                        </div>
+                        
+                        <!-- Login Link -->
+                        <div class="text-center mb-3">
+                            <a href="{{ route('login') }}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In Instead
+                            </a>
+                        </div>
+                        
+                        <!-- Back to Home -->
+                        <div class="text-center">
+                            <a href="{{ route('home') }}" class="text-muted text-decoration-none small">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Home
+                            </a>
+                        </div>
+
+                        <!-- Owner Information -->
+                        <div class="mt-4 pt-3 text-center border-top border-secondary">
+                            <p class="text-white-50 small mb-0">
+                                <i class="bi bi-telephone me-1"></i> 0960 328 0432
+                            </p>
+                            <p class="text-white-50 small mb-0">
+                                <i class="bi bi-clock me-1"></i> Store Hours: 9:00 AM - 10:00 PM Daily
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Terms and Conditions Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">
+                        <i class="bi bi-file-text me-2"></i>Terms and Conditions
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="policy-content">
+                        <h6>1. Acceptance of Terms</h6>
+                        <p>By accessing and using the Vape Expo website and services, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use our services.</p>
+
+                        <h6>2. Age Restriction</h6>
+                        <p>You must be at least 18 years old to purchase or use any vape products from Vape Expo. By creating an account, you confirm that you are of legal age to purchase tobacco/vape products in the Philippines.</p>
+
+                        <h6>3. Account Registration</h6>
+                        <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate, current, and complete information during registration.</p>
+
+                        <h6>4. Product Usage</h6>
+                        <p>Vape products are intended for adult use only. We are not responsible for misuse of products. Always follow manufacturer guidelines and safety instructions.</p>
+
+                        <h6>5. Orders and Payments</h6>
+                        <p>All orders are subject to availability and confirmation. We accept various payment methods as indicated during checkout. Prices are in Philippine Peso (₱) and inclusive of applicable taxes.</p>
+
+                        <h6>6. Shipping and Delivery</h6>
+                        <p>We deliver to addresses within the Philippines. Delivery times may vary based on location. Risk of loss passes to you upon delivery.</p>
+
+                        <h6>7. Returns and Refunds</h6>
+                        <p>Due to the nature of vape products, we only accept returns for defective items. Please contact us within 24 hours of receiving damaged products.</p>
+
+                        <h6>8. Prohibited Activities</h6>
+                        <p>You agree not to: resell products, use our site for illegal purposes, interfere with site functionality, or attempt unauthorized access.</p>
+
+                        <h6>9. Limitation of Liability</h6>
+                        <p>Vape Expo shall not be liable for any indirect, incidental, or consequential damages arising from use of our products or services.</p>
+
+                        <h6>10. Changes to Terms</h6>
+                        <p>We reserve the right to modify these terms at any time. Continued use of our services constitutes acceptance of updated terms.</p>
+
+                        <p class="mt-3 text-primary-custom"><small>Last updated: January 2025</small></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="document.getElementById('terms').checked = true;">
+                        <i class="bi bi-check-lg me-2"></i>I Agree
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">
+                        <i class="bi bi-shield-lock me-2"></i>Privacy Policy
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="policy-content">
+                        <h6>1. Information We Collect</h6>
+                        <p>We collect personal information you provide during registration including name, email address, phone number, delivery address, and birthdate for age verification.</p>
+
+                        <h6>2. How We Use Your Information</h6>
+                        <p>Your information is used to process orders, communicate with you, improve our services, and comply with legal requirements for age-restricted products.</p>
+
+                        <h6>3. Data Protection</h6>
+                        <p>We implement security measures to protect your personal information. However, no method of transmission over the internet is 100% secure.</p>
+
+                        <h6>4. Sharing of Information</h6>
+                        <p>We do not sell or rent your personal information to third parties. We may share information with delivery partners to fulfill orders or when required by law.</p>
+
+                        <h6>5. Age Verification</h6>
+                        <p>We are required by law to verify that customers are at least 18 years old. Your birthdate may be used for this purpose and will be handled confidentially.</p>
+
+                        <h6>6. Marketing Communications</h6>
+                        <p>With your consent, we may send promotional emails about new products and special offers. You can opt-out at any time.</p>
+
+                        <h6>7. Cookies</h6>
+                        <p>Our website uses cookies to enhance your browsing experience and analyze site traffic.</p>
+
+                        <h6>8. Your Rights</h6>
+                        <p>You have the right to access, correct, or delete your personal information. Contact us at https://www.facebook.com/vpxpo for assistance.</p>
+
+                        <h6>9. Data Retention</h6>
+                        <p>We retain your information as long as your account is active or as needed to provide services and comply with legal obligations.</p>
+
+                        <h6>10. Contact Information</h6>
+                        <p>For privacy-related concerns, contact the owner Carlo Caranto at https://www.facebook.com/vpxpo or call 0960 328 0432.</p>
+
+                        <p class="mt-3 text-primary-custom"><small>Last updated: January 2025</small></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="document.getElementById('terms').checked = true;">
+                        <i class="bi bi-check-lg me-2"></i>I Understand
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle modal agreement -->
+    <script>
+        // Optional: Auto-check terms when user clicks "I Agree" in modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const termsModal = document.getElementById('termsModal');
+            const privacyModal = document.getElementById('privacyModal');
+            
+            // When user clicks "I Agree" in terms modal, check the terms checkbox
+            document.querySelectorAll('[data-bs-dismiss="modal"][onclick*="terms.checked"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('terms').checked = true;
+                });
+            });
+        });
+    </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -10,54 +10,153 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'branch_id',
-        'phone', 'address', 'receive_notifications', 'fcm_token'
+        'name',
+        'email',
+        'password',
+        'role',
+        'branch_id',
+        'phone',
+        'alternate_phone',
+        'address',
+        'city',
+        'province',
+        'zip_code',
+        'birthdate',
+        'gender',
+        'receive_notifications',
+        'receive_promotions',
+        'is_active',
+        'last_login_at',
+        'last_login_ip',
+        'fcm_token',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
-    protected $casts = ['email_verified_at' => 'datetime'];
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-    // Relationships
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'birthdate' => 'date',
+            'last_login_at' => 'datetime',
+            'receive_notifications' => 'boolean',
+            'receive_promotions' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the branch that the user belongs to.
+     */
     public function branch()
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /**
+     * Get the orders for the user.
+     */
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
 
-    public function deliveries()
-    {
-        return $this->hasMany(Delivery::class, 'driver_id');
-    }
-
-    // Role checks
-    public function isSuperAdmin()
+    /**
+     * Check if user is super admin.
+     */
+    public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
     }
 
-    public function isBranchAdmin()
+    /**
+     * Check if user is branch admin.
+     */
+    public function isBranchAdmin(): bool
     {
         return $this->role === 'branch_admin';
     }
 
-    public function isStaff()
+    /**
+     * Check if user is staff.
+     */
+    public function isStaff(): bool
     {
         return $this->role === 'staff';
     }
 
-    public function isCustomer()
+    /**
+     * Check if user is customer.
+     */
+    public function isCustomer(): bool
     {
         return $this->role === 'customer';
     }
 
-    public function scopeBranchUsers($query, $branchId = null)
+    /**
+     * Check if user is active.
+     */
+    public function isActive(): bool
     {
-        return $query->where('branch_id', $branchId ?? $this->branch_id)
-                    ->whereIn('role', ['branch_admin', 'staff']);
+        return $this->is_active;
+    }
+
+    /**
+     * Get full address.
+     */
+    public function getFullAddressAttribute(): string
+    {
+        $parts = array_filter([
+            $this->address,
+            $this->city,
+            $this->province,
+            $this->zip_code
+        ]);
+        
+        return implode(', ', $parts);
+    }
+
+    /**
+     * Scope a query to only include customers.
+     */
+    public function scopeCustomers($query)
+    {
+        return $query->where('role', 'customer');
+    }
+
+    /**
+     * Scope a query to only include staff (branch admins + staff).
+     */
+    public function scopeStaff($query)
+    {
+        return $query->whereIn('role', ['branch_admin', 'staff']);
+    }
+
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }
