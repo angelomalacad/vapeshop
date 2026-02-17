@@ -59,6 +59,95 @@
                     <div class="card-header">
                         <i class="bi bi-grid me-2"></i> Owner Menu
                     </div>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                        <a href="{{ route('admin.branches.index') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-shop me-2"></i> Branches
+                        </a>
+                        
+                        <!-- Staff Management Link (Working) -->
+                        @if(Route::has('admin.staff.index'))
+                            <a href="{{ route('admin.staff.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-people me-2"></i> Staff Management
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-people me-2"></i> Staff Management (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Products Link with Route Check -->
+                        @if(Route::has('admin.products.index'))
+                            <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-box me-2"></i> Products
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-box me-2"></i> Products (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Inventory Link with Route Check -->
+                        @if(Route::has('admin.inventory.index'))
+                            <a href="{{ route('admin.inventory.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-clipboard-data me-2"></i> Inventory
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-clipboard-data me-2"></i> Inventory (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Orders Link with Route Check -->
+                        @if(Route::has('admin.orders.index'))
+                            <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-cart me-2"></i> Orders
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-cart me-2"></i> Orders (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Reports Link with Route Check -->
+                        @if(Route::has('admin.reports.index'))
+                            <a href="{{ route('admin.reports.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up me-2"></i> Reports
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-graph-up me-2"></i> Reports (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Users Link with Route Check -->
+                        @if(Route::has('admin.users.index'))
+                            <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-people me-2"></i> Users
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-people me-2"></i> Users (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <!-- Settings Link with Route Check -->
+                        @if(Route::has('admin.settings.index'))
+                            <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear me-2"></i> Settings
+                            </a>
+                        @else
+                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                                <i class="bi bi-gear me-2"></i> Settings (Coming Soon)
+                            </a>
+                        @endif
+                        
+                        <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-house me-2"></i> Back to Home
+                        </a>
+                    </div>
                 </div>
             </div>
 

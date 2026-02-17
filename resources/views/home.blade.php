@@ -9,96 +9,113 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0B0C10;
-            color: #C5C6C7;
+            background-color: #f8f9fa;
+            color: #212529;
         }
-        .navbar, .footer {
-            background-color: #1F2833 !important;
+        .navbar {
+            background-color: #ffffff !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
         }
-        .navbar-brand, .nav-link {
-            color: #FFFFFF !important;
+        .navbar-brand {
+            color: #0d6efd !important;
+            font-weight: 700;
         }
-        .navbar-brand:hover, .nav-link:hover {
-            color: #66FCF1 !important;
+        .nav-link {
+            color: #495057 !important;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: #0d6efd !important;
         }
         .hero {
-            background: linear-gradient(135deg, #0B0C10 0%, #1F2833 100%);
-            color: white;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            color: #212529;
             padding: 80px 0;
             margin-bottom: 50px;
-            border-bottom: 3px solid #66FCF1;
+            border-bottom: 3px solid #0d6efd;
         }
         .btn-primary {
-            background-color: #66FCF1;
-            border-color: #66FCF1;
-            color: #0B0C10;
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #ffffff;
             font-weight: 600;
         }
         .btn-primary:hover {
-            background-color: #45a29e;
-            border-color: #45a29e;
-            color: #FFFFFF;
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+            color: #ffffff;
         }
         .btn-outline-light {
-            border-color: #66FCF1;
-            color: #66FCF1;
+            border-color: #0d6efd;
+            color: #0d6efd;
         }
         .btn-outline-light:hover {
-            background-color: #66FCF1;
-            color: #0B0C10;
+            background-color: #0d6efd;
+            color: #ffffff;
+        }
+        .btn-light {
+            background-color: #ffffff;
+            border-color: #dee2e6;
+            color: #212529;
+        }
+        .btn-light:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #212529;
         }
         .card {
-            background-color: #1F2833;
-            border: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: transform 0.3s;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(102,252,241,0.2);
+            box-shadow: 0 10px 20px rgba(13,110,253,0.1);
         }
         .card-title {
-            color: #FFFFFF;
+            color: #212529;
         }
         .card-text {
-            color: #C5C6C7;
+            color: #6c757d;
         }
         .text-primary {
-            color: #66FCF1 !important;
+            color: #0d6efd !important;
         }
         .branch-img {
             height: 180px;
             object-fit: cover;
             border-radius: 8px 8px 0 0;
-            border-bottom: 2px solid #66FCF1;
+            border-bottom: 2px solid #0d6efd;
         }
         .product-img {
             height: 200px;
             object-fit: contain;
-            background-color: #0B0C10;
+            background-color: #ffffff;
             padding: 1rem;
         }
         .staff-list {
-            background-color: #0B0C10;
+            background-color: #f8f9fa;
             padding: 40px 0;
         }
         .footer {
-            background-color: #1F2833;
-            color: #C5C6C7;
-            border-top: 3px solid #66FCF1;
+            background-color: #212529;
+            color: #f8f9fa;
+            border-top: 3px solid #0d6efd;
         }
         .footer a {
-            color: #66FCF1;
+            color: #0d6efd;
+            text-decoration: none;
         }
         .footer a:hover {
-            color: #FFFFFF;
+            color: #ffffff;
         }
         .contact-info i {
-            color: #66FCF1;
+            color: #0d6efd;
             margin-right: 8px;
         }
         .owner-name {
-            color: #66FCF1;
+            color: #0d6efd;
             font-weight: 600;
         }
 
@@ -117,15 +134,15 @@
             height: 12px;
             border-radius: 50%;
             margin: 0 6px;
-            background-color: #66FCF1;
+            background-color: #0d6efd;
         }
         .carousel-indicators button.active {
-            background-color: #FFFFFF;
+            background-color: #212529;
             transform: scale(1.2);
         }
         .carousel-control-prev-icon,
         .carousel-control-next-icon {
-            background-color: #1F2833 !important;
+            background-color: rgba(33,37,41,0.5) !important;
             border-radius: 50%;
             padding: 1.5rem;
             opacity: 0.8;
@@ -134,7 +151,7 @@
         .carousel-control-prev-icon:hover,
         .carousel-control-next-icon:hover {
             opacity: 1;
-            background-color: #66FCF1 !important;
+            background-color: #0d6efd !important;
         }
 
         /* Product card enhancements */
@@ -142,21 +159,22 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border-radius: 12px;
             overflow: hidden;
-            background-color: #FFFFFF;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
         }
 
         #products .card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(102,252,241,0.25) !important;
+            box-shadow: 0 12px 24px rgba(13,110,253,0.15) !important;
         }
 
         #products .card-img-wrapper {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 2px solid #66FCF1;
+            border-bottom: 2px solid #0d6efd;
         }
 
         #products .card-title {
-            color: #1F2833;
+            color: #212529;
             font-size: 1.2rem;
         }
 
@@ -167,14 +185,56 @@
         }
 
         #products .text-primary {
-            color: #0B0C10 !important;
-            background: linear-gradient(135deg, #66FCF1 0%, #45a29e 100%);
+            color: #ffffff !important;
+            background: #0d6efd;
             display: inline-block;
             padding: 0.3rem 1rem;
             border-radius: 25px;
             font-size: 1.1rem;
             margin-top: 0.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Staff card styling */
+        #staff .card {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+        }
+        
+        #staff .card-title {
+            color: #212529;
+        }
+        
+        #staff .text-secondary {
+            color: #0d6efd !important;
+        }
+
+        /* Hero contact links */
+        .hero a.text-white {
+            color: #212529 !important;
+            text-decoration: none;
+        }
+        
+        .hero a.text-white:hover {
+            color: #0d6efd !important;
+        }
+
+        /* Section headings */
+        h2.text-center {
+            color: #212529;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h2.text-center:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: #0d6efd;
         }
 
         /* Responsive adjustments */
@@ -186,6 +246,30 @@
             #products .card-img-wrapper {
                 height: 160px !important;
             }
+        }
+
+        /* Dropdown menu styling */
+        .dropdown-menu {
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+        }
+
+        /* Alert/Warning boxes */
+        .alert-info {
+            background-color: #e7f1ff;
+            border-color: #b6d4fe;
+            color: #084298;
+        }
+
+        /* Badge styling */
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
         }
     </style>
 </head>
@@ -244,22 +328,22 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <h1 class="display-4 fw-bold mb-3">Vape Expo</h1>
-                    <p class="lead mb-3">Your trusted vape shop in Calamba,Laguna</p>
+                    <p class="lead mb-3">Your trusted vape shop in Calamba, Laguna</p>
                     <div class="contact-info mb-4">
-                        <p><i class="bi bi-telephone me-2"></i>Contact: <a href="tel:+639603280432" class="text-white">0960 328 0432</a></p>
+                        <p><i class="bi bi-telephone me-2"></i>Contact: <a href="tel:+639603280432" class="text-dark">0960 328 0432</a></p>
                         <p><i class="bi bi-clock me-2"></i>Business Hours: 9:00 AM – 10:00 PM (Daily)</p>
                     </div>
                     @auth
                         @if(Auth::user()->role == 'super_admin')
-                            <a href="{{ route('admin.dashboard') }}" class="btn btn-light btn-lg px-4 me-md-2">Go to Admin Dashboard</a>
+                            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Go to Admin Dashboard</a>
                         @elseif(Auth::user()->role == 'branch_admin')
-                            <a href="{{ route('branch-admin.dashboard') }}" class="btn btn-light btn-lg px-4 me-md-2">Go to Branch Dashboard</a>
+                            <a href="{{ route('branch-admin.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Go to Branch Dashboard</a>
                         @elseif(Auth::user()->role == 'customer')
-                            <a href="{{ route('customer.dashboard') }}" class="btn btn-light btn-lg px-4 me-md-2">Go to My Dashboard</a>
+                            <a href="{{ route('customer.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Go to My Dashboard</a>
                         @endif
                     @else
-                        <a href="{{ route('register') }}" class="btn btn-light btn-lg px-4 me-md-2">Get Started</a>
-                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">Login</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline-primary btn-lg px-4">Login</a>
                     @endauth
                 </div>
                 <div class="col-lg-6 text-center mt-4 mt-lg-0">
@@ -312,7 +396,7 @@
     <!-- Branches Carousel -->
     <section id="branches" class="container py-5">
         <h2 class="text-center mb-5">Our Branches</h2>
-        <div id="branchCarousel" class="carousel slide carousel-dark shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
+        <div id="branchCarousel" class="carousel slide shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
             <!-- Indicators -->
             <div class="carousel-indicators">
                 @foreach($branches as $index => $branch)
@@ -324,18 +408,18 @@
             <div class="carousel-inner">
                 @foreach($branches as $index => $branch)
                     <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                        <div class="position-relative" style="background-color: #0B0C10;">
+                        <div class="position-relative" style="background-color: #f8f9fa;">
                             <!-- Image Container with proper aspect ratio -->
                             <div style="max-height: 500px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
                                 <img src="{{ asset('images/branches/' . $branch['img']) }}"
                                      class="d-block w-100"
                                      alt="{{ $branch['name'] }}"
-                                     style="width: 100%; height: auto; max-height: 500px; object-fit: contain; background-color: #0B0C10;"
+                                     style="width: 100%; height: auto; max-height: 500px; object-fit: contain; background-color: #f8f9fa;"
                                      onerror="this.src='https://via.placeholder.com/1200x500?text=' + encodeURIComponent('{{ $branch['name'] }}'); this.style.objectFit='cover';">
                             </div>
                             
                             <!-- Branch Info Overlay -->
-                            <div class="position-absolute bottom-0 start-0 end-0 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 70%, transparent 100%);">
+                            <div class="position-absolute bottom-0 start-0 end-0 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);">
                                 <div class="container">
                                     <div class="row">
                                         <div class="col-12">
@@ -363,11 +447,11 @@
 
             <!-- Controls -->
             <button class="carousel-control-prev" type="button" data-bs-target="#branchCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon bg-dark rounded-circle p-3" style="background-size: 60%;" aria-hidden="true"></span>
+                <span class="carousel-control-prev-icon rounded-circle p-3" style="background-size: 60%;" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
             </button>
             <button class="carousel-control-next" type="button" data-bs-target="#branchCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon bg-dark rounded-circle p-3" style="background-size: 60%;" aria-hidden="true"></span>
+                <span class="carousel-control-next-icon rounded-circle p-3" style="background-size: 60%;" aria-hidden="true"></span>
                 <span class="visually-hidden">Next</span>
             </button>
         </div>
@@ -388,7 +472,7 @@
                 @foreach($products as $product)
                 <div class="col-md-4 col-lg-3">
                     <div class="card h-100 shadow-sm border-0">
-                        <div class="card-img-wrapper p-3 d-flex align-items-center justify-content-center" style="height: 200px; background-color: #f8f9fa;">
+                        <div class="card-img-wrapper p-3 d-flex align-items-center justify-content-center" style="height: 200px; background-color: #ffffff;">
                             <img src="{{ asset('images/products/' . $product['img']) }}" 
                                  class="img-fluid" 
                                  alt="{{ $product['name'] }}" 
@@ -407,7 +491,7 @@
     </section>
 
     <!-- Staff Section -->
-    <section id="staff" class="staff-list py-5">
+    <section id="staff" class="py-5">
         <div class="container">
             <h2 class="text-center mb-5">Meet Our Team</h2>
             <div class="row g-4">
@@ -422,9 +506,9 @@
                 @endphp
                 @foreach($staff as $member)
                 <div class="col-md-4 col-lg-3">
-                    <div class="card text-center h-100 border-0 bg-transparent">
+                    <div class="card text-center h-100 border-0 shadow-sm">
                         <div class="card-body">
-                            <i class="bi bi-person-circle display-1 text-secondary"></i>
+                            <i class="bi bi-person-circle display-1 text-primary"></i>
                             <h5 class="card-title mt-3">{{ $member['name'] }}</h5>
                             <p class="card-text text-muted">{{ $member['role'] }}</p>
                             <small class="text-primary"><i class="bi bi-shop"></i> {{ $member['branch'] }}</small>
@@ -449,7 +533,7 @@
                 <div class="col-md-4 mb-4">
                     <h5>Business Hours</h5>
                     <p>Monday – Sunday<br>9:00 AM – 10:00 PM</p>
-                    <h5>Branches Opened</h5>
+                    <h5 class="mt-4">Branches Opened</h5>
                     <p>Main Branch: May 20, 2024<br>Other branches: 2024–2025</p>
                 </div>
                 <div class="col-md-4 mb-4">

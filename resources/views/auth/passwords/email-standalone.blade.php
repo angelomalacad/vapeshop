@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Vape Expo</title>
+    <title>Forgot Password - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
             background: linear-gradient(135deg, #0B0C10 0%, #1F2833 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .login-card {
+        .forgot-card {
             max-width: 450px;
             margin: 0 auto;
             border: none;
@@ -68,30 +68,7 @@
             color: #6c757d;
             opacity: 0.5;
         }
-        
-        /* Password input container styles */
-        .password-container {
-            position: relative;
-        }
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #66FCF1;
-            background: transparent;
-            border: none;
-            z-index: 10;
-        }
-        .password-toggle:hover {
-            color: #45a29e;
-        }
-        .password-toggle i {
-            font-size: 1.2rem;
-        }
-        
-        .btn-login {
+        .btn-forgot {
             background: #66FCF1;
             border: none;
             color: #0B0C10;
@@ -99,9 +76,8 @@
             padding: 0.75rem;
             border-radius: 8px;
             transition: all 0.3s;
-            margin-top: 1rem;
         }
-        .btn-login:hover {
+        .btn-forgot:hover {
             background: #45a29e;
             color: #FFFFFF;
             transform: translateY(-2px);
@@ -112,7 +88,7 @@
             border: 1px solid #66FCF1;
             color: #66FCF1;
             font-weight: 500;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem;
             border-radius: 8px;
             transition: all 0.3s;
         }
@@ -178,18 +154,30 @@
             color: #66FCF1;
             width: 20px;
         }
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+            border-radius: 8px;
+        }
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6 col-xl-5">
-                <div class="card login-card">
+                <div class="card forgot-card">
                     <!-- Header with Logo -->
                     <div class="card-header">
                         <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="60" class="mb-3" onerror="this.src='https://via.placeholder.com/60x60?text=VE'">
-                        <h4 class="mb-2">Welcome Back!</h4>
-                        <p>Sign in to access your account</p>
+                        <h4 class="mb-2">Forgot Password?</h4>
+                        <p>Enter your email to reset your password</p>
                         <div class="shop-badge mt-2">
                             <i class="bi bi-shop"></i>
                             <span>Vape Expo - 5 Branches in Calamba</span>
@@ -197,26 +185,7 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Error Messages -->
-                        @if($errors->any())
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <strong>Login failed!</strong>
-                                @foreach($errors->all() as $error)
-                                    <p class="mb-0 small">{{ $error }}</p>
-                                @endforeach
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-                        
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-
+                        <!-- Success Message -->
                         @if(session('status'))
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <i class="bi bi-check-circle-fill me-2"></i>
@@ -225,58 +194,43 @@
                             </div>
                         @endif
                         
-                        <!-- Login Form -->
-                        <form method="POST" action="{{ route('login') }}">
+                        <!-- Error Messages -->
+                        @if($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Error!</strong>
+                                @foreach($errors->all() as $error)
+                                    <p class="mb-0 small">{{ $error }}</p>
+                                @endforeach
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+                        
+                        <!-- Forgot Password Form -->
+                        <form method="POST" action="{{ route('password.email') }}">
                             @csrf
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label for="email" class="form-label">
                                     <i class="bi bi-envelope-fill me-2 text-primary-custom"></i>Email Address
                                 </label>
                                 <input type="email" class="form-control" id="email" name="email" 
-                                       value="{{ old('email') }}" placeholder="Enter your email" required autofocus>
+                                       value="{{ old('email') }}" placeholder="Enter your registered email" required autofocus>
                             </div>
                             
-                            <!-- Password field with toggle visibility -->
-                            <div class="mb-3">
-                                <label for="password" class="form-label">
-                                    <i class="bi bi-lock-fill me-2 text-primary-custom"></i>Password
-                                </label>
-                                <div class="password-container">
-                                    <input type="password" class="form-control" id="password" name="password" 
-                                           placeholder="Enter your password" required>
-                                    <button type="button" class="password-toggle" id="togglePassword" onclick="togglePasswordVisibility()">
-                                        <i class="bi bi-eye-slash" id="toggleIcon"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <!-- Remember Me & Forgot Password -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                                    <label class="form-check-label text-muted-custom" for="remember">
-                                        Remember me
-                                    </label>
-                                </div>
-                                <a href="{{ route('password.request') }}" class="text-primary-custom text-decoration-none small">
-                                    <i class="bi bi-key me-1"></i>Forgot Password?
-                                </a>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-login w-100">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            <button type="submit" class="btn btn-forgot w-100">
+                                <i class="bi bi-send me-2"></i>Send Reset Link
                             </button>
                         </form>
                         
                         <!-- Divider -->
                         <div class="divider">
-                            <span>New to Vape Expo?</span>
+                            <span>Remember your password?</span>
                         </div>
                         
-                        <!-- Register Link -->
+                        <!-- Back to Login -->
                         <div class="text-center mb-3">
-                            <a href="{{ route('register') }}" class="btn btn-outline-reset w-100">
-                                <i class="bi bi-person-plus me-2"></i>Create New Account
+                            <a href="{{ route('login') }}" class="btn btn-outline-reset w-100">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Back to Login
                             </a>
                         </div>
                         
@@ -288,8 +242,7 @@
                         </div>
                         
                         
-                        
-                        
+                        </div>
                     </div>
                 </div>
             </div>
@@ -297,23 +250,5 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Password Toggle Script -->
-    <script>
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggleIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('bi-eye-slash');
-                toggleIcon.classList.add('bi-eye');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('bi-eye');
-                toggleIcon.classList.add('bi-eye-slash');
-            }
-        }
-    </script>
 </body>
 </html>

@@ -11,13 +11,12 @@ class HandleAppearance
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
-
+        // Share appearance variable with all views (default to 'light' if not set)
+        View::share('appearance', $request->cookie('appearance') ?? 'light');
+        
         return $next($request);
     }
 }

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+// Add this import
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+// Implement MustVerifyEmail interface
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -22,19 +25,16 @@ class User extends Authenticatable
         'role',
         'branch_id',
         'phone',
-        'alternate_phone',
         'address',
         'city',
         'province',
         'zip_code',
         'birthdate',
-        'gender',
         'receive_notifications',
         'receive_promotions',
         'is_active',
         'last_login_at',
         'last_login_ip',
-        'fcm_token',
     ];
 
     /**
@@ -58,10 +58,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthdate' => 'date',
-            'last_login_at' => 'datetime',
             'receive_notifications' => 'boolean',
             'receive_promotions' => 'boolean',
             'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -145,7 +145,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope a query to only include staff (branch admins + staff).
+     * Scope a query to only include staff.
      */
     public function scopeStaff($query)
     {
