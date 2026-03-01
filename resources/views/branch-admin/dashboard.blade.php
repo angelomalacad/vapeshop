@@ -222,7 +222,7 @@
                                     <div class="col-md-3 col-6 mb-3">
                                         <div class="d-flex align-items-center">
                                             <div class="bg-info rounded-circle p-3 me-3">
-                                                <i class="bi bi-currency-dollar text-white fs-4"></i>
+                                                <span class="text-white fs-4">₱</span>
                                             </div>
                                             <div>
                                                 <h6 class="mb-0">Today's Revenue</h6>

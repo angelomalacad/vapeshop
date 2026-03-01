@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(135deg, #0B0C10 0%, #1F2833 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,63 +19,63 @@
             margin: 0 auto;
             border: none;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         .card-header {
-            background: linear-gradient(135deg, #1F2833 0%, #2C3E50 100%);
-            color: white;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #212529;
             padding: 2rem 1.5rem;
             text-align: center;
-            border-bottom: 3px solid #66FCF1;
+            border-bottom: 3px solid #0d6efd;
         }
         .card-header img {
             margin-bottom: 1rem;
         }
         .card-header h4 {
-            color: #66FCF1;
+            color: #0d6efd;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
         .card-header p {
-            color: #C5C6C7;
+            color: #6c757d;
             font-size: 0.9rem;
             margin-bottom: 0;
         }
         .card-body {
-            background: #1F2833;
+            background: #ffffff;
             padding: 2rem;
         }
         .form-label {
-            color: #C5C6C7;
+            color: #495057;
             font-weight: 500;
             margin-bottom: 0.5rem;
         }
         .form-control, .form-select {
-            background-color: #0B0C10;
-            border: 1px solid #2C3E50;
-            color: #FFFFFF;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            color: #212529;
             padding: 0.75rem 1rem;
             border-radius: 8px;
         }
         .form-control:focus, .form-select:focus {
-            background-color: #0B0C10;
-            border-color: #66FCF1;
-            box-shadow: 0 0 0 0.2rem rgba(102, 252, 241, 0.25);
-            color: #FFFFFF;
+            background-color: #ffffff;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            color: #212529;
         }
         .form-control::placeholder {
-            color: #6c757d;
-            opacity: 0.5;
+            color: #adb5bd;
+            opacity: 1;
         }
         .form-text {
             color: #6c757d;
             font-size: 0.8rem;
         }
         .btn-register {
-            background: #66FCF1;
+            background: #0d6efd;
             border: none;
-            color: #0B0C10;
+            color: #ffffff;
             font-weight: 600;
             padding: 0.75rem;
             border-radius: 8px;
@@ -83,103 +83,125 @@
             margin-top: 1rem;
         }
         .btn-register:hover {
-            background: #45a29e;
-            color: #FFFFFF;
+            background: #0b5ed7;
+            color: #ffffff;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 252, 241, 0.3);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
         }
         .btn-outline-secondary {
-            border-color: #2C3E50;
-            color: #C5C6C7;
+            border-color: #ced4da;
+            color: #6c757d;
         }
         .btn-outline-secondary:hover {
-            background-color: #2C3E50;
-            color: #FFFFFF;
+            background-color: #e9ecef;
+            color: #212529;
+            border-color: #ced4da;
         }
         .text-primary-custom {
-            color: #66FCF1 !important;
+            color: #0d6efd !important;
         }
         .text-primary-custom:hover {
-            color: #45a29e !important;
+            color: #0a58ca !important;
         }
         .divider {
             display: flex;
             align-items: center;
             text-align: center;
-            color: #C5C6C7;
+            color: #6c757d;
             margin: 1.5rem 0;
         }
         .divider::before,
         .divider::after {
             content: '';
             flex: 1;
-            border-bottom: 1px solid #2C3E50;
+            border-bottom: 1px solid #dee2e6;
         }
         .divider span {
             padding: 0 10px;
             font-size: 0.9rem;
         }
         .shop-badge {
-            background: rgba(102, 252, 241, 0.1);
-            border: 1px solid #66FCF1;
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid #0d6efd;
             border-radius: 50px;
             padding: 0.5rem 1.5rem;
             display: inline-block;
             margin-top: 0.5rem;
         }
         .shop-badge span {
-            color: #C5C6C7;
+            color: #6c757d;
             font-size: 0.85rem;
         }
         .password-requirements {
-            background: #0B0C10;
+            background: #f8f9fa;
             border-radius: 8px;
             padding: 1rem;
             margin-top: 1rem;
-            border-left: 3px solid #66FCF1;
+            border-left: 3px solid #0d6efd;
         }
         .password-requirements p {
-            color: #C5C6C7;
+            color: #6c757d;
             margin-bottom: 0.25rem;
             font-size: 0.85rem;
         }
         .password-requirements i {
-            color: #66FCF1;
+            color: #0d6efd;
             width: 20px;
         }
         .invalid-feedback {
-            color: #ff6b6b;
+            color: #dc3545;
         }
         .modal-content {
-            background-color: #1F2833;
-            border: 1px solid #66FCF1;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
         }
         .modal-header {
-            border-bottom: 1px solid #2C3E50;
+            border-bottom: 1px solid #dee2e6;
         }
         .modal-footer {
-            border-top: 1px solid #2C3E50;
+            border-top: 1px solid #dee2e6;
         }
         .modal-title {
-            color: #66FCF1;
+            color: #0d6efd;
         }
         .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
+            filter: none;
         }
         .policy-content {
             max-height: 400px;
             overflow-y: auto;
-            color: #C5C6C7;
+            color: #212529;
             padding: 1rem;
-            background-color: #0B0C10;
+            background-color: #f8f9fa;
             border-radius: 8px;
         }
         .policy-content h6 {
-            color: #66FCF1;
+            color: #0d6efd;
             margin-top: 1rem;
         }
         .policy-content h6:first-child {
             margin-top: 0;
+        }
+        .text-white-50 {
+            color: #6c757d !important;
+        }
+        .border-secondary {
+            border-color: #dee2e6 !important;
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
+        }
+        .text-muted {
+            color: #6c757d !important;
+        }
+        h6.text-white {
+            color: #212529 !important;
         }
     </style>
 </head>
@@ -217,7 +239,7 @@
                             @csrf
                             
                             <!-- Personal Information -->
-                            <h6 class="text-white mb-3"><i class="bi bi-person-fill text-primary-custom me-2"></i>Personal Information</h6>
+                            <h6 class="mb-3" style="color: #212529;"><i class="bi bi-person-fill text-primary-custom me-2"></i>Personal Information</h6>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -270,7 +292,7 @@
                             </div>
 
                             <!-- Address Information -->
-                            <h6 class="text-white mt-4 mb-3"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
+                            <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
                             
                             <div class="mb-3">
                                 <label for="address" class="form-label">
@@ -312,7 +334,7 @@
                             </div>
 
                             <!-- Security Information -->
-                            <h6 class="text-white mt-4 mb-3"><i class="bi bi-shield-lock-fill text-primary-custom me-2"></i>Security</h6>
+                            <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-shield-lock-fill text-primary-custom me-2"></i>Security</h6>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -339,15 +361,15 @@
 
                             <!-- Password Requirements -->
                             <div class="password-requirements">
-                                <p><i class="bi bi-check-circle-fill text-success"></i> Minimum 8 characters</p>
-                                <p><i class="bi bi-check-circle-fill text-success"></i> At least one uppercase letter</p>
-                                <p><i class="bi bi-check-circle-fill text-success"></i> At least one number</p>
+                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> Minimum 8 characters</p>
+                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> At least one uppercase letter</p>
+                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> At least one number</p>
                             </div>
 
                             <!-- Terms and Conditions with Modals -->
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                                <label class="form-check-label text-white-50 small" for="terms">
+                                <label class="form-check-label" style="color: #6c757d; font-size: 0.9rem;" for="terms">
                                     I agree to the 
                                     <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> and 
                                     <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>. 
@@ -357,7 +379,7 @@
 
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
-                                <label class="form-check-label text-white-50 small" for="newsletter">
+                                <label class="form-check-label" style="color: #6c757d; font-size: 0.9rem;" for="newsletter">
                                     I want to receive updates about new products and promotions
                                 </label>
                             </div>
@@ -388,12 +410,12 @@
                         </div>
 
                         <!-- Owner Information -->
-                        <div class="mt-4 pt-3 text-center border-top border-secondary">
-                            <p class="text-white-50 small mb-0">
-                                <i class="bi bi-telephone me-1"></i> 0960 328 0432
+                        <div class="mt-4 pt-3 text-center border-top" style="border-color: #dee2e6 !important;">
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-telephone me-1" style="color: #0d6efd;"></i> 0960 328 0432
                             </p>
-                            <p class="text-white-50 small mb-0">
-                                <i class="bi bi-clock me-1"></i> Store Hours: 9:00 AM - 10:00 PM Daily
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-clock me-1" style="color: #0d6efd;"></i> Store Hours: 9:00 AM - 10:00 PM Daily
                             </p>
                         </div>
                     </div>

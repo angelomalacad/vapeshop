@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(135deg, #0B0C10 0%, #1F2833 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,104 +19,104 @@
             margin: 0 auto;
             border: none;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         .card-header {
-            background: linear-gradient(135deg, #1F2833 0%, #2C3E50 100%);
-            color: white;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #212529;
             padding: 2rem 1.5rem;
             text-align: center;
-            border-bottom: 3px solid #66FCF1;
+            border-bottom: 3px solid #0d6efd;
         }
         .card-header img {
             margin-bottom: 1rem;
         }
         .card-header h4 {
-            color: #66FCF1;
+            color: #0d6efd;
             font-weight: 600;
         }
         .card-header p {
-            color: #C5C6C7;
+            color: #6c757d;
             font-size: 0.9rem;
             margin-bottom: 0;
         }
         .card-body {
-            background: #1F2833;
+            background: #ffffff;
             padding: 2rem;
         }
         .form-label {
-            color: #FFFFFF;
+            color: #495057;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
         .form-control {
-            background-color: #0B0C10;
-            border: 2px solid #2C3E50;
-            color: #FFFFFF;
+            background-color: #ffffff;
+            border: 2px solid #e9ecef;
+            color: #212529;
             padding: 0.75rem 1rem;
             border-radius: 8px;
         }
         .form-control:focus {
-            background-color: #0B0C10;
-            border-color: #66FCF1;
-            box-shadow: 0 0 0 0.2rem rgba(102, 252, 241, 0.25);
-            color: #FFFFFF;
+            background-color: #ffffff;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            color: #212529;
         }
         .form-control::placeholder {
-            color: #9CA3AF;
+            color: #adb5bd;
             opacity: 1;
         }
         .btn-reset {
-            background: #66FCF1;
+            background: #0d6efd;
             border: none;
-            color: #0B0C10;
+            color: #ffffff;
             font-weight: 700;
             padding: 0.75rem;
             border-radius: 8px;
             transition: all 0.3s;
         }
         .btn-reset:hover {
-            background: #45a29e;
-            color: #FFFFFF;
+            background: #0b5ed7;
+            color: #ffffff;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 252, 241, 0.3);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
         }
         .alert-danger {
-            background-color: rgba(220, 53, 69, 0.2);
-            border: 1px solid #dc3545;
-            color: #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
             border-radius: 8px;
         }
         .alert-success {
-            background-color: rgba(40, 167, 69, 0.2);
-            border: 1px solid #28a745;
-            color: #28a745;
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+            color: #0f5132;
             border-radius: 8px;
         }
         .shop-badge {
-            background: rgba(102, 252, 241, 0.1);
-            border: 1px solid #66FCF1;
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid #0d6efd;
             border-radius: 50px;
             padding: 0.5rem 1.5rem;
             display: inline-block;
             margin-bottom: 1rem;
         }
         .shop-badge span {
-            color: #FFFFFF;
+            color: #6c757d;
             font-size: 0.9rem;
         }
         
         /* Password requirements */
         .password-requirements {
-            background: #0B0C10;
+            background: #f8f9fa;
             border-radius: 8px;
             padding: 1rem;
             margin: 1rem 0;
-            border-left: 4px solid #66FCF1;
+            border-left: 4px solid #0d6efd;
         }
         .password-requirements p {
-            color: #FFFFFF;
+            color: #495057;
             margin-bottom: 0.5rem;
         }
         .password-requirements i {
@@ -125,26 +125,33 @@
         }
         
         .form-text {
-            color: #9CA3AF;
+            color: #6c757d;
         }
         
         .back-link {
-            color: #66FCF1;
+            color: #0d6efd;
             text-decoration: none;
             font-weight: 500;
         }
         .back-link:hover {
-            color: #FFFFFF;
+            color: #0a58ca;
+            text-decoration: underline;
         }
         
         .footer-text {
-            color: #9CA3AF;
+            color: #6c757d;
         }
         .footer-text i {
-            color: #66FCF1;
+            color: #0d6efd;
         }
         .footer-text strong {
-            color: #66FCF1;
+            color: #0d6efd;
+        }
+        .invalid-feedback {
+            color: #dc3545;
+        }
+        hr {
+            border-color: #e9ecef !important;
         }
     </style>
 </head>
@@ -158,7 +165,7 @@
                         <h4 class="mb-2">Create New Password</h4>
                         <p>Enter your new password below</p>
                         <div class="shop-badge mt-2">
-                            <i class="bi bi-shop" style="color: #66FCF1;"></i>
+                            <i class="bi bi-shop" style="color: #0d6efd;"></i>
                             <span>Vape Expo - 5 Branches in Calamba</span>
                         </div>
                     </div>
@@ -193,7 +200,7 @@
                             <!-- New Password -->
                             <div class="mb-3">
                                 <label for="password" class="form-label">
-                                    <i class="bi bi-lock-fill me-2" style="color: #66FCF1;"></i>New Password
+                                    <i class="bi bi-lock-fill me-2" style="color: #0d6efd;"></i>New Password
                                 </label>
                                 <input type="password" class="form-control @error('password') is-invalid @enderror" 
                                        id="password" name="password" 
@@ -207,7 +214,7 @@
                             <!-- Confirm Password -->
                             <div class="mb-4">
                                 <label for="password-confirm" class="form-label">
-                                    <i class="bi bi-lock-fill me-2" style="color: #66FCF1;"></i>Confirm Password
+                                    <i class="bi bi-lock-fill me-2" style="color: #0d6efd;"></i>Confirm Password
                                 </label>
                                 <input type="password" class="form-control" id="password-confirm" 
                                        name="password_confirmation" placeholder="Confirm new password" required>
@@ -231,7 +238,7 @@
                             </a>
                         </div>
 
-                        <hr class="my-4" style="border-color: #2C3E50;">
+                        <hr class="my-4">
 
                         <p class="footer-text text-center mb-0">
                             <i class="bi bi-telephone"></i> Need help? Call <strong>0960 328 0432</strong>

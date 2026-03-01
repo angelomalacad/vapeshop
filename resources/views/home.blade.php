@@ -533,8 +533,6 @@
                 <div class="col-md-4 mb-4">
                     <h5>Business Hours</h5>
                     <p>Monday – Sunday<br>9:00 AM – 10:00 PM</p>
-                    <h5 class="mt-4">Branches Opened</h5>
-                    <p>Main Branch: May 20, 2024<br>Other branches: 2024–2025</p>
                 </div>
                 <div class="col-md-4 mb-4">
                     <h5>Quick Links</h5>
