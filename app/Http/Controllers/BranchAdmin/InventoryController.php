@@ -55,6 +55,81 @@ class InventoryController extends Controller
     }
 
     /**
+     * Show low stock items for this branch
+     */
+    public function lowStock()
+    {
+        $branchId = Auth::user()->branch_id;
+        
+        $items = BranchInventory::with(['product', 'flavor'])
+            ->where('branch_id', $branchId)
+            ->lowStock()
+            ->get();
+        
+        return view('branch-admin.inventory.low-stock', compact('items'));
+    }
+
+    /**
+     * Show form to add existing product to branch inventory
+     */
+    public function addProductForm()
+    {
+        $branchId = Auth::user()->branch_id;
+        
+        // Get products not yet in this branch's inventory
+        $existingProductIds = BranchInventory::where('branch_id', $branchId)
+            ->pluck('product_id')
+            ->toArray();
+        
+        $products = Product::with('flavors')
+            ->where('is_active', true)
+            ->whereNotIn('id', $existingProductIds)
+            ->get();
+        
+        return view('branch-admin.inventory.add-product', compact('products'));
+    }
+
+    /**
+     * Add existing product to branch inventory
+     */
+    public function addProduct(Request $request)
+    {
+        $branchId = Auth::user()->branch_id;
+        
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'flavor_id' => 'nullable|exists:product_flavors,id',
+            'quantity' => 'required|integer|min:0',
+            'low_stock_threshold' => 'required|integer|min:1',
+        ]);
+        
+        // Check if already exists
+        $exists = BranchInventory::where('branch_id', $branchId)
+            ->where('product_id', $request->product_id)
+            ->where('flavor_id', $request->flavor_id)
+            ->exists();
+        
+        if ($exists) {
+            return back()->with('error', 'This product already exists in your inventory.');
+        }
+        
+        BranchInventory::create([
+            'branch_id' => $branchId,
+            'product_id' => $request->product_id,
+            'flavor_id' => $request->flavor_id,
+            'quantity' => $request->quantity,
+            'reserved_quantity' => 0,
+            'low_stock_threshold' => $request->low_stock_threshold,
+            'reorder_point' => 10,
+            'optimal_stock' => 30,
+            'last_restocked_at' => now(),
+        ]);
+        
+        return redirect()->route('branch-admin.inventory.index')
+            ->with('success', 'Product added to branch inventory.');
+    }
+
+    /**
      * Show inventory item details
      */
     public function show(BranchInventory $inventory)

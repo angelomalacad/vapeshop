@@ -4,114 +4,178 @@ namespace App\Http\Controllers\BranchAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\Category;
+use App\Models\ProductFlavor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
         $products = Product::where('is_active', true)
-            ->with('category')
+            ->with('flavors')
             ->orderBy('name')
             ->paginate(20);
-            
+        
         return view('branch-admin.products.index', compact('products'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        $categories = Category::where('is_active', true)->get();
-        return view('branch-admin.products.create', compact('categories'));
+        return view('branch-admin.products.create');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:100|unique:products',
-            'category_id' => 'required|exists:categories,id',
+            'brand' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
+            'cost' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'type' => 'required|in:disposable,pod,mod,liquid,coil,accessory',
+            'low_stock_threshold' => 'nullable|integer|min:1',
+            'nicotine_strength' => 'nullable|string|max:50',
+            'puff_count' => 'nullable|integer',
+            'battery_capacity' => 'nullable|integer',
+            'charging_type' => 'nullable|string|max:50',
+            'liquid_capacity' => 'nullable|numeric',
+            'adjustable_airflow' => 'nullable|boolean',
+            'smart_display' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'flavors' => 'nullable|array',
+            'flavors.*.name' => 'required_with:flavors|string|max:255',
+            'flavors.*.code' => 'nullable|string|max:50',
+            'flavors.*.category' => 'nullable|string|max:50',
         ]);
-        
+
+        // Handle brand
+        $brand = $request->brand;
+        if ($brand === 'Other' && $request->filled('custom_brand')) {
+            $brand = $request->custom_brand;
+        }
+
+        // Handle category
+        $category = $request->category;
+        if ($category === 'New' && $request->filled('new_category')) {
+            $category = $request->new_category;
+        }
+
+        // Create product
         $product = Product::create([
             'name' => $request->name,
-            'sku' => $request->sku,
+            'brand' => $brand,
             'description' => $request->description,
-            'category_id' => $request->category_id,
-            'price' => $request->price,
+            'category' => $category,
             'type' => $request->type,
+            'price' => $request->price,
+            'cost' => $request->cost,
+            'nicotine_strength' => $request->nicotine_strength,
+            'puff_count' => $request->puff_count,
+            'battery_capacity' => $request->battery_capacity,
+            'charging_type' => $request->charging_type,
+            'liquid_capacity' => $request->liquid_capacity,
+            'adjustable_airflow' => $request->has('adjustable_airflow'),
+            'smart_display' => $request->has('smart_display'),
             'is_active' => true,
         ]);
-        
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+            $product->update(['image' => $imagePath]);
+        }
+
+        // Handle flavors
+        if ($request->has('flavors')) {
+            foreach ($request->flavors as $flavorData) {
+                if (!empty($flavorData['name'])) {
+                    ProductFlavor::create([
+                        'product_id' => $product->id,
+                        'name' => $flavorData['name'],
+                        'code' => $flavorData['code'] ?? null,
+                        'category' => $flavorData['category'] ?? null,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
+
         // Add to branch inventory
         $branchId = Auth::user()->branch_id;
-        
-        \App\Models\Inventory::create([
+        \App\Models\BranchInventory::create([
             'branch_id' => $branchId,
             'product_id' => $product->id,
             'quantity' => $request->stock_quantity,
-            'low_stock_threshold' => 5,
-            'optimal_stock_level' => 20,
+            'reserved_quantity' => 0,
+            'low_stock_threshold' => $request->low_stock_threshold ?? 10,
+            'reorder_point' => 10,
+            'optimal_stock' => 30,
+            'last_restocked_at' => now(),
         ]);
-        
+
         return redirect()->route('branch-admin.products.index')
-            ->with('success', 'Product created successfully.');
+            ->with('success', 'Product created successfully!');
     }
 
-    public function show($id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
     {
-        $product = Product::with('category')->findOrFail($id);
         return view('branch-admin.products.show', compact('product'));
     }
 
-    public function edit($id)
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $categories = Category::where('is_active', true)->get();
-        return view('branch-admin.products.edit', compact('product', 'categories'));
+        return view('branch-admin.products.edit', compact('product'));
     }
 
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Product $product)
     {
-        $product = Product::findOrFail($id);
-        
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:100|unique:products,sku,' . $id,
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'type' => 'required|in:disposable,pod,mod,liquid,coil,accessory',
-        ]);
-        
-        $product->update([
-            'name' => $request->name,
-            'sku' => $request->sku,
-            'description' => $request->description,
-            'category_id' => $request->category_id,
-            'price' => $request->price,
-            'type' => $request->type,
-        ]);
-        
-        return redirect()->route('branch-admin.products.index')
-            ->with('success', 'Product updated successfully.');
+        // Similar validation for update
+        // ... (you can add update logic later)
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $product->update(['is_active' => false]);
+        // Check if product is in any inventory
+        $inventoryCount = \App\Models\BranchInventory::where('product_id', $product->id)->count();
         
+        if ($inventoryCount > 0) {
+            return redirect()->back()
+                ->with('error', 'Cannot delete product that exists in inventory.');
+        }
+
+        // Delete image
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->delete();
+
         return redirect()->route('branch-admin.products.index')
-            ->with('success', 'Product deactivated successfully.');
-    }
-    
-    public function uploadImage(Request $request)
-    {
-        // This will be implemented later with your ImageProcessor
-        return response()->json(['message' => 'Image upload not implemented yet']);
+            ->with('success', 'Product deleted successfully.');
     }
 }

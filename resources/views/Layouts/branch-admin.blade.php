@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Branch Admin - VapeShop')</title>
+    <title>@yield('title', 'Branch Staff - Vape Expo')</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,9 +18,9 @@
             left: 0;
             z-index: 100;
             padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            width: 250px;
-            background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);
+            width: 260px;
+            background: linear-gradient(145deg, #f5f7fa 0%, #e9ecef 100%);
+            box-shadow: 2px 0 15px rgba(0,0,0,0.03);
         }
         
         .sidebar-sticky {
@@ -34,41 +34,66 @@
         
         .sidebar .nav-link {
             font-weight: 500;
-            color: #ecf0f1;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s;
+            color: #4a5568;
+            padding: 0.85rem 1.25rem;
+            transition: all 0.2s ease;
+            margin: 2px 8px;
+            border-radius: 8px;
         }
         
         .sidebar .nav-link:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            padding-left: 1.5rem;
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.05);
         }
         
         .sidebar .nav-link.active {
-            color: #fff;
-            background: rgba(52, 152, 219, 0.8);
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.1);
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link i {
+            color: #0d6efd;
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
         }
         
         .sidebar-heading {
-            font-size: .75rem;
+            font-size: .7rem;
             text-transform: uppercase;
-            color: #7b8a8b;
-            padding: 0.5rem 1rem;
+            color: #6c757d;
+            padding: 0.5rem 1.25rem;
             margin-top: 1rem;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
         
         .main-content {
-            margin-left: 250px;
+            margin-left: 260px;
             padding: 20px;
+            background: #f8f9fa;
+            min-height: 100vh;
         }
         
         .navbar-brand {
-            padding: 0.75rem 1rem;
-            font-size: 1.25rem;
-            background: rgba(0, 0, 0, 0.2);
-            width: 250px;
-            text-align: center;
+            padding: 1rem 1.25rem;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.5);
+            width: 260px;
+            text-align: left;
+            color: #2c3e50 !important;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .navbar-brand small {
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: block;
+            margin-top: 0.2rem;
+            font-weight: normal;
         }
         
         @media (max-width: 768px) {
@@ -84,6 +109,118 @@
                 width: 100%;
             }
         }
+        
+        .branch-info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        
+        .branch-info-card i {
+            color: #0d6efd;
+            margin-right: 0.5rem;
+            width: 20px;
+        }
+        
+        .branch-info-card div {
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .branch-info-card .small {
+            color: #6c757d;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .badge-count {
+            background: #0d6efd;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .footer-info {
+            margin: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .footer-info i {
+            color: #0d6efd;
+            margin-right: 0.5rem;
+            width: 20px;
+        }
+        
+        .footer-info div {
+            margin-bottom: 0.5rem;
+        }
+        
+        .owner-name {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        
+        .btn-outline-primary {
+            border: 1px solid #0d6efd;
+            color: #0d6efd;
+            border-radius: 20px;
+            padding: 0.3rem 1rem;
+        }
+        
+        .btn-outline-primary:hover {
+            background: #0d6efd;
+            color: white;
+        }
+        
+        .text-primary-custom {
+            color: #0d6efd;
+        }
+        
+        /* Soft shadows and rounded corners */
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border-radius: 12px;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+            padding: 1rem 1.25rem;
+        }
+        
+        .list-group-item {
+            border: none;
+            margin-bottom: 2px;
+            border-radius: 8px !important;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 12px;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
     </style>
     
     @stack('styles')
@@ -91,183 +228,166 @@
 <body>
     <!-- Sidebar -->
     <nav class="sidebar d-md-block">
-        <div class="navbar-brand text-white">
-            <i class="bi bi-shop"></i> VapeShop Branch
+        <div class="navbar-brand">
+            <img src="{{ asset('images/logo.png') }}" alt="Vape Expo" height="30" class="me-2">
+            VAPE EXPO
             <br>
-            <small class="text-muted">{{ Auth::user()->branch->name ?? 'No Branch' }}</small>
+            <small>{{ Auth::user()->branch->name ?? 'Branch' }}</small>
         </div>
         
         <div class="sidebar-sticky">
+            <!-- Branch Staff Info -->
+            <div class="branch-info-card">
+                <div><i class="bi bi-person-circle"></i> {{ Auth::user()->name }}</div>
+                <div class="small mt-1"><i class="bi bi-envelope"></i> {{ Auth::user()->email }}</div>
+                <div class="small mt-1"><i class="bi bi-shield-check"></i> Branch Staff</div>
+            </div>
+            
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('branch-admin.dashboard') ? 'active' : '' }}" 
                        href="{{ route('branch-admin.dashboard') }}">
-                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
                 </li>
                 
-                <li class="sidebar-heading">Inventory</li>
+                <li class="sidebar-heading">INVENTORY</li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.*') ? 'active' : '' }}" 
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.index') ? 'active' : '' }}" 
                        href="{{ route('branch-admin.inventory.index') }}">
-                        <i class="bi bi-box-seam me-2"></i> Inventory Management
+                        <i class="bi bi-box-seam"></i> Inventory
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('branch-admin.products.*') ? 'active' : '' }}" 
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.add-product') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.add-product') }}">
+                        <i class="bi bi-plus-circle"></i> Add Stock
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.low-stock') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.low-stock') }}">
+                        <i class="bi bi-exclamation-triangle"></i> Low Stock
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfer.form') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.transfer.form') }}">
+                        <i class="bi bi-arrow-left-right"></i> Transfers
+                    </a>
+                </li>
+                
+                <li class="sidebar-heading">PRODUCTS</li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.products.index') ? 'active' : '' }}" 
                        href="{{ route('branch-admin.products.index') }}">
-                        <i class="bi bi-plus-circle me-2"></i> Add New Products
+                        <i class="bi bi-tags"></i> Catalog
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('branch-admin.pos.*') ? 'active' : '' }}" 
-                       href="{{ route('branch-admin.pos') }}">
-                        <i class="bi bi-cash-coin me-2"></i> Point of Sale
+                    <a class="nav-link {{ request()->routeIs('branch-admin.products.create') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.products.create') }}">
+                        <i class="bi bi-plus-lg"></i> New Product
                     </a>
                 </li>
                 
-                <li class="sidebar-heading">Orders</li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('branch-admin.orders.index') }}">
-                        <i class="bi bi-receipt me-2"></i> Order Management
-                        <span class="badge bg-danger float-end">3</span>
-                    </a>
-                </li>
-                
-                <li class="sidebar-heading">Reports</li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('branch-admin.reports.sales') }}">
-                        <i class="bi bi-graph-up me-2"></i> Sales Reports
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('branch-admin.reports.inventory') }}">
-                        <i class="bi bi-clipboard-data me-2"></i> Inventory Reports
-                    </a>
-                </li>
-                
-                <li class="sidebar-heading">Account</li>
+                <li class="sidebar-heading">ACCOUNT</li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('home') }}">
-                        <i class="bi bi-house me-2"></i> Back to Main Site
+                        <i class="bi bi-house"></i> Home
                     </a>
                 </li>
                 <li class="nav-item">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="nav-link text-start w-100 border-0 bg-transparent">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent">
+                            <i class="bi bi-box-arrow-right"></i> Logout
                         </button>
                     </form>
                 </li>
             </ul>
             
             <!-- Branch Info -->
-            <div class="mt-auto p-3 text-white small">
-                <div class="mb-2">
-                    <i class="bi bi-person"></i> {{ Auth::user()->name }}
-                </div>
-                <div class="mb-2">
-                    <i class="bi bi-envelope"></i> {{ Auth::user()->email }}
-                </div>
-                <div>
-                    <i class="bi bi-shield-check"></i> Branch Administrator
-                </div>
+            <div class="footer-info">
+                <div><i class="bi bi-clock"></i> 9AM - 10PM</div>
+                <div><i class="bi bi-telephone"></i> 0960 328 0432</div>
+                <div><i class="bi bi-person-circle"></i> Carlo Caranto</div>
+                <div class="mt-2"><i class="bi bi-shop"></i> 5 Branches</div>
             </div>
         </div>
     </nav>
     
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Top Navigation -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
-            <div class="container-fluid">
-                <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" 
-                        data-bs-target="#topNavbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">@yield('page-title', 'Dashboard')</h5>
+                <small class="text-muted">{{ Auth::user()->branch->name }}</small>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i> {{ now()->format('M d, Y') }}
+                </span>
+                <span class="me-3 text-muted small">
+                    <i class="bi bi-clock me-1"></i> {{ now()->format('h:i A') }}
+                </span>
                 
-                <div class="collapse navbar-collapse" id="topNavbar">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <span class="nav-link">
-                                <i class="bi bi-calendar3"></i> {{ now()->format('F d, Y') }}
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <span class="nav-link">
-                                <i class="bi bi-clock"></i> {{ now()->format('h:i A') }}
-                            </span>
-                        </li>
+                <!-- Low Stock Quick View -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-exclamation-triangle"></i> Stock
+                        <span class="badge-count" id="lowStockBadge">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('branch-admin.inventory.low-stock') }}">View Low Stock</a></li>
                     </ul>
-                    
-                    <div class="d-flex align-items-center">
-                        <!-- Low Stock Alert -->
-                        <div class="dropdown me-3">
-                            <button class="btn btn-warning btn-sm dropdown-toggle" type="button" 
-                                    data-bs-toggle="dropdown">
-                                <i class="bi bi-exclamation-triangle"></i> 
-                                Low Stock Items
-                                <span class="badge bg-dark">5</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><h6 class="dropdown-header">Low Stock Alert</h6></li>
-                                <li><a class="dropdown-item" href="#">Product A - 2 left</a></li>
-                                <li><a class="dropdown-item" href="#">Product B - 3 left</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('branch-admin.inventory.low-stock') }}">View All</a></li>
-                            </ul>
-                        </div>
-                        
-                        <!-- Quick Actions -->
-                        <div class="btn-group">
-                            <a href="{{ route('branch-admin.pos') }}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-cash-coin"></i> Quick Sale
-                            </a>
-                            <a href="{{ route('branch-admin.products.create') }}" class="btn btn-success btn-sm">
-                                <i class="bi bi-plus"></i> New Product
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </nav>
+        </div>
+        
+        <!-- Flash Messages -->
+        @if(session('success'))
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        
+        @if(session('error'))
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                <strong>Please check the form:</strong>
+                <button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         
         <!-- Page Content -->
-        <div class="container-fluid">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i> {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            
-            @if($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i> 
-                    <strong>Please fix the following errors:</strong>
-                    <ul class="mb-0">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            
-            @yield('content')
-        </div>
+        @yield('content')
     </main>
     
-    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Update low stock badge
+        document.addEventListener('DOMContentLoaded', function() {
+            const lowStockCount = {{ $lowStockCount ?? 0 }};
+            document.getElementById('lowStockBadge').textContent = lowStockCount;
+        });
+    </script>
     
     @stack('scripts')
 </body>
