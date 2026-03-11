@@ -172,14 +172,14 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
     });
 });
 
-// Admin Routes (Super Admin) - Require email verification
+// Admin Routes (Super Admin) - Require email verification and super_admin role
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    // All routes in this group check for super_admin role
     Route::get('/dashboard', function () {
         $user = Auth::user();
         if ($user->role !== 'super_admin') {
             return redirect()->route('home')->with('error', 'Access denied. Admin only.');
         }
-        
         return view('admin.dashboard');
     })->name('dashboard');
     
@@ -277,6 +277,53 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         })->name('reset-password');
     });
     // ===== END OF STAFF MANAGEMENT ROUTES =====
+    
+    // ===== SUPER ADMIN INVENTORY ROUTES =====
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::get('/', function () {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->index(request());
+        })->name('index');
+        
+        Route::get('/low-stock', function () {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->lowStock();
+        })->name('low-stock');
+        
+        Route::get('/transfers', function () {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->transfers(request());
+        })->name('transfers');
+        
+        Route::post('/transfers/{transfer}/approve', function ($transfer) {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            $transferModel = \App\Models\StockTransfer::findOrFail($transfer);
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->approveTransfer($transferModel);
+        })->name('transfers.approve');
+        
+        Route::get('/movements', function () {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->movements(request());
+        })->name('movements');
+        
+        Route::get('/export', function () {
+            if (Auth::user()->role !== 'super_admin') {
+                return redirect()->route('login');
+            }
+            return app(\App\Http\Controllers\Admin\InventoryController::class)->export(request());
+        })->name('export');
+    });
+    // ===== END OF SUPER ADMIN INVENTORY ROUTES =====
 });
 
 // Branch Admin Routes - Require email verification
@@ -291,22 +338,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         return view('branch-admin.dashboard');
     })->name('dashboard');
     
-    // Inventory Management
-    Route::get('/inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('/inventory/create', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'create'])->name('inventory.create');
-    Route::post('/inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'store'])->name('inventory.store');
-    Route::get('/inventory/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('inventory.show');
-    Route::get('/inventory/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('inventory.edit');
-    Route::put('/inventory/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'update'])->name('inventory.update');
-    Route::delete('/inventory/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('inventory.destroy');
-    
-    // Additional Inventory Routes
-    Route::post('/inventory/update-stock/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'updateStock'])->name('inventory.update-stock');
-    Route::get('/inventory/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('inventory.low-stock');
-    Route::get('/inventory/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('inventory.stock-history');
-    
     // Products Management (for adding new products to branch)
-    // Using the imported BranchAdminProductController
     Route::get('/products', [BranchAdminProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [BranchAdminProductController::class, 'create'])->name('products.create');
     Route::post('/products', [BranchAdminProductController::class, 'store'])->name('products.store');
@@ -314,19 +346,15 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::get('/products/{product}/edit', [BranchAdminProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [BranchAdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [BranchAdminProductController::class, 'destroy'])->name('products.destroy');
-    
-    // Additional Product Routes
     Route::post('/products/upload-image', [BranchAdminProductController::class, 'uploadImage'])->name('products.upload-image');
     
     // Orders/Sales Processing
-    // Check if OrderController exists, if not, use placeholders
     if (class_exists(\App\Http\Controllers\BranchAdmin\OrderController::class)) {
         Route::resource('orders', \App\Http\Controllers\BranchAdmin\OrderController::class);
         Route::post('/orders/{order}/process', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'processOrder'])->name('orders.process');
         Route::get('/pos', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'pos'])->name('pos');
         Route::post('/pos/quick-sale', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'quickSale'])->name('pos.quick-sale');
     } else {
-        // Placeholder routes for orders
         Route::get('/orders', function () {
             return "Orders Management - To be implemented";
         })->name('orders.index');
@@ -342,7 +370,6 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
             return redirect()->route('home')->with('error', 'Access denied.');
         }
-        
         return "Sales Reports - To be implemented";
     })->name('reports.sales');
     
@@ -351,11 +378,38 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
             return redirect()->route('home')->with('error', 'Access denied.');
         }
-        
         return "Inventory Reports - To be implemented";
     })->name('reports.inventory');
+    
+    // ===== BRANCH STAFF INVENTORY ROUTES =====
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'create'])->name('create');
+        Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
+        Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
+        Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
+        
+        // Stock management
+        Route::get('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockForm'])->name('add-stock');
+        Route::post('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStock'])->name('add-stock.post');
+        
+        Route::get('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStockForm'])->name('adjust-stock');
+        Route::post('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStock'])->name('adjust-stock.post');
+        
+         // ===== ADD PRODUCT TO INVENTORY ROUTES (ADD THIS) =====
+        Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
+        Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
+        // ===== END OF ADD PRODUCT ROUTES =====
+
+        // Transfers
+        Route::get('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferForm'])->name('transfer.form');
+        Route::post('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestTransfer'])->name('transfer.request');
+        Route::get('/transfers', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transfers'])->name('transfers');
+        Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
+        Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
+    });
+    // ===== END OF BRANCH STAFF INVENTORY ROUTES =====
 });
-// ===== END OF STEP 7 =====
 
 // API Routes - Simplified
 Route::prefix('api')->group(function () {
@@ -367,6 +421,15 @@ Route::prefix('api')->group(function () {
     Route::get('/products', function () {
         $products = \App\Models\Product::where('is_active', true)->get();
         return response()->json($products);
+    });
+    
+    // API route for flavors (used in transfer form)
+    Route::get('/products/{product}/flavors', function($productId) {
+        $product = \App\Models\Product::find($productId);
+        if (!$product) {
+            return response()->json([]);
+        }
+        return response()->json($product->flavors);
     });
 });
 

@@ -15,8 +15,7 @@ class SuperAdminMiddleware
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        $user = Auth::user();
-        if ($user->role !== 'super_admin') {
+        if (Auth::user()->role !== 'super_admin') {
             return redirect()->route('home')->with('error', 'Access denied. Super admin only.');
         }
 

@@ -183,8 +183,6 @@ return new class extends Migration
                 $table->text('delivery_address');
                 $table->string('recipient_name');
                 $table->string('recipient_phone');
-                $table->decimal('latitude', 10, 8)->nullable();
-                $table->decimal('longitude', 11, 8)->nullable();
                 $table->timestamp('estimated_arrival')->nullable();
                 $table->timestamp('delivered_at')->nullable();
                 $table->text('notes')->nullable();

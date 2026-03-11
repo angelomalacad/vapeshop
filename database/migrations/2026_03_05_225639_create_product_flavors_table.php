@@ -8,14 +8,13 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('branches', function (Blueprint $table) {
+        Schema::create('product_flavors', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->string('code')->unique();
-            $table->string('address');
-            $table->string('phone');
-            $table->string('email');
-            $table->string('manager_name');
+            $table->string('code')->nullable();
+            $table->text('description')->nullable();
+            $table->string('category')->nullable(); // fruit, mint, tea, etc.
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -23,6 +22,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('branches');
+        Schema::dropIfExists('product_flavors');
     }
 };

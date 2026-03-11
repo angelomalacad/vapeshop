@@ -10,28 +10,10 @@ class StockMovement extends Model
     use HasFactory;
 
     protected $fillable = [
-        'inventory_id',
-        'branch_id',
-        'product_id',
-        'old_quantity',
-        'new_quantity',
-        'quantity_change',
-        'movement_type',
-        'reference_number',
-        'notes',
-        'created_by'
+        'branch_id', 'product_id', 'flavor_id', 'previous_quantity',
+        'new_quantity', 'quantity_change', 'movement_type',
+        'reference_type', 'reference_id', 'notes', 'created_by'
     ];
-
-    protected $casts = [
-        'old_quantity' => 'integer',
-        'new_quantity' => 'integer',
-        'quantity_change' => 'integer',
-    ];
-
-    public function inventory()
-    {
-        return $this->belongsTo(Inventory::class);
-    }
 
     public function branch()
     {
@@ -43,7 +25,12 @@ class StockMovement extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function createdBy()
+    public function flavor()
+    {
+        return $this->belongsTo(ProductFlavor::class);
+    }
+
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }

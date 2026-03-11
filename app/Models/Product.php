@@ -2,44 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'name',
-        'sku',
-        'description',
-        'category_id',
-        'price',
-        'type',
-        'flavor',
-        'strength',
-        'image',
-        'is_active'
+        'name', 'sku', 'description', 'brand', 'category', 'type',
+        'price', 'cost', 'puff_count', 'battery_capacity', 'charging_type',
+        'liquid_capacity', 'nicotine_strength', 'adjustable_airflow',
+        'smart_display', 'image', 'images', 'is_active'
     ];
 
-    /**
-     * Get the category that owns the product.
-     */
-    public function category()
+    protected $casts = [
+        'images' => 'array',
+        'adjustable_airflow' => 'boolean',
+        'smart_display' => 'boolean',
+        'is_active' => 'boolean',
+    ];
+
+    public function flavors()
     {
-        return $this->belongsTo(Category::class);
+        return $this->hasMany(ProductFlavor::class);
     }
 
-    /**
-     * Get the inventory items for the product.
-     */
-    public function inventories()
+    public function branchInventories()
     {
-        return $this->hasMany(Inventory::class);
+        return $this->hasMany(BranchInventory::class);
     }
 }

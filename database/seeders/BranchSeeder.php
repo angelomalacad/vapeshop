@@ -17,7 +17,7 @@ class BranchSeeder extends Seeder
                 'phone' => '09603280432',           // owner's contact
                 'email' => 'majada@vapeexpo.com',   // you can create emails
                 'manager_name' => 'Rocky Ace',
-                'opening_date' => '2024-01-01',      // approximate – owner unsure
+
                 'is_active' => true,
             ],
             [
@@ -27,7 +27,7 @@ class BranchSeeder extends Seeder
                 'phone' => '09603280432',
                 'email' => 'asia1@vapeexpo.com',
                 'manager_name' => 'Karl Viscaino',
-                'opening_date' => '2024-01-01',
+
                 'is_active' => true,
             ],
             [
@@ -37,7 +37,7 @@ class BranchSeeder extends Seeder
                 'phone' => '09603280432',
                 'email' => 'mcdc@vapeexpo.com',
                 'manager_name' => 'Mhark Apoliga',
-                'opening_date' => '2024-01-01',
+   
                 'is_active' => true,
             ],
             [
@@ -47,7 +47,7 @@ class BranchSeeder extends Seeder
                 'phone' => '09603280432',
                 'email' => 'paciano@vapeexpo.com',
                 'manager_name' => 'Jeremy Abustan',
-                'opening_date' => '2024-01-01',
+     
                 'is_active' => true,
             ],
             [
@@ -57,7 +57,7 @@ class BranchSeeder extends Seeder
                 'phone' => '09603280432',
                 'email' => 'paciano2@vapeexpo.com',
                 'manager_name' => 'Rhe Ann Alqueza',
-                'opening_date' => '2024-01-01',
+     
                 'is_active' => true,
             ],
         ];
