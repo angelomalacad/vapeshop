@@ -298,6 +298,29 @@
             background-color: #f8f9fa;
             color: #212529;
         }
+        
+        .flavor-preview {
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+        
+        .flavor-tag {
+            display: inline-block;
+            background: #e7f1ff;
+            color: #0d6efd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+            font-size: 0.85rem;
+        }
+        
+        .flavor-tag i {
+            cursor: pointer;
+            margin-left: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -374,14 +397,6 @@
                     </form>
                 </li>
             </ul>
-            
-            <!-- Branch Info -->
-            <div class="footer-info">
-                <div><i class="bi bi-clock"></i> 9AM - 10PM</div>
-                <div><i class="bi bi-telephone"></i> 0960 328 0432</div>
-                <div><i class="bi bi-person-circle"></i> Carlo Caranto</div>
-                <div class="mt-2"><i class="bi bi-shop"></i> 5 Branches</div>
-            </div>
         </div>
     </nav>
     
@@ -586,28 +601,29 @@
                     <!-- Flavors Section - Dynamic -->
                     <div class="flavor-section">
                         <h6 class="mb-3"><i class="bi bi-droplet me-2"></i> Flavors</h6>
+                        <p class="text-muted small mb-3">Add flavors for this product. These will appear in inventory when you add stock.</p>
                         <div id="flavors-container">
                             <div class="flavor-item">
                                 <div class="row">
                                     <div class="col-md-5 mb-2">
-                                        <input type="text" class="form-control" name="flavors[0][name]" placeholder="Flavor name (e.g., Purple Twilight)">
+                                        <input type="text" class="form-control" name="flavors[0][name]" placeholder="Flavor name (e.g., Purple Twilight)" value="{{ old('flavors.0.name') }}">
                                     </div>
                                     <div class="col-md-3 mb-2">
-                                        <input type="text" class="form-control" name="flavors[0][code]" placeholder="Code (e.g., PT)">
+                                        <input type="text" class="form-control" name="flavors[0][code]" placeholder="Code (e.g., PT)" value="{{ old('flavors.0.code') }}">
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <select class="form-select" name="flavors[0][category]">
                                             <option value="">Category</option>
-                                            <option value="fruit">Fruit</option>
-                                            <option value="mint">Mint</option>
-                                            <option value="tea">Tea</option>
-                                            <option value="dessert">Dessert</option>
-                                            <option value="beverage">Beverage</option>
-                                            <option value="tobacco">Tobacco</option>
+                                            <option value="fruit" {{ old('flavors.0.category') == 'fruit' ? 'selected' : '' }}>Fruit</option>
+                                            <option value="mint" {{ old('flavors.0.category') == 'mint' ? 'selected' : '' }}>Mint</option>
+                                            <option value="tea" {{ old('flavors.0.category') == 'tea' ? 'selected' : '' }}>Tea</option>
+                                            <option value="dessert" {{ old('flavors.0.category') == 'dessert' ? 'selected' : '' }}>Dessert</option>
+                                            <option value="beverage" {{ old('flavors.0.category') == 'beverage' ? 'selected' : '' }}>Beverage</option>
+                                            <option value="tobacco" {{ old('flavors.0.category') == 'tobacco' ? 'selected' : '' }}>Tobacco</option>
                                         </select>
                                     </div>
                                     <div class="col-md-1 mb-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-flavor" onclick="removeFlavor(this)">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-flavor" onclick="removeFlavor(this)" title="Remove flavor">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -617,6 +633,11 @@
                         <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addFlavor()">
                             <i class="bi bi-plus-circle"></i> Add Another Flavor
                         </button>
+                        
+                        <!-- Flavor Preview (for visual feedback) -->
+                        <div class="flavor-preview mt-3" id="flavorPreview">
+                            <small class="text-muted">Flavors will be added to product catalog</small>
+                        </div>
                     </div>
                     
                     <!-- Price and Stock -->
@@ -667,6 +688,12 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                    </div>
+                    
+                    <!-- Important Note about Flavors -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Note:</strong> After creating this product, you can add stock for each flavor separately in the inventory section.
                     </div>
                     
                     <!-- Product Image -->
@@ -723,6 +750,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             const lowStockCount = {{ $lowStockCount ?? 0 }};
             document.getElementById('lowStockBadge').textContent = lowStockCount;
+            
+            // Initialize flavor preview
+            updateFlavorPreview();
         });
         
         // Dynamic flavor addition
@@ -760,11 +790,40 @@
             `;
             container.insertAdjacentHTML('beforeend', newFlavor);
             flavorIndex++;
+            updateFlavorPreview();
         }
         
         function removeFlavor(button) {
             button.closest('.flavor-item').remove();
+            updateFlavorPreview();
         }
+        
+        function updateFlavorPreview() {
+            const preview = document.getElementById('flavorPreview');
+            const flavors = document.querySelectorAll('input[name*="[name]"]');
+            let html = '<strong>Flavors to be added:</strong> ';
+            
+            let count = 0;
+            flavors.forEach(flavor => {
+                if (flavor.value.trim()) {
+                    html += `<span class="flavor-tag">${flavor.value}</span> `;
+                    count++;
+                }
+            });
+            
+            if (count === 0) {
+                html += '<small class="text-muted">No flavors specified</small>';
+            }
+            
+            preview.innerHTML = html;
+        }
+        
+        // Update preview when flavors change
+        document.addEventListener('input', function(e) {
+            if (e.target.name && e.target.name.includes('flavors')) {
+                updateFlavorPreview();
+            }
+        });
         
         // Show/hide custom fields
         document.getElementById('brand').addEventListener('change', function() {

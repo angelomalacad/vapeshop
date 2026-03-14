@@ -98,33 +98,55 @@ class ProductController extends Controller
             $product->update(['image' => $imagePath]);
         }
 
-        // Handle flavors
+        // Handle flavors and collect flavor IDs
+        $flavorIds = [];
         if ($request->has('flavors')) {
             foreach ($request->flavors as $flavorData) {
                 if (!empty($flavorData['name'])) {
-                    ProductFlavor::create([
+                    $flavor = ProductFlavor::create([
                         'product_id' => $product->id,
                         'name' => $flavorData['name'],
                         'code' => $flavorData['code'] ?? null,
                         'category' => $flavorData['category'] ?? null,
                         'is_active' => true,
                     ]);
+                    $flavorIds[] = $flavor->id;
                 }
             }
         }
 
         // Add to branch inventory
         $branchId = Auth::user()->branch_id;
-        \App\Models\BranchInventory::create([
-            'branch_id' => $branchId,
-            'product_id' => $product->id,
-            'quantity' => $request->stock_quantity,
-            'reserved_quantity' => 0,
-            'low_stock_threshold' => $request->low_stock_threshold ?? 10,
-            'reorder_point' => 10,
-            'optimal_stock' => 30,
-            'last_restocked_at' => now(),
-        ]);
+        
+        // If there are flavors, create inventory for each flavor
+        if (count($flavorIds) > 0) {
+            foreach ($flavorIds as $flavorId) {
+                \App\Models\BranchInventory::create([
+                    'branch_id' => $branchId,
+                    'product_id' => $product->id,
+                    'flavor_id' => $flavorId, // This sets the flavor_id!
+                    'quantity' => $request->stock_quantity,
+                    'reserved_quantity' => 0,
+                    'low_stock_threshold' => $request->low_stock_threshold ?? 10,
+                    'reorder_point' => 10,
+                    'optimal_stock' => 30,
+                    'last_restocked_at' => now(),
+                ]);
+            }
+        } else {
+            // No flavors, create inventory without flavor_id
+            \App\Models\BranchInventory::create([
+                'branch_id' => $branchId,
+                'product_id' => $product->id,
+                'flavor_id' => null,
+                'quantity' => $request->stock_quantity,
+                'reserved_quantity' => 0,
+                'low_stock_threshold' => $request->low_stock_threshold ?? 10,
+                'reorder_point' => 10,
+                'optimal_stock' => 30,
+                'last_restocked_at' => now(),
+            ]);
+        }
 
         return redirect()->route('branch-admin.products.index')
             ->with('success', 'Product created successfully!');

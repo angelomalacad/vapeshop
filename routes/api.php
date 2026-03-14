@@ -6,7 +6,8 @@ use App\Http\Controllers\API\{
     ProductController,
     OrderController,
     BranchController,
-    NotificationController
+    NotificationController,
+    InventoryController // Add this
 };
 
 // Public API
@@ -23,10 +24,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/branches', [BranchController::class, 'index']);
     Route::get('/branches/{branch}', [BranchController::class, 'show']);
     
-    // Products
+    // Products and Flavors
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
+    Route::get('/products/{product}/flavors', [ProductController::class, 'flavors']); // Add this for flavors
     Route::get('/branches/{branch}/products', [ProductController::class, 'byBranch']);
+    
+    // Inventory Check - Add this
+    Route::get('/inventory/check', [InventoryController::class, 'check']);
     
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);
@@ -43,6 +48,4 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-
-    
 });

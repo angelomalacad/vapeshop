@@ -221,6 +221,23 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
+        
+        /* Pending badge animation */
+        .pending-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
     </style>
     
     @stack('styles')
@@ -270,10 +287,46 @@
                         <i class="bi bi-exclamation-triangle"></i> Low Stock
                     </a>
                 </li>
+                
+                <li class="sidebar-heading">TRANSFERS</li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfer.form') ? 'active' : '' }}" 
                        href="{{ route('branch-admin.inventory.transfer.form') }}">
-                        <i class="bi bi-arrow-left-right"></i> Transfers
+                        <i class="bi bi-send"></i> Request Transfer
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.transfers') }}">
+                        <i class="bi bi-arrow-left-right"></i> All Transfers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers', ['filter' => 'incoming']) ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.transfers', ['filter' => 'incoming']) }}">
+                        <i class="bi bi-download"></i> Incoming
+                        @php
+                            $pendingIncoming = \App\Models\StockTransfer::where('to_branch_id', Auth::user()->branch_id)
+                                ->where('status', 'pending')
+                                ->count();
+                        @endphp
+                        @if($pendingIncoming > 0)
+                            <span class="badge bg-warning pending-badge ms-2">{{ $pendingIncoming }}</span>
+                        @endif
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers', ['filter' => 'outgoing']) ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.transfers', ['filter' => 'outgoing']) }}">
+                        <i class="bi bi-upload"></i> Outgoing
+                        @php
+                            $pendingOutgoing = \App\Models\StockTransfer::where('from_branch_id', Auth::user()->branch_id)
+                                ->where('status', 'pending')
+                                ->count();
+                        @endphp
+                        @if($pendingOutgoing > 0)
+                            <span class="badge bg-warning pending-badge ms-2">{{ $pendingOutgoing }}</span>
+                        @endif
                     </a>
                 </li>
                 
@@ -307,13 +360,7 @@
                 </li>
             </ul>
             
-            <!-- Branch Info -->
-            <div class="footer-info">
-                <div><i class="bi bi-clock"></i> 9AM - 10PM</div>
-                <div><i class="bi bi-telephone"></i> 0960 328 0432</div>
-                <div><i class="bi bi-person-circle"></i> Carlo Caranto</div>
-                <div class="mt-2"><i class="bi bi-shop"></i> 5 Branches</div>
-            </div>
+            
         </div>
     </nav>
     
@@ -343,6 +390,22 @@
                         <li><a class="dropdown-item" href="{{ route('branch-admin.inventory.low-stock') }}">View Low Stock</a></li>
                     </ul>
                 </div>
+                
+                <!-- Pending Transfers Quick View -->
+                @php
+                    $totalPending = \App\Models\StockTransfer::where(function($q) {
+                        $q->where('from_branch_id', Auth::user()->branch_id)
+                          ->orWhere('to_branch_id', Auth::user()->branch_id);
+                    })->where('status', 'pending')->count();
+                @endphp
+                @if($totalPending > 0)
+                <div class="ms-2">
+                    <a href="{{ route('branch-admin.inventory.transfers', ['filter' => 'all', 'status' => 'pending']) }}" 
+                       class="btn btn-warning btn-sm pending-badge">
+                        <i class="bi bi-hourglass"></i> {{ $totalPending }} Pending
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
         

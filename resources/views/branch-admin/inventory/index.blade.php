@@ -8,13 +8,12 @@
             <h1 class="h3 mb-1">Branch Inventory</h1>
             <p class="text-muted mb-0">
                 <i class="bi bi-shop me-1"></i> {{ Auth::user()->branch->name }} (Current Branch)
-                <span class="mx-2">|</span>
-                <i class="bi bi-telephone me-1"></i> 0960 328 0432
-                <span class="mx-2">|</span>
-                <i class="bi bi-clock me-1"></i> 9:00 AM - 10:00 PM
             </p>
         </div>
         <div>
+            <a href="{{ route('branch-admin.inventory.low-stock') }}" class="btn btn-warning me-2">
+                <i class="bi bi-exclamation-triangle"></i> Low Stock
+            </a>
             <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-success me-2">
                 <i class="bi bi-plus-circle"></i> Add Stock
             </a>
@@ -232,7 +231,7 @@
                                     </td>
                                     <td>₱{{ number_format($inv->product->price, 2) }}</td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="btn-group btn-group-sm" role="group">
                                             <a href="{{ route('branch-admin.inventory.show', $inv) }}" class="btn btn-outline-info" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </a>
@@ -242,7 +241,15 @@
                                             <a href="{{ route('branch-admin.inventory.transfer.form', ['inventory_id' => $inv->id]) }}" class="btn btn-outline-primary" title="Transfer Stock">
                                                 <i class="bi bi-arrow-left-right"></i>
                                             </a>
+                                            <button type="button" class="btn btn-outline-danger" title="Delete Item" 
+                                                    onclick="confirmDelete({{ $inv->id }}, '{{ $inv->product->name }}')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
+                                        <form id="delete-form-{{ $inv->id }}" action="{{ route('branch-admin.inventory.destroy', $inv) }}" method="POST" style="display: none;">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
                                     </td>
                                 </tr>
                                 @empty
@@ -367,5 +374,12 @@
             this.form.submit();
         });
     });
+
+    // Delete confirmation function
+    function confirmDelete(inventoryId, productName) {
+        if (confirm(`Are you sure you want to delete ${productName} from your inventory? This action cannot be undone.`)) {
+            document.getElementById(`delete-form-${inventoryId}`).submit();
+        }
+    }
 </script>
 @endpush
