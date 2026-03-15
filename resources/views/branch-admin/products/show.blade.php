@@ -25,7 +25,51 @@
     </div>
 
     <div class="row">
-        <!-- Product Details -->
+        <!-- Product Image Column - NEW -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Product Image</h5>
+                </div>
+                <div class="card-body text-center">
+                    @php
+                        use App\Helpers\GoogleDriveHelper;
+                    @endphp
+                    
+                    @if($product->image_url)
+                        <img src="{{ GoogleDriveHelper::getDirectImageUrl($product->image_url) }}" 
+                             alt="{{ $product->name }}"
+                             class="img-fluid rounded"
+                             style="max-height: 300px; width: 100%; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Image+Not+Available';">
+                        <p class="text-muted small mt-2">
+                            <i class="bi bi-google"></i> Image from Google Drive
+                            <br>
+                            <small>File ID: {{ $product->gdrive_file_id ?? 'N/A' }}</small>
+                        </p>
+                    @elseif($product->image)
+                        <img src="{{ Storage::url($product->image) }}" 
+                             alt="{{ $product->name }}"
+                             class="img-fluid rounded"
+                             style="max-height: 300px; width: 100%; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Image+Not+Available';">
+                        <p class="text-muted small mt-2">
+                            <i class="bi bi-server"></i> Image from server
+                        </p>
+                    @else
+                        <div class="py-5">
+                            <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                            <p class="text-muted mt-3">No image available for this product</p>
+                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> Add Image
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details Column - NOTE: Changed from col-md-8 to col-md-8 -->
         <div class="col-md-8">
             <div class="card mb-4">
                 <div class="card-header">
@@ -120,26 +164,32 @@
             </div>
         </div>
 
-        <!-- Flavors Section -->
-        <div class="col-md-4">
+        <!-- Flavors Section - NOTE: Changed layout to accommodate image column -->
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Available Flavors ({{ $product->flavors->count() }})</h5>
                 </div>
                 <div class="card-body">
                     @if($product->flavors->count() > 0)
-                        <div class="list-group">
+                        <div class="row">
                             @foreach($product->flavors as $flavor)
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ $flavor->name }}</strong>
-                                        @if($flavor->category)
-                                            <br>
-                                            <small class="text-muted">{{ $flavor->category }}</small>
-                                        @endif
+                            <div class="col-md-6 mb-2">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ $flavor->name }}</strong>
+                                                @if($flavor->category)
+                                                    <br>
+                                                    <small class="text-muted">{{ $flavor->category }}</small>
+                                                @endif
+                                            </div>
+                                            @if($flavor->code)
+                                                <span class="badge bg-primary">{{ $flavor->code }}</span>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <span class="badge bg-primary">{{ $flavor->code ?? '' }}</span>
                                 </div>
                             </div>
                             @endforeach
@@ -149,18 +199,43 @@
                     @endif
                 </div>
             </div>
+        </div>
 
-            <!-- Quick Actions -->
-            <div class="card mt-3">
+        <!-- Quick Actions -->
+        <div class="col-md-6">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Add to Inventory
-                        </a>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i> Add to Inventory
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-warning w-100">
+                                <i class="bi bi-pencil"></i> Edit Product
+                            </a>
+                        </div>
                     </div>
+                    
+                    @php
+                        $branchInventory = $product->branchInventories
+                            ->where('branch_id', Auth::user()->branch_id)
+                            ->first();
+                    @endphp
+                    
+                    @if($branchInventory)
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>In your branch:</strong> {{ $branchInventory->quantity }} units in stock
+                        @if($branchInventory->reserved_quantity > 0)
+                            <br><small>{{ $branchInventory->reserved_quantity }} reserved for pending orders</small>
+                        @endif
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

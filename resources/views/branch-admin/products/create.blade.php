@@ -321,6 +321,45 @@
             cursor: pointer;
             margin-left: 0.25rem;
         }
+        
+        /* NEW: Image preview and tab styles */
+        .image-preview-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+        }
+        
+        .image-preview {
+            max-height: 200px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #495057;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: #0d6efd;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            background: transparent;
+            border-bottom: 2px solid #0d6efd;
+        }
+        
+        .tab-pane {
+            padding: 1rem 0;
+        }
     </style>
 </head>
 <body>
@@ -696,15 +735,85 @@
                         <strong>Note:</strong> After creating this product, you can add stock for each flavor separately in the inventory section.
                     </div>
                     
-                    <!-- Product Image -->
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Product Image</label>
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" 
-                               id="image" name="image" accept="image/*">
-                        <small class="text-muted">Upload product image (optional)</small>
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <!-- NEW: Product Image Section with Google Drive Support -->
+                    <div class="flavor-section">
+                        <h6 class="mb-3"><i class="bi bi-image me-2"></i> Product Image</h6>
+                        
+                        <!-- Image Preview -->
+                        <div class="image-preview-container">
+                            <img id="imagePreview" 
+                                 src="https://via.placeholder.com/300x200?text=No+Image+Selected" 
+                                 alt="Product Image Preview"
+                                 class="image-preview">
+                        </div>
+
+                        <!-- Tab Navigation for Image Sources -->
+                        <ul class="nav nav-tabs" id="imageTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="gdrive-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#gdrive" type="button" role="tab">
+                                    <i class="bi bi-google"></i> Google Drive Link
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#upload" type="button" role="tab">
+                                    <i class="bi bi-upload"></i> Upload File
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="imageTabContent">
+                            <!-- Google Drive Tab -->
+                            <div class="tab-pane fade show active" id="gdrive" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="image_url" class="form-label">Google Drive Image URL</label>
+                                    <input type="url" class="form-control @error('image_url') is-invalid @enderror" 
+                                           id="image_url" name="image_url" 
+                                           value="{{ old('image_url') }}"
+                                           placeholder="https://drive.google.com/file/d/.../view">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Paste the Google Drive share link. Make sure the file is shared publicly.
+                                    </small>
+                                    @error('image_url')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="previewGdriveImage()">
+                                    <i class="bi bi-eye"></i> Preview Image
+                                </button>
+                            </div>
+
+                            <!-- Upload File Tab -->
+                            <div class="tab-pane fade" id="upload" role="tabpanel">
+                                <div class="mb-3">
+                                    <label for="image" class="form-label">Upload Image File</label>
+                                    <input type="file" class="form-control @error('image') is-invalid @enderror" 
+                                           id="image" name="image" accept="image/*">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Max 2MB. Supported formats: JPG, PNG, GIF
+                                    </small>
+                                    @error('image')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Guidelines -->
+                        <div class="alert alert-info mt-3 small">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Image Guidelines:</strong>
+                            <ul class="mb-0 mt-1">
+                                <li>Use Google Drive for large files (no size limit)</li>
+                                <li>Make sure the image is shared publicly</li>
+                                <li>Recommended size: 500x500px or larger</li>
+                                <li>Clear product image on white/light background preferred</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <hr class="my-4">
@@ -742,9 +851,10 @@
         </div>
     </main>
     
-    <!-- Bootstrap JS -->
+        <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    @push('scripts')
     <script>
         // Update low stock badge
         document.addEventListener('DOMContentLoaded', function() {
@@ -843,6 +953,73 @@
                 newCategoryRow.style.display = 'none';
             }
         });
+        
+        // NEW: Google Drive image preview function
+        function previewGdriveImage() {
+            const url = document.getElementById('image_url').value;
+            const preview = document.getElementById('imagePreview');
+            
+            if (!url) {
+                alert('Please enter a Google Drive URL');
+                return;
+            }
+
+            // Convert Google Drive URL to direct image URL
+            let directUrl = url;
+            
+            // Handle different Google Drive URL formats
+            if (url.includes('drive.google.com')) {
+                const fileId = extractGoogleDriveId(url);
+                if (fileId) {
+                    directUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                }
+            }
+            
+            preview.src = directUrl;
+        }
+
+        // Extract Google Drive File ID from URL
+        function extractGoogleDriveId(url) {
+            const patterns = [
+                /\/d\/([a-zA-Z0-9_-]+)/,
+                /id=([a-zA-Z0-9_-]+)/,
+                /\/folders\/([a-zA-Z0-9_-]+)/
+            ];
+            
+            for (let pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        // Preview uploaded image
+        document.getElementById('image')?.addEventListener('change', function(event) {
+            const reader = new FileReader();
+            const preview = document.getElementById('imagePreview');
+            
+            reader.onload = function() {
+                preview.src = reader.result;
+            }
+            
+            if (event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+                
+                // Validate file size (2MB)
+                const fileSize = event.target.files[0].size / 1024 / 1024;
+                if (fileSize > 2) {
+                    alert('File size exceeds 2MB. Please choose a smaller image.');
+                    event.target.value = '';
+                    preview.src = 'https://via.placeholder.com/300x200?text=No+Image+Selected';
+                }
+            }
+        });
+
+        // Auto-preview when Google Drive URL is pasted
+        document.getElementById('image_url')?.addEventListener('paste', function() {
+            setTimeout(previewGdriveImage, 100);
+        });
     </script>
+    @endpush
 </body>
 </html>

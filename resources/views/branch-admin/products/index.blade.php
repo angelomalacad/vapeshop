@@ -1,5 +1,9 @@
 @extends('layouts.branch-admin')
 
+@php
+    use App\Helpers\GoogleDriveHelper;
+@endphp
+
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
@@ -25,6 +29,26 @@
         @forelse($products as $product)
         <div class="col-md-4 mb-4">
             <div class="card h-100">
+                <!-- Product Image -->
+                <div class="card-img-top text-center p-3 bg-light" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                    @if($product->image_url)
+                        <img src="{{ GoogleDriveHelper::getThumbnailUrl($product->image_url, 300) }}" 
+                             alt="{{ $product->name }}"
+                             style="max-height: 180px; max-width: 100%; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200?text=Image+Error';">
+                    @elseif($product->image)
+                        <img src="{{ Storage::url($product->image) }}" 
+                             alt="{{ $product->name }}"
+                             style="max-height: 180px; max-width: 100%; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200?text=Image+Error';">
+                    @else
+                        <div class="text-center">
+                            <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                            <p class="text-muted small mt-2">No image</p>
+                        </div>
+                    @endif
+                </div>
+                
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="card-title mb-0">{{ $product->name }}</h5>
