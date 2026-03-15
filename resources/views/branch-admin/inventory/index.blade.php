@@ -235,6 +235,10 @@
                                             <a href="{{ route('branch-admin.inventory.show', $inv) }}" class="btn btn-outline-info" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </a>
+                                            <!-- EDIT BUTTON - NEW -->
+                                            <a href="{{ route('branch-admin.inventory.edit', $inv) }}" class="btn btn-outline-warning" title="Edit Inventory">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
                                             <a href="{{ route('branch-admin.inventory.add-stock', $inv) }}" class="btn btn-outline-success" title="Add Stock">
                                                 <i class="bi bi-plus-circle"></i>
                                             </a>

@@ -7,10 +7,13 @@
         <div>
             <h1 class="h3 mb-1">Product Catalog</h1>
             <p class="text-muted mb-0">
-                <i class="bi bi-tags me-1"></i> Manage all products in Vape Expo
+                <i class="bi bi-tags me-1"></i> Products available in {{ Auth::user()->branch->name }}
             </p>
         </div>
         <div>
+            <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> Add to Inventory
+            </a>
             <a href="{{ route('branch-admin.products.create') }}" class="btn btn-success">
                 <i class="bi bi-plus-circle"></i> Create New Product
             </a>
@@ -52,12 +55,23 @@
                     @endif
                     
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <small class="text-muted">{{ $product->flavors->count() }} flavors</small>
                         <div>
-                            <a href="{{ route('branch-admin.products.show', $product) }}" class="btn btn-sm btn-outline-info">
+                            @php
+                                $inventoryItem = $product->branchInventories
+                                    ->where('branch_id', Auth::user()->branch_id)
+                                    ->first();
+                            @endphp
+                            @if($inventoryItem)
+                                <span class="badge bg-success">In Stock: {{ $inventoryItem->quantity }}</span>
+                            @else
+                                <span class="badge bg-secondary">Not in inventory</span>
+                            @endif
+                        </div>
+                        <div>
+                            <a href="{{ route('branch-admin.products.show', $product) }}" class="btn btn-sm btn-outline-info" title="View Details">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-sm btn-outline-warning">
+                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-sm btn-outline-warning" title="Edit Product">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </div>
@@ -71,9 +85,9 @@
                 <div class="card-body text-center py-5">
                     <i class="bi bi-box-seam display-1 text-muted"></i>
                     <h4 class="mt-3">No Products Found</h4>
-                    <p class="text-muted">Get started by creating your first product.</p>
-                    <a href="{{ route('branch-admin.products.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Create Product
+                    <p class="text-muted">There are no products available in your branch inventory.</p>
+                    <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Products to Inventory
                     </a>
                 </div>
             </div>

@@ -11,234 +11,609 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <style>
+    /* Base Styles */
+    :root {
+        --sidebar-width: 260px;
+        --sidebar-collapsed-width: 70px;
+        --primary-color: #0d6efd;
+        --secondary-bg: #f8f9fa;
+        --text-dark: #2c3e50;
+        --text-muted: #6c757d;
+        --border-light: rgba(0,0,0,0.03);
+    }
+
+    /* Sidebar - Desktop */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1000;
+        padding: 60px 0 0;
+        width: var(--sidebar-width);
+        background: linear-gradient(145deg, #f5f7fa 0%, #e9ecef 100%);
+        box-shadow: 2px 0 15px rgba(0,0,0,0.03);
+        transition: all 0.3s ease;
+        overflow-y: auto;
+    }
+
+    .sidebar-sticky {
+        position: relative;
+        height: calc(100vh - 60px);
+        padding: 0.5rem 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) #e9ecef;
+    }
+
+    /* Custom scrollbar for WebKit browsers */
+    .sidebar-sticky::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-sticky::-webkit-scrollbar-track {
+        background: #e9ecef;
+    }
+
+    .sidebar-sticky::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 20px;
+    }
+
+    .sidebar .nav-link {
+        font-weight: 500;
+        color: var(--text-dark);
+        padding: 0.75rem 1.25rem;
+        transition: all 0.2s ease;
+        margin: 2px 12px;
+        border-radius: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sidebar .nav-link:hover {
+        color: var(--primary-color);
+        background: rgba(13, 110, 253, 0.05);
+        transform: translateX(5px);
+    }
+
+    .sidebar .nav-link.active {
+        color: var(--primary-color);
+        background: rgba(13, 110, 253, 0.1);
+        font-weight: 600;
+    }
+
+    .sidebar .nav-link i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .sidebar-heading {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 0.75rem 1.25rem 0.25rem;
+        margin-top: 0.5rem;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .navbar-brand {
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 0.75rem 1.25rem;
+        font-size: 1.2rem;
+        background: rgba(255,255,255,0.9);
+        width: var(--sidebar-width);
+        text-align: left;
+        color: var(--text-dark) !important;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border-light);
+        z-index: 1001;
+        backdrop-filter: blur(5px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand small {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: block;
+        margin-top: 0.2rem;
+        font-weight: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Main Content - FIXED */
+    .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 20px 25px;
+        background: var(--secondary-bg);
+        min-height: 100vh;
+        transition: all 0.3s ease;
+        width: calc(100% - var(--sidebar-width));
+        box-sizing: border-box;
+    }
+
+    /* Container inside main content */
+    .main-content .container-fluid {
+        width: 100%;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: auto;
+        margin-left: auto;
+        box-sizing: border-box;
+    }
+
+    /* Card fixes */
+    .main-content .card {
+        width: 100%;
+        margin-bottom: 1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border-radius: 12px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .main-content .card-header {
+        background: white;
+        border-bottom: 1px solid var(--border-light);
+        padding: 1rem 1.25rem;
+    }
+
+    .main-content .card-body {
+        padding: 1.25rem;
+        box-sizing: border-box;
+    }
+
+    /* Table fixes - PREVENTS OVERLAPPING */
+    .main-content .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    .main-content .table {
+        width: 100%;
+        margin-bottom: 0;
+        background-color: transparent;
+        border-collapse: collapse;
+        box-sizing: border-box;
+    }
+
+    .main-content .table th,
+    .main-content .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        border-top: 1px solid #dee2e6;
+        white-space: nowrap;
+    }
+
+    .main-content .table thead th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    /* Stock info grid for product details */
+    .stock-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border: 1px solid var(--border-light);
+    }
+
+    .stock-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .stock-info-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stock-info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .stock-info-value.small {
+        font-size: 0.95rem;
+    }
+
+    /* Branch Info Card */
+    .branch-info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        word-break: break-word;
+    }
+
+    .branch-info-card i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+        width: 20px;
+        flex-shrink: 0;
+    }
+
+    .branch-info-card div {
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .branch-info-card div:last-child {
+        margin-bottom: 0;
+    }
+
+    .branch-info-card .small {
+        color: var(--text-muted);
+    }
+
+    /* Footer Info */
+    .footer-info {
+        margin: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        word-break: break-word;
+    }
+
+    .footer-info i {
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+        width: 20px;
+        flex-shrink: 0;
+    }
+
+    .footer-info div {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-info div:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Top Navigation */
+    .top-navbar {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .top-navbar > div:first-child {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .top-navbar > div:last-child {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Badges */
+    .badge-count {
+        background: var(--primary-color);
+        color: white;
+        border-radius: 20px;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .pending-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+
+    /* Dropdown */
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    /* Alerts */
+    .alert {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        word-break: break-word;
+    }
+
+    /* Buttons */
+    .btn-outline-primary {
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 0.3rem 1rem;
+        white-space: nowrap;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    /* Quick stats cards */
+    .bg-primary, .bg-success, .bg-warning, .bg-danger {
+        transition: transform 0.2s ease;
+    }
+
+    .bg-primary:hover, .bg-success:hover, .bg-warning:hover, .bg-danger:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        /* Collapsible Sidebar */
         .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            width: 260px;
-            background: linear-gradient(145deg, #f5f7fa 0%, #e9ecef 100%);
-            box-shadow: 2px 0 15px rgba(0,0,0,0.03);
+            width: var(--sidebar-collapsed-width);
+            overflow: visible;
         }
         
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
+        .sidebar:hover {
+            width: var(--sidebar-width);
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link span,
+        .sidebar-heading,
+        .branch-info-card div span,
+        .footer-info div span,
+        .navbar-brand small,
+        .navbar-brand span:not(.d-none) {
+            display: none;
+        }
+        
+        .sidebar:hover .nav-link span,
+        .sidebar:hover .sidebar-heading,
+        .sidebar:hover .branch-info-card div span,
+        .sidebar:hover .footer-info div span,
+        .sidebar:hover .navbar-brand small,
+        .sidebar:hover .navbar-brand span:not(.d-none) {
+            display: inline;
         }
         
         .sidebar .nav-link {
-            font-weight: 500;
-            color: #4a5568;
-            padding: 0.85rem 1.25rem;
-            transition: all 0.2s ease;
-            margin: 2px 8px;
-            border-radius: 8px;
-        }
-        
-        .sidebar .nav-link:hover {
-            color: #0d6efd;
-            background: rgba(13, 110, 253, 0.05);
-        }
-        
-        .sidebar .nav-link.active {
-            color: #0d6efd;
-            background: rgba(13, 110, 253, 0.1);
-            font-weight: 600;
-        }
-        
-        .sidebar .nav-link i {
-            color: #0d6efd;
-            margin-right: 0.75rem;
-            font-size: 1.2rem;
-            width: 24px;
+            padding: 0.75rem;
+            margin: 2px 4px;
             text-align: center;
         }
         
-        .sidebar-heading {
-            font-size: .7rem;
-            text-transform: uppercase;
-            color: #6c757d;
-            padding: 0.5rem 1.25rem;
-            margin-top: 1rem;
-            letter-spacing: 0.5px;
-            font-weight: 600;
+        .sidebar:hover .nav-link {
+            padding: 0.75rem 1.25rem;
+            text-align: left;
         }
         
-        .main-content {
-            margin-left: 260px;
-            padding: 20px;
-            background: #f8f9fa;
-            min-height: 100vh;
+        .sidebar .nav-link i {
+            margin-right: 0;
+            font-size: 1.4rem;
+        }
+        
+        .sidebar:hover .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
         }
         
         .navbar-brand {
-            padding: 1rem 1.25rem;
-            font-size: 1.2rem;
-            background: rgba(255,255,255,0.5);
-            width: 260px;
-            text-align: left;
-            color: #2c3e50 !important;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            width: var(--sidebar-collapsed-width);
+            padding: 0.75rem;
+            text-align: center;
         }
         
-        .navbar-brand small {
-            font-size: 0.8rem;
-            color: #6c757d;
-            display: block;
-            margin-top: 0.2rem;
-            font-weight: normal;
+        .navbar-brand span {
+            display: none;
         }
         
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .navbar-brand {
-                width: 100%;
-            }
+        .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+            padding: 15px;
         }
         
-        .branch-info-card {
-            background: white;
-            border-radius: 12px;
+        /* Stock info grid for mobile */
+        .stock-info-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
             padding: 1rem;
-            margin: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
         
-        .branch-info-card i {
-            color: #0d6efd;
-            margin-right: 0.5rem;
-            width: 20px;
+        /* Adjust cards for mobile */
+        .branch-info-card,
+        .footer-info {
+            padding: 0.75rem;
+            margin: 0.75rem;
         }
         
-        .branch-info-card div {
-            color: #2c3e50;
-            font-size: 0.9rem;
+        .branch-info-card div,
+        .footer-info div {
+            font-size: 0.85rem;
         }
         
-        .branch-info-card .small {
-            color: #6c757d;
-        }
-        
+        /* Top navbar mobile */
         .top-navbar {
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border-radius: 12px;
-            padding: 0.75rem 1.5rem;
-            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            flex-direction: column;
+        }
+        
+        .top-navbar > div:last-child {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .top-navbar .text-muted.small {
+            font-size: 0.75rem;
+        }
+        
+        /* Make buttons more touch-friendly */
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
         }
         
         .badge-count {
-            background: #0d6efd;
-            color: white;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            margin-left: 0.5rem;
-            font-weight: 500;
+            padding: 0.15rem 0.5rem;
+            font-size: 0.65rem;
+        }
+    }
+
+    /* Extra Small Devices */
+    @media (max-width: 480px) {
+        .main-content {
+            padding: 10px;
         }
         
-        .footer-info {
-            margin: 1rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 12px;
-            color: #2c3e50;
-            font-size: 0.9rem;
+        .stock-info-grid {
+            grid-template-columns: 1fr;
         }
         
-        .footer-info i {
-            color: #0d6efd;
-            margin-right: 0.5rem;
-            width: 20px;
+        .stock-info-item {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .footer-info div {
-            margin-bottom: 0.5rem;
+        .stock-info-label {
+            font-size: 0.8rem;
         }
         
-        .owner-name {
-            color: #0d6efd;
-            font-weight: 600;
+        .stock-info-value {
+            font-size: 1rem;
+        }
+        
+        .top-navbar > div:last-child {
+            flex-wrap: wrap;
         }
         
         .btn-outline-primary {
-            border: 1px solid #0d6efd;
-            color: #0d6efd;
-            border-radius: 20px;
-            padding: 0.3rem 1rem;
-        }
-        
-        .btn-outline-primary:hover {
-            background: #0d6efd;
-            color: white;
-        }
-        
-        .text-primary-custom {
-            color: #0d6efd;
-        }
-        
-        /* Soft shadows and rounded corners */
-        .card {
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
         }
         
         .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.03);
-            padding: 1rem 1.25rem;
+            padding: 0.75rem 1rem;
         }
         
-        .list-group-item {
-            border: none;
-            margin-bottom: 2px;
-            border-radius: 8px !important;
+        .card-body {
+            padding: 1rem;
         }
         
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-radius: 12px;
+        .branch-info-card,
+        .footer-info {
+            margin: 0.5rem;
+            padding: 0.5rem;
+        }
+    }
+
+    /* Tablet Styles */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .main-content {
+            padding: 20px;
         }
         
-        .alert {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        .sidebar {
+            width: 240px;
         }
         
-        /* Pending badge animation */
-        .pending-badge {
-            animation: pulse 2s infinite;
+        .navbar-brand {
+            width: 240px;
         }
         
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
-            100% {
-                opacity: 1;
-            }
+        .main-content {
+            margin-left: 240px;
+            width: calc(100% - 240px);
         }
-    </style>
+        
+        .stock-info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Large Screens */
+    @media (min-width: 1400px) {
+        .stock-info-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        .sidebar,
+        .top-navbar,
+        .footer-info,
+        .branch-info-card,
+        .btn {
+            display: none !important;
+        }
+        
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+            padding: 0;
+        }
+        
+        .card {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+</style>
     
     @stack('styles')
 </head>
@@ -285,6 +660,14 @@
                     <a class="nav-link {{ request()->routeIs('branch-admin.inventory.low-stock') ? 'active' : '' }}" 
                        href="{{ route('branch-admin.inventory.low-stock') }}">
                         <i class="bi bi-exclamation-triangle"></i> Low Stock
+                    </a>
+                </li>
+                
+                <!-- NEW: Stock Movement History Link -->
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('branch-admin.inventory.stock-history') ? 'active' : '' }}" 
+                       href="{{ route('branch-admin.inventory.stock-history') }}">
+                        <i class="bi bi-clock-history"></i> Stock History
                     </a>
                 </li>
                 

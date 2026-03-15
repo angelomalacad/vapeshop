@@ -385,7 +385,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
 Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
     
-    // SPECIFIC ROUTES FIRST - Put these BEFORE any wildcard routes
+    // ===== SPECIFIC ROUTES FIRST (No URL parameters) =====
     Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
     Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
     
@@ -394,6 +394,8 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
     
     Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
+    
+    // STOCK HISTORY ROUTE - ✅ This is correctly placed here (no URL parameters)
     Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
     
     // Transfer routes
@@ -407,17 +409,24 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
     Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
     
-    // DELETE ROUTE
-    Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
+    // ===== ROUTES WITH {inventory} PARAMETER =====
+    // EDIT ROUTE
+    Route::get('/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('edit');
     
-    // Stock management routes - these come AFTER specific routes
+    // Stock management routes
     Route::get('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockForm'])->name('add-stock');
     Route::post('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStock'])->name('add-stock.post');
     
     Route::get('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStockForm'])->name('adjust-stock');
     Route::post('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStock'])->name('adjust-stock.post');
     
-    // This must be LAST - it catches any {inventory} parameter
+    // UPDATE ROUTE
+    Route::put('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'update'])->name('update');
+    
+    // DELETE ROUTE
+    Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
+    
+    // ===== THIS MUST BE LAST - catches any {inventory} parameter not caught above =====
     Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
 });
 // ===== END OF BRANCH STAFF INVENTORY ROUTES =====

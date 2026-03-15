@@ -12,6 +12,7 @@ use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon; // Add this import
 
 class InventoryController extends Controller
 {
@@ -54,6 +55,34 @@ class InventoryController extends Controller
         ));
     }
 
+    /**
+     * Show stock movement history for the branch.
+     * Can be filtered by product and flavor.
+     */
+    public function stockHistory(Request $request)
+    {
+        $branchId = Auth::user()->branch_id;
+
+        // Build the query for StockMovement, eager loading relationships
+        $query = StockMovement::with(['product', 'flavor', 'creator'])
+            ->where('branch_id', $branchId);
+
+        // Filter by product if provided in the request
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        // Filter by flavor if provided in the request
+        if ($request->filled('flavor_id')) {
+            $query->where('flavor_id', $request->flavor_id);
+        }
+
+        // Order by most recent first and paginate
+        $movements = $query->orderBy('created_at', 'desc')->paginate(50);
+
+        return view('branch-admin.inventory.stock-history', compact('movements'));
+    }
+    
     /**
      * Show low stock items for this branch
      */
@@ -605,53 +634,53 @@ class InventoryController extends Controller
     }
 
     /**
- * Cancel transfer (for the requester - anyone can cancel their own pending request)
- */
-public function cancelTransfer(StockTransfer $transfer)
-{
-    $branchId = Auth::user()->branch_id;
-    
-    // Allow cancellation if:
-    // 1. User is the one who requested it, OR
-    // 2. User is from the source branch (they can cancel requests sent from their branch)
-    $isRequester = ($transfer->requested_by == Auth::user()->id);
-    $isSourceBranch = ($transfer->from_branch_id == $branchId);
-    
-    if (!$isRequester && !$isSourceBranch) {
-        abort(403, 'Unauthorized access. You can only cancel your own requests or requests from your branch.');
-    }
-    
-    if ($transfer->status !== 'pending') {
-        return redirect()->back()->with('error', 'Only pending transfers can be cancelled.');
-    }
-    
-    DB::beginTransaction();
-    
-    try {
-        // Release reserved stock
-        $inventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-            ->where('product_id', $transfer->product_id)
-            ->when($transfer->flavor_id, function($query) use ($transfer) {
-                return $query->where('flavor_id', $transfer->flavor_id);
-            })
-            ->first();
+     * Cancel transfer (for the requester - anyone can cancel their own pending request)
+     */
+    public function cancelTransfer(StockTransfer $transfer)
+    {
+        $branchId = Auth::user()->branch_id;
         
-        if ($inventory) {
-            $inventory->update([
-                'reserved_quantity' => $inventory->reserved_quantity - $transfer->quantity
-            ]);
+        // Allow cancellation if:
+        // 1. User is the one who requested it, OR
+        // 2. User is from the source branch (they can cancel requests sent from their branch)
+        $isRequester = ($transfer->requested_by == Auth::user()->id);
+        $isSourceBranch = ($transfer->from_branch_id == $branchId);
+        
+        if (!$isRequester && !$isSourceBranch) {
+            abort(403, 'Unauthorized access. You can only cancel your own requests or requests from your branch.');
         }
         
-        $transfer->update(['status' => 'cancelled']);
+        if ($transfer->status !== 'pending') {
+            return redirect()->back()->with('error', 'Only pending transfers can be cancelled.');
+        }
         
-        DB::commit();
+        DB::beginTransaction();
         
-        return redirect()->back()->with('success', 'Transfer cancelled successfully.');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Error cancelling transfer: ' . $e->getMessage());
+        try {
+            // Release reserved stock
+            $inventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+                ->where('product_id', $transfer->product_id)
+                ->when($transfer->flavor_id, function($query) use ($transfer) {
+                    return $query->where('flavor_id', $transfer->flavor_id);
+                })
+                ->first();
+            
+            if ($inventory) {
+                $inventory->update([
+                    'reserved_quantity' => $inventory->reserved_quantity - $transfer->quantity
+                ]);
+            }
+            
+            $transfer->update(['status' => 'cancelled']);
+            
+            DB::commit();
+            
+            return redirect()->back()->with('success', 'Transfer cancelled successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error cancelling transfer: ' . $e->getMessage());
+        }
     }
-}
 
     /**
      * Remove the specified inventory item.
@@ -741,6 +770,97 @@ public function cancelTransfer(StockTransfer $transfer)
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error adding stock: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show the form for editing the specified inventory item.
+     * This allows editing ALL inventory fields.
+     */
+    public function edit(BranchInventory $inventory)
+    {
+        // Ensure inventory belongs to user's branch
+        if ($inventory->branch_id !== Auth::user()->branch_id) {
+            abort(403, 'Unauthorized access.');
+        }
+        
+        // Load relationships
+        $inventory->load(['product', 'flavor']);
+        
+        return view('branch-admin.inventory.edit', compact('inventory'));
+    }
+
+    /**
+     * Update the specified inventory item.
+     * This updates ALL inventory fields.
+     */
+    public function update(Request $request, BranchInventory $inventory)
+    {
+        // Ensure inventory belongs to user's branch
+        if ($inventory->branch_id !== Auth::user()->branch_id) {
+            abort(403, 'Unauthorized access.');
+        }
+        
+        $request->validate([
+            // Stock management fields
+            'quantity' => 'nullable|integer|min:0',
+            'reserved_quantity' => 'nullable|integer|min:0',
+            'low_stock_threshold' => 'required|integer|min:1',
+            'reorder_point' => 'required|integer|min:1',
+            'optimal_stock' => 'required|integer|min:1',
+            
+            // Financial fields
+            'last_purchase_price' => 'nullable|numeric|min:0',
+            
+            // Timestamps
+            'last_restocked_at' => 'nullable|date',
+        ]);
+        
+        DB::beginTransaction();
+        
+        try {
+            $oldQuantity = $inventory->quantity;
+            $newQuantity = $request->quantity ?? $inventory->quantity;
+            
+            $inventory->update([
+                // Stock management
+                'quantity' => $newQuantity,
+                'reserved_quantity' => $request->reserved_quantity ?? $inventory->reserved_quantity,
+                'low_stock_threshold' => $request->low_stock_threshold,
+                'reorder_point' => $request->reorder_point,
+                'optimal_stock' => $request->optimal_stock,
+                
+                // Financial
+                'last_purchase_price' => $request->last_purchase_price,
+                
+                // Timestamps
+                'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
+            ]);
+            
+            // Log stock movement if quantity changed
+            if ($oldQuantity != $newQuantity) {
+                StockMovement::create([
+                    'branch_id' => $inventory->branch_id,
+                    'product_id' => $inventory->product_id,
+                    'flavor_id' => $inventory->flavor_id,
+                    'previous_quantity' => $oldQuantity,
+                    'new_quantity' => $newQuantity,
+                    'quantity_change' => $newQuantity - $oldQuantity,
+                    'movement_type' => 'adjustment',
+                    'notes' => 'Manual adjustment via edit form',
+                    'created_by' => Auth::id(),
+                ]);
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('branch-admin.inventory.show', $inventory)
+                ->with('success', 'Inventory updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error updating inventory: ' . $e->getMessage());
         }
     }
 }

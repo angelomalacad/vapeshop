@@ -13,7 +13,7 @@ class AdminUserSeeder extends Seeder
     {
         // Super Admin (owner)
         User::updateOrCreate(
-            ['email' => 'carlo.caranto@vapeexpo.com'],
+            ['email' => 'carlocaranto@gmail.com'],
             [
                 'name' => 'Carlo Caranto',
                 'password' => Hash::make('password123'),
@@ -61,7 +61,7 @@ class AdminUserSeeder extends Seeder
             
             if ($branch) {
                 User::updateOrCreate(
-                    ['email' => strtolower(str_replace(' ', '.', $staff['name'])) . '@vapeexpo.com'],
+                    ['email' => strtolower(str_replace(' ', '.', $staff['name'])) . '@gmail.com'],
                     [
                         'name' => $staff['name'],
                         'password' => Hash::make('password123'),
@@ -93,7 +93,7 @@ class AdminUserSeeder extends Seeder
             
             if ($branch) {
                 User::updateOrCreate(
-                    ['email' => strtolower(str_replace(' ', '.', $staff['name'])) . '@vapeexpo.com'],
+                    ['email' => strtolower(str_replace(' ', '.', $staff['name'])) . '@gmail.com'],
                     [
                         'name' => $staff['name'],
                         'password' => Hash::make('password123'),
@@ -123,7 +123,7 @@ class AdminUserSeeder extends Seeder
         }
 
         $this->command->info('Vape Expo users seeded successfully!');
-        $this->command->info('Super Admin: carlo.caranto@vapeexpo.com / password123');
-        $this->command->info('Branch Staff: [name]@vapeexpo.com / password123');
+        $this->command->info('Super Admin: carlocaranto@gmail.com / password123');
+        $this->command->info('Branch Staff: [name]@gmail.com / password123');
     }
 }

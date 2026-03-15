@@ -11,18 +11,22 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $products = Product::where('is_active', true)
-            ->with('flavors')
-            ->orderBy('name')
-            ->paginate(20);
-        
-        return view('branch-admin.products.index', compact('products'));
-    }
+   /**
+ * Display a listing of the resource.
+ */
+public function index()
+{
+    $branchId = Auth::user()->branch_id;
+    
+    $products = Product::where('is_active', true)
+        ->with(['flavors', 'branchInventories' => function($query) use ($branchId) {
+            $query->where('branch_id', $branchId);
+        }])
+        ->orderBy('name')
+        ->paginate(20);
+    
+    return view('branch-admin.products.index', compact('products'));
+}
 
     /**
      * Show the form for creating a new resource.
@@ -169,13 +173,72 @@ class ProductController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product $product)
-    {
-        // Similar validation for update
-        // ... (you can add update logic later)
+ * Update the specified resource in storage.
+ */
+public function update(Request $request, Product $product)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'brand' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'category' => 'required|string|max:255',
+        'type' => 'required|string|max:255',
+        'price' => 'required|numeric|min:0',
+        'cost' => 'nullable|numeric|min:0',
+        'nicotine_strength' => 'nullable|string|max:50',
+        'puff_count' => 'nullable|integer',
+        'battery_capacity' => 'nullable|integer',
+        'charging_type' => 'nullable|string|max:50',
+        'liquid_capacity' => 'nullable|numeric',
+        'adjustable_airflow' => 'nullable|boolean',
+        'smart_display' => 'nullable|boolean',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    // Handle brand
+    $brand = $request->brand;
+    if ($brand === 'Other' && $request->filled('custom_brand')) {
+        $brand = $request->custom_brand;
     }
+
+    // Handle category
+    $category = $request->category;
+    if ($category === 'New' && $request->filled('new_category')) {
+        $category = $request->new_category;
+    }
+
+    // Update product
+    $product->update([
+        'name' => $request->name,
+        'brand' => $brand,
+        'description' => $request->description,
+        'category' => $category,
+        'type' => $request->type,
+        'price' => $request->price,
+        'cost' => $request->cost,
+        'nicotine_strength' => $request->nicotine_strength,
+        'puff_count' => $request->puff_count,
+        'battery_capacity' => $request->battery_capacity,
+        'charging_type' => $request->charging_type,
+        'liquid_capacity' => $request->liquid_capacity,
+        'adjustable_airflow' => $request->has('adjustable_airflow'),
+        'smart_display' => $request->has('smart_display'),
+    ]);
+
+    // Handle image upload
+    if ($request->hasFile('image')) {
+        // Delete old image
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+        
+        $imagePath = $request->file('image')->store('products', 'public');
+        $product->update(['image' => $imagePath]);
+    }
+
+    return redirect()->route('branch-admin.products.index')
+        ->with('success', 'Product updated successfully!');
+}
 
     /**
      * Remove the specified resource from storage.
