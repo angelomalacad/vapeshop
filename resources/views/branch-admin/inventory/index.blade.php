@@ -103,10 +103,14 @@
                 </div>
             </div>
 
-            <!-- Filter Section -->
+            <!-- Filter Section with Search -->
             <div class="card mb-4">
                 <div class="card-body">
                     <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Search Product</label>
+                            <input type="text" name="search" class="form-control" placeholder="Search by product name..." value="{{ request('search') }}">
+                        </div>
                         <div class="col-md-3">
                             <label class="form-label">Product</label>
                             <select name="product_id" class="form-select">

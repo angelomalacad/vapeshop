@@ -117,7 +117,7 @@
                                                     <i class="bi bi-check-lg"></i> Approve
                                                 </button>
                                             </form>
-                                            <form action="{{ route('branch-admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline ms-1">
+                                            <form action="{{ route('branch-admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-danger" title="Reject Transfer" onclick="return confirm('Reject this transfer request?')">
                                                     <i class="bi bi-x-lg"></i> Reject
@@ -145,8 +145,8 @@
                                     @if($transfer->requested_by == Auth::user()->id && $transfer->status == 'pending')
                                         <form action="{{ route('branch-admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancel My Request" onclick="return confirm('Cancel this transfer request you made?')">
-                                                <i class="bi bi-x-circle"></i> Cancel My Request
+                                            <button type="submit" class="btn btn-outline-danger" title="Cancel My Request" onclick="return confirm('Cancel this transfer request you made?')">
+                                                <i class="bi bi-x-circle"></i> Cancel Request
                                             </button>
                                         </form>
                                     @endif

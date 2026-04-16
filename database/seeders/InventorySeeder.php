@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\BranchInventory;
 use App\Models\Branch;
 use App\Models\Product;
+use App\Models\StockTransfer;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class InventorySeeder extends Seeder
@@ -23,298 +25,343 @@ class InventorySeeder extends Seeder
             return;
         }
 
+        // Get users
+        $superAdmin = User::where('role', 'super_admin')->first();
+        $branchAdminMajada = User::where('branch_id', $majada->id)->where('role', 'branch_admin')->first();
+        $branchAdminPaciano = User::where('branch_id', $paciano->id)->where('role', 'branch_admin')->first();
+        $branchAdminAsia1 = User::where('branch_id', $asia1->id)->where('role', 'branch_admin')->first();
+
         // =============================================
         // ========== GET ALL PRODUCTS BY NAME =========
         // =============================================
-
+        
         $xUltra = Product::where('name', 'X-Vape Ultra')->first();
         $xPro = Product::where('name', 'X-Vape Pro')->first();
-        $xMax = Product::where('name', 'X-Vape Max')->first();
         $slimbar = Product::where('name', 'Slimbar')->first();
         $slimbarMax = Product::where('name', 'Slimbar Max')->first();
         $flumPebble = Product::where('name', 'Flum Pebble')->first();
-        $flumFloat = Product::where('name', 'Flum Float')->first();
         $dragbar = Product::where('name', 'Dragbar B5000')->first();
-        $dragbarF8000 = Product::where('name', 'Dragbar F8000')->first();
-        $elfBar = Product::where('name', 'Elf Bar 600')->first();
-        $lostMary = Product::where('name', 'Lost Mary OS5000')->first();
-        $hqd = Product::where('name', 'HQD Cuvie Plus')->first();
         $relx = Product::where('name', 'Relx Classic')->first();
         $relxInfinity = Product::where('name', 'Relx Infinity')->first();
-        $caliburn = Product::where('name', 'Uwell Caliburn G2')->first();
-        $xros = Product::where('name', 'Vaporesso XROS 3')->first();
-        $oxva = Product::where('name', 'Oxva Xlim Pro')->first();
-
+        
         // E-Liquids
         $dinnerLady = Product::where('name', 'Dinner Lady - Lemon Tart')->first();
         $naked = Product::where('name', 'Naked 100 - Hawaiian POG')->first();
-        $monster = Product::where('name', 'Monster Vape Labs - Jam Monster')->first();
         $coastal = Product::where('name', 'Coastal Clouds - Blueberry Banana')->first();
-        $milkman = Product::where('name', 'The Milkman - Crumbleberry')->first();
-        $pachamama = Product::where('name', 'Pachamama - Fuji Apple')->first();
-        $ripe = Product::where('name', 'Ripe Vapes - VCT')->first();
-        $charlie = Product::where('name', 'Charlie\'s Chalk Dust - PB&J')->first();
-        $sadboy = Product::where('name', 'Sadboy - Butter Cookie')->first();
-        $glas = Product::where('name', 'Glas Basix - Banana Cream Pie')->first();
-        $twist = Product::where('name', 'Twist - Pink Punch No. 1')->first();
-        $juiceHead = Product::where('name', 'Juice Head - Pineapple Grapefruit')->first();
-        $cloudNurdz = Product::where('name', 'Cloud Nurdz - Watermelon Apple')->first();
 
-        // Box Mods & Accessories
-        $geekvape = Product::where('name', 'GeekVape Aegis Legend 2')->first();
-        $voopoo = Product::where('name', 'VooPoo Drag 4')->first();
-        $smok = Product::where('name', 'Smok RPM 5')->first();
-        $relxPods = Product::where('name', 'Relx Replacement Pods')->first();
-        $caliburnCoils = Product::where('name', 'Caliburn G Coils (4-Pack)')->first();
-        $batteries = Product::where('name', '18650 Battery')->first();
-        $charger = Product::where('name', 'Dual Slot Battery Charger')->first();
-        $dripTips = Product::where('name', '510 Drip Tips')->first();
-
+        // First, clear any existing stock movements or transfers for clean demo
+        // (Optional: Uncomment if you want clean slate)
+        // StockTransfer::truncate();
+        
         // =============================================
         // ========== MAJADA OUT BRANCH =================
         // =============================================
-
+        
         $this->command->info('Seeding Majada Out Branch...');
-
+        
         // X-Vape Ultra - Majada
         $flavor = $xUltra ? $xUltra->flavors->where('name', 'Purple Twilight')->first() : null;
-        $this->createInventory($majada->id, $xUltra, $flavor, 50, 5, 10, 20, 100);
-
+        $this->createInventory($majada->id, $xUltra, $flavor, 50, 0, 10, 20, 100);
+        
         $flavor = $xUltra ? $xUltra->flavors->where('name', 'Blueberry Ice')->first() : null;
-        $this->createInventory($majada->id, $xUltra, $flavor, 35, 3, 10, 20, 80);
-
+        $this->createInventory($majada->id, $xUltra, $flavor, 35, 0, 10, 20, 80);
+        
         // X-Vape Pro - Majada
         $flavor = $xPro ? $xPro->flavors->where('name', 'Mango Ice')->first() : null;
-        $this->createInventory($majada->id, $xPro, $flavor, 30, 2, 10, 15, 60);
-
-        // Slimbar - Majada
+        $this->createInventory($majada->id, $xPro, $flavor, 30, 0, 10, 15, 60);
+        
+        // Slimbar - Majada (HAS PLENTY OF STOCK)
         $flavor = $slimbar ? $slimbar->flavors->where('name', 'Strawberry Banana')->first() : null;
-        $this->createInventory($majada->id, $slimbar, $flavor, 60, 8, 15, 25, 120);
-
-        $flavor = $slimbar ? $slimbar->flavors->where('name', 'Lychee Ice')->first() : null;
-        $this->createInventory($majada->id, $slimbar, $flavor, 45, 4, 15, 25, 100);
-
-        // Flum Pebble - Majada
-        $flavor = $flumPebble ? $flumPebble->flavors->where('name', 'Aloe Grape')->first() : null;
-        $this->createInventory($majada->id, $flumPebble, $flavor, 40, 6, 10, 20, 80);
-
+        $this->createInventory($majada->id, $slimbar, $flavor, 60, 0, 15, 25, 120);
+        
         // Dragbar - Majada
         $flavor = $dragbar ? $dragbar->flavors->where('name', 'Blue Razz')->first() : null;
-        $this->createInventory($majada->id, $dragbar, $flavor, 55, 7, 12, 25, 100);
-
+        $this->createInventory($majada->id, $dragbar, $flavor, 55, 0, 12, 25, 100);
+        
         // RELX - Majada
         $flavor = $relx ? $relx->flavors->where('name', 'Fresh Mint')->first() : null;
-        $this->createInventory($majada->id, $relx, $flavor, 25, 2, 8, 15, 50);
-
-        $flavor = $relx ? $relx->flavors->where('name', 'Watermelon')->first() : null;
-        $this->createInventory($majada->id, $relx, $flavor, 20, 1, 8, 15, 45);
-
+        $this->createInventory($majada->id, $relx, $flavor, 25, 0, 8, 15, 50);
+        
         // E-Liquids - Majada
-        $this->createInventory($majada->id, $dinnerLady, null, 30, 3, 10, 20, 60);
-        $this->createInventory($majada->id, $naked, null, 25, 2, 10, 20, 50);
-        $this->createInventory($majada->id, $coastal, null, 20, 1, 8, 15, 40);
-
-        // Box Mods - Majada (low stock)
-        $this->createInventory($majada->id, $geekvape, null, 5, 1, 3, 5, 15);
-        $this->createInventory($majada->id, $voopoo, null, 3, 0, 3, 5, 10);
-
-        // Accessories - Majada
-        $this->createInventory($majada->id, $relxPods, null, 50, 5, 20, 30, 100);
-        $this->createInventory($majada->id, $batteries, null, 30, 3, 10, 20, 60);
-        $this->createInventory($majada->id, $charger, null, 15, 1, 5, 10, 30);
+        $this->createInventory($majada->id, $dinnerLady, null, 30, 0, 10, 20, 60);
+        $this->createInventory($majada->id, $naked, null, 25, 0, 10, 20, 50);
 
         // =============================================
         // ========== ASIA 1 BRANCH ====================
         // =============================================
-
+        
         $this->command->info('Seeding Asia 1 Branch...');
-
+        
         // X-Vape Ultra - Asia1
         $flavor = $xUltra ? $xUltra->flavors->where('name', 'Strawberry Watermelon')->first() : null;
-        $this->createInventory($asia1->id, $xUltra, $flavor, 45, 4, 10, 20, 90);
-
-        $flavor = $xUltra ? $xUltra->flavors->where('name', 'Cool Mint')->first() : null;
-        $this->createInventory($asia1->id, $xUltra, $flavor, 38, 3, 10, 20, 75);
-
+        $this->createInventory($asia1->id, $xUltra, $flavor, 45, 0, 10, 20, 90);
+        
         // Slimbar Max - Asia1
         $flavor = $slimbarMax ? $slimbarMax->flavors->where('name', 'Mixed Berries')->first() : null;
-        $this->createInventory($asia1->id, $slimbarMax, $flavor, 35, 4, 12, 20, 70);
-
-        // Flum Float - Asia1
-        $flavor = $flumFloat ? $flumFloat->flavors->where('name', 'Strawberry Ice')->first() : null;
-        $this->createInventory($asia1->id, $flumFloat, $flavor, 60, 8, 15, 25, 120);
-
-        // Dragbar F8000 - Asia1
-        $flavor = $dragbarF8000 ? $dragbarF8000->flavors->where('name', 'Strawberry Kiwi')->first() : null;
-        $this->createInventory($asia1->id, $dragbarF8000, $flavor, 30, 2, 10, 15, 60);
-
-        // Elf Bar - Asia1
-        $flavor = $elfBar ? $elfBar->flavors->where('name', 'Blue Razz Lemonade')->first() : null;
-        $this->createInventory($asia1->id, $elfBar, $flavor, 80, 12, 20, 30, 150);
-
+        $this->createInventory($asia1->id, $slimbarMax, $flavor, 35, 0, 12, 20, 70);
+        
+        // Flum Pebble - Asia1
+        $flavor = $flumPebble ? $flumPebble->flavors->where('name', 'Aloe Grape')->first() : null;
+        $this->createInventory($asia1->id, $flumPebble, $flavor, 60, 0, 15, 25, 120);
+        
         // RELX Infinity - Asia1
         $flavor = $relxInfinity ? $relxInfinity->flavors->where('name', 'Cool Mint')->first() : null;
-        $this->createInventory($asia1->id, $relxInfinity, $flavor, 15, 1, 5, 10, 30);
-
+        $this->createInventory($asia1->id, $relxInfinity, $flavor, 15, 0, 5, 10, 30);
+        
         // E-Liquids - Asia1
-        $this->createInventory($asia1->id, $monster, null, 35, 4, 10, 20, 70);
-        $this->createInventory($asia1->id, $milkman, null, 28, 2, 8, 15, 55);
-        $this->createInventory($asia1->id, $pachamama, null, 22, 1, 8, 15, 45);
-
-        // Pod Systems - Asia1
-        $this->createInventory($asia1->id, $caliburn, null, 8, 1, 3, 5, 20);
-        $this->createInventory($asia1->id, $xros, null, 6, 0, 3, 5, 15);
-
-        // Accessories - Asia1
-        $this->createInventory($asia1->id, $caliburnCoils, null, 60, 8, 15, 25, 120);
-        $this->createInventory($asia1->id, $dripTips, null, 45, 5, 10, 20, 80);
+        $this->createInventory($asia1->id, $coastal, null, 20, 0, 8, 15, 40);
 
         // =============================================
         // ========== MCDC BRANCH ======================
         // =============================================
-
+        
         $this->command->info('Seeding MCDC Branch...');
-
+        
         // X-Vape Ultra - MCDC
         $flavor = $xUltra ? $xUltra->flavors->where('name', 'Grape Soda')->first() : null;
-        $this->createInventory($mcdc->id, $xUltra, $flavor, 55, 6, 10, 20, 110);
-
-        $flavor = $xUltra ? $xUltra->flavors->where('name', 'Lush Ice')->first() : null;
-        $this->createInventory($mcdc->id, $xUltra, $flavor, 42, 4, 10, 20, 85);
-
-        // X-Vape Max - MCDC
-        $flavor = $xMax ? $xMax->flavors->where('name', 'Blue Razz')->first() : null;
-        $this->createInventory($mcdc->id, $xMax, $flavor, 25, 2, 8, 15, 50);
-
+        $this->createInventory($mcdc->id, $xUltra, $flavor, 55, 0, 10, 20, 110);
+        
         // Slimbar - MCDC
         $flavor = $slimbar ? $slimbar->flavors->where('name', 'Spearmint')->first() : null;
-        $this->createInventory($mcdc->id, $slimbar, $flavor, 70, 10, 15, 25, 140);
-
-        // Lost Mary - MCDC
-        $flavor = $lostMary ? $lostMary->flavors->where('name', 'Strawberry Pina Colada')->first() : null;
-        $this->createInventory($mcdc->id, $lostMary, $flavor, 35, 3, 10, 15, 70);
-
-        // HQD - MCDC
-        $flavor = $hqd ? $hqd->flavors->where('name', 'Mango')->first() : null;
-        $this->createInventory($mcdc->id, $hqd, $flavor, 90, 15, 20, 30, 180);
-
+        $this->createInventory($mcdc->id, $slimbar, $flavor, 70, 0, 15, 25, 140);
+        
         // RELX - MCDC
         $flavor = $relx ? $relx->flavors->where('name', 'Lychee')->first() : null;
-        $this->createInventory($mcdc->id, $relx, $flavor, 30, 3, 8, 15, 60);
-
-        $flavor = $relx ? $relx->flavors->where('name', 'Grape')->first() : null;
-        $this->createInventory($mcdc->id, $relx, $flavor, 28, 2, 8, 15, 55);
-
-        // E-Liquids - MCDC
-        $this->createInventory($mcdc->id, $ripe, null, 18, 1, 5, 10, 35);
-        $this->createInventory($mcdc->id, $charlie, null, 25, 2, 8, 15, 50);
-        $this->createInventory($mcdc->id, $sadboy, null, 30, 3, 10, 20, 60);
-        $this->createInventory($mcdc->id, $glas, null, 22, 1, 8, 15, 45);
-
-        // Box Mods - MCDC
-        $this->createInventory($mcdc->id, $smok, null, 7, 1, 3, 5, 15);
-
-        // Accessories - MCDC
-        $this->createInventory($mcdc->id, $relxPods, null, 45, 4, 20, 30, 90);
-        $this->createInventory($mcdc->id, $batteries, null, 35, 4, 10, 20, 70);
+        $this->createInventory($mcdc->id, $relx, $flavor, 30, 0, 8, 15, 60);
 
         // =============================================
-        // ========== PACIANO BRANCH ===================
+        // ========== PACIANO BRANCH (LOW STOCK) =======
         // =============================================
-
-        $this->command->info('Seeding Paciano Branch...');
-
+        
+        $this->command->info('Seeding Paciano Branch (Low Stock for Demo)...');
+        
         // X-Vape Ultra - Paciano
         $flavor = $xUltra ? $xUltra->flavors->where('name', 'Pineapple Coconut')->first() : null;
-        $this->createInventory($paciano->id, $xUltra, $flavor, 40, 3, 10, 20, 80);
-
-        // Slimbar - Paciano (LOW STOCK - for demo alerts)
+        $this->createInventory($paciano->id, $xUltra, $flavor, 40, 0, 10, 20, 80);
+        
+        // Slimbar - Paciano (LOW STOCK - NO RESERVED STOCK to avoid negative)
         $flavor = $slimbar ? $slimbar->flavors->where('name', 'Vanilla Custard')->first() : null;
-        $this->createInventory($paciano->id, $slimbar, $flavor, 3, 1, 10, 15, 60);  // LOW STOCK!
-
+        $this->createInventory($paciano->id, $slimbar, $flavor, 3, 0, 10, 15, 60);  // LOW STOCK! (3 units, 0 reserved)
+        
         $flavor = $slimbar ? $slimbar->flavors->where('name', 'Blueberry')->first() : null;
-        $this->createInventory($paciano->id, $slimbar, $flavor, 8, 2, 10, 15, 50);   // LOW STOCK!
-
+        $this->createInventory($paciano->id, $slimbar, $flavor, 8, 0, 10, 15, 50);   // LOW STOCK! (8 units, 0 reserved)
+        
         // Flum Pebble - Paciano
         $flavor = $flumPebble ? $flumPebble->flavors->where('name', 'Watermelon')->first() : null;
-        $this->createInventory($paciano->id, $flumPebble, $flavor, 50, 6, 10, 20, 100);
-
-        // Dragbar - Paciano
-        $flavor = $dragbar ? $dragbar->flavors->where('name', 'Peach Mango')->first() : null;
-        $this->createInventory($paciano->id, $dragbar, $flavor, 35, 4, 12, 20, 70);
-
-        // Elf Bar - Paciano
-        $flavor = $elfBar ? $elfBar->flavors->where('name', 'Watermelon')->first() : null;
-        $this->createInventory($paciano->id, $elfBar, $flavor, 65, 10, 20, 30, 130);
-
+        $this->createInventory($paciano->id, $flumPebble, $flavor, 50, 0, 10, 20, 100);
+        
         // RELX - Paciano
         $flavor = $relx ? $relx->flavors->where('name', 'Peach')->first() : null;
-        $this->createInventory($paciano->id, $relx, $flavor, 22, 2, 8, 15, 45);
-
-        // E-Liquids - Paciano
-        $this->createInventory($paciano->id, $twist, null, 40, 5, 10, 20, 80);
-        $this->createInventory($paciano->id, $juiceHead, null, 35, 4, 10, 20, 70);
-        $this->createInventory($paciano->id, $cloudNurdz, null, 28, 3, 8, 15, 55);
-
-        // Pod Systems - Paciano
-        $this->createInventory($paciano->id, $oxva, null, 10, 1, 3, 5, 20);
-
-        // Accessories - Paciano
-        $this->createInventory($paciano->id, $caliburnCoils, null, 55, 6, 15, 25, 110);
-        $this->createInventory($paciano->id, $charger, null, 12, 1, 5, 10, 25);
-        $this->createInventory($paciano->id, $dripTips, null, 35, 3, 10, 20, 70);
+        $this->createInventory($paciano->id, $relx, $flavor, 22, 0, 8, 15, 45);
 
         // =============================================
         // ========== PACIANO V2 BRANCH ================
         // =============================================
-
+        
         $this->command->info('Seeding Paciano V2 Branch...');
-
+        
         // X-Vape Pro - Paciano V2
         $flavor = $xPro ? $xPro->flavors->where('name', 'Peach Ice Tea')->first() : null;
-        $this->createInventory($pacianoV2->id, $xPro, $flavor, 45, 5, 10, 15, 90);
-
+        $this->createInventory($pacianoV2->id, $xPro, $flavor, 45, 0, 10, 15, 90);
+        
         // Slimbar Max - Paciano V2
         $flavor = $slimbarMax ? $slimbarMax->flavors->where('name', 'Peach Mango')->first() : null;
-        $this->createInventory($pacianoV2->id, $slimbarMax, $flavor, 30, 3, 12, 20, 60);
-
-        // Flum Pebble - Paciano V2
-        $flavor = $flumPebble ? $flumPebble->flavors->where('name', 'Mango')->first() : null;
-        $this->createInventory($pacianoV2->id, $flumPebble, $flavor, 55, 7, 10, 20, 110);
-
-        // Lost Mary - Paciano V2
-        $flavor = $lostMary ? $lostMary->flavors->where('name', 'Blueberry')->first() : null;
-        $this->createInventory($pacianoV2->id, $lostMary, $flavor, 40, 4, 10, 15, 80);
-
+        $this->createInventory($pacianoV2->id, $slimbarMax, $flavor, 30, 0, 12, 20, 60);
+        
         // RELX Infinity - Paciano V2
         $flavor = $relxInfinity ? $relxInfinity->flavors->where('name', 'Mango')->first() : null;
-        $this->createInventory($pacianoV2->id, $relxInfinity, $flavor, 20, 2, 5, 10, 40);
-
+        $this->createInventory($pacianoV2->id, $relxInfinity, $flavor, 20, 0, 5, 10, 40);
+        
         // E-Liquids - Paciano V2
-        $this->createInventory($pacianoV2->id, $dinnerLady, null, 35, 4, 10, 20, 70);
-        $this->createInventory($pacianoV2->id, $naked, null, 30, 3, 10, 20, 60);
-        $this->createInventory($pacianoV2->id, $monster, null, 25, 2, 8, 15, 50);
-        $this->createInventory($pacianoV2->id, $coastal, null, 28, 3, 8, 15, 55);
+        $this->createInventory($pacianoV2->id, $dinnerLady, null, 35, 0, 10, 20, 70);
+        $this->createInventory($pacianoV2->id, $naked, null, 30, 0, 10, 20, 60);
 
-        // Box Mods - Paciano V2
-        $this->createInventory($pacianoV2->id, $geekvape, null, 4, 0, 3, 5, 12);
-
-        // Accessories - Paciano V2
-        $this->createInventory($pacianoV2->id, $relxPods, null, 60, 6, 20, 30, 120);
-        $this->createInventory($pacianoV2->id, $batteries, null, 40, 5, 10, 20, 80);
-        $this->createInventory($pacianoV2->id, $caliburnCoils, null, 50, 5, 15, 25, 100);
-
+        // =============================================
+        // ========== STOCK TRANSFER DEMOS ==============
+        // =============================================
+        
         $this->command->info('');
         $this->command->info('========================================');
-        $this->command->info('Inventory Seeding Completed!');
+        $this->command->info('Creating Stock Transfer Demos...');
         $this->command->info('========================================');
+        
+        // Get flavors for transfers
+        $xUltraFlavor = $xUltra ? $xUltra->flavors->where('name', 'Purple Twilight')->first() : null;
+        $slimbarFlavor = $slimbar ? $slimbar->flavors->where('name', 'Strawberry Banana')->first() : null; // Using Majada's stock
+        $vanillaFlavor = $slimbar ? $slimbar->flavors->where('name', 'Vanilla Custard')->first() : null;
+        
+        // ===== DEMO 1: PENDING TRANSFER (Majada to Paciano for Slimbar) =====
+        // This demonstrates a transfer request from branch with stock to branch with low stock
+        
+        $pendingTransfer = StockTransfer::updateOrCreate(
+            ['transfer_number' => 'TRF-PEND-001'],
+            [
+                'transfer_number' => 'TRF-PEND-001',
+                'from_branch_id' => $majada->id,  // Majada has plenty of stock (60 units)
+                'to_branch_id' => $paciano->id,   // Paciano is low on stock (3 units)
+                'product_id' => $slimbar ? $slimbar->id : null,
+                'flavor_id' => $slimbarFlavor ? $slimbarFlavor->id : null,
+                'quantity' => 20,
+                'status' => 'pending',
+                'requested_by' => $branchAdminPaciano ? $branchAdminPaciano->id : ($superAdmin ? $superAdmin->id : null),
+                'notes' => 'Urgent: Paciano branch running low on Strawberry Banana Slimbar. Customer demand is high.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+        
+        if ($pendingTransfer) {
+            $this->command->info('✓ Created PENDING transfer: Majada → Paciano (Slimbar - Strawberry Banana x20)');
+            
+            // Reserve stock at source branch (Majada)
+            $sourceInventory = BranchInventory::where('branch_id', $majada->id)
+                ->where('product_id', $slimbar ? $slimbar->id : null)
+                ->where('flavor_id', $slimbarFlavor ? $slimbarFlavor->id : null)
+                ->first();
+            
+            if ($sourceInventory) {
+                $sourceInventory->update([
+                    'reserved_quantity' => $sourceInventory->reserved_quantity + 20
+                ]);
+                $this->command->info('  → Reserved 20 units at Majada branch');
+            }
+        }
+        
+        // ===== DEMO 2: APPROVED TRANSFER (Majada to Asia1 for X-Vape Ultra) =====
+        $xUltraFlavor2 = $xUltra ? $xUltra->flavors->where('name', 'Blueberry Ice')->first() : null;
+        
+        $approvedTransfer = StockTransfer::updateOrCreate(
+            ['transfer_number' => 'TRF-APPR-001'],
+            [
+                'transfer_number' => 'TRF-APPR-001',
+                'from_branch_id' => $majada->id,
+                'to_branch_id' => $asia1->id,
+                'product_id' => $xUltra ? $xUltra->id : null,
+                'flavor_id' => $xUltraFlavor2 ? $xUltraFlavor2->id : null,
+                'quantity' => 15,
+                'status' => 'approved',
+                'requested_by' => $branchAdminAsia1 ? $branchAdminAsia1->id : ($superAdmin ? $superAdmin->id : null),
+                'approved_by' => $superAdmin ? $superAdmin->id : null,
+                'approved_at' => now()->subDays(1),
+                'notes' => 'Transfer approved by Super Admin. Ready for completion.',
+                'created_at' => now()->subDays(2),
+                'updated_at' => now()->subDays(1),
+            ]
+        );
+        
+        if ($approvedTransfer) {
+            $this->command->info('✓ Created APPROVED transfer: Majada → Asia1 (X-Vape Ultra - Blueberry Ice x15)');
+            
+            $sourceInventory = BranchInventory::where('branch_id', $majada->id)
+                ->where('product_id', $xUltra ? $xUltra->id : null)
+                ->where('flavor_id', $xUltraFlavor2 ? $xUltraFlavor2->id : null)
+                ->first();
+            
+            if ($sourceInventory) {
+                $sourceInventory->update([
+                    'reserved_quantity' => $sourceInventory->reserved_quantity + 15
+                ]);
+                $this->command->info('  → Reserved 15 units at Majada branch');
+            }
+        }
+        
+        // ===== DEMO 3: COMPLETED TRANSFER (MCDC to Paciano V2 for RELX) =====
+        $relxFlavor = $relx ? $relx->flavors->where('name', 'Fresh Mint')->first() : null;
+        
+        $completedTransfer = StockTransfer::updateOrCreate(
+            ['transfer_number' => 'TRF-COMP-001'],
+            [
+                'transfer_number' => 'TRF-COMP-001',
+                'from_branch_id' => $mcdc->id,
+                'to_branch_id' => $pacianoV2->id,
+                'product_id' => $relx ? $relx->id : null,
+                'flavor_id' => $relxFlavor ? $relxFlavor->id : null,
+                'quantity' => 10,
+                'status' => 'completed',
+                'requested_by' => $branchAdminPaciano ? $branchAdminPaciano->id : ($superAdmin ? $superAdmin->id : null),
+                'approved_by' => $superAdmin ? $superAdmin->id : null,
+                'approved_at' => now()->subDays(3),
+                'completed_at' => now()->subDays(2),
+                'notes' => 'Transfer completed successfully. Stock moved to Paciano V2.',
+                'created_at' => now()->subDays(5),
+                'updated_at' => now()->subDays(2),
+            ]
+        );
+        
+        if ($completedTransfer) {
+            $this->command->info('✓ Created COMPLETED transfer: MCDC → Paciano V2 (Relx Classic - Fresh Mint x10)');
+            
+            // Update inventory for completed transfer
+            $sourceInventory = BranchInventory::where('branch_id', $mcdc->id)
+                ->where('product_id', $relx ? $relx->id : null)
+                ->where('flavor_id', $relxFlavor ? $relxFlavor->id : null)
+                ->first();
+            
+            $destInventory = BranchInventory::where('branch_id', $pacianoV2->id)
+                ->where('product_id', $relx ? $relx->id : null)
+                ->where('flavor_id', $relxFlavor ? $relxFlavor->id : null)
+                ->first();
+            
+            if ($sourceInventory) {
+                $sourceInventory->update([
+                    'quantity' => $sourceInventory->quantity - 10,
+                    'reserved_quantity' => max(0, $sourceInventory->reserved_quantity - 10)
+                ]);
+                $this->command->info('  → Deducted 10 units from MCDC branch');
+            }
+            
+            if ($destInventory) {
+                $destInventory->update([
+                    'quantity' => $destInventory->quantity + 10,
+                    'last_restocked_at' => now(),
+                ]);
+                $this->command->info('  → Added 10 units to Paciano V2 branch');
+            }
+        }
+        
+        // ===== DEMO 4: CANCELLED TRANSFER (Asia1 to MCDC) =====
+        $flumFlavor = $flumPebble ? $flumPebble->flavors->where('name', 'Aloe Grape')->first() : null;
+        
+        $cancelledTransfer = StockTransfer::updateOrCreate(
+            ['transfer_number' => 'TRF-CANC-001'],
+            [
+                'transfer_number' => 'TRF-CANC-001',
+                'from_branch_id' => $asia1->id,
+                'to_branch_id' => $mcdc->id,
+                'product_id' => $flumPebble ? $flumPebble->id : null,
+                'flavor_id' => $flumFlavor ? $flumFlavor->id : null,
+                'quantity' => 25,
+                'status' => 'cancelled',
+                'requested_by' => $branchAdminAsia1 ? $branchAdminAsia1->id : ($superAdmin ? $superAdmin->id : null),
+                'notes' => 'Cancelled due to insufficient stock at source branch.',
+                'created_at' => now()->subDays(4),
+                'updated_at' => now()->subDays(3),
+            ]
+        );
+        
+        if ($cancelledTransfer) {
+            $this->command->info('✓ Created CANCELLED transfer: Asia1 → MCDC (Flum Pebble - Aloe Grape x25)');
+        }
+        
+        $this->command->info('');
+        $this->command->info('========================================');
+        $this->command->info('Stock Transfer Demos Created!');
+        $this->command->info('========================================');
+        $this->command->info('');
+        $this->command->info('Transfer Summary:');
+        $this->command->info('  📋 PENDING:    1 transfer (Majada→Paciano for Slimbar x20)');
+        $this->command->info('  ✅ APPROVED:   1 transfer (Majada→Asia1 for X-Vape Ultra x15)');
+        $this->command->info('  ✔️ COMPLETED:  1 transfer (MCDC→Paciano V2 for Relx x10)');
+        $this->command->info('  ❌ CANCELLED:  1 transfer (Asia1→MCDC for Flum Pebble x25)');
         $this->command->info('');
         $this->command->info('Low Stock Demo Items:');
-        $this->command->info('  - Paciano Branch: Slimbar (Vanilla Custard) - Only 3 units left');
-        $this->command->info('  - Paciano Branch: Slimbar (Blueberry) - Only 8 units left');
+        $this->command->info('  ⚠️ Paciano Branch: Slimbar (Vanilla Custard) - Only 3 units left');
+        $this->command->info('  ⚠️ Paciano Branch: Slimbar (Blueberry) - Only 8 units left');
+        $this->command->info('');
+        $this->command->info('✅ No negative stock issues! All quantities are valid.');
         $this->command->info('');
     }
-
+    
     /**
      * Helper function to create inventory
      */
@@ -323,7 +370,7 @@ class InventorySeeder extends Seeder
         if (!$product) {
             return;
         }
-
+        
         BranchInventory::updateOrCreate(
             [
                 'branch_id' => $branchId,
