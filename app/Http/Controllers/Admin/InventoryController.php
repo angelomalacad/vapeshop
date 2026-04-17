@@ -22,17 +22,23 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $query = BranchInventory::with(['branch', 'product', 'flavor']);
-        
+
+        if ($request->filled('search')) {
+        $query->whereHas('product', function($q) use ($request) {
+        $q->where('name', 'like', '%' . $request->search . '%');
+        });
+        }
+
         // Filter by branch
         if ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
-        
+
         // Filter by product
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
-        
+
         // Filter by stock status
         if ($request->filled('stock_status')) {
             if ($request->stock_status === 'low') {
@@ -41,12 +47,12 @@ class InventoryController extends Controller
                 $query->where('quantity', '<=', 0);
             }
         }
-        
+
         $inventories = $query->orderBy('branch_id')->paginate(20);
-        
+
         $branches = Branch::where('is_active', true)->get();
         $products = Product::where('is_active', true)->get();
-        
+
         return view('admin.inventory.index', compact('inventories', 'branches', 'products'));
     }
 
@@ -57,7 +63,7 @@ class InventoryController extends Controller
     {
         $branches = Branch::where('is_active', true)->get();
         $products = Product::with('flavors')->where('is_active', true)->get();
-        
+
         return view('admin.inventory.create', compact('branches', 'products'));
     }
 
@@ -138,7 +144,7 @@ class InventoryController extends Controller
     public function show(BranchInventory $inventory)
     {
         $inventory->load(['branch', 'product', 'flavor']);
-        
+
         $movements = StockMovement::where('branch_id', $inventory->branch_id)
             ->where('product_id', $inventory->product_id)
             ->when($inventory->flavor_id, function($query) use ($inventory) {
@@ -147,7 +153,7 @@ class InventoryController extends Controller
             ->with('creator')
             ->orderBy('created_at', 'desc')
             ->paginate(50);
-        
+
         return view('admin.inventory.show', compact('inventory', 'movements'));
     }
 
@@ -159,7 +165,7 @@ class InventoryController extends Controller
         $inventory->load(['product', 'flavor']);
         $branches = Branch::where('is_active', true)->get();
         $products = Product::with('flavors')->where('is_active', true)->get();
-        
+
         return view('admin.inventory.edit', compact('inventory', 'branches', 'products'));
     }
 
@@ -182,10 +188,10 @@ class InventoryController extends Controller
         ]);
 
         // Check if changing branch/product/flavor combination would create duplicate
-        if ($inventory->branch_id != $request->branch_id || 
-            $inventory->product_id != $request->product_id || 
+        if ($inventory->branch_id != $request->branch_id ||
+            $inventory->product_id != $request->product_id ||
             $inventory->flavor_id != $request->flavor_id) {
-            
+
             $exists = BranchInventory::where('branch_id', $request->branch_id)
                 ->where('product_id', $request->product_id)
                 ->where('flavor_id', $request->flavor_id)
@@ -261,16 +267,16 @@ class InventoryController extends Controller
         try {
             $oldQuantity = $inventory->quantity;
             $newQuantity = $oldQuantity + $request->quantity;
-            
+
             $updateData = [
                 'quantity' => $newQuantity,
                 'last_restocked_at' => now(),
             ];
-            
+
             if ($request->filled('purchase_price')) {
                 $updateData['last_purchase_price'] = $request->purchase_price;
             }
-            
+
             $inventory->update($updateData);
 
             // Log movement
@@ -322,7 +328,7 @@ class InventoryController extends Controller
         try {
             $oldQuantity = $inventory->quantity;
             $newQuantity = $oldQuantity - $request->quantity;
-            
+
             $inventory->update(['quantity' => $newQuantity]);
 
             // Log movement
@@ -381,7 +387,7 @@ class InventoryController extends Controller
         $inventories = BranchInventory::with(['product', 'flavor'])
             ->where('branch_id', $branch->id)
             ->paginate(20);
-        
+
         return view('admin.inventory.branch', compact('inventories', 'branch'));
     }
 
@@ -396,7 +402,7 @@ class InventoryController extends Controller
             ->orderBy('quantity', 'asc')
             ->get()
             ->groupBy('branch.name');
-        
+
         return view('admin.inventory.low-stock', compact('items'));
     }
 
@@ -406,32 +412,32 @@ class InventoryController extends Controller
     public function stockHistory(Request $request)
     {
         $query = StockMovement::with(['branch', 'product', 'flavor', 'creator']);
-        
+
         if ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
-        
+
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
-        
+
         if ($request->filled('movement_type')) {
             $query->where('movement_type', $request->movement_type);
         }
-        
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
-        
+
         $movements = $query->orderBy('created_at', 'desc')->paginate(50);
-        
+
         $branches = Branch::where('is_active', true)->get();
         $products = Product::where('is_active', true)->get();
-        
+
         return view('admin.inventory.stock-history', compact('movements', 'branches', 'products'));
     }
 
@@ -441,39 +447,39 @@ class InventoryController extends Controller
     public function transfers(Request $request)
     {
         $query = StockTransfer::with([
-            'fromBranch', 
-            'toBranch', 
-            'product', 
-            'flavor', 
+            'fromBranch',
+            'toBranch',
+            'product',
+            'flavor',
             'requestedBy',
             'approvedBy'
         ]);
-        
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         if ($request->filled('from_branch')) {
             $query->where('from_branch_id', $request->from_branch);
         }
-        
+
         if ($request->filled('to_branch')) {
             $query->where('to_branch_id', $request->to_branch);
         }
-        
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
-        
+
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
-        
+
         $transfers = $query->orderBy('created_at', 'desc')->paginate(20);
-        
+
         $branches = Branch::where('is_active', true)->get();
         $statuses = ['pending', 'approved', 'completed', 'cancelled'];
-        
+
         return view('admin.inventory.transfers', compact('transfers', 'branches', 'statuses'));
     }
 
@@ -484,12 +490,12 @@ public function createTransfer()
 {
     $branches = Branch::where('is_active', true)->get();
     $products = Product::with('flavors')->where('is_active', true)->get();
-    
+
     // Debug: Check if flavors are loaded
     foreach ($products as $product) {
         \Log::info('Product: ' . $product->name . ' has ' . $product->flavors->count() . ' flavors');
     }
-    
+
     return view('admin.inventory.create-transfer', compact('branches', 'products'));
 }
 
@@ -565,14 +571,14 @@ public function createTransfer()
     public function showTransfer(StockTransfer $transfer)
     {
         $transfer->load([
-            'fromBranch', 
-            'toBranch', 
-            'product', 
-            'flavor', 
+            'fromBranch',
+            'toBranch',
+            'product',
+            'flavor',
             'requestedBy',
             'approvedBy'
         ]);
-        
+
         return view('admin.inventory.show-transfer', compact('transfer'));
     }
 
@@ -588,7 +594,7 @@ public function createTransfer()
 
         $branches = Branch::where('is_active', true)->get();
         $products = Product::with('flavors')->where('is_active', true)->get();
-        
+
         return view('admin.inventory.edit-transfer', compact('transfer', 'branches', 'products'));
     }
 
@@ -679,18 +685,18 @@ public function createTransfer()
         if ($transfer->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending transfers can be approved.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
             $transfer->update([
                 'status' => 'approved',
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
             ]);
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('success', 'Transfer approved successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -706,9 +712,9 @@ public function createTransfer()
         if ($transfer->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending transfers can be rejected.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
             // Release reserved stock at source branch
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
@@ -717,20 +723,20 @@ public function createTransfer()
                     return $query->where('flavor_id', $transfer->flavor_id);
                 })
                 ->first();
-            
+
             if ($sourceInventory) {
                 $sourceInventory->update([
                     'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
                 ]);
             }
-            
+
             $transfer->update([
                 'status' => 'cancelled',
                 'notes' => $transfer->notes . ' | Rejected by super admin'
             ]);
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('success', 'Transfer rejected successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -746,9 +752,9 @@ public function createTransfer()
         if ($transfer->status !== 'approved') {
             return redirect()->back()->with('error', 'Only approved transfers can be completed.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
             // Remove from source branch reserved stock and actual stock
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
@@ -757,14 +763,14 @@ public function createTransfer()
                     return $query->where('flavor_id', $transfer->flavor_id);
                 })
                 ->first();
-            
+
             if ($sourceInventory) {
                 $sourceInventory->update([
                     'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity,
                     'quantity' => $sourceInventory->quantity - $transfer->quantity,
                 ]);
             }
-            
+
             // Add to destination branch
             $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
                 ->where('product_id', $transfer->product_id)
@@ -772,7 +778,7 @@ public function createTransfer()
                     return $query->where('flavor_id', $transfer->flavor_id);
                 })
                 ->first();
-            
+
             if ($destInventory) {
                 $destInventory->update([
                     'quantity' => $destInventory->quantity + $transfer->quantity,
@@ -794,7 +800,7 @@ public function createTransfer()
                 ]);
                 $newDestQuantity = $transfer->quantity;
             }
-            
+
             // Log movements
             StockMovement::create([
                 'branch_id' => $transfer->from_branch_id,
@@ -809,7 +815,7 @@ public function createTransfer()
                 'notes' => 'Transfer to ' . $transfer->toBranch->name,
                 'created_by' => Auth::id(),
             ]);
-            
+
             StockMovement::create([
                 'branch_id' => $transfer->to_branch_id,
                 'product_id' => $transfer->product_id,
@@ -823,14 +829,14 @@ public function createTransfer()
                 'notes' => 'Transfer from ' . $transfer->fromBranch->name,
                 'created_by' => Auth::id(),
             ]);
-            
+
             $transfer->update([
                 'status' => 'completed',
                 'completed_at' => now(),
             ]);
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('success', 'Transfer completed successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -846,9 +852,9 @@ public function createTransfer()
         if (!in_array($transfer->status, ['pending', 'approved'])) {
             return redirect()->back()->with('error', 'Only pending or approved transfers can be cancelled.');
         }
-        
+
         DB::beginTransaction();
-        
+
         try {
             // Release reserved stock if still pending/approved
             if (in_array($transfer->status, ['pending', 'approved'])) {
@@ -858,21 +864,21 @@ public function createTransfer()
                         return $query->where('flavor_id', $transfer->flavor_id);
                     })
                     ->first();
-                
+
                 if ($sourceInventory && $sourceInventory->reserved_quantity >= $transfer->quantity) {
                     $sourceInventory->update([
                         'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
                     ]);
                 }
             }
-            
+
             $transfer->update([
                 'status' => 'cancelled',
                 'notes' => $transfer->notes . ' | Cancelled by super admin'
             ]);
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('success', 'Transfer cancelled successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -889,9 +895,9 @@ public function createTransfer()
             return redirect()->back()
                 ->with('error', 'Only cancelled or completed transfers can be deleted.');
         }
-        
+
         $transfer->delete();
-        
+
         return redirect()->route('admin.inventory.transfers')
             ->with('success', 'Transfer deleted successfully.');
     }
@@ -914,7 +920,7 @@ public function createTransfer()
                     return $item->quantity * ($item->product->price ?? 0);
                 }),
         ];
-        
+
         return response()->json($summary);
     }
 }

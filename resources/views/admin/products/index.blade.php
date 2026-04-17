@@ -3,277 +3,320 @@
 @section('title', 'Products Management - Vape Expo')
 
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Header with Dashboard Button -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center">
-            <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
-            <div>
-                <h1 class="h3 mb-1 fw-bold">Products Management</h1>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-box me-1"></i> Manage all products across branches
-                </p>
-            </div>
-        </div>
-        <div class="mt-2 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-3">
-                <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
-            <a href="{{ route('admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
-                <i class="bi bi-plus-circle me-1"></i> Add New Product
-            </a>
-        </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="row g-3 mb-4">
-        @php
-            $totalProducts = \App\Models\Product::count();
-            $activeProducts = \App\Models\Product::where('is_active', true)->count();
-            $withFlavors = \App\Models\Product::has('flavors')->count();
-        @endphp
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-primary bg-gradient text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Total Products</h6>
-                            <h2 class="mb-0 fw-bold">{{ $totalProducts }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-box fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success bg-gradient text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Active Products</h6>
-                            <h2 class="mb-0 fw-bold">{{ $activeProducts }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-check-circle fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">With Flavors</h6>
-                            <h2 class="mb-0 fw-bold">{{ $withFlavors }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-droplet fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">X Ultra / Slimbar</h6>
-                            <h2 class="mb-0 fw-bold">{{ \App\Models\Product::whereIn('brand', ['X-Vape', 'Slimbar', 'Relx'])->count() }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-star fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-semibold"><i class="bi bi-funnel me-2 text-primary"></i>Filter Products</h5>
-        </div>
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Product name..." value="{{ request('search') }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Brand</label>
-                    <select name="brand" class="form-select">
-                        <option value="">All Brands</option>
-                        @foreach($brands as $brand)
-                            @if($brand)
-                                <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>{{ $brand }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Category</label>
-                    <select name="category" class="form-select">
-                        <option value="">All Categories</option>
-                        @foreach($categories as $cat)
-                            @if($cat)
-                                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Type</label>
-                    <select name="type" class="form-select">
-                        <option value="">All Types</option>
-                        @foreach($types as $type)
-                            @if($type)
-                                <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">All</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-funnel me-1"></i> Apply Filters
-                    </button>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary ms-2 px-4">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Products Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">Image</th>
-                            <th>Name</th>
-                            <th>Brand</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Flavors</th>
-                            <th>Status</th>
-                            <th class="pe-4">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($products as $product)
-                        <tr>
-                            <td class="ps-4">
-                                @if($product->image_url)
-                                    <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($product->image_url, 50) }}" 
-                                         alt="{{ $product->name }}"
-                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                @elseif($product->image)
-                                    <img src="{{ Storage::url($product->image) }}" 
-                                         alt="{{ $product->name }}"
-                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                                @else
-                                    <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="bi bi-image text-muted"></i>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="fw-semibold">{{ $product->name }}</span>
-                            </td>
-                            <td>{{ $product->brand }}</td>
-                            <td>{{ $product->category }}</td>
-                            <td>₱{{ number_format($product->price, 2) }}</td>
-                            <td>
-                                @if($product->flavors->count() > 0)
-                                    <span class="badge bg-info">{{ $product->flavors->count() }} flavors</span>
-                                @else
-                                    <span class="badge bg-secondary">No flavors</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($product->is_active)
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-danger">Inactive</span>
-                                @endif
-                            </td>
-                            <td class="pe-4">
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('admin.products.show', $product) }}" class="btn btn-outline-info" title="View">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-outline-warning" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('admin.products.toggle-status', $product) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-outline-{{ $product->is_active ? 'danger' : 'success' }}" 
-                                                title="{{ $product->is_active ? 'Deactivate' : 'Activate' }}">
-                                            <i class="bi bi-{{ $product->is_active ? 'pause' : 'play' }}"></i>
-                                        </button>
-                                    </form>
-                                    <button type="button" class="btn btn-outline-danger" title="Delete"
-                                            onclick="confirmDelete({{ $product->id }}, '{{ $product->name }}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                                <form id="delete-form-{{ $product->id }}" action="{{ route('admin.products.destroy', $product) }}" method="POST" style="display: none;">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <i class="bi bi-box display-1 text-muted"></i>
-                                <p class="mt-3 text-muted">No products found</p>
-                                <a href="{{ route('admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
-                                    <i class="bi bi-plus-circle me-1"></i> Add New Product
-                                </a>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small">
-                    Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
-                </div>
+    <div class="container-fluid px-4">
+        <!-- Header with Dashboard Button -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
                 <div>
-                    {{ $products->withQueryString()->links() }}
+                    <h1 class="h3 mb-1 fw-bold">Products Management</h1>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-box me-1"></i> Manage all products across branches
+                    </p>
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex gap-2">
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a href="{{ route('admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Product
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            @php
+                $totalProducts = \App\Models\Product::count();
+                $activeProducts = \App\Models\Product::where('is_active', true)->count();
+                $withFlavors = \App\Models\Product::has('flavors')->count();
+            @endphp
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-primary bg-gradient text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-1">Total Products</h6>
+                                <h2 class="mb-0 fw-bold">{{ $totalProducts }}</h2>
+                            </div>
+                            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
+                                <i class="bi bi-box fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-success bg-gradient text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-1">Active Products</h6>
+                                <h2 class="mb-0 fw-bold">{{ $activeProducts }}</h2>
+                            </div>
+                            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
+                                <i class="bi bi-check-circle fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-1">With Flavors</h6>
+                                <h2 class="mb-0 fw-bold">{{ $withFlavors }}</h2>
+                            </div>
+                            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
+                                <i class="bi bi-droplet fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-1">X Ultra / Slimbar</h6>
+                                <h2 class="mb-0 fw-bold">
+                                    {{ \App\Models\Product::whereIn('brand', ['X-Vape', 'Slimbar', 'Relx'])->count() }}</h2>
+                            </div>
+                            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
+                                <i class="bi bi-star fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-funnel me-2 text-primary"></i>Filter Products</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Search</label>
+                        <input type="text" name="search" class="form-control" placeholder="Product name..."
+                            value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Brand</label>
+                        <select name="brand" class="form-select">
+                            <option value="">All Brands</option>
+                            @foreach ($brands as $brand)
+                                @if ($brand)
+                                    <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
+                                        {{ $brand }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach ($categories as $cat)
+                                @if ($cat)
+                                    <option value="{{ $cat }}"
+                                        {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Type</label>
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            @foreach ($types as $type)
+                                @if ($type)
+                                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
+                                        {{ ucfirst($type) }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-funnel me-1"></i> Apply Filters
+                        </button>
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary ms-2 px-4">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Image</th>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Flavors</th>
+                                <th>Status</th>
+                                <th class="pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($products as $product)
+                                <tr>
+                                    <td class="ps-4">
+                                        @if ($product->image_url)
+                                            <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($product->image_url, 50) }}"
+                                                alt="{{ $product->name }}"
+                                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                        @elseif($product->image)
+                                            <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}"
+                                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                        @else
+                                            <div
+                                                style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">{{ $product->name }}</span>
+                                    </td>
+                                    <td>{{ $product->brand }}</td>
+                                    <td>{{ $product->category }}</td>
+                                    <td>₱{{ number_format($product->price, 2) }}</td>
+                                    <td>
+                                        @if ($product->flavors->count() > 0)
+                                            <span class="badge bg-info">{{ $product->flavors->count() }} flavors</span>
+                                        @else
+                                            <span class="badge bg-secondary">No flavors</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($product->is_active)
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-4">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('admin.products.show', $product) }}"
+                                                class="btn btn-outline-info" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ route('admin.products.edit', $product) }}"
+                                                class="btn btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{{ route('admin.products.toggle-status', $product) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="btn btn-outline-{{ $product->is_active ? 'danger' : 'success' }}"
+                                                    title="{{ $product->is_active ? 'Deactivate' : 'Activate' }}">
+                                                    <i class="bi bi-{{ $product->is_active ? 'pause' : 'play' }}"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-outline-danger" title="Delete"
+                                                onclick="confirmDelete({{ $product->id }}, '{{ $product->name }}')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        <form id="delete-form-{{ $product->id }}"
+                                            action="{{ route('admin.products.destroy', $product) }}" method="POST"
+                                            style="display: none;">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <i class="bi bi-box display-1 text-muted"></i>
+                                        <p class="mt-3 text-muted">No products found</p>
+                                        <a href="{{ route('admin.products.create') }}"
+                                            class="btn btn-primary rounded-pill px-4">
+                                            <i class="bi bi-plus-circle me-1"></i> Add New Product
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of
+                        {{ $products->total() }} products
+                    </div>
+                    <div>
+                        <!-- Simple Pagination - Previous and Next Only -->
+                        @if ($products->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination mb-0">
+                                    {{-- Previous Page Link --}}
+                                    @if ($products->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Previous</span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $products->previousPageUrl() }}"
+                                                rel="prev">Previous</a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Next Page Link --}}
+                                    @if ($products->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $products->nextPageUrl() }}"
+                                                rel="next">Next</a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Next</span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('scripts')
-<script>
-    function confirmDelete(productId, productName) {
-        if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
-            document.getElementById(`delete-form-${productId}`).submit();
+    <script>
+        function confirmDelete(productId, productName) {
+            if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+                document.getElementById(`delete-form-${productId}`).submit();
+            }
         }
-    }
-</script>
+    </script>
 @endpush
