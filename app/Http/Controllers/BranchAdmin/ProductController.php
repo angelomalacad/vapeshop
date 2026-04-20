@@ -8,13 +8,10 @@ use App\Models\ProductFlavor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Helpers\GoogleDriveHelper; // ADD THIS
+use App\Helpers\GoogleDriveHelper;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $branchId = Auth::user()->branch_id;
@@ -29,17 +26,11 @@ class ProductController extends Controller
         return view('branch-admin.products.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('branch-admin.products.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -60,26 +51,23 @@ class ProductController extends Controller
             'adjustable_airflow' => 'nullable|boolean',
             'smart_display' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_url' => 'nullable|url|max:500', // NEW FIELD
+            'image_url' => 'nullable|url|max:500',
             'flavors' => 'nullable|array',
             'flavors.*.name' => 'required_with:flavors|string|max:255',
             'flavors.*.code' => 'nullable|string|max:50',
             'flavors.*.category' => 'nullable|string|max:50',
         ]);
 
-        // Handle brand
         $brand = $request->brand;
         if ($brand === 'Other' && $request->filled('custom_brand')) {
             $brand = $request->custom_brand;
         }
 
-        // Handle category
         $category = $request->category;
         if ($category === 'New' && $request->filled('new_category')) {
             $category = $request->new_category;
         }
 
-        // Create product
         $product = Product::create([
             'name' => $request->name,
             'brand' => $brand,
@@ -98,21 +86,25 @@ class ProductController extends Controller
             'is_active' => true,
         ]);
 
-        // Handle Google Drive image link (NEW)
+        // ✅ FIX: Handle Google Drive (clear local image)
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
-                'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url)
+                'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url),
+                'image' => null,
             ]);
         }
 
-        // Handle traditional image upload
+        // ✅ FIX: Handle upload (clear GDrive)
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
-            $product->update(['image' => $imagePath]);
+            $product->update([
+                'image' => $imagePath,
+                'image_url' => null,
+                'gdrive_file_id' => null,
+            ]);
         }
 
-        // Handle flavors and collect flavor IDs
         $flavorIds = [];
         if ($request->has('flavors')) {
             foreach ($request->flavors as $flavorData) {
@@ -129,10 +121,8 @@ class ProductController extends Controller
             }
         }
 
-        // Add to branch inventory
         $branchId = Auth::user()->branch_id;
-        
-        // If there are flavors, create inventory for each flavor
+
         if (count($flavorIds) > 0) {
             foreach ($flavorIds as $flavorId) {
                 \App\Models\BranchInventory::create([
@@ -148,7 +138,6 @@ class ProductController extends Controller
                 ]);
             }
         } else {
-            // No flavors, create inventory without flavor_id
             \App\Models\BranchInventory::create([
                 'branch_id' => $branchId,
                 'product_id' => $product->id,
@@ -166,25 +155,16 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Product $product)
     {
         return view('branch-admin.products.show', compact('product'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Product $product)
     {
         return view('branch-admin.products.edit', compact('product'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -203,22 +183,19 @@ class ProductController extends Controller
             'adjustable_airflow' => 'nullable|boolean',
             'smart_display' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_url' => 'nullable|url|max:500', // NEW FIELD
+            'image_url' => 'nullable|url|max:500',
         ]);
 
-        // Handle brand
         $brand = $request->brand;
         if ($brand === 'Other' && $request->filled('custom_brand')) {
             $brand = $request->custom_brand;
         }
 
-        // Handle category
         $category = $request->category;
         if ($category === 'New' && $request->filled('new_category')) {
             $category = $request->new_category;
         }
 
-        // Update product
         $product->update([
             'name' => $request->name,
             'brand' => $brand,
@@ -236,40 +213,36 @@ class ProductController extends Controller
             'smart_display' => $request->has('smart_display'),
         ]);
 
-        // Handle Google Drive image link (NEW)
+        // ✅ FIX: Google Drive replaces upload
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
-                'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url)
-            ]);
-        } elseif ($request->has('remove_image')) { // Optional: handle image removal
-            $product->update([
-                'image_url' => null,
-                'gdrive_file_id' => null
+                'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url),
+                'image' => null,
             ]);
         }
 
-        // Handle traditional image upload
+        // ✅ FIX: Upload replaces Google Drive
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
-            
+
             $imagePath = $request->file('image')->store('products', 'public');
-            $product->update(['image' => $imagePath]);
+
+            $product->update([
+                'image' => $imagePath,
+                'image_url' => null,
+                'gdrive_file_id' => null,
+            ]);
         }
 
         return redirect()->route('branch-admin.products.index')
             ->with('success', 'Product updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
-        // Check if product is in any inventory
         $inventoryCount = \App\Models\BranchInventory::where('product_id', $product->id)->count();
         
         if ($inventoryCount > 0) {
@@ -277,11 +250,9 @@ class ProductController extends Controller
                 ->with('error', 'Cannot delete product that exists in inventory.');
         }
 
-        // Delete image
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
-        // Note: Google Drive images are not stored on your server, so no need to delete
 
         $product->delete();
 

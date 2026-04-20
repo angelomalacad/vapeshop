@@ -206,7 +206,7 @@
             <!-- Flavors Management Card -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-droplet me-2"></i> Flavors ({{ $product->flavors->count() }})</h5>
+                    <h5 class="mb-0"><i class="bi bi-droplet me-2"></i> Item or Flavors ({{ $product->flavors->count() }})</h5>
                 </div>
                 <div class="card-body">
                     @if($product->flavors->count() > 0)
