@@ -86,9 +86,20 @@
                                     ->first();
                             @endphp
                             @if($inventoryItem)
-                                <span class="badge bg-success">In Stock: {{ $inventoryItem->quantity }}</span>
+                                <div class="mb-1">
+                                    <span class="badge bg-success">In Stock: {{ $inventoryItem->quantity }}</span>
+                                </div>
+                                <a href="{{ route('branch-admin.inventory.add-stock', $inventoryItem) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-plus-circle"></i> Add Stock
+                                </a>
                             @else
-                                <span class="badge bg-secondary">Not in inventory</span>
+                                <div class="mb-1">
+                                    <span class="badge bg-secondary">Not in inventory</span>
+                                </div>
+                                <!-- UPDATED: Changed to new route -->
+                                <a href="{{ route('branch-admin.inventory.add-to-inventory', $product->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-plus-circle"></i> Add to Inventory
+                                </a>
                             @endif
                         </div>
                         <div>

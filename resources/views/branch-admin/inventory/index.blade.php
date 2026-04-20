@@ -40,7 +40,7 @@
         </ul>
 
         <div class="tab-content" id="inventoryTabsContent">
-            <!-- My Branch Tab - YOUR EXISTING INVENTORY TABLE -->
+            <!-- My Branch Tab -->
             <div class="tab-pane fade show active" id="my-branch" role="tabpanel">
                 <!-- Quick Stats Cards -->
                 <div class="row mb-4">
@@ -110,7 +110,7 @@
                     </div>
                 </div>
 
-                <!-- Filter Section - Only Search, Product, and Stock Status -->
+                <!-- Filter Section -->
                 <div class="card mb-4">
                     <div class="card-body">
                         <form method="GET" class="row g-3">
@@ -154,7 +154,7 @@
                     </div>
                 </div>
 
-                <!-- Inventory Table (YOUR EXISTING TABLE) -->
+                <!-- Inventory Table -->
                 <div class="card">
                     <div class="card-header bg-white">
                         <div class="d-flex justify-content-between align-items-center">
@@ -248,7 +248,6 @@
                                                         class="btn btn-outline-info" title="View Details">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
-                                                    <!-- EDIT BUTTON - NEW -->
                                                     <a href="{{ route('branch-admin.inventory.edit', $inv) }}"
                                                         class="btn btn-outline-warning" title="Edit Inventory">
                                                         <i class="bi bi-pencil"></i>
@@ -305,87 +304,186 @@
                 </div>
             </div>
 
-            <!-- Other Branches Tab - NEW -->
+            <!-- Other Branches Tab -->
             <div class="tab-pane fade" id="other-branches" role="tabpanel">
                 <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Other Branches Inventory</h5>
                     </div>
                     <div class="card-body">
+                        <!-- Search Form for Other Branches -->
+                        <form method="GET" action="{{ route('branch-admin.inventory.index') }}" class="mb-4">
+                            <input type="hidden" name="tab" value="other-branches">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Search Product</label>
+                                    <input type="text" name="search_other" class="form-control"
+                                        placeholder="Search by product name..." value="{{ request('search_other') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Branch</label>
+                                    <select name="other_branch_id" class="form-select">
+                                        <option value="">All Branches</option>
+                                        @php
+                                            $otherBranchesList = App\Models\Branch::where('id', '!=', Auth::user()->branch_id)->get();
+                                        @endphp
+                                        @foreach ($otherBranchesList as $branch)
+                                            <option value="{{ $branch->id }}"
+                                                {{ request('other_branch_id') == $branch->id ? 'selected' : '' }}>
+                                                {{ $branch->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Stock Status</label>
+                                    <select name="stock_status_other" class="form-select">
+                                        <option value="">All Status</option>
+                                        <option value="low" {{ request('stock_status_other') == 'low' ? 'selected' : '' }}>Low Stock</option>
+                                        <option value="out" {{ request('stock_status_other') == 'out' ? 'selected' : '' }}>Out of Stock</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
                         @php
                             use App\Models\Branch;
                             use App\Models\BranchInventory;
-                            $otherBranches = Branch::where('id', '!=', Auth::user()->branch_id)->get();
+                            
+                            $selectedBranchId = request('other_branch_id');
+                            $searchTerm = request('search_other');
+                            $stockStatus = request('stock_status_other');
+                            
+                            $otherBranchesQuery = Branch::where('id', '!=', Auth::user()->branch_id);
+                            
+                            if ($selectedBranchId) {
+                                $otherBranchesQuery->where('id', $selectedBranchId);
+                            }
+                            
+                            $otherBranches = $otherBranchesQuery->get();
                         @endphp
 
                         @foreach ($otherBranches as $branch)
+                            @php
+                                $inventoryQuery = BranchInventory::with(['product', 'flavor'])
+                                    ->where('branch_id', $branch->id)
+                                    ->where('quantity', '>', 0);
+                                
+                                if ($searchTerm) {
+                                    $inventoryQuery->whereHas('product', function($q) use ($searchTerm) {
+                                        $q->where('name', 'like', '%' . $searchTerm . '%');
+                                    });
+                                }
+                                
+                                if ($stockStatus == 'low') {
+                                    $inventoryQuery->whereColumn('quantity', '<=', 'low_stock_threshold');
+                                } elseif ($stockStatus == 'out') {
+                                    $inventoryQuery->where('quantity', '<=', 0);
+                                }
+                                
+                                $branchInventory = $inventoryQuery->paginate(5, ['*'], 'page_' . $branch->id);
+                            @endphp
+                            
                             <div class="card mb-3 border">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
                                         <i class="bi bi-building me-2"></i>
                                         {{ $branch->name }}
                                         <small class="text-muted ms-2">{{ $branch->address }}</small>
+                                        <span class="badge bg-secondary float-end">Total: {{ $branchInventory->total() }} items</span>
                                     </h6>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Product</th>
-                                                    <th>Flavor</th>
-                                                    <th>Available</th>
-                                                    <th>Status</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @php
-                                                    $branchInventory = BranchInventory::with(['product', 'flavor'])
-                                                        ->where('branch_id', $branch->id)
-                                                        ->where('quantity', '>', 0)
-                                                        ->limit(5)
-                                                        ->get();
-                                                @endphp
-                                                @forelse($branchInventory as $inv)
+                                    @if ($branchInventory->count() > 0)
+                                        <div class="table-responsive">
+                                            <table class="table table-sm mb-0">
+                                                <thead class="table-light">
                                                     <tr>
-                                                        <td>{{ $inv->product->name }}</td>
-                                                        <td>{{ $inv->flavor->name ?? 'N/A' }}</td>
-                                                        <td>
-                                                            <span
-                                                                class="badge bg-success">{{ $inv->available_quantity }}</span>
-                                                        </td>
-                                                        <td>
-                                                            @if ($inv->available_quantity <= $inv->low_stock_threshold)
-                                                                <span class="badge bg-warning">Low</span>
-                                                            @else
-                                                                <span class="badge bg-success">Good</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            <a href="{{ route('branch-admin.inventory.transfer.form', [
-                                                                'from_branch' => $branch->id,
-                                                                'product_id' => $inv->product_id,
-                                                                'flavor_id' => $inv->flavor_id,
-                                                            ]) }}"
-                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bi bi-arrow-left-right"></i> Request Transfer
-                                                            </a>
-                                                        </td>
+                                                        <th>Product</th>
+                                                        <th>Flavor</th>
+                                                        <th>Available</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
                                                     </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="5" class="text-center text-muted py-2">
-                                                            No stock available in this branch
-                                                        </td>
-                                                    </tr>
-                                                @endforelse
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($branchInventory as $inv)
+                                                        <tr>
+                                                            <td>{{ $inv->product->name }}</td>
+                                                            <td>{{ $inv->flavor->name ?? 'N/A' }}</td>
+                                                            <td>
+                                                                <span class="badge bg-success">{{ $inv->available_quantity }}</span>
+                                                            </td>
+                                                            <td>
+                                                                @if ($inv->available_quantity <= $inv->low_stock_threshold)
+                                                                    <span class="badge bg-warning">Low Stock</span>
+                                                                @else
+                                                                    <span class="badge bg-success">In Stock</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                <a href="{{ route('branch-admin.inventory.transfer.form', [
+                                                                    'from_branch' => $branch->id,
+                                                                    'product_id' => $inv->product_id,
+                                                                    'flavor_id' => $inv->flavor_id,
+                                                                ]) }}"
+                                                                    class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bi bi-arrow-left-right"></i> Request Transfer
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        @if ($branchInventory->hasPages())
+                                            <div class="d-flex justify-content-center mt-2 mb-2">
+                                                <nav aria-label="Page navigation for {{ $branch->name }}">
+                                                    <ul class="pagination pagination-sm mb-0">
+                                                        @if ($branchInventory->onFirstPage())
+                                                            <li class="page-item disabled">
+                                                                <span class="page-link">Previous</span>
+                                                            </li>
+                                                        @else
+                                                            <li class="page-item">
+                                                                <a class="page-link" href="{{ $branchInventory->previousPageUrl() }}&tab=other-branches&other_branch_id={{ $selectedBranchId }}&search_other={{ $searchTerm }}&stock_status_other={{ $stockStatus }}">Previous</a>
+                                                            </li>
+                                                        @endif
+                                                        
+                                                        @if ($branchInventory->hasMorePages())
+                                                            <li class="page-item">
+                                                                <a class="page-link" href="{{ $branchInventory->nextPageUrl() }}&tab=other-branches&other_branch_id={{ $selectedBranchId }}&search_other={{ $searchTerm }}&stock_status_other={{ $stockStatus }}">Next</a>
+                                                            </li>
+                                                        @else
+                                                            <li class="page-item disabled">
+                                                                <span class="page-link">Next</span>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                </nav>
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="text-center text-muted py-3">
+                                            No stock available in this branch
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
+                        
+                        @if($otherBranches->isEmpty())
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-building display-1"></i>
+                                <p class="mt-3">No other branches found</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -395,6 +493,56 @@
 
 @push('scripts')
     <script>
+        // Initialize Bootstrap tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all tab buttons
+            const myBranchTab = document.getElementById('my-branch-tab');
+            const otherBranchesTab = document.getElementById('other-branches-tab');
+            const myBranchPane = document.getElementById('my-branch');
+            const otherBranchesPane = document.getElementById('other-branches');
+            
+            // My Branch tab click handler
+            if (myBranchTab) {
+                myBranchTab.addEventListener('click', function() {
+                    // Remove active class from both tabs
+                    myBranchTab.classList.remove('active');
+                    otherBranchesTab.classList.remove('active');
+                    myBranchPane.classList.remove('show', 'active');
+                    otherBranchesPane.classList.remove('show', 'active');
+                    
+                    // Add active class to this tab
+                    myBranchTab.classList.add('active');
+                    myBranchPane.classList.add('show', 'active');
+                });
+            }
+            
+            // Other Branches tab click handler
+            if (otherBranchesTab) {
+                otherBranchesTab.addEventListener('click', function() {
+                    // Remove active class from both tabs
+                    myBranchTab.classList.remove('active');
+                    otherBranchesTab.classList.remove('active');
+                    myBranchPane.classList.remove('show', 'active');
+                    otherBranchesPane.classList.remove('show', 'active');
+                    
+                    // Add active class to this tab
+                    otherBranchesTab.classList.add('active');
+                    otherBranchesPane.classList.add('show', 'active');
+                });
+            }
+            
+            // Check URL parameter to see which tab should be active
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            
+            if (activeTab === 'other-branches') {
+                // Trigger other branches tab click
+                if (otherBranchesTab) {
+                    otherBranchesTab.click();
+                }
+            }
+        });
+
         // Auto-submit form when filters change
         document.querySelectorAll('select[name="product_id"], select[name="stock_status"]').forEach(select => {
             select.addEventListener('change', function() {
@@ -404,8 +552,7 @@
 
         // Delete confirmation function
         function confirmDelete(inventoryId, productName) {
-            if (confirm(
-                `Are you sure you want to delete ${productName} from your inventory? This action cannot be undone.`)) {
+            if (confirm(`Are you sure you want to delete ${productName} from your inventory? This action cannot be undone.`)) {
                 document.getElementById(`delete-form-${inventoryId}`).submit();
             }
         }

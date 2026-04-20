@@ -353,11 +353,10 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
             return redirect()->route('home')->with('error', 'Access denied. Branch admin only.');
         }
-        
         return view('branch-admin.dashboard');
     })->name('dashboard');
     
-    // Products Management (for adding new products to branch)
+    // Products Management
     Route::get('/products', [BranchAdminProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [BranchAdminProductController::class, 'create'])->name('products.create');
     Route::post('/products', [BranchAdminProductController::class, 'store'])->name('products.store');
@@ -412,9 +411,13 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStockForm'])->name('quick-add-stock');
         Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
         
+        // ===== ADD TO INVENTORY ROUTES =====
+        Route::get('/add-to-inventory/{product}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventoryForm'])->name('add-to-inventory');
+        Route::post('/add-to-inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventory'])->name('add-to-inventory.post');
+        
         Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
         
-        // STOCK HISTORY ROUTE - ✅ This is correctly placed here (no URL parameters)
+        // STOCK HISTORY ROUTE
         Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
         
         // Transfer routes
@@ -445,11 +448,12 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         // DELETE ROUTE
         Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
         
-        // ===== THIS MUST BE LAST - catches any {inventory} parameter not caught above =====
+        // ===== THIS MUST BE LAST =====
         Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
     });
     // ===== END OF BRANCH STAFF INVENTORY ROUTES =====
 });
+// ===== END OF BRANCH ADMIN ROUTES =====
 
 // API Routes - Simplified
 Route::prefix('api')->group(function () {

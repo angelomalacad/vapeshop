@@ -12,7 +12,7 @@ use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon; // Add this import
+use Carbon\Carbon;
 
 class InventoryController extends Controller
 {
@@ -26,12 +26,13 @@ class InventoryController extends Controller
         $query = BranchInventory::with(['product', 'flavor'])
             ->where('branch_id', $branchId);
 
-        // Add this with your other filters
+        // Search filter
         if ($request->filled('search')) {
-        $query->whereHas('product', function($q) use ($request) {
-        $q->where('name', 'like', '%' . $request->search . '%');
-        });
+            $query->whereHas('product', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            });
         }
+        
         // Filter by product
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
@@ -105,9 +106,9 @@ class InventoryController extends Controller
     }
 
     /**
-     * Show form to quickly add stock to any existing product
+     * Show form to quickly add stock to any existing product (with optional pre-selected product)
      */
-    public function addProductForm()
+    public function addProductForm(Request $request)
     {
         $branchId = Auth::user()->branch_id;
 
@@ -117,7 +118,20 @@ class InventoryController extends Controller
             ->orderBy('product_id')
             ->get();
 
-        return view('branch-admin.inventory.add-stock-quick', compact('branchInventory'));
+        // Get products not yet in inventory (for adding new products)
+        $existingProductIds = BranchInventory::where('branch_id', $branchId)
+            ->pluck('product_id')
+            ->toArray();
+
+        $availableProducts = Product::with('flavors')
+            ->where('is_active', true)
+            ->whereNotIn('id', $existingProductIds)
+            ->get();
+
+        // Get pre-selected product ID from URL parameter
+        $preSelectedProductId = $request->get('product_id');
+
+        return view('branch-admin.inventory.add-stock-quick', compact('branchInventory', 'availableProducts', 'preSelectedProductId'));
     }
 
     /**
@@ -158,6 +172,65 @@ class InventoryController extends Controller
 
         return redirect()->route('branch-admin.inventory.index')
             ->with('success', 'Product added to branch inventory.');
+    }
+
+    /**
+     * Show form to add product to inventory (for a specific product from catalog)
+     */
+    public function addToInventoryForm(Product $product)
+    {
+        // Check if product already in inventory
+        $existingInventory = BranchInventory::where('branch_id', Auth::user()->branch_id)
+            ->where('product_id', $product->id)
+            ->first();
+        
+        if ($existingInventory) {
+            return redirect()->route('branch-admin.products.index')
+                ->with('error', 'This product is already in your inventory.');
+        }
+        
+        return view('branch-admin.inventory.add-to-inventory', compact('product'));
+    }
+
+    /**
+     * Process adding product to inventory (from catalog)
+     */
+    public function addToInventory(Request $request)
+    {
+        $branchId = Auth::user()->branch_id;
+        
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'flavor_id' => 'nullable|exists:product_flavors,id',
+            'quantity' => 'required|integer|min:0',
+            'low_stock_threshold' => 'required|integer|min:1',
+        ]);
+        
+        // Check if already exists
+        $exists = BranchInventory::where('branch_id', $branchId)
+            ->where('product_id', $request->product_id)
+            ->where('flavor_id', $request->flavor_id)
+            ->exists();
+        
+        if ($exists) {
+            return redirect()->route('branch-admin.products.index')
+                ->with('error', 'This product already exists in your inventory.');
+        }
+        
+        BranchInventory::create([
+            'branch_id' => $branchId,
+            'product_id' => $request->product_id,
+            'flavor_id' => $request->flavor_id,
+            'quantity' => $request->quantity,
+            'reserved_quantity' => 0,
+            'low_stock_threshold' => $request->low_stock_threshold,
+            'reorder_point' => 10,
+            'optimal_stock' => 30,
+            'last_restocked_at' => $request->quantity > 0 ? now() : null,
+        ]);
+        
+        return redirect()->route('branch-admin.products.index')
+            ->with('success', 'Product added to your branch inventory successfully!');
     }
 
     /**
@@ -713,7 +786,7 @@ class InventoryController extends Controller
     /**
      * Show form to quickly add stock to any existing product
      */
-    public function quickAddStockForm()
+    public function quickAddStockForm(Request $request)
     {
         $branchId = Auth::user()->branch_id;
 
