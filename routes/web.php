@@ -343,6 +343,20 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'show'])->name('show');
 });
 // ===== END OF SUPER ADMIN INVENTORY ROUTES =====
+// ===== SUPER ADMIN POS ROUTES =====
+Route::prefix('pos')->name('pos.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\PosController::class, 'index'])->name('index');
+    Route::get('/history', [App\Http\Controllers\Admin\PosController::class, 'history'])->name('history');
+    Route::get('/receipt', [App\Http\Controllers\Admin\PosController::class, 'receipt'])->name('receipt');
+    Route::post('/add-to-cart', [App\Http\Controllers\Admin\PosController::class, 'addToCart'])->name('add-to-cart');
+    Route::post('/update-cart', [App\Http\Controllers\Admin\PosController::class, 'updateCart'])->name('update-cart');
+    Route::post('/clear-cart', [App\Http\Controllers\Admin\PosController::class, 'clearCart'])->name('clear-cart');
+    Route::post('/checkout', [App\Http\Controllers\Admin\PosController::class, 'checkout'])->name('checkout');
+});
+// Add to routes/web.php inside admin group
+Route::get('/pos/test', function() {
+    return response()->json(['message' => 'POS route is working!']);
+})->name('pos.test');
 });
 
 // Branch Admin Routes - Require email verification
@@ -452,6 +466,19 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
     });
     // ===== END OF BRANCH STAFF INVENTORY ROUTES =====
+   // ===== POINT OF SALE ROUTES =====
+    Route::prefix('pos')->name('pos.')->group(function () {
+    Route::get('/', [App\Http\Controllers\BranchAdmin\PosController::class, 'index'])->name('index');
+    Route::get('/history', [App\Http\Controllers\BranchAdmin\PosController::class, 'history'])->name('history');
+    Route::get('/order/{order}', [App\Http\Controllers\BranchAdmin\PosController::class, 'showOrder'])->name('order.show');
+    Route::post('/add-to-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'addToCart'])->name('add-to-cart');
+    Route::post('/update-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'updateCart'])->name('update-cart');
+    Route::post('/clear-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'clearCart'])->name('clear-cart');
+    Route::post('/checkout', [App\Http\Controllers\BranchAdmin\PosController::class, 'checkout'])->name('checkout');
+    Route::get('/receipt', [App\Http\Controllers\BranchAdmin\PosController::class, 'receipt'])->name('receipt');
+    Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
+});
+
 });
 // ===== END OF BRANCH ADMIN ROUTES =====
 

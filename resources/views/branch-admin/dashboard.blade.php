@@ -6,36 +6,296 @@
     <title>Branch Staff Dashboard - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: #f5f7fb;
+        }
+        
+        /* Glassmorphism Navigation */
+        .navbar-glass {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Modern Sidebar */
+        .sidebar-card {
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+        }
+        
+        .sidebar-card .card-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: none;
+            padding: 1.25rem 1rem;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .sidebar-card .list-group-item {
+            background: white;
+            color: #4a5568;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 4px 12px;
+            border-radius: 12px;
+        }
+        
+        .sidebar-card .list-group-item:hover {
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(13, 110, 253, 0.08) 100%);
+            color: #0d6efd;
+            transform: translateX(8px);
+        }
+        
+        .sidebar-card .list-group-item.active {
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.15) 100%);
+            color: #0d6efd;
+            font-weight: 600;
+            border-left: 3px solid #0d6efd;
+        }
+        
+        .sidebar-card .list-group-item i {
+            width: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-card .list-group-item:hover i {
+            transform: scale(1.1);
+        }
+        
+        /* Modern Cards */
+        .modern-card {
+            border: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        }
+        
+        /* Quick Action Cards - White version */
+        .action-card {
+            border: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(13, 110, 253, 0.05), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .action-card:hover::before {
+            left: 100%;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+        
+        .action-card .card-title {
+            color: #1a1a2e;
+        }
+        
+        .action-card .badge {
+            background: #f0f2f5 !important;
+            color: #4a5568 !important;
+            font-weight: 500;
+        }
+        
+        .action-card .btn-light {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #1a1a2e;
+            transition: all 0.3s ease;
+        }
+        
+        .action-card .btn-light:hover {
+            background: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        
+        /* Gradient Icons for Stats */
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+        
+        .icon-bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .icon-bg-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .icon-bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .icon-bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .icon-bg-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
+        .icon-bg-secondary { background: linear-gradient(135deg, #757f9a 0%, #d7dde8 100%); color: white; }
+        
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(13, 110, 253, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .welcome-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(25, 135, 84, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        /* Activity Items */
+        .activity-item {
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .activity-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        /* Branch Info Card */
+        .branch-info-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Pulse Animation */
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .low-stock-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            border-radius: 10px;
+        }
+        
+        /* Owner Contact Card */
+        .owner-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: none;
+            border-radius: 20px;
+        }
+    
+
+    </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30" class="d-inline-block align-text-top me-2">
-                Vape Expo - {{ Auth::user()->branch->name ?? 'Branch' }}
-            </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text text-white me-3">
-                    <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} (Staff)
-                </span>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-box-arrow-right me-1"></i> Logout
-                    </button>
-                </form>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-glass">
+    <div class="container">
+        <a class="navbar-brand text-white fw-bold fs-4" href="{{ route('home') }}">
+            <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="35" class="d-inline-block align-text-top me-2">
+            <span style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape Expo</span>
+            <small class="text-white-50 fs-6 ms-2">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="nav-link text-white">
+                        <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm rounded-pill my-1" style="border-color: rgba(255,255,255,0.3);">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
     
     <div class="container mt-4">
-        
-
-        <div class="row">
+        <div class="row g-4">
             <!-- Sidebar Menu -->
             <div class="col-md-3">
-                <div class="card">
+                <div class="card sidebar-card">
                     <div class="card-header">
                         <i class="bi bi-grid me-2"></i> Branch Menu
                     </div>
@@ -48,6 +308,12 @@
                         </a>
                         <a href="{{ route('branch-admin.products.create') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-plus-circle me-2"></i> Add New Product
+                        </a>
+                        <a href="{{ route('branch-admin.pos.index') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-cash-coin me-2"></i> Point of Sale
+                        </a>
+                        <a href="{{ route('branch-admin.pos.history') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-clock-history me-2"></i> Sales History
                         </a>
                         <a href="#" class="list-group-item list-group-item-action">
                             <i class="bi bi-cart me-2"></i> Orders
@@ -62,9 +328,9 @@
                 </div>
 
                 <!-- Branch Hours Card -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <i class="bi bi-clock me-2"></i> Branch Hours
+                <div class="card modern-card mt-3">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <i class="bi bi-clock me-2 text-primary"></i> <strong>Branch Hours</strong>
                     </div>
                     <div class="card-body">
                         <p class="mb-2"><strong>Daily:</strong> 9:00 AM – 10:00 PM</p>
@@ -73,20 +339,36 @@
                 </div>
 
                 <!-- Owner Contact Card -->
-                <div class="card mt-3 border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <i class="bi bi-person-circle me-2"></i> Shop Owner
+                <div class="card owner-card mt-3">
+                    <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                        <i class="bi bi-person-circle me-2 text-white"></i> <strong class="text-white">Shop Owner</strong>
                     </div>
                     <div class="card-body">
-                        <p class="mb-1"><strong>Carlo Caranto</strong></p>
-                        <p class="mb-0"><i class="bi bi-telephone me-2"></i> 0960 328 0432</p>
+                        <p class="mb-1 text-white"><strong>Carlo Caranto</strong></p>
+                        <p class="mb-0 text-white-50"><i class="bi bi-telephone me-2"></i> 0960 328 0432</p>
                     </div>
                 </div>
             </div>
 
             <!-- Main Content -->
             <div class="col-md-9">
-                <h1 class="h3 mb-4">Branch Staff Dashboard</h1>
+                <!-- Welcome Banner -->
+                <div class="welcome-banner">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="text-white mb-2 fw-bold">
+                                <i class="bi bi-stars me-2 text-warning"></i>Welcome back, {{ Auth::user()->name }}!
+                            </h4>
+                            <p class="text-white-50 mb-0">Here's what's happening at {{ Auth::user()->branch->name ?? 'your branch' }} today.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="d-inline-block bg-white bg-opacity-10 rounded-3 px-4 py-2">
+                                <i class="bi bi-calendar3 text-white me-2"></i>
+                                <span class="text-white">{{ now()->format('l, F j, Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 @php
                     $branch = Auth::user()->branch;
@@ -94,9 +376,9 @@
                 
                 @if($branch)
                 <!-- Branch Information Card -->
-                <div class="card mb-4 border-info">
-                    <div class="card-header bg-info text-white">
-                        <i class="bi bi-shop me-2"></i> {{ $branch->name }}
+                <div class="card branch-info-card modern-card mb-4">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <i class="bi bi-shop me-2 text-primary"></i> <strong>{{ $branch->name }}</strong>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -124,52 +406,47 @@
                         </div>
                     </div>
                 </div>
-                @else
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i> No branch assigned to your account. Please contact the owner Carlo Caranto.
-                </div>
-                @endif
                 
-                <!-- Quick Action Cards -->
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-primary text-white h-100">
+                <!-- Quick Action Cards - White Version -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0"><i class="bi bi-box-seam me-2"></i>Inventory</h5>
-                                    <span class="badge bg-light text-dark">Manage Stock</span>
+                                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>Inventory</h5>
+                                    <span class="badge rounded-pill px-3">Manage Stock</span>
                                 </div>
-                                <p class="card-text">Manage branch inventory, update stock levels, and track products.</p>
-                                <a href="{{ route('branch-admin.inventory.index') }}" class="btn btn-light w-100">
+                                <p class="card-text text-muted small">Manage branch inventory, update stock levels, and track products.</p>
+                                <a href="{{ route('branch-admin.inventory.index') }}" class="btn btn-light w-100 rounded-pill mt-2">
                                     <i class="bi bi-arrow-right me-2"></i>View Inventory
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-success text-white h-100">
+                    <div class="col-md-4">
+                        <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Add Product</h5>
-                                    <span class="badge bg-light text-dark">X Ultra, Slimbar, Relx</span>
+                                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-plus-circle me-2 text-success"></i>Add Product</h5>
+                                    <span class="badge rounded-pill px-3">X Ultra, Slimbar, Relx</span>
                                 </div>
-                                <p class="card-text">Add new products to your branch inventory with images and details.</p>
-                                <a href="{{ route('branch-admin.products.create') }}" class="btn btn-light w-100">
+                                <p class="card-text text-muted small">Add new products to your branch inventory with images and details.</p>
+                                <a href="{{ route('branch-admin.products.create') }}" class="btn btn-light w-100 rounded-pill mt-2">
                                     <i class="bi bi-arrow-right me-2"></i>Add New Product
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-warning text-white h-100">
+                    <div class="col-md-4">
+                        <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0"><i class="bi bi-cart me-2"></i>Orders</h5>
-                                    <span class="badge bg-light text-dark">Pending</span>
+                                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-cash-coin me-2 text-warning"></i>POS</h5>
+                                    <span class="badge rounded-pill px-3">Walk-in Sales</span>
                                 </div>
-                                <p class="card-text">Process customer orders and manage order fulfillment.</p>
-                                <a href="#" class="btn btn-light w-100">
-                                    <i class="bi bi-arrow-right me-2"></i>View Orders
+                                <p class="card-text text-muted small">Process walk-in customer purchases and manage sales.</p>
+                                <a href="{{ route('branch-admin.pos.index') }}" class="btn btn-light w-100 rounded-pill mt-2">
+                                    <i class="bi bi-arrow-right me-2"></i>Open POS
                                 </a>
                             </div>
                         </div>
@@ -177,79 +454,197 @@
                 </div>
                 
                 <!-- Quick Stats Section -->
-                @if($branch)
-                <div class="row mt-2">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i> Branch Quick Stats</h5>
+                <div class="card modern-card mb-4">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2 text-primary"></i> Branch Quick Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+    <i class="bi bi-box fs-4"></i>
+</div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Total Products</h6>
+                                    <h4 class="mb-0 fw-bold">{{ $totalProducts ?? 0 }}</h4>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3 col-6 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary rounded-circle p-3 me-3">
-                                                <i class="bi bi-box text-white fs-4"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Total Products</h6>
-                                                <h4 class="mb-0">0</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 col-6 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-warning rounded-circle p-3 me-3">
-                                                <i class="bi bi-exclamation-triangle text-white fs-4"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Low Stock</h6>
-                                                <h4 class="mb-0">0</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 col-6 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-success rounded-circle p-3 me-3">
-                                                <i class="bi bi-cart-check text-white fs-4"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Today's Orders</h6>
-                                                <h4 class="mb-0">0</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 col-6 mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-info rounded-circle p-3 me-3">
-                                                <span class="text-white fs-4">₱</span>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Today's Revenue</h6>
-                                                <h4 class="mb-0">₱0.00</h4>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon" style="background: rgba(253, 126, 20, 0.1); color: #fd7e14;">
+    <i class="bi bi-exclamation-triangle fs-4"></i>
+</div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Low Stock</h6>
+                                    <h4 class="mb-0 fw-bold">{{ $lowStockCount ?? 0 }}</h4>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1); color: #198754;">
+    <i class="bi bi-cart-check fs-4"></i>
+</div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Today's Orders</h6>
+                                    <h4 class="mb-0 fw-bold">{{ $todayOrders ?? 0 }}</h4>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1); color: #198754;">
+    <i class="bi bi-cash-stack fs-4"></i>
+</div>
+                                <div>
+                                    <h6 class="mb-0 text-muted small">Today's Revenue</h6>
+                                    <h4 class="mb-0 fw-bold">₱{{ number_format($todaySales ?? 0, 2) }}</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Activity Section -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Recent Activity</h5>
-                            </div>
+                <!-- Additional Stats Row -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card modern-card">
                             <div class="card-body">
-                                <div class="text-center text-muted py-4">
-                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                                    <p>No recent activity to display.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1 small">Out of Stock</h6>
+                                        <h3 class="mb-0 fw-bold text-danger">{{ $outOfStockCount ?? 0 }}</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: #dc3545;">
+    <i class="bi bi-x-circle fs-4"></i>
+</div>
                                 </div>
+                                <small class="text-muted">Items needing restock</small>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card modern-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1 small">Pending Transfers</h6>
+                                        <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfers ?? 0 }}</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+    <i class="bi bi-arrow-left-right fs-4"></i>
+</div>
+                                </div>
+                                <small class="text-muted">Stock transfer requests</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Items Alert -->
+                @if(($lowStockCount ?? 0) > 0)
+                <div class="alert alert-warning border-0 rounded-3 shadow-sm mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+                        <div>
+                            <strong>{{ $lowStockCount }}</strong> item(s) are low on stock.
+                            <a href="{{ route('branch-admin.inventory.low-stock') }}" class="alert-link ms-2">View low stock items →</a>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Recent Activity Section -->
+                <div class="card modern-card mb-4">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $recentActivities = \App\Models\StockMovement::where('branch_id', $branch->id)
+                                ->with(['product', 'creator'])
+                                ->orderBy('created_at', 'desc')
+                                ->limit(10)
+                                ->get();
+                        @endphp
+                        
+                        @if($recentActivities->count() > 0)
+                            <div class="list-group list-group-flush">
+                                @foreach($recentActivities as $activity)
+                                    <div class="activity-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="bi 
+                                                    @if($activity->quantity_change > 0) bi-arrow-up-circle-fill text-success
+                                                    @else bi-arrow-down-circle-fill text-danger
+                                                    @endif me-2 fs-5">
+                                                </i>
+                                                <strong>{{ $activity->product->name ?? 'Unknown Product' }}</strong>
+                                                <span class="text-muted small">
+                                                    @if($activity->quantity_change > 0)
+                                                        +{{ $activity->quantity_change }} units added
+                                                    @else
+                                                        {{ $activity->quantity_change }} units removed
+                                                    @endif
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-person"></i> {{ $activity->creator->name ?? 'System' }} |
+                                                    <i class="bi bi-tag"></i> {{ ucfirst(str_replace('_', ' ', $activity->movement_type)) }}
+                                                </small>
+                                            </div>
+                                            <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-outline-primary rounded-pill px-4">
+                                    <i class="bi bi-clock-history me-2"></i>View All Activity
+                                </a>
+                            </div>
+                        @else
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                <p>No recent activity to display.</p>
+                                <a href="{{ route('branch-admin.pos.index') }}" class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-cash-coin me-2"></i>Make your first sale
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Recent Products Added -->
+                <div class="card modern-card">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i> Recently Added Products</h5>
+                    </div>
+                    <div class="card-body">
+                        @if(isset($recentProducts) && $recentProducts->count() > 0)
+                            <div class="list-group list-group-flush">
+                                @foreach($recentProducts as $item)
+                                    <div class="activity-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="bi bi-box-seam me-2 text-primary fs-5"></i>
+                                                <strong>{{ $item->product->name }}</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    Stock: {{ $item->quantity }} units | 
+                                                    Price: ₱{{ number_format($item->product->price, 2) }}
+                                                </small>
+                                            </div>
+                                            <small class="text-muted">{{ $item->updated_at->diffForHumans() }}</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                <p>No products added recently.</p>
+                                <a href="{{ route('branch-admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Your First Product
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -258,10 +653,10 @@
                 <div class="mt-4 pt-3 text-muted border-top">
                     <div class="row">
                         <div class="col-md-6">
-                            <p class="mb-0"><i class="bi bi-telephone me-2"></i> For concerns, contact owner: <strong>Carlo Caranto - 0960 328 0432</strong></p>
+                            <p class="mb-0 small"><i class="bi bi-telephone me-2"></i> For concerns, contact owner: <strong>Carlo Caranto - 0960 328 0432</strong></p>
                         </div>
                         <div class="col-md-6 text-md-end">
-                            <p class="mb-0"><i class="bi bi-shield-check me-2"></i> Vape Expo - Authorized Branch Staff</p>
+                            <p class="mb-0 small"><i class="bi bi-shield-check me-2"></i> Vape Expo - Authorized Branch Staff</p>
                         </div>
                     </div>
                 </div>
