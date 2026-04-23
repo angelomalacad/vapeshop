@@ -176,7 +176,7 @@
                                 <th>Brand</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <th>Flavors</th>
+                                <th>Flavors or Items</th>
                                 <th>Status</th>
                                 <th class="pe-4">Actions</th>
                             </tr>
@@ -207,7 +207,7 @@
                                     <td>₱{{ number_format($product->price, 2) }}</td>
                                     <td>
                                         @if ($product->flavors->count() > 0)
-                                            <span class="badge bg-info">{{ $product->flavors->count() }} flavors</span>
+                                            <span class="badge bg-info">{{ $product->flavors->count() }} flavors or items</span>
                                         @else
                                             <span class="badge bg-secondary">No flavors</span>
                                         @endif
