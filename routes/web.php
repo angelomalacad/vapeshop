@@ -361,14 +361,8 @@ Route::get('/pos/test', function() {
 
 // Branch Admin Routes - Require email verification
 Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-admin.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        $user = Auth::user();
-        if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
-            return redirect()->route('home')->with('error', 'Access denied. Branch admin only.');
-        }
-        return view('branch-admin.dashboard');
-    })->name('dashboard');
+     // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\BranchAdmin\DashboardController::class, 'index'])->name('dashboard');
     
     // Products Management
     Route::get('/products', [BranchAdminProductController::class, 'index'])->name('products.index');

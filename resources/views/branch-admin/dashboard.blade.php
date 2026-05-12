@@ -375,6 +375,7 @@
                 @endphp
                 
                 @if($branch)
+
                 <!-- Branch Information Card -->
                 <div class="card branch-info-card modern-card mb-4">
                     <div class="card-header bg-white border-0 pt-3 pb-0">
@@ -519,23 +520,37 @@
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <div class="card modern-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="text-muted mb-1 small">Pending Transfers</h6>
-                                        <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfers ?? 0 }}</h3>
-                                    </div>
-                                    <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-    <i class="bi bi-arrow-left-right fs-4"></i>
-</div>
-                                </div>
-                                <small class="text-muted">Stock transfer requests</small>
-                            </div>
-                        </div>
+                    <!-- Pending Transfers Card - Updated to show Incoming + Outgoing -->
+<div class="col-md-6">
+    <div class="card modern-card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1 small">Pending Transfers</h6>
+                    <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfersTotal ?? 0 }}</h3>
+                    <div class="mt-1">
+                        <small class="text-success">
+                            <i class="bi bi-download me-1"></i> Incoming: {{ $pendingTransfersIncoming ?? 0 }}
+                        </small>
+                        <br>
+                        <small class="text-info">
+                            <i class="bi bi-upload me-1"></i> Outgoing: {{ $pendingTransfersOutgoing ?? 0 }}
+                        </small>
                     </div>
                 </div>
+                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                    <i class="bi bi-arrow-left-right fs-4"></i>
+                </div>
+            </div>
+            <small class="text-muted">Stock transfer requests</small>
+            @if(($pendingTransfersTotal ?? 0) > 0)
+                <a href="{{ route('branch-admin.inventory.transfers') }}" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                    View All Transfers <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            @endif
+        </div>
+    </div>
+</div>
 
                 <!-- Low Stock Items Alert -->
                 @if(($lowStockCount ?? 0) > 0)
