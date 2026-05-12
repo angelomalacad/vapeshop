@@ -46,8 +46,8 @@
                         <tr>
                             <th>Transfer #</th>
                             <th>Date</th>
-                            <th>From Branch</th>
-                            <th>To Branch</th>
+                            <th>From</th>
+                            <th>To</th>
                             <th>Product</th>
                             <th>Flavor</th>
                             <th>Quantity</th>
@@ -61,19 +61,32 @@
                         <tr>
                             <td><code>{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
+                            
+                            <!-- FROM Column -->
                             <td>
-                                {{ $transfer->fromBranch->name }}
+                                @if($transfer->transfer_type == 'warehouse_to_branch')
+                                    <span class="badge bg-primary">Warehouse</span>
+                                @else
+                                    {{ $transfer->fromBranch->name ?? 'N/A' }}
+                                @endif
                                 @if($transfer->from_branch_id == Auth::user()->branch_id)
                                     <span class="badge bg-info ms-1">Your Branch</span>
                                 @endif
                             </td>
+                            
+                            <!-- TO Column -->
                             <td>
-                                {{ $transfer->toBranch->name }}
+                                @if($transfer->transfer_type == 'warehouse_to_branch')
+                                    {{ $transfer->toBranch->name ?? 'N/A' }}
+                                @else
+                                    {{ $transfer->toBranch->name ?? 'N/A' }}
+                                @endif
                                 @if($transfer->to_branch_id == Auth::user()->branch_id)
                                     <span class="badge bg-info ms-1">Your Branch</span>
                                 @endif
                             </td>
-                            <td>{{ $transfer->product->name }}</td>
+                            
+                            <td>{{ $transfer->product->name ?? 'N/A' }}</td>
                             <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
                             <td><strong>{{ $transfer->quantity }}</strong></td>
                             <td>

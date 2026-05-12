@@ -276,9 +276,9 @@
                         
                         <div class="text-muted">MANAGEMENT</div>
                         
-                        <a href="{{ route('admin.branches.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
+                        {{-- <a href="{{ route('admin.branches.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
                             <i class="bi bi-shop me-2"></i> Branches
-                        </a>
+                        </a> --}}
                         
                         @if(Route::has('admin.staff.index'))
                             <a href="{{ route('admin.staff.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
@@ -348,9 +348,29 @@
                             @endif
                         @endif
                         
+                       <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
+<div class="text-muted">WAREHOUSE</div>
+
+<a href="{{ route('admin.warehouse.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.warehouse.index') ? 'active' : '' }}">
+    <i class="bi bi-building me-2"></i> Warehouse Stock
+</a>
+
+<a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
+    <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
+    @php
+        $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
+            ->where('status', 'pending')
+            ->count();
+    @endphp
+    @if($pendingWarehouseRequests > 0)
+        <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
+    @endif
+</a>
+<!-- ===== END OF WAREHOUSE SECTION ===== -->
+                        
                         <div class="text-muted">TRANSACTIONS</div>
                         
-                        @if(Route::has('admin.pos.index'))
+                        {{-- @if(Route::has('admin.pos.index'))
                             <a href="{{ route('admin.pos.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
                                 <i class="bi bi-cash-coin me-2"></i> Point of Sale
                             </a>
@@ -358,7 +378,7 @@
                             <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
                                 <i class="bi bi-cash-coin me-2"></i> Point of Sale (Coming Soon)
                             </a>
-                        @endif
+                        @endif --}}
                         
                         @if(Route::has('admin.pos.history'))
                             <a href="{{ route('admin.pos.history') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.pos.history') ? 'active' : '' }}">
@@ -579,48 +599,6 @@
                                     </div>
                                     <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1); color: #198754;">
     <i class="fs-4">₱</i>
-</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- POS Stats Row -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="card stat-card border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="text-muted mb-1">TODAY'S POS SALES</h5>
-                                        <h2 class="mb-0 fw-bold text-primary">₱{{ number_format($todaySales, 2) }}</h2>
-                                        <small class="text-muted">{{ $todayOrders }} orders today</small>
-                                    </div>
-                                    <div class="stat-icon" style="width: 55px; height: 55px; background: rgba(25, 135, 84, 0.1); color: #198754;">
-    <i class="bi bi-cash-coin fs-3"></i>
-</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card stat-card border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="text-muted mb-1">QUICK POS ACCESS</h5>
-                                        <div class="mt-2">
-                                            <a href="{{ route('admin.pos.index') }}" class="btn btn-primary btn-sm rounded-pill me-2">
-                                                <i class="bi bi-cash-coin me-1"></i> New Sale
-                                            </a>
-                                            <a href="{{ route('admin.pos.history') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-                                                <i class="bi bi-clock-history me-1"></i> History
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="stat-icon" style="width: 55px; height: 55px; background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-    <i class="bi bi-receipt fs-3"></i>
 </div>
                                 </div>
                             </div>

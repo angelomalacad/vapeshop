@@ -182,6 +182,24 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         }
         return view('admin.dashboard');
     })->name('dashboard');
+
+ // ===== WAREHOUSE MANAGEMENT (OWNER) =====
+Route::prefix('warehouse')->name('warehouse.')->group(function () {
+    // View routes
+    Route::get('/', [App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');
+    Route::get('/pending', [App\Http\Controllers\Admin\WarehouseController::class, 'pendingDistributions'])->name('pending');
+    
+     // Edit/Update routes - ADD THIS LINE
+    Route::put('/{id}', [App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('update');
+    
+    // Stock management
+    Route::post('/add-stock', [App\Http\Controllers\Admin\WarehouseController::class, 'addStock'])->name('add-stock');
+    Route::post('/distribute', [App\Http\Controllers\Admin\WarehouseController::class, 'distributeToBranch'])->name('distribute');
+    
+    // Transfer approval/rejection
+    Route::post('/transfer/{transfer}/approve', [App\Http\Controllers\Admin\WarehouseController::class, 'approveDistribution'])->name('approve');
+    Route::post('/transfer/{transfer}/reject', [App\Http\Controllers\Admin\WarehouseController::class, 'rejectDistribution'])->name('reject');
+});
     
     // ===== BRANCHES MANAGEMENT ROUTES =====
     Route::resource('branches', App\Http\Controllers\Admin\BranchController::class);
@@ -359,6 +377,7 @@ Route::get('/pos/test', function() {
 })->name('pos.test');
 });
 
+
 // Branch Admin Routes - Require email verification
 Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-admin.')->group(function () {
      // Dashboard
@@ -471,6 +490,13 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::post('/checkout', [App\Http\Controllers\BranchAdmin\PosController::class, 'checkout'])->name('checkout');
     Route::get('/receipt', [App\Http\Controllers\BranchAdmin\PosController::class, 'receipt'])->name('receipt');
     Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
+});
+
+// ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
+Route::prefix('warehouse')->name('warehouse.')->group(function () {
+    Route::get('/', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'index'])->name('index');
+    Route::post('/request', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'requestStock'])->name('request');
+    Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'receiveTransfer'])->name('receive');
 });
 
 });

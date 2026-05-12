@@ -516,12 +516,6 @@
                             <i class="bi bi-plus-circle"></i> Add Stock
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('branch-admin.inventory.low-stock') ? 'active' : '' }}" 
-                           href="{{ route('branch-admin.inventory.low-stock') }}">
-                            <i class="bi bi-exclamation-triangle"></i> Low Stock
-                        </a>
-                    </li>
                     
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.stock-history') ? 'active' : '' }}" 
@@ -585,6 +579,16 @@
                             <i class="bi bi-plus-lg"></i> New Product
                         </a>
                     </li>
+                    
+                    <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
+                    <li class="sidebar-heading">WAREHOUSE</li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}" 
+                           href="{{ route('branch-admin.warehouse.index') }}">
+                            <i class="bi bi-building"></i> Request Stock
+                        </a>
+                    </li>
+                    <!-- ===== END OF WAREHOUSE SECTION ===== -->
                     
                     <li class="sidebar-heading">SALES</li>
                     <li class="nav-item">
