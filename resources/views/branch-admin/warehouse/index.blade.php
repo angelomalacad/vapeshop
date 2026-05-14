@@ -43,6 +43,9 @@
                                         <div>
                                             <span class="badge bg-warning mb-1">Pending</span>
                                             <h6 class="mb-0">{{ $request->product->name ?? 'N/A' }}</h6>
+                                            @if($request->flavor)
+                                                <small class="text-muted">Flavor: {{ $request->flavor->name }}</small><br>
+                                            @endif
                                             <small class="text-muted">Quantity: {{ number_format($request->quantity) }} units</small>
                                             <br>
                                             <small class="text-muted">Requested: {{ $request->created_at->diffForHumans() }}</small>
@@ -64,7 +67,7 @@
             </div>
         </div>
 
-        <!-- Available Warehouse Stock -->
+        <!-- Available Warehouse Stock (with expiration date) -->
         <div class="col-md-7">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
@@ -76,7 +79,9 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">Product</th>
+                                    <th>Flavor</th>
                                     <th>Available</th>
+                                    <th>Expiration Date</th>
                                     <th class="pe-4 text-center">Action</th>
                                 </tr>
                             </thead>
@@ -86,21 +91,40 @@
                                         <td class="ps-4">
                                             <strong>{{ $item->product->name }}</strong>
                                             <br>
-                                            <small class="text-muted">{{ $item->product->sku }}</small>
-                                        </td>
+                                            <small class="text-muted">{{ $item->product->brand ?? 'No brand' }}</small>
+                                        </div>
+                                        <td>
+                                            @if($item->flavor)
+                                                {{ $item->flavor->name }}
+                                            @else
+                                                <span class="text-muted">No flavor</span>
+                                            @endif
+                                        </div>
                                         <td>
                                             <span class="fw-bold text-success">{{ number_format($item->quantity) }} units</span>
-                                        </td>
+                                        </div>
+                                        <td>
+                                            @if($item->expiration_date)
+                                                {{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
+                                                @if(\Carbon\Carbon::parse($item->expiration_date)->isPast())
+                                                    <span class="badge bg-danger ms-1">Expired</span>
+                                                @elseif(\Carbon\Carbon::parse($item->expiration_date)->diffInDays(now()) <= 30)
+                                                    <span class="badge bg-warning ms-1">Soon</span>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </div>
                                         <td class="pe-4 text-center">
                                             <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" 
-                                                    data-bs-toggle="modal" data-bs-target="#requestProductModal{{ $item->product_id }}">
+                                                    data-bs-toggle="modal" data-bs-target="#requestProductModal{{ $item->id }}">
                                                 <i class="bi bi-cart-plus me-1"></i>Request
                                             </button>
-                                        </td>
+                                        </div>
                                     </tr>
 
-                                    <!-- Request Modal -->
-                                    <div class="modal fade" id="requestProductModal{{ $item->product_id }}" tabindex="-1">
+                                    <!-- Request Modal for this specific product + flavor (with expiration) -->
+                                    <div class="modal fade" id="requestProductModal{{ $item->id }}" tabindex="-1">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-primary text-white">
@@ -110,10 +134,20 @@
                                                 <form action="{{ route('branch-admin.warehouse.request') }}" method="POST">
                                                     @csrf
                                                     <input type="hidden" name="product_id" value="{{ $item->product_id }}">
+                                                    <input type="hidden" name="flavor_id" value="{{ $item->flavor_id }}">
                                                     <div class="modal-body">
                                                         <div class="mb-3">
                                                             <label class="form-label">Product</label>
                                                             <input type="text" class="form-control" value="{{ $item->product->name }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Flavor</label>
+                                                            <input type="text" class="form-control" value="{{ $item->flavor ? $item->flavor->name : 'No flavor' }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Expiration Date</label>
+                                                            <input type="text" class="form-control" 
+                                                                   value="{{ $item->expiration_date ? \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') : 'No expiry' }}" readonly>
                                                         </div>
                                                         <div class="mb-3">
                                                             <label class="form-label">Available in Warehouse</label>
@@ -139,10 +173,10 @@
                                     </div>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center py-5">
+                                        <td colspan="5" class="text-center py-5">
                                             <i class="bi bi-building fs-1 text-muted d-block mb-2"></i>
                                             <p class="text-muted">No stock available in warehouse</p>
-                                        </td>
+                                        </div>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -167,6 +201,7 @@
                             <th class="ps-4">Request #</th>
                             <th>Date</th>
                             <th>Product</th>
+                            <th>Flavor</th>
                             <th>Quantity</th>
                             <th>Status</th>
                             <th class="pe-4">Action</th>
@@ -178,6 +213,7 @@
                                 <td class="ps-4"><code>{{ $request->transfer_number }}</code></td>
                                 <td>{{ $request->created_at->format('M d, Y') }}</td>
                                 <td>{{ $request->product->name ?? 'N/A' }}</td>
+                                <td>{{ $request->flavor ? $request->flavor->name : 'N/A' }}</td>
                                 <td>{{ number_format($request->quantity) }}</td>
                                 <td>
                                     @if($request->status == 'approved')
@@ -208,9 +244,9 @@
     @endif
 </div>
 
-<!-- Main Request Modal -->
+<!-- Main Request Modal (for quick request without flavor preselection) -->
 <div class="modal fade" id="requestModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title"><i class="bi bi-cart-plus me-2"></i>Request Stock from Warehouse</h5>
@@ -219,18 +255,30 @@
             <form action="{{ route('branch-admin.warehouse.request') }}" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Select Product <span class="text-danger">*</span></label>
-                        <select name="product_id" class="form-select" required>
-                            <option value="">Select product...</option>
-                            @foreach($warehouseProducts as $item)
-                                <option value="{{ $item->product_id }}">{{ $item->product->name }} ({{ number_format($item->quantity) }} available)</option>
-                            @endforeach
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Product <span class="text-danger">*</span></label>
+                            <select name="product_id" id="requestProductSelect" class="form-select" required>
+                                <option value="">Select product...</option>
+                                @foreach($warehouseProducts->groupBy('product_id') as $productId => $items)
+                                    @php $firstItem = $items->first(); @endphp
+                                    <option value="{{ $firstItem->product_id }}" data-product-name="{{ $firstItem->product->name }}">
+                                        {{ $firstItem->product->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Flavor <span class="text-danger">*</span></label>
+                            <select name="flavor_id" id="requestFlavorSelect" class="form-select" required disabled>
+                                <option value="">First select a product...</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                        <input type="number" name="quantity" class="form-control" min="1" required>
+                        <input type="number" name="quantity" id="requestQuantity" class="form-control" min="1" required>
+                        <div class="form-text" id="maxQuantityHint"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Notes (Optional)</label>
@@ -245,4 +293,57 @@
         </div>
     </div>
 </div>
+
+<script>
+    // For the main request modal: load flavors and max quantity when product changes
+    const productSelect = document.getElementById('requestProductSelect');
+    const flavorSelect = document.getElementById('requestFlavorSelect');
+    const quantityInput = document.getElementById('requestQuantity');
+    const maxHint = document.getElementById('maxQuantityHint');
+
+    // Store warehouse items data for quick lookup
+    const warehouseItems = @json($warehouseProducts);
+
+    if (productSelect) {
+        productSelect.addEventListener('change', function() {
+            const productId = this.value;
+            if (productId) {
+                // Find all flavors for this product
+                const flavors = warehouseItems.filter(item => item.product_id == productId);
+                flavorSelect.innerHTML = '<option value="">Select flavor...</option>';
+                
+                if (flavors.length > 0) {
+                    flavors.forEach(flavor => {
+                        const option = document.createElement('option');
+                        option.value = flavor.id;
+                        option.textContent = flavor.flavor ? flavor.flavor.name : 'No flavor';
+                        option.dataset.maxQuantity = flavor.quantity;
+                        flavorSelect.appendChild(option);
+                    });
+                    flavorSelect.disabled = false;
+                } else {
+                    flavorSelect.innerHTML = '<option value="">No flavors available</option>';
+                    flavorSelect.disabled = true;
+                }
+                quantityInput.value = '';
+                maxHint.textContent = '';
+            } else {
+                flavorSelect.disabled = true;
+                flavorSelect.innerHTML = '<option value="">First select a product...</option>';
+                quantityInput.value = '';
+                maxHint.textContent = '';
+            }
+        });
+
+        flavorSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const maxQty = selectedOption.dataset.maxQuantity || 0;
+            quantityInput.max = maxQty;
+            maxHint.textContent = `Max: ${parseInt(maxQty).toLocaleString()} units`;
+            if (quantityInput.value > maxQty) {
+                quantityInput.value = maxQty;
+            }
+        });
+    }
+</script>
 @endsection

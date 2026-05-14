@@ -174,7 +174,11 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
 
 // Admin Routes (Super Admin) - Require email verification and super_admin role
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+
+
     // All routes in this group check for super_admin role
+
+    
     Route::get('/dashboard', function () {
         $user = Auth::user();
         if ($user->role !== 'super_admin') {
@@ -183,6 +187,18 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         return view('admin.dashboard');
     })->name('dashboard');
 
+    // ===== API ROUTE FOR FLAVORS =====
+    Route::get('/api/products/{product}/flavors', function($productId) {
+        $product = \App\Models\Product::find($productId);
+        if (!$product) {
+            return response()->json([]);
+        }
+        return response()->json($product->flavors->map(function($flavor) {
+            return ['id' => $flavor->id, 'name' => $flavor->name];
+        }));
+    })->name('api.product.flavors');
+    // ===== END API ROUTE =====
+    
  // ===== WAREHOUSE MANAGEMENT (OWNER) =====
 Route::prefix('warehouse')->name('warehouse.')->group(function () {
     // View routes

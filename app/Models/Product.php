@@ -13,7 +13,8 @@ class Product extends Model
         'name', 'sku', 'description', 'brand', 'category', 'type',
         'price', 'cost', 'puff_count', 'battery_capacity', 'charging_type',
         'liquid_capacity', 'nicotine_strength', 'adjustable_airflow',
-        'smart_display', 'image', 'images', 'image_url', 'gdrive_file_id', 'is_active'
+        'smart_display', 'image', 'images', 'image_url', 'gdrive_file_id', 'is_active', 'expiration_date',
+        'shelf_life_months','manufacturing_date'
     ];
 
     protected $casts = [
@@ -21,6 +22,8 @@ class Product extends Model
         'adjustable_airflow' => 'boolean',
         'smart_display' => 'boolean',
         'is_active' => 'boolean',
+        'expiration_date' => 'date',
+        'manufacturing_date' => 'date',
     ];
 
     public function flavors()

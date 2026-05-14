@@ -13,11 +13,13 @@ class WarehouseInventory extends Model
 
     protected $fillable = [
         'product_id',
+        'flavor_id',  // ADD THIS
         'quantity',
         'low_stock_threshold',
         'reorder_point',
         'last_purchase_price',
-        'last_restocked_at'
+        'last_restocked_at',
+        'expiration_date'
     ];
 
     protected $casts = [
@@ -25,12 +27,20 @@ class WarehouseInventory extends Model
         'quantity' => 'integer',
         'low_stock_threshold' => 'integer',
         'reorder_point' => 'integer',
-        'last_purchase_price' => 'decimal:2'
+        'last_purchase_price' => 'decimal:2',
+        'expiration_date' => 'date',
+
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    // ADD THIS RELATIONSHIP
+    public function flavor()
+    {
+        return $this->belongsTo(ProductFlavor::class, 'flavor_id');
     }
 
     public function isLowStock()
@@ -45,6 +55,6 @@ class WarehouseInventory extends Model
 
     public function getTotalValueAttribute()
     {
-        return $this->quantity * ($this->product->price ?? 0);
+        return $this->quantity * ($this->last_purchase_price ?? 0);
     }
 }
