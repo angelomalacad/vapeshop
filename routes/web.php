@@ -36,19 +36,19 @@ Route::get('/login', function () {
 
 Route::post('/login', function () {
     $credentials = request()->only('email', 'password');
-    
+
     if (Auth::attempt($credentials)) {
         request()->session()->regenerate();
-        
+
         $user = Auth::user();
-        
+
         // Check if email is verified
         if (is_null($user->email_verified_at)) {
             Auth::logout();
             return redirect()->route('verification.notice')
                 ->with('error', 'Please verify your email before logging in.');
         }
-        
+
         // Redirect based on role
         switch ($user->role) {
             case 'super_admin':
@@ -60,7 +60,7 @@ Route::post('/login', function () {
                 return redirect()->route('customer.dashboard');
         }
     }
-    
+
     return back()->withErrors([
         'email' => 'The provided credentials do not match our records.',
     ]);
@@ -94,7 +94,7 @@ Route::post('/register', function () {
         'birthdate' => 'nullable|date|before:'.now()->subYears(18)->format('Y-m-d'),
         'terms' => 'required|accepted',
     ]);
-    
+
     $user = \App\Models\User::create([
         'name' => $validated['name'],
         'email' => $validated['email'],
@@ -110,13 +110,13 @@ Route::post('/register', function () {
         'receive_promotions' => request()->has('newsletter'),
         'is_active' => true,
     ]);
-    
+
     // Trigger the Registered event to send verification email
     event(new \Illuminate\Auth\Events\Registered($user));
-    
+
     // Log the user in
     Auth::login($user);
-    
+
     // Redirect to verification notice
     return redirect()->route('verification.notice');
 })->name('register');
@@ -131,11 +131,11 @@ Route::get('/email/verify', function () {
 // ===== SIMPLE VERIFICATION HANDLER THAT DEFINITELY WORKS =====
 Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     $user = \App\Models\User::findOrFail($id);
-    
+
     // Mark as verified immediately
     $user->email_verified_at = now();
     $user->save();
-    
+
     return redirect()->route('login')->with('success', 'Email verified! You can now login.');
 })->name('verification.verify');
 
@@ -155,15 +155,15 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
         if (!in_array($user->role, ['customer', 'super_admin', 'branch_admin'])) {
             return redirect()->route('home')->with('error', 'Access denied. Customer area only.');
         }
-        
+
         return view('customer.dashboard');
     })->name('dashboard');
-    
+
     // Products
     Route::get('/products', function () {
         return "Customer Products - To be implemented";
     })->name('products.index');
-    
+
     // Cart
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', function () {
@@ -178,7 +178,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // All routes in this group check for super_admin role
 
-    
+
     Route::get('/dashboard', function () {
         $user = Auth::user();
         if ($user->role !== 'super_admin') {
@@ -198,35 +198,35 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         }));
     })->name('api.product.flavors');
     // ===== END API ROUTE =====
-    
+
  // ===== WAREHOUSE MANAGEMENT (OWNER) =====
 Route::prefix('warehouse')->name('warehouse.')->group(function () {
     // View routes
     Route::get('/', [App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');
     Route::get('/pending', [App\Http\Controllers\Admin\WarehouseController::class, 'pendingDistributions'])->name('pending');
-    
+
      // Edit/Update routes - ADD THIS LINE
     Route::put('/{id}', [App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('update');
-    
+
     // Stock management
     Route::post('/add-stock', [App\Http\Controllers\Admin\WarehouseController::class, 'addStock'])->name('add-stock');
     Route::post('/distribute', [App\Http\Controllers\Admin\WarehouseController::class, 'distributeToBranch'])->name('distribute');
-    
+
     // Transfer approval/rejection
     Route::post('/transfer/{transfer}/approve', [App\Http\Controllers\Admin\WarehouseController::class, 'approveDistribution'])->name('approve');
     Route::post('/transfer/{transfer}/reject', [App\Http\Controllers\Admin\WarehouseController::class, 'rejectDistribution'])->name('reject');
 });
-    
+
     // ===== BRANCHES MANAGEMENT ROUTES =====
     Route::resource('branches', App\Http\Controllers\Admin\BranchController::class);
     Route::post('/branches/{branch}/toggle-status', [App\Http\Controllers\Admin\BranchController::class, 'toggleStatus'])->name('branches.toggle-status');
     // ===== END OF BRANCHES MANAGEMENT ROUTES =====
-    
+
     // ===== PRODUCTS MANAGEMENT ROUTES =====
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
     Route::post('/products/{product}/toggle-status', [App\Http\Controllers\Admin\ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     // ===== END OF PRODUCTS MANAGEMENT ROUTES =====
-    
+
     // ===== STAFF MANAGEMENT ROUTES =====
     Route::prefix('staff')->name('staff.')->group(function () {
         Route::get('/', function () {
@@ -239,7 +239,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return "Staff Management - Please create StaffController first";
         })->name('index');
-        
+
         Route::get('/create', function () {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -250,7 +250,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return "Create Staff - Please create StaffController first";
         })->name('create');
-        
+
         Route::post('/', function () {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -261,7 +261,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return redirect()->route('admin.staff.index')->with('error', 'StaffController not found');
         })->name('store');
-        
+
         Route::get('/{staff}/edit', function ($staff) {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -273,7 +273,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return "Edit Staff - Please create StaffController first";
         })->name('edit');
-        
+
         Route::put('/{staff}', function ($staff) {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -285,7 +285,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return redirect()->route('admin.staff.index')->with('error', 'StaffController not found');
         })->name('update');
-        
+
         Route::delete('/{staff}', function ($staff) {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -297,7 +297,7 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
             }
             return redirect()->route('admin.staff.index')->with('error', 'StaffController not found');
         })->name('destroy');
-        
+
         Route::post('/{staff}/reset-password', function ($staff) {
             if (Auth::user()->role !== 'super_admin') {
                 return redirect()->route('login');
@@ -311,68 +311,68 @@ Route::prefix('warehouse')->name('warehouse.')->group(function () {
         })->name('reset-password');
     });
     // ===== END OF STAFF MANAGEMENT ROUTES =====
-    
+
     // ===== SUPER ADMIN INVENTORY ROUTES =====
 Route::prefix('inventory')->name('inventory.')->group(function () {
     // ===== STATIC ROUTES FIRST (no parameters) =====
     // Main inventory overview
     Route::get('/', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('index');
-    
+
     // Create new inventory item
     Route::get('/create', [App\Http\Controllers\Admin\InventoryController::class, 'create'])->name('create');
     Route::post('/', [App\Http\Controllers\Admin\InventoryController::class, 'store'])->name('store');
-    
+
     // Low stock view - STATIC ROUTE
     Route::get('/low-stock', [App\Http\Controllers\Admin\InventoryController::class, 'lowStock'])->name('low-stock');
-    
+
     // Stock history with filters - STATIC ROUTE
     Route::get('/stock-history', [App\Http\Controllers\Admin\InventoryController::class, 'stockHistory'])->name('stock-history');
-    
+
     // ===== TRANSFER MANAGEMENT ROUTES =====
     // List all transfers
     Route::get('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'transfers'])->name('transfers');
-    
+
     // Create transfer
     Route::get('/transfers/create', [App\Http\Controllers\Admin\InventoryController::class, 'createTransfer'])->name('create-transfer');
     Route::post('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'storeTransfer'])->name('store-transfer');
-    
+
     // View single transfer
     Route::get('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'showTransfer'])->name('transfers.show');
-    
+
     // Edit transfer
     Route::get('/transfers/{transfer}/edit', [App\Http\Controllers\Admin\InventoryController::class, 'editTransfer'])->name('transfers.edit');
     Route::put('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'updateTransfer'])->name('transfers.update');
-    
+
     // Transfer actions
     Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\Admin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
     Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\Admin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
     Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\Admin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
     Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\Admin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
-    
+
     // Delete transfer
     Route::delete('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'destroyTransfer'])->name('transfers.destroy');
-    
+
     // Branch specific inventory - STATIC ROUTE with branch parameter
     Route::get('/branch/{branch}', [App\Http\Controllers\Admin\InventoryController::class, 'branchInventory'])->name('branch');
-    
+
     // Summary API for dashboard
     Route::get('/summary', [App\Http\Controllers\Admin\InventoryController::class, 'summary'])->name('summary');
-    
+
     // ===== ROUTES WITH {inventory} PARAMETER (must come AFTER static routes) =====
     // Add stock form and action
     Route::get('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStockForm'])->name('add-stock');
     Route::post('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStock'])->name('add-stock.post');
-    
+
     // Remove stock
     Route::post('/{inventory}/remove-stock', [App\Http\Controllers\Admin\InventoryController::class, 'removeStock'])->name('remove-stock');
-    
+
     // Edit inventory item
     Route::get('/{inventory}/edit', [App\Http\Controllers\Admin\InventoryController::class, 'edit'])->name('edit');
     Route::put('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('update');
-    
+
     // Delete inventory item
     Route::delete('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('destroy');
-    
+
     // View inventory item - THIS MUST BE LAST
     Route::get('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'show'])->name('show');
 });
@@ -398,7 +398,7 @@ Route::get('/pos/test', function() {
 Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-admin.')->group(function () {
      // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\BranchAdmin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Products Management
     Route::get('/products', [BranchAdminProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [BranchAdminProductController::class, 'create'])->name('products.create');
@@ -408,7 +408,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::put('/products/{product}', [BranchAdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [BranchAdminProductController::class, 'destroy'])->name('products.destroy');
     Route::post('/products/upload-image', [BranchAdminProductController::class, 'uploadImage'])->name('products.upload-image');
-    
+
     // Orders/Sales Processing
     if (class_exists(\App\Http\Controllers\BranchAdmin\OrderController::class)) {
         Route::resource('orders', \App\Http\Controllers\BranchAdmin\OrderController::class);
@@ -419,12 +419,12 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/orders', function () {
             return "Orders Management - To be implemented";
         })->name('orders.index');
-        
+
         Route::get('/pos', function () {
             return "Point of Sale - To be implemented";
         })->name('pos');
     }
-    
+
     // Reports
     Route::get('/reports/sales', function () {
         $user = Auth::user();
@@ -433,7 +433,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         }
         return "Sales Reports - To be implemented";
     })->name('reports.sales');
-    
+
     Route::get('/reports/inventory', function () {
         $user = Auth::user();
         if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
@@ -441,79 +441,94 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         }
         return "Inventory Reports - To be implemented";
     })->name('reports.inventory');
-    
+
+    // API route for flavors
+    Route::get('/api/products/{product}/flavors', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'getFlavors'])
+        ->name('api.product.flavors');
+
     // ===== BRANCH STAFF INVENTORY ROUTES =====
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
-        
+
         // ===== SPECIFIC ROUTES FIRST (No URL parameters) =====
         Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
         Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
-        
+
         // QUICK ADD STOCK ROUTES
         Route::get('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStockForm'])->name('quick-add-stock');
         Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
-        
+
         // ===== ADD TO INVENTORY ROUTES =====
         Route::get('/add-to-inventory/{product}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventoryForm'])->name('add-to-inventory');
         Route::post('/add-to-inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventory'])->name('add-to-inventory.post');
-        
+
         Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
-        
+
         // STOCK HISTORY ROUTE
         Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
-        
+
         // Transfer routes
         Route::get('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferForm'])->name('transfer.form');
         Route::post('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestTransfer'])->name('transfer.request');
         Route::get('/transfers', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transfers'])->name('transfers');
-        
+
         // Transfer action routes
         Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
         Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
         Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
         Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
-        
+
+        // ===== MODAL CONTENT ROUTES =====
+        Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
+        Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
+        Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
+        Route::get('/{inventory}/show-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'showModal'])->name('show-modal');
+
+        // Check availability for transfer (AJAX) - FIXED: removed duplicate /inventory/
+        Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])
+            ->name('check-availability');
+
         // ===== ROUTES WITH {inventory} PARAMETER =====
         // EDIT ROUTE
         Route::get('/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('edit');
-        
+
         // Stock management routes
         Route::get('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockForm'])->name('add-stock');
         Route::post('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStock'])->name('add-stock.post');
-        
+
         Route::get('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStockForm'])->name('adjust-stock');
         Route::post('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStock'])->name('adjust-stock.post');
-        
+
         // UPDATE ROUTE
         Route::put('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'update'])->name('update');
-        
+
         // DELETE ROUTE
         Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
-        
+
         // ===== THIS MUST BE LAST =====
         Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
     });
     // ===== END OF BRANCH STAFF INVENTORY ROUTES =====
-   // ===== POINT OF SALE ROUTES =====
-    Route::prefix('pos')->name('pos.')->group(function () {
-    Route::get('/', [App\Http\Controllers\BranchAdmin\PosController::class, 'index'])->name('index');
-    Route::get('/history', [App\Http\Controllers\BranchAdmin\PosController::class, 'history'])->name('history');
-    Route::get('/order/{order}', [App\Http\Controllers\BranchAdmin\PosController::class, 'showOrder'])->name('order.show');
-    Route::post('/add-to-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'addToCart'])->name('add-to-cart');
-    Route::post('/update-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'updateCart'])->name('update-cart');
-    Route::post('/clear-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'clearCart'])->name('clear-cart');
-    Route::post('/checkout', [App\Http\Controllers\BranchAdmin\PosController::class, 'checkout'])->name('checkout');
-    Route::get('/receipt', [App\Http\Controllers\BranchAdmin\PosController::class, 'receipt'])->name('receipt');
-    Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
-});
 
-// ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
-Route::prefix('warehouse')->name('warehouse.')->group(function () {
-    Route::get('/', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'index'])->name('index');
-    Route::post('/request', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'requestStock'])->name('request');
-    Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'receiveTransfer'])->name('receive');
-});
+    // ===== POINT OF SALE ROUTES =====
+    Route::prefix('pos')->name('pos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\BranchAdmin\PosController::class, 'index'])->name('index');
+        Route::get('/history', [App\Http\Controllers\BranchAdmin\PosController::class, 'history'])->name('history');
+        Route::get('/order/{order}', [App\Http\Controllers\BranchAdmin\PosController::class, 'showOrder'])->name('order.show');
+        Route::post('/add-to-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'addToCart'])->name('add-to-cart');
+        Route::post('/update-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'updateCart'])->name('update-cart');
+        Route::post('/clear-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'clearCart'])->name('clear-cart');
+        Route::post('/checkout', [App\Http\Controllers\BranchAdmin\PosController::class, 'checkout'])->name('checkout');
+        Route::get('/receipt', [App\Http\Controllers\BranchAdmin\PosController::class, 'receipt'])->name('receipt');
+        Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
+    });
+
+    // ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
+    Route::prefix('warehouse')->name('warehouse.')->group(function () {
+        Route::get('/', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'index'])->name('index');
+        Route::post('/request', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'requestStock'])->name('request');
+        Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'receiveTransfer'])->name('receive');
+    });
 
 });
 // ===== END OF BRANCH ADMIN ROUTES =====
@@ -524,12 +539,12 @@ Route::prefix('api')->group(function () {
         $branches = \App\Models\Branch::all();
         return response()->json($branches);
     });
-    
+
     Route::get('/products', function () {
         $products = \App\Models\Product::where('is_active', true)->get();
         return response()->json($products);
     });
-    
+
     // API route for flavors (used in transfer form)
     Route::get('/products/{product}/flavors', function($productId) {
         $product = \App\Models\Product::find($productId);
@@ -542,16 +557,16 @@ Route::prefix('api')->group(function () {
     // ===== ADD THIS NEW API ROUTE FOR STOCK CHECK =====
     Route::get('/branches/{branch}/products/{product}/stock', function($branchId, $productId) {
         $flavorId = request('flavor_id');
-        
+
         $query = \App\Models\BranchInventory::where('branch_id', $branchId)
             ->where('product_id', $productId);
-        
+
         if ($flavorId) {
             $query->where('flavor_id', $flavorId);
         }
-        
+
         $inventory = $query->first();
-        
+
         if ($inventory) {
             return response()->json([
                 'available' => $inventory->available_quantity,
@@ -559,7 +574,7 @@ Route::prefix('api')->group(function () {
                 'reserved' => $inventory->reserved_quantity
             ]);
         }
-        
+
         return response()->json(['available' => 0], 404);
     })->name('api.stock.check');
     // ===== END OF NEW API ROUTE =====
