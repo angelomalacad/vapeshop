@@ -199,18 +199,71 @@
                         <tr>
                             <td class="ps-4"><code class="fw-semibold">{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
-                            <td>{{ $transfer->fromBranch->name }}</td>
-                            <td>{{ $transfer->toBranch->name }}</td>
-                            <td>{{ $transfer->product->name }}</td>
-                            <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
+                            
+                            <!-- From Branch with null check -->
+                            <td>
+                                @if($transfer->fromBranch)
+                                    {{ $transfer->fromBranch->name }}
+                                    @if($transfer->transfer_type == 'warehouse_to_branch')
+                                        <span class="badge bg-primary ms-1">Warehouse</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                                @if($transfer->from_branch_id == Auth::user()->branch_id ?? false)
+                                    <span class="badge bg-info ms-1">Your Branch</span>
+                                @endif
+                            </td>
+                            
+                            <!-- To Branch with null check -->
+                            <td>
+                                @if($transfer->toBranch)
+                                    {{ $transfer->toBranch->name }}
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                                @if(isset(Auth::user()->branch_id) && $transfer->to_branch_id == Auth::user()->branch_id)
+                                    <span class="badge bg-info ms-1">Your Branch</span>
+                                @endif
+                            </td>
+                            
+                            <!-- Product with null check -->
+                            <td>
+                                @if($transfer->product)
+                                    {{ $transfer->product->name }}
+                                @else
+                                    <span class="text-muted">Product Deleted</span>
+                                @endif
+                            </td>
+                            
+                            <!-- Flavor with null check -->
+                            <td>
+                                @if($transfer->flavor)
+                                    {{ $transfer->flavor->name }}
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                            </td>
+                            
                             <td><span class="fw-bold">{{ $transfer->quantity }}</span></td>
+                            
+                            <!-- Status -->
                             <td>
                                 <span class="badge bg-{{ $statusColors[$transfer->status] }} px-3 py-2">
                                     <i class="bi {{ $statusIcons[$transfer->status] }} me-1"></i>
                                     {{ ucfirst($transfer->status) }}
                                 </span>
                             </td>
-                            <td>{{ $transfer->requestedBy->name ?? 'N/A' }}</td>
+                            
+                            <!-- Requested By with null check -->
+                            <td>
+                                @if($transfer->requestedBy)
+                                    {{ $transfer->requestedBy->name }}
+                                @else
+                                    <span class="text-muted">Unknown</span>
+                                @endif
+                            </td>
+                            
                             <td class="pe-4">
                                 <div class="btn-group btn-group-sm">
                                     <!-- View Details -->

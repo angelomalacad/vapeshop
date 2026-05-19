@@ -24,9 +24,9 @@ class InventoryController extends Controller
         $query = BranchInventory::with(['branch', 'product', 'flavor']);
 
         if ($request->filled('search')) {
-        $query->whereHas('product', function($q) use ($request) {
-        $q->where('name', 'like', '%' . $request->search . '%');
-        });
+            $query->whereHas('product', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            });
         }
 
         // Filter by branch
@@ -442,7 +442,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Show transfer requests across all branches
+     * Show transfer requests across all branches - UPDATED WITH NULL SAFETY
      */
     public function transfers(Request $request)
     {
@@ -453,7 +453,7 @@ class InventoryController extends Controller
             'flavor',
             'requestedBy',
             'approvedBy'
-        ]);
+        ])->orderBy('created_at', 'desc');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -475,29 +475,42 @@ class InventoryController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $transfers = $query->orderBy('created_at', 'desc')->paginate(20);
+        $transfers = $query->paginate(20);
 
         $branches = Branch::where('is_active', true)->get();
         $statuses = ['pending', 'approved', 'completed', 'cancelled'];
 
+        // Log any transfers with missing relations for debugging
+        foreach ($transfers as $transfer) {
+            if (!$transfer->fromBranch) {
+                \Log::warning('Transfer ' . $transfer->id . ' has missing fromBranch');
+            }
+            if (!$transfer->toBranch) {
+                \Log::warning('Transfer ' . $transfer->id . ' has missing toBranch');
+            }
+            if (!$transfer->product) {
+                \Log::warning('Transfer ' . $transfer->id . ' has missing product');
+            }
+        }
+
         return view('admin.inventory.transfers', compact('transfers', 'branches', 'statuses'));
     }
 
-   /**
- * Show form to create a new transfer
- */
-public function createTransfer()
-{
-    $branches = Branch::where('is_active', true)->get();
-    $products = Product::with('flavors')->where('is_active', true)->get();
+    /**
+     * Show form to create a new transfer
+     */
+    public function createTransfer()
+    {
+        $branches = Branch::where('is_active', true)->get();
+        $products = Product::with('flavors')->where('is_active', true)->get();
 
-    // Debug: Check if flavors are loaded
-    foreach ($products as $product) {
-        \Log::info('Product: ' . $product->name . ' has ' . $product->flavors->count() . ' flavors');
+        // Debug: Check if flavors are loaded
+        foreach ($products as $product) {
+            \Log::info('Product: ' . $product->name . ' has ' . $product->flavors->count() . ' flavors');
+        }
+
+        return view('admin.inventory.create-transfer', compact('branches', 'products'));
     }
-
-    return view('admin.inventory.create-transfer', compact('branches', 'products'));
-}
 
     /**
      * Store a new transfer request
@@ -536,8 +549,12 @@ public function createTransfer()
         DB::beginTransaction();
 
         try {
+            // Generate transfer number
+            $transferNumber = 'TRF-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+
             // Create transfer request
             $transfer = StockTransfer::create([
+                'transfer_number' => $transferNumber,
                 'from_branch_id' => $request->from_branch_id,
                 'to_branch_id' => $request->to_branch_id,
                 'product_id' => $request->product_id,
@@ -812,7 +829,7 @@ public function createTransfer()
                 'movement_type' => 'transfer_out',
                 'reference_type' => 'transfer',
                 'reference_id' => $transfer->id,
-                'notes' => 'Transfer to ' . $transfer->toBranch->name,
+                'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Unknown Branch'),
                 'created_by' => Auth::id(),
             ]);
 
@@ -826,7 +843,7 @@ public function createTransfer()
                 'movement_type' => 'transfer_in',
                 'reference_type' => 'transfer',
                 'reference_id' => $transfer->id,
-                'notes' => 'Transfer from ' . $transfer->fromBranch->name,
+                'notes' => 'Transfer from ' . ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown Branch'),
                 'created_by' => Auth::id(),
             ]);
 

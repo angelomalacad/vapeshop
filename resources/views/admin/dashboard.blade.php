@@ -276,19 +276,24 @@
                         
                         <div class="text-muted">MANAGEMENT</div>
                         
-                        {{-- <a href="{{ route('admin.branches.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
-                            <i class="bi bi-shop me-2"></i> Branches
-                        </a> --}}
-                        
-                        @if(Route::has('admin.staff.index'))
-                            <a href="{{ route('admin.staff.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-                                <i class="bi bi-people me-2"></i> Staff Management
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-people me-2"></i> Staff Management (Coming Soon)
+                        <!-- Branch Admin Management link -->
+                        @if(Route::has('admin.branch-admin.index'))
+                            <a href="{{ route('admin.branch-admin.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branch-admin.*') ? 'active' : '' }}">
+                                <i class="bi bi-people me-2"></i> Branch Personnel
+                                @php $branchAdminCount = \App\Models\User::whereIn('role', ['branch_admin', 'staff'])->count(); @endphp
+                                <span class="badge bg-info float-end">{{ $branchAdminCount }}</span>
                             </a>
                         @endif
+                        
+                        <!-- ===== CUSTOMER MANAGEMENT LINK - ADDED HERE ===== -->
+                        @if(Route::has('admin.customers.index'))
+                            <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
+                                <i class="bi bi-people-fill me-2"></i> Customers
+                                @php $customerCount = \App\Models\User::where('role', 'customer')->count(); @endphp
+                                <span class="badge bg-success float-end">{{ $customerCount }}</span>
+                            </a>
+                        @endif
+                        <!-- ===== END OF CUSTOMER MANAGEMENT LINK ===== -->
                         
                         @if(Route::has('admin.products.index'))
                             <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
@@ -348,37 +353,27 @@
                             @endif
                         @endif
                         
-                       <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
-<div class="text-muted">WAREHOUSE</div>
+                        <!-- ===== WAREHOUSE SECTION ===== -->
+                        <div class="text-muted">WAREHOUSE</div>
 
-<a href="{{ route('admin.warehouse.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.warehouse.index') ? 'active' : '' }}">
-    <i class="bi bi-building me-2"></i> Warehouse Stock
-</a>
+                        <a href="{{ route('admin.warehouse.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.warehouse.index') ? 'active' : '' }}">
+                            <i class="bi bi-building me-2"></i> Warehouse Stock
+                        </a>
 
-<a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
-    <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
-    @php
-        $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
-            ->where('status', 'pending')
-            ->count();
-    @endphp
-    @if($pendingWarehouseRequests > 0)
-        <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
-    @endif
-</a>
-<!-- ===== END OF WAREHOUSE SECTION ===== -->
+                        <a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
+                            <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
+                            @php
+                                $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
+                                    ->where('status', 'pending')
+                                    ->count();
+                            @endphp
+                            @if($pendingWarehouseRequests > 0)
+                                <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
+                            @endif
+                        </a>
+                        <!-- ===== END OF WAREHOUSE SECTION ===== -->
                         
                         <div class="text-muted">TRANSACTIONS</div>
-                        
-                        {{-- @if(Route::has('admin.pos.index'))
-                            <a href="{{ route('admin.pos.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
-                                <i class="bi bi-cash-coin me-2"></i> Point of Sale
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-cash-coin me-2"></i> Point of Sale (Coming Soon)
-                            </a>
-                        @endif --}}
                         
                         @if(Route::has('admin.pos.history'))
                             <a href="{{ route('admin.pos.history') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.pos.history') ? 'active' : '' }}">
@@ -468,34 +463,19 @@
                 
                 <!-- Stats Cards Row 1 -->
                 <div class="row g-4 mb-4">
+                    <!-- Branch Personnel card -->
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h5>BRANCHES</h5>
-                                        <h2>5</h2>
-                                        <a href="{{ route('admin.branches.index') }}" class="small text-decoration-none mt-2 d-inline-block text-primary">Manage →</a>
+                                        <h5>BRANCH PERSONNEL</h5>
+                                        <h2>{{ $totalStaff }}</h2>
+                                        <a href="{{ route('admin.branch-admin.index') }}" class="small text-decoration-none mt-2 d-inline-block text-primary">Manage →</a>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-                                    <i class="bi bi-shop fs-4"></i>
+                                        <i class="bi bi-people fs-4"></i>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stat-card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h5>STAFF</h5>
-                                        <h2>{{ $totalStaff }}</h2>
-                                        <span class="small text-muted">Employees</span>
-                                    </div>
-                                   <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-    <i class="bi bi-people fs-4"></i>
-</div>
                                 </div>
                             </div>
                         </div>
@@ -510,8 +490,8 @@
                                         <a href="{{ route('admin.products.index') }}" class="small text-decoration-none text-info">Manage →</a>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-    <i class="bi bi-box-seam fs-4"></i>
-</div>
+                                        <i class="bi bi-box-seam fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -523,19 +503,15 @@
                                     <div>
                                         <h5>CUSTOMERS</h5>
                                         <h2>{{ $totalCustomers }}</h2>
-                                        <span class="small text-muted">Registered</span>
+                                        <a href="{{ route('admin.customers.index') }}" class="small text-decoration-none mt-2 d-inline-block text-primary">Manage →</a>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1); color: #198754;">
-    <i class="bi bi-person fs-4"></i>
-</div>
+                                        <i class="bi bi-person fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Stats Cards Row 2 -->
-                <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <div class="card-body">
@@ -546,12 +522,16 @@
                                         <span class="small text-muted">Across branches</span>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-    <i class="bi bi-database fs-4"></i>
-</div>
+                                        <i class="bi bi-database fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Stats Cards Row 2 -->
+                <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="card stat-card">
                             <div class="card-body">
@@ -566,8 +546,8 @@
                                         @endif
                                     </div>
                                     <div class="stat-icon" style="background: rgba(253, 126, 20, 0.1); color: #fd7e14;">
-    <i class="bi bi-exclamation-triangle fs-4"></i>
-</div>
+                                        <i class="bi bi-exclamation-triangle fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -582,8 +562,8 @@
                                         <span class="small text-muted">Need restocking</span>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: #dc3545;">
-    <i class="bi bi-x-circle fs-4"></i>
-</div>
+                                        <i class="bi bi-x-circle fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -598,8 +578,28 @@
                                         <span class="small text-muted">Total inventory</span>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1); color: #198754;">
-    <i class="fs-4">₱</i>
-</div>
+                                        <i class="fs-4">₱</i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5>PENDING TRANSFERS</h5>
+                                        <h2>{{ $pendingTransfers }}</h2>
+                                        @if($pendingTransfers > 0)
+                                            <a href="{{ route('admin.inventory.transfers') }}" class="small text-warning text-decoration-none">View →</a>
+                                        @else
+                                            <span class="small text-muted">No pending</span>
+                                        @endif
+                                    </div>
+                                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                                        <i class="bi bi-arrow-left-right fs-4"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -634,8 +634,11 @@
                                     <span class="badge bg-warning ms-1">{{ $pendingTransfers }}</span>
                                 @endif
                             </a>
-                            <a href="{{ route('admin.pos.index') }}" class="btn btn-outline-success btn-modern">
-                                <i class="bi bi-cash-coin me-1"></i> POS Sale
+                            <a href="{{ route('admin.branch-admin.index') }}" class="btn btn-outline-success btn-modern">
+                                <i class="bi bi-people me-1"></i> Branch Personnel
+                            </a>
+                            <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-primary btn-modern">
+                                <i class="bi bi-people-fill me-1"></i> Customers
                             </a>
                         </div>
                     </div>
@@ -652,7 +655,7 @@
                             <div class="col-md-6">
                                 <ul>
                                     <li><strong>5 Branches</strong> across Calamba</li>
-                                    <li><strong>Staff Management</strong> - {{ $totalStaff }} branch staff members</li>
+                                    <li><strong>Branch Personnel</strong> - {{ $totalStaff }} staff members across all branches</li>
                                     <li><strong>Product Catalog</strong> - {{ $totalProducts }} products (X Ultra, Slimbar, Relx)</li>
                                     <li><strong>Inventory Tracking</strong> - {{ $totalInventoryItems }} items across branches</li>
                                 </ul>

@@ -62,7 +62,7 @@ class StaffController extends Controller
             'branch_id' => $request->branch_id,
             'phone' => $request->phone,
             'address' => $request->address,
-            'email_verified_at' => now(), // Auto-verify staff accounts
+            'email_verified_at' => now(),
             'is_active' => true,
         ]);
 
@@ -70,19 +70,22 @@ class StaffController extends Controller
             ->with('success', 'Staff account created successfully.');
     }
 
-    /**
-     * Show the form for editing a staff account.
-     */
-    public function edit(User $staff)
-    {
-        // Ensure we're only editing staff/branch admins
-        if (!in_array($staff->role, ['branch_admin', 'staff'])) {
-            abort(404);
-        }
-        
-        $branches = Branch::where('is_active', true)->get();
-        return view('admin.staff.edit', compact('staff', 'branches'));
+/**
+ * Show edit modal content
+ */
+public function modalEdit(User $staff)
+{
+    // Ensure we're only editing staff/branch admins
+    if (!in_array($staff->role, ['branch_admin', 'staff'])) {
+        abort(404);
     }
+    
+    $branches = Branch::where('is_active', true)->get();
+    
+    // Use the actual edit modal view
+    return view('admin.staff.modals.edit', compact('staff', 'branches'));
+}
+
 
     /**
      * Update a staff account.
