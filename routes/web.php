@@ -247,6 +247,14 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // ===== PRODUCTS MANAGEMENT ROUTES =====
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
     Route::post('/products/{product}/toggle-status', [App\Http\Controllers\Admin\ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    // Product modal routes
+Route::get('/products/{product}/edit-modal', [App\Http\Controllers\Admin\ProductController::class, 'editModal'])->name('products.edit-modal');
+Route::get('/products/{product}/show-modal', [App\Http\Controllers\Admin\ProductController::class, 'showModal'])->name('products.show-modal');
+
+    // ===== PRODUCT STOCK ADDITION ROUTES (ADDED) =====
+    Route::get('/products/{product}/add-stock-modal', [App\Http\Controllers\Admin\ProductController::class, 'addStockToBranchForm'])->name('products.add-stock-modal');
+    Route::post('/products/{product}/add-stock', [App\Http\Controllers\Admin\ProductController::class, 'addStockToBranch'])->name('products.add-stock');
+    // ===== END OF PRODUCT STOCK ADDITION ROUTES =====
     // ===== END OF PRODUCTS MANAGEMENT ROUTES =====
 
     // ===== BRANCH ADMIN MANAGEMENT ROUTES =====
@@ -293,16 +301,18 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::get('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'show'])->name('show');
     });
     // ===== END OF SUPER ADMIN INVENTORY ROUTES =====
-// ===== CUSTOMER MANAGEMENT ROUTES =====
-Route::prefix('customers')->name('customers.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Admin\CustomerController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('store');
-    Route::get('/{customer}/modal-edit', [App\Http\Controllers\Admin\CustomerController::class, 'modalEdit'])->name('modal-edit');
-    Route::put('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'update'])->name('update');
-    Route::delete('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('destroy');
-    Route::post('/{customer}/toggle-status', [App\Http\Controllers\Admin\CustomerController::class, 'toggleStatus'])->name('toggle-status');
-});
+    
+    // ===== CUSTOMER MANAGEMENT ROUTES =====
+    Route::prefix('customers')->name('customers.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\CustomerController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('store');
+        Route::get('/{customer}/modal-edit', [App\Http\Controllers\Admin\CustomerController::class, 'modalEdit'])->name('modal-edit');
+        Route::put('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'update'])->name('update');
+        Route::delete('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('destroy');
+        Route::post('/{customer}/toggle-status', [App\Http\Controllers\Admin\CustomerController::class, 'toggleStatus'])->name('toggle-status');
+    });
+    
     // ===== SUPER ADMIN POS ROUTES =====
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\PosController::class, 'index'])->name('index');

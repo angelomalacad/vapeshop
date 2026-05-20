@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\BranchInventory;
+use App\Models\Branch;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\GoogleDriveHelper;
 
 class ProductController extends Controller
@@ -19,7 +23,6 @@ class ProductController extends Controller
     {
         $query = Product::with(['flavors']);
         
-        // Search by name or SKU
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -27,29 +30,24 @@ class ProductController extends Controller
             });
         }
         
-        // Filter by brand
         if ($request->filled('brand')) {
             $query->where('brand', $request->brand);
         }
         
-        // Filter by category
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
         
-        // Filter by type
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
         
-        // Filter by active status
         if ($request->filled('status')) {
             $query->where('is_active', $request->status === 'active');
         }
         
         $products = $query->orderBy('name')->paginate(15);
         
-        // Get unique brands and categories for filters
         $brands = Product::distinct()->pluck('brand');
         $categories = Product::distinct()->pluck('category');
         $types = Product::distinct()->pluck('type');
@@ -57,17 +55,11 @@ class ProductController extends Controller
         return view('admin.products.index', compact('products', 'brands', 'categories', 'types'));
     }
 
-    /**
-     * Show the form for creating a new product.
-     */
     public function create()
     {
         return view('admin.products.create');
     }
 
-    /**
-     * Store a newly created product.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -122,7 +114,6 @@ class ProductController extends Controller
             'is_active' => true,
         ]);
 
-        // Handle Google Drive image
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
@@ -130,13 +121,11 @@ class ProductController extends Controller
             ]);
         }
 
-        // Handle image upload
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
             $product->update(['image' => $imagePath]);
         }
 
-        // Handle flavors
         if ($request->has('flavors')) {
             foreach ($request->flavors as $flavorData) {
                 if (!empty($flavorData['name'])) {
@@ -154,36 +143,23 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully!');
     }
 
-    /**
-     * Display the specified product.
-     */
     public function show(Product $product)
     {
         $product->load(['flavors']);
-        
-        // Get inventory across all branches
         $branchInventories = BranchInventory::with('branch')
             ->where('product_id', $product->id)
             ->get();
-        
         $totalStock = $branchInventories->sum('quantity');
         $branchesWithStock = $branchInventories->count();
-        
         return view('admin.products.show', compact('product', 'branchInventories', 'totalStock', 'branchesWithStock'));
     }
 
-    /**
-     * Show the form for editing the specified product.
-     */
     public function edit(Product $product)
     {
         $product->load('flavors');
         return view('admin.products.edit', compact('product'));
     }
 
-    /**
-     * Update the specified product.
-     */
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -205,19 +181,16 @@ class ProductController extends Controller
             'image_url' => 'nullable|url|max:500',
         ]);
 
-        // Handle brand
         $brand = $request->brand;
         if ($brand === 'Other' && $request->filled('custom_brand')) {
             $brand = $request->custom_brand;
         }
 
-        // Handle category
         $category = $request->category;
         if ($category === 'New' && $request->filled('new_category')) {
             $category = $request->new_category;
         }
 
-        // Update product
         $product->update([
             'name' => $request->name,
             'brand' => $brand,
@@ -235,7 +208,6 @@ class ProductController extends Controller
             'smart_display' => $request->has('smart_display'),
         ]);
 
-        // Handle Google Drive image
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
@@ -248,7 +220,6 @@ class ProductController extends Controller
             ]);
         }
 
-        // Handle image upload
         if ($request->hasFile('image')) {
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
@@ -261,41 +232,124 @@ class ProductController extends Controller
             ->with('success', 'Product updated successfully!');
     }
 
-    /**
-     * Remove the specified product.
-     */
     public function destroy(Product $product)
     {
-        // Check if product is in any inventory
         $inventoryCount = BranchInventory::where('product_id', $product->id)->count();
-        
         if ($inventoryCount > 0) {
             return redirect()->back()
                 ->with('error', 'Cannot delete product that exists in inventory.');
         }
-
-        // Delete image
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
-
-        // Delete flavors
         $product->flavors()->delete();
-        
         $product->delete();
-
         return redirect()->route('admin.products.index')
             ->with('success', 'Product deleted successfully.');
     }
 
-    /**
-     * Toggle product active status.
-     */
     public function toggleStatus(Product $product)
     {
         $product->update(['is_active' => !$product->is_active]);
-        
         return redirect()->back()
             ->with('success', 'Product status updated successfully.');
     }
+
+    // ========== ADD STOCK METHODS ==========
+
+    /**
+     * Show modal form to add stock to branch inventory (GET)
+     */
+    public function addStockToBranchForm(Product $product)
+    {
+        $branches = Branch::where('is_active', true)->get();
+        return view('admin.products.modals.add-stock', compact('product', 'branches'));
+    }
+
+    /**
+     * Process adding stock to branch inventory (POST) – returns JSON for AJAX
+     */
+    public function addStockToBranch(Request $request, Product $product)
+    {
+        $validator = Validator::make($request->all(), [
+            'branch_id' => 'required|exists:branches,id',
+            'flavor_id' => 'nullable|exists:product_flavors,id',
+            'quantity' => 'required|integer|min:1',
+            'expiration_date' => 'nullable|date|after:today',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Find or create inventory record
+        $inventory = BranchInventory::firstOrNew([
+            'branch_id' => $request->branch_id,
+            'product_id' => $product->id,
+            'flavor_id' => $request->flavor_id,
+        ]);
+
+        if (!$inventory->exists) {
+            $inventory->quantity = 0;
+            $inventory->reserved_quantity = 0;
+            $inventory->low_stock_threshold = 10;
+            $inventory->reorder_point = 20;
+            $inventory->optimal_stock = 50;
+        }
+
+        $oldQuantity = $inventory->quantity;
+        $newQuantity = $oldQuantity + $request->quantity;
+
+        $inventory->quantity = $newQuantity;
+        $inventory->last_restocked_at = now();
+        if ($request->filled('purchase_price')) {
+            $inventory->last_purchase_price = $request->purchase_price;
+        }
+        if ($request->filled('expiration_date')) {
+            $inventory->expiration_date = $request->expiration_date;
+        }
+        $inventory->save();
+
+        StockMovement::create([
+            'branch_id' => $request->branch_id,
+            'product_id' => $product->id,
+            'flavor_id' => $request->flavor_id,
+            'previous_quantity' => $oldQuantity,
+            'new_quantity' => $newQuantity,
+            'quantity_change' => $request->quantity,
+            'movement_type' => 'purchase',
+            'notes' => $request->notes ?: 'Added via product management',
+            'created_by' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully added {$request->quantity} units to branch inventory."
+        ]);
+    }
+    /**
+ * Return edit form as modal content (no layout).
+ */
+public function editModal(Product $product)
+{
+    $product->load('flavors');
+    return view('admin.products.modals.edit', compact('product'));
+}
+
+/**
+ * Return product details as modal content (no layout).
+ */
+public function showModal(Product $product)
+{
+    $product->load(['flavors']);
+    $branchInventories = BranchInventory::with('branch')
+        ->where('product_id', $product->id)
+        ->get();
+    return view('admin.products.modals.show', compact('product', 'branchInventories'));
+}
 }
