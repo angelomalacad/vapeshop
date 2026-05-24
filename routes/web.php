@@ -193,18 +193,18 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Verification handler - verifies the email
     Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
         $user = \App\Models\User::findOrFail($id);
-        
+
         // Verify the hash matches the user's email
         if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
             return redirect()->route('admin.login')->with('error', 'Invalid verification link.');
         }
-        
+
         // Mark email as verified if not already
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
             return redirect()->route('admin.login')->with('success', 'Email verified successfully! You can now login.');
         }
-        
+
         return redirect()->route('admin.login')->with('info', 'Email already verified.');
     })->name('verification.verify');
 
@@ -213,7 +213,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         if (request()->user()->hasVerifiedEmail()) {
             return redirect()->route('admin.dashboard');
         }
-        
+
         request()->user()->sendEmailVerificationNotification();
         return back()->with('success', 'Verification link sent!');
     })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
@@ -264,7 +264,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::put('/{branchAdmin}', [App\Http\Controllers\Admin\BranchAdminController::class, 'update'])->name('update');
         Route::delete('/{branchAdmin}', [App\Http\Controllers\Admin\BranchAdminController::class, 'destroy'])->name('destroy');
     });
-   
+
     // ===== SUPER ADMIN INVENTORY ROUTES =====
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // ===== STATIC ROUTES FIRST (no parameters) =====
@@ -292,7 +292,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\Admin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
         Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\Admin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
         Route::delete('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'destroyTransfer'])->name('transfers.destroy');
-        
+
         Route::get('/branch/{branch}', [App\Http\Controllers\Admin\InventoryController::class, 'branchInventory'])->name('branch');
         Route::get('/summary', [App\Http\Controllers\Admin\InventoryController::class, 'summary'])->name('summary');
 
@@ -304,20 +304,20 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         // ===== ROUTES WITH {inventory} PARAMETER =====
         // Note: The old non-modal routes (edit, show, add-stock) have been removed
         // Now using modal routes above instead
-        
+
         // ADD STOCK POST ROUTE - Handles the form submission from add-stock-modal
         Route::post('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStock'])->name('add-stock.post');
-        
+
         Route::post('/{inventory}/remove-stock', [App\Http\Controllers\Admin\InventoryController::class, 'removeStock'])->name('remove-stock');
         Route::put('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('update');
         Route::delete('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('destroy');
-        
+
         // Archive routes (GET method)
         Route::get('/{inventory}/archive', [App\Http\Controllers\Admin\InventoryController::class, 'archive'])->name('archive');
         Route::get('/{inventory}/unarchive', [App\Http\Controllers\Admin\InventoryController::class, 'unarchive'])->name('unarchive');
     });
     // ===== END OF SUPER ADMIN INVENTORY ROUTES =====
-    
+
     // ===== CUSTOMER MANAGEMENT ROUTES =====
     Route::prefix('customers')->name('customers.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('index');
@@ -328,7 +328,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::delete('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('destroy');
         Route::post('/{customer}/toggle-status', [App\Http\Controllers\Admin\CustomerController::class, 'toggleStatus'])->name('toggle-status');
     });
-    
+
     // ===== SUPER ADMIN POS ROUTES =====
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\PosController::class, 'index'])->name('index');
@@ -339,7 +339,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::post('/clear-cart', [App\Http\Controllers\Admin\PosController::class, 'clearCart'])->name('clear-cart');
         Route::post('/checkout', [App\Http\Controllers\Admin\PosController::class, 'checkout'])->name('checkout');
     });
-    
+
     Route::get('/pos/test', function() {
         return response()->json(['message' => 'POS route is working!']);
     })->name('pos.test');
@@ -444,6 +444,10 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])
             ->name('check-availability');
 
+        // ===== ARCHIVE / UNARCHIVE ROUTES =====
+        Route::post('/{inventory}/archive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'archive'])->name('archive');
+        Route::post('/{inventory}/unarchive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'unarchive'])->name('unarchive');
+
         // ===== ROUTES WITH {inventory} PARAMETER =====
         // EDIT ROUTE
         Route::get('/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('edit');
@@ -481,9 +485,9 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
 
     // ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
     Route::prefix('warehouse')->name('warehouse.')->group(function () {
-        Route::get('/', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'index'])->name('index');
-        Route::post('/request', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'requestStock'])->name('request');
-        Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'receiveTransfer'])->name('receive');
+        Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'warehouseStock'])->name('index');
+        Route::post('/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestWarehouseStock'])->name('request');
+        Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'receiveWarehouseStock'])->name('receive');
     });
 
 });

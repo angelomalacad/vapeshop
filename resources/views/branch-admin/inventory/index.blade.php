@@ -65,7 +65,7 @@
                                         <h6 class="card-title">In Stock</h6>
                                         <h3 class="mb-0">
                                             {{ $inventories->filter(function ($item) {
-                                                    return $item->available_quantity > $item->low_stock_threshold;
+                                                    return $item->available_quantity > $item->low_stock_threshold && !($item->is_archived ?? false);
                                                 })->count() }}
                                         </h3>
                                     </div>
@@ -82,7 +82,9 @@
                                         <h6 class="card-title">Low Stock</h6>
                                         <h3 class="mb-0">
                                             {{ $inventories->filter(function ($item) {
-                                                    return $item->available_quantity > 0 && $item->available_quantity <= $item->low_stock_threshold;
+                                                    return $item->available_quantity > 0 &&
+                                                        $item->available_quantity <= $item->low_stock_threshold &&
+                                                        !($item->is_archived ?? false);
                                                 })->count() }}
                                         </h3>
                                     </div>
@@ -99,7 +101,7 @@
                                         <h6 class="card-title">Out of Stock</h6>
                                         <h3 class="mb-0">
                                             {{ $inventories->filter(function ($item) {
-                                                    return $item->available_quantity <= 0;
+                                                    return $item->available_quantity <= 0 && !($item->is_archived ?? false);
                                                 })->count() }}
                                         </h3>
                                     </div>
@@ -139,6 +141,8 @@
                                         Stock</option>
                                     <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Out of
                                         Stock</option>
+                                    <option value="archived" {{ request('stock_status') == 'archived' ? 'selected' : '' }}>
+                                        Archived</option>
                                 </select>
                             </div>
                             <div class="col-12">
@@ -190,12 +194,21 @@
                                         @php
                                             $product = $inv->product;
                                             $available = $inv->available_quantity;
-                                            $statusClass =
-                                                $available <= 0
+                                            $isArchived = $inv->is_archived ?? false;
+                                            $statusClass = $isArchived
+                                                ? 'secondary'
+                                                : ($available <= 0
                                                     ? 'danger'
                                                     : ($available <= $inv->low_stock_threshold
                                                         ? 'warning'
-                                                        : 'success');
+                                                        : 'success'));
+                                            $statusText = $isArchived
+                                                ? 'Archived'
+                                                : ($available <= 0
+                                                    ? 'Out of Stock'
+                                                    : ($available <= $inv->low_stock_threshold
+                                                        ? 'Low Stock'
+                                                        : 'In Stock'));
                                             $expiry = $inv->expiration_date
                                                 ? \Carbon\Carbon::parse($inv->expiration_date)
                                                 : null;
@@ -248,13 +261,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if ($available <= 0)
-                                                    <span class="badge bg-danger">Out of Stock</span>
-                                                @elseif($available <= $inv->low_stock_threshold)
-                                                    <span class="badge bg-warning">Low Stock</span>
-                                                @else
-                                                    <span class="badge bg-success">In Stock</span>
-                                                @endif
+                                                <span class="badge bg-{{ $statusClass }}">{{ $statusText }}</span>
                                             </td>
                                             <td>₱{{ number_format($product->price, 2) }}</td>
                                             <td>
@@ -273,13 +280,6 @@
                                                         data-url="{{ route('branch-admin.inventory.edit-modal', $inv) }}">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <!-- Add Stock - Modal Trigger -->
-                                                    <button type="button" class="btn btn-outline-success"
-                                                        title="Add Stock" data-bs-toggle="modal"
-                                                        data-bs-target="#dynamicModal"
-                                                        data-url="{{ route('branch-admin.inventory.add-stock-modal', $inv) }}">
-                                                        <i class="bi bi-plus-circle"></i>
-                                                    </button>
                                                     <!-- Transfer - Modal Trigger -->
                                                     <button type="button" class="btn btn-outline-primary"
                                                         title="Transfer Stock" data-bs-toggle="modal"
@@ -287,63 +287,31 @@
                                                         data-url="{{ route('branch-admin.inventory.transfer-modal', ['inventory_id' => $inv->id]) }}">
                                                         <i class="bi bi-arrow-left-right"></i>
                                                     </button>
-                                                    <!-- Delete - Modal Trigger -->
-                                                    <button type="button" class="btn btn-outline-danger"
-                                                        title="Delete Item" data-bs-toggle="modal"
-                                                        data-bs-target="#deleteModal{{ $inv->id }}">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    <!-- Archive/Unarchive Button (replaces delete) -->
+                                                    @if ($inv->is_archived)
+                                                        <form
+                                                            action="{{ route('branch-admin.inventory.unarchive', $inv) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-outline-secondary"
+                                                                title="Restore">
+                                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('branch-admin.inventory.archive', $inv) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-outline-secondary"
+                                                                title="Archive"
+                                                                onclick="return confirm('Archive this item? It will be hidden from active inventory.')">
+                                                                <i class="bi bi-archive"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </div>
-
-                                                <!-- Hidden delete form -->
-                                                <form id="delete-form-{{ $inv->id }}"
-                                                    action="{{ route('branch-admin.inventory.destroy', $inv) }}"
-                                                    method="POST" style="display: none;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                </form>
                                             </td>
                                         </tr>
-
-                                        <!-- DELETE CONFIRMATION MODAL -->
-                                        <div class="modal fade" id="deleteModal{{ $inv->id }}" tabindex="-1">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger text-white">
-                                                        <h5 class="modal-title"><i class="bi bi-trash3 me-2"></i>Delete
-                                                            Inventory Item</h5>
-                                                        <button type="button" class="btn-close btn-close-white"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p>Are you sure you want to delete
-                                                            <strong>{{ $product->name }}</strong> from your inventory?</p>
-                                                        <p class="text-danger">This action cannot be undone and the product
-                                                            will be completely removed from your branch inventory.</p>
-                                                        @if ($inv->quantity > 0)
-                                                            <div class="alert alert-warning">
-                                                                <i class="bi bi-exclamation-triangle"></i> This item still
-                                                                has <strong>{{ $inv->quantity }}</strong> units in stock.
-                                                                You must adjust stock to zero before deletion.
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-bs-dismiss="modal">Cancel</button>
-                                                        @if ($inv->quantity == 0)
-                                                            <button type="button" class="btn btn-danger"
-                                                                onclick="document.getElementById('delete-form-{{ $inv->id }}').submit();">
-                                                                Yes, Delete
-                                                            </button>
-                                                        @else
-                                                            <button type="button" class="btn btn-danger" disabled>Cannot
-                                                                Delete (Stock > 0)</button>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                     @empty
                                         <tr>
@@ -575,7 +543,7 @@
         </div>
     </div>
 
-    <!-- Dynamic Modal Container (reused for View, Edit, Add Stock, Transfer) -->
+    <!-- Dynamic Modal Container (reused for View, Edit, Transfer) -->
     <div class="modal fade" id="dynamicModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

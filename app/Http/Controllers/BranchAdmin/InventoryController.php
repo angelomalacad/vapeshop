@@ -10,6 +10,7 @@ use App\Models\ProductFlavor;
 use App\Models\StockTransfer;
 use App\Models\StockMovement;
 use App\Models\Branch;
+use App\Models\WarehouseInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -44,19 +45,24 @@ class InventoryController extends Controller
             $query->where('flavor_id', $request->flavor_id);
         }
 
-        // Filter by stock status
+        // Filter by stock status (including archived)
         if ($request->filled('stock_status')) {
             if ($request->stock_status === 'low') {
-                $query->lowStock();
+                $query->lowStock()->where('is_archived', false);
             } elseif ($request->stock_status === 'out') {
-                $query->outOfStock();
+                $query->outOfStock()->where('is_archived', false);
+            } elseif ($request->stock_status === 'archived') {
+                $query->where('is_archived', true);
             }
+        } else {
+            // Default: exclude archived items unless explicitly requested
+            $query->where('is_archived', false);
         }
 
         $inventories = $query->paginate(20);
 
         $products = Product::where('is_active', true)->get();
-        $lowStockCount = BranchInventory::where('branch_id', $branchId)->lowStock()->count();
+        $lowStockCount = BranchInventory::where('branch_id', $branchId)->lowStock()->where('is_archived', false)->count();
 
         return view('branch-admin.inventory.index', compact(
             'inventories', 'products', 'lowStockCount'
@@ -135,44 +141,250 @@ class InventoryController extends Controller
         return view('branch-admin.inventory.add-stock-quick', compact('branchInventory', 'availableProducts', 'preSelectedProductId'));
     }
 
+/**
+ * Display warehouse stock available for request
+ */
+public function warehouseStock(Request $request)
+{
+    // DEBUG: Log the start of method
+    \Log::info('=== warehouseStock method called ===');
+
+    $branchId = Auth::user()->branch_id;
+
+    // Get pending requests for this branch
+    $pendingRequests = StockTransfer::with(['product', 'flavor'])
+        ->where('to_branch_id', $branchId)
+        ->where('transfer_type', 'warehouse_to_branch')
+        ->where('status', 'pending')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Get completed requests (approved, completed, cancelled) for this branch
+    $completedRequests = StockTransfer::with(['product', 'flavor'])
+        ->where('to_branch_id', $branchId)
+        ->where('transfer_type', 'warehouse_to_branch')
+        ->whereIn('status', ['approved', 'completed', 'cancelled'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    // FIXED: Use paginate() NOT get()
+    $warehouseQuery = WarehouseInventory::with(['product', 'flavor'])
+        ->where('quantity', '>', 0);
+
+    // Apply search filter if provided
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $warehouseQuery->whereHas('product', function($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+              ->orWhere('brand', 'like', '%' . $search . '%');
+        });
+    }
+
+    // IMPORTANT: Use paginate(10)
+    $warehouseProducts = $warehouseQuery->paginate(10);
+
+    // DEBUG: Log the type of $warehouseProducts
+    \Log::info('$warehouseProducts type: ' . get_class($warehouseProducts));
+    \Log::info('$warehouseProducts total: ' . ($warehouseProducts->total() ?? 'N/A'));
+    \Log::info('$warehouseProducts count: ' . $warehouseProducts->count());
+
+    // Preserve search query in pagination links
+    if ($request->filled('search')) {
+        $warehouseProducts->appends(['search' => $request->search]);
+    }
+
+    // Get all warehouse products for the modal dropdown (unpaginated)
+    $allWarehouseQuery = WarehouseInventory::with(['product', 'flavor'])
+        ->where('quantity', '>', 0);
+
+    if ($request->filled('search')) {
+        $allWarehouseQuery->whereHas('product', function($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+              ->orWhere('brand', 'like', '%' . $search . '%');
+        });
+    }
+
+    $allWarehouseProducts = $allWarehouseQuery->get();
+
+    return view('branch-admin.warehouse.index', [
+        'pendingRequests' => $pendingRequests,
+        'completedRequests' => $completedRequests,
+        'warehouseProducts' => $warehouseProducts,
+        'allWarehouseProducts' => $allWarehouseProducts
+    ]);
+}
     /**
-     * Add existing product to branch inventory
+     * Request stock from warehouse
      */
-    public function addProduct(Request $request)
+    public function requestWarehouseStock(Request $request)
     {
         $branchId = Auth::user()->branch_id;
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'flavor_id' => 'nullable|exists:product_flavors,id',
-            'quantity' => 'required|integer|min:0',
-            'low_stock_threshold' => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1',
+            'notes' => 'nullable|string|max:500',
         ]);
 
-        // Check if already exists
-        $exists = BranchInventory::where('branch_id', $branchId)
-            ->where('product_id', $request->product_id)
-            ->where('flavor_id', $request->flavor_id)
-            ->exists();
+        // Get warehouse inventory to check if product exists
+        $query = WarehouseInventory::where('product_id', $request->product_id);
 
-        if ($exists) {
-            return back()->with('error', 'This product already exists in your inventory.');
+        if ($request->filled('flavor_id')) {
+            $query->where('flavor_id', $request->flavor_id);
+        } else {
+            $query->whereNull('flavor_id');
         }
 
-        BranchInventory::create([
-            'branch_id' => $branchId,
-            'product_id' => $request->product_id,
-            'flavor_id' => $request->flavor_id,
-            'quantity' => $request->quantity,
-            'reserved_quantity' => 0,
-            'low_stock_threshold' => $request->low_stock_threshold,
-            'reorder_point' => 10,
-            'optimal_stock' => 30,
-            'last_restocked_at' => now(),
-        ]);
+        $warehouseItem = $query->first();
 
-        return redirect()->route('branch-admin.inventory.index')
-            ->with('success', 'Product added to branch inventory.');
+        if (!$warehouseItem) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'This product is not available in the warehouse.');
+        }
+
+        // Check if requested quantity is available
+        if ($warehouseItem->quantity < $request->quantity) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Insufficient stock in warehouse. Available: ' . $warehouseItem->quantity);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Generate transfer number
+            $transferNumber = 'WH-' . strtoupper(uniqid());
+
+            // Create transfer request
+            $transfer = StockTransfer::create([
+                'transfer_number' => $transferNumber,
+                'transfer_type' => 'warehouse_to_branch',
+                'from_branch_id' => null, // null indicates warehouse
+                'to_branch_id' => $branchId,
+                'product_id' => $request->product_id,
+                'flavor_id' => $request->flavor_id,
+                'quantity' => $request->quantity,
+                'status' => 'pending',
+                'requested_by' => Auth::id(),
+                'notes' => $request->notes,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('branch-admin.warehouse.index')
+                ->with('success', 'Stock request submitted successfully. Waiting for owner approval.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error requesting stock: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Receive stock from warehouse (after owner approval)
+     */
+    public function receiveWarehouseStock(StockTransfer $transfer)
+    {
+        $branchId = Auth::user()->branch_id;
+
+        // Verify this transfer belongs to this branch
+        if ($transfer->to_branch_id !== $branchId) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        if ($transfer->status !== 'approved') {
+            return redirect()->back()->with('error', 'Only approved transfers can be received.');
+        }
+
+        if ($transfer->transfer_type !== 'warehouse_to_branch') {
+            return redirect()->back()->with('error', 'Invalid transfer type.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Update warehouse inventory (deduct stock)
+            $query = WarehouseInventory::where('product_id', $transfer->product_id);
+
+            if ($transfer->flavor_id) {
+                $query->where('flavor_id', $transfer->flavor_id);
+            } else {
+                $query->whereNull('flavor_id');
+            }
+
+            $warehouseItem = $query->first();
+
+            if ($warehouseItem) {
+                $warehouseItem->update([
+                    'quantity' => $warehouseItem->quantity - $transfer->quantity
+                ]);
+            }
+
+            // Add to branch inventory
+            $branchInventory = BranchInventory::where('branch_id', $branchId)
+                ->where('product_id', $transfer->product_id)
+                ->when($transfer->flavor_id, function($query) use ($transfer) {
+                    return $query->where('flavor_id', $transfer->flavor_id);
+                })
+                ->first();
+
+            if ($branchInventory) {
+                $oldQuantity = $branchInventory->quantity;
+                $newQuantity = $oldQuantity + $transfer->quantity;
+
+                $branchInventory->update([
+                    'quantity' => $newQuantity,
+                    'last_restocked_at' => now(),
+                ]);
+            } else {
+                // Create new branch inventory if it doesn't exist
+                $branchInventory = BranchInventory::create([
+                    'branch_id' => $branchId,
+                    'product_id' => $transfer->product_id,
+                    'flavor_id' => $transfer->flavor_id,
+                    'quantity' => $transfer->quantity,
+                    'reserved_quantity' => 0,
+                    'low_stock_threshold' => 10,
+                    'reorder_point' => 20,
+                    'optimal_stock' => 50,
+                    'last_restocked_at' => now(),
+                ]);
+                $oldQuantity = 0;
+                $newQuantity = $transfer->quantity;
+            }
+
+            // Log stock movement for branch
+            StockMovement::create([
+                'branch_id' => $branchId,
+                'product_id' => $transfer->product_id,
+                'flavor_id' => $transfer->flavor_id,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $newQuantity,
+                'quantity_change' => $transfer->quantity,
+                'movement_type' => 'warehouse_transfer_in',
+                'reference_type' => 'transfer',
+                'reference_id' => $transfer->id,
+                'notes' => 'Stock received from warehouse. Transfer #: ' . $transfer->transfer_number,
+                'created_by' => Auth::id(),
+            ]);
+
+            // Update transfer status
+            $transfer->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('branch-admin.warehouse.index')
+                ->with('success', 'Stock received successfully and added to your inventory.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error receiving stock: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -462,6 +674,7 @@ class InventoryController extends Controller
         try {
             // Create transfer request
             $transfer = StockTransfer::create([
+                'transfer_type' => 'branch_to_branch',
                 'from_branch_id' => $request->from_branch_id,
                 'to_branch_id' => $request->to_branch_id,
                 'product_id' => $request->product_id,
@@ -1040,5 +1253,33 @@ class InventoryController extends Controller
                 ->withInput()
                 ->with('error', 'Error updating inventory: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Archive an inventory item (soft hide from active lists)
+     */
+    public function archive(BranchInventory $inventory)
+    {
+        // Ensure inventory belongs to user's branch
+        if ($inventory->branch_id !== Auth::user()->branch_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $inventory->update(['is_archived' => true]);
+        return redirect()->back()->with('success', 'Inventory item archived successfully.');
+    }
+
+    /**
+     * Restore an archived inventory item
+     */
+    public function unarchive(BranchInventory $inventory)
+    {
+        // Ensure inventory belongs to user's branch
+        if ($inventory->branch_id !== Auth::user()->branch_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $inventory->update(['is_archived' => false]);
+        return redirect()->back()->with('success', 'Inventory item restored from archive.');
     }
 }
