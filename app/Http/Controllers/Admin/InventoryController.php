@@ -603,84 +603,94 @@ class InventoryController extends Controller
     }
 
     /**
-     * Update transfer
-     */
-    public function updateTransfer(Request $request, StockTransfer $transfer)
-    {
-        if ($transfer->status !== 'pending') {
-            return redirect()->route('admin.inventory.transfers')
-                ->with('error', 'Only pending transfers can be updated.');
+ * Update transfer
+ */
+public function updateTransfer(Request $request, StockTransfer $transfer)
+{
+    if ($transfer->status !== 'pending') {
+        if (request()->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only pending transfers can be updated.']);
         }
-
-        $request->validate([
-            'from_branch_id' => 'required|exists:branches,id',
-            'to_branch_id' => 'required|exists:branches,id|different:from_branch_id',
-            'product_id' => 'required|exists:products,id',
-            'flavor_id' => 'nullable|exists:product_flavors,id',
-            'quantity' => 'required|integer|min:1',
-            'notes' => 'nullable|string|max:500',
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            // Release old reserved stock
-            $oldSourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($oldSourceInventory) {
-                $oldSourceInventory->update([
-                    'reserved_quantity' => $oldSourceInventory->reserved_quantity - $transfer->quantity
-                ]);
-            }
-
-            // Check new source inventory
-            $newSourceInventory = BranchInventory::where('branch_id', $request->from_branch_id)
-                ->where('product_id', $request->product_id)
-                ->when($request->flavor_id, function($query) use ($request) {
-                    return $query->where('flavor_id', $request->flavor_id);
-                })
-                ->first();
-
-            if (!$newSourceInventory) {
-                throw new \Exception('Product not found in new source branch inventory.');
-            }
-
-            if ($newSourceInventory->available_quantity < $request->quantity) {
-                throw new \Exception("Insufficient stock at new source branch. Available: {$newSourceInventory->available_quantity}");
-            }
-
-            // Reserve new stock
-            $newSourceInventory->update([
-                'reserved_quantity' => $newSourceInventory->reserved_quantity + $request->quantity
-            ]);
-
-            // Update transfer
-            $transfer->update([
-                'from_branch_id' => $request->from_branch_id,
-                'to_branch_id' => $request->to_branch_id,
-                'product_id' => $request->product_id,
-                'flavor_id' => $request->flavor_id,
-                'quantity' => $request->quantity,
-                'notes' => $request->notes,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('admin.inventory.transfers.show', $transfer)
-                ->with('success', 'Transfer updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating transfer: ' . $e->getMessage());
-        }
+        return redirect()->route('admin.inventory.transfers')->with('error', 'Only pending transfers can be updated.');
     }
 
+    $request->validate([
+        'from_branch_id' => 'required|exists:branches,id',
+        'to_branch_id' => 'required|exists:branches,id|different:from_branch_id',
+        'product_id' => 'required|exists:products,id',
+        'flavor_id' => 'nullable|exists:product_flavors,id',
+        'quantity' => 'required|integer|min:1',
+        'notes' => 'nullable|string|max:500',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // Release old reserved stock
+        $oldSourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($oldSourceInventory) {
+            $oldSourceInventory->update([
+                'reserved_quantity' => $oldSourceInventory->reserved_quantity - $transfer->quantity
+            ]);
+        }
+
+        // Check new source inventory
+        $newSourceInventory = BranchInventory::where('branch_id', $request->from_branch_id)
+            ->where('product_id', $request->product_id)
+            ->when($request->flavor_id, function($query) use ($request) {
+                return $query->where('flavor_id', $request->flavor_id);
+            })
+            ->first();
+
+        if (!$newSourceInventory) {
+            throw new \Exception('Product not found in new source branch inventory.');
+        }
+
+        if ($newSourceInventory->available_quantity < $request->quantity) {
+            throw new \Exception("Insufficient stock at new source branch. Available: {$newSourceInventory->available_quantity}");
+        }
+
+        // Reserve new stock
+        $newSourceInventory->update([
+            'reserved_quantity' => $newSourceInventory->reserved_quantity + $request->quantity
+        ]);
+
+        // Update transfer
+        $transfer->update([
+            'from_branch_id' => $request->from_branch_id,
+            'to_branch_id' => $request->to_branch_id,
+            'product_id' => $request->product_id,
+            'flavor_id' => $request->flavor_id,
+            'quantity' => $request->quantity,
+            'notes' => $request->notes,
+        ]);
+
+        DB::commit();
+
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Transfer updated successfully.']);
+        }
+
+        return redirect()->route('admin.inventory.transfers.show', $transfer)
+            ->with('success', 'Transfer updated successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        if (request()->ajax()) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Error updating transfer: ' . $e->getMessage());
+    }
+}
     /**
      * Approve a transfer
      */
@@ -945,4 +955,66 @@ class InventoryController extends Controller
         $inventory->update(['is_archived' => false]);
         return redirect()->back()->with('success', 'Inventory item restored from archive.');
     }
+    /**
+ * Show edit modal
+ */
+public function editModal(BranchInventory $inventory)
+{
+    $inventory->load(['product', 'flavor']);
+    $branches = Branch::where('is_active', true)->get();
+    $products = Product::with('flavors')->where('is_active', true)->get();
+    
+    return view('admin.inventory.modals.edit', compact('inventory', 'branches', 'products'));
+}
+
+/**
+ * Show inventory modal
+ */
+public function showModal(BranchInventory $inventory)
+{
+    $inventory->load(['branch', 'product', 'flavor']);
+    
+    $movements = StockMovement::where('branch_id', $inventory->branch_id)
+        ->where('product_id', $inventory->product_id)
+        ->when($inventory->flavor_id, function($query) use ($inventory) {
+            return $query->where('flavor_id', $inventory->flavor_id);
+        })
+        ->with('creator')
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get();
+    
+    return view('admin.inventory.modals.show', compact('inventory', 'movements'));
+}
+
+/**
+ * Show add stock modal
+ */
+public function addStockModal(BranchInventory $inventory)
+{
+    $inventory->load(['product', 'flavor', 'branch']);
+    return view('admin.inventory.modals.add-stock', compact('inventory'));
+}
+/**
+ * Show transfer details modal
+ */
+public function showTransferModal(StockTransfer $transfer)
+{
+    $transfer->load(['fromBranch', 'toBranch', 'product', 'flavor', 'requestedBy', 'approvedBy']);
+    return view('admin.inventory.modals.show-transfer', compact('transfer'));
+}
+/**
+ * Show edit transfer modal
+ */
+public function editTransferModal(StockTransfer $transfer)
+{
+    if ($transfer->status !== 'pending') {
+        return redirect()->back()->with('error', 'Only pending transfers can be edited.');
+    }
+    
+    $branches = Branch::where('is_active', true)->get();
+    $products = Product::with('flavors')->where('is_active', true)->get();
+    
+    return view('admin.inventory.modals.edit-transfer', compact('transfer', 'branches', 'products'));
+}
 }

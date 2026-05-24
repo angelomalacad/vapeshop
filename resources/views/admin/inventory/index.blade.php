@@ -221,15 +221,20 @@
                                     </td>
                                     <td class="pe-4">
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('admin.inventory.show', $inv) }}" class="btn btn-outline-info" title="View Details">
+                                            <!-- View Details - Modal -->
+                                            <button type="button" class="btn btn-outline-info" title="View Details" onclick="openShowModal({{ $inv->id }})">
                                                 <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="{{ route('admin.inventory.edit', $inv) }}" class="btn btn-outline-warning" title="Edit">
+                                            </button>
+                                            
+                                            <!-- Edit - Modal -->
+                                            <button type="button" class="btn btn-outline-warning" title="Edit" onclick="openEditModal({{ $inv->id }})">
                                                 <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{{ route('admin.inventory.add-stock', $inv) }}" class="btn btn-outline-success" title="Add Stock">
+                                            </button>
+                                            
+                                            <!-- Add Stock - Modal -->
+                                            <button type="button" class="btn btn-outline-success" title="Add Stock" onclick="openAddStockModal({{ $inv->id }})">
                                                 <i class="bi bi-plus-circle"></i>
-                                            </a>
+                                            </button>
                                             
                                             @if($inv->is_archived)
                                                 <a href="{{ route('admin.inventory.unarchive', $inv) }}" 
@@ -265,44 +270,63 @@
                 </div>
             </div>
             <div class="card-footer bg-white">
-    <div class="d-flex justify-content-between align-items-center">
-        <div class="text-muted small">
-            Showing {{ $inventories->firstItem() ?? 0 }} to {{ $inventories->lastItem() ?? 0 }} of {{ $inventories->total() }} items
-        </div>
-        <div>
-            @if ($inventories->hasPages())
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                        {{-- Previous Page Link --}}
-                        @if ($inventories->onFirstPage())
-                            <li class="page-item disabled">
-                                <span class="page-link">Previous</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $inventories->previousPageUrl() }}" rel="prev">Previous</a>
-                            </li>
-                        @endif
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Showing {{ $inventories->firstItem() ?? 0 }} to {{ $inventories->lastItem() ?? 0 }} of {{ $inventories->total() }} items
+                    </div>
+                    <div>
+                        @if ($inventories->hasPages())
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    {{-- Previous Page Link --}}
+                                    @if ($inventories->onFirstPage())
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Previous</span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $inventories->previousPageUrl() }}" rel="prev">Previous</a>
+                                        </li>
+                                    @endif
 
-                        {{-- Next Page Link --}}
-                        @if ($inventories->hasMorePages())
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $inventories->nextPageUrl() }}" rel="next">Next</a>
-                            </li>
-                        @else
-                            <li class="page-item disabled">
-                                <span class="page-link">Next</span>
-                            </li>
+                                    {{-- Next Page Link --}}
+                                    @if ($inventories->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $inventories->nextPageUrl() }}" rel="next">Next</a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Next</span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
                         @endif
-                    </ul>
-                </nav>
-            @endif
-        </div>
-    </div>
-</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
+    <!-- Modal Containers -->
+    <div class="modal fade" id="showInventoryModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content"><!-- loaded via AJAX --></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editInventoryModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content"><!-- loaded via AJAX --></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addStockModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content"><!-- loaded via AJAX --></div>
+        </div>
+    </div>
+
     <script>
         // Auto-submit form when dropdowns change
         document.querySelectorAll('select[name="branch_id"], select[name="product_id"], select[name="stock_status"]').forEach(function(select) {
@@ -310,5 +334,68 @@
                 document.getElementById('filterForm').submit();
             });
         });
+
+        // Show Inventory Modal
+        function openShowModal(id) {
+            const modalElement = document.getElementById('showInventoryModal');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/inventory/' + id + '/show-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    new bootstrap.Modal(modalElement).show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading details</div>';
+                    new bootstrap.Modal(modalElement).show();
+                });
+        }
+
+        // Edit Inventory Modal
+        function openEditModal(id) {
+            const modalElement = document.getElementById('editInventoryModal');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/inventory/' + id + '/edit-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-warning" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    new bootstrap.Modal(modalElement).show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                    new bootstrap.Modal(modalElement).show();
+                });
+        }
+
+        // Add Stock Modal
+        function openAddStockModal(id) {
+            const modalElement = document.getElementById('addStockModal');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/inventory/' + id + '/add-stock-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-success" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    new bootstrap.Modal(modalElement).show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                    new bootstrap.Modal(modalElement).show();
+                });
+        }
     </script>
 @endsection

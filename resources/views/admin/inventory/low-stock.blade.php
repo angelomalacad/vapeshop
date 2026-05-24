@@ -92,9 +92,9 @@
                                 @endif
                             </td>
                             <td class="pe-4">
-                                <a href="{{ route('admin.inventory.add-stock', $item) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="openAddStockModal({{ $item->id }})">
                                     <i class="bi bi-plus-circle me-1"></i> Add Stock
-                                </a>
+                                </button>
                             </td>
                         </tr>
                         @endforeach
@@ -123,4 +123,34 @@
     </div>
     @endforelse
 </div>
+
+<!-- Add Stock Modal Container -->
+<div class="modal fade" id="addStockModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content"><!-- loaded via AJAX --></div>
+    </div>
+</div>
+
+<script>
+    // Add Stock Modal
+    function openAddStockModal(id) {
+        const modalElement = document.getElementById('addStockModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/' + id + '/add-stock-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-success" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                new bootstrap.Modal(modalElement).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                new bootstrap.Modal(modalElement).show();
+            });
+    }
+</script>
 @endsection

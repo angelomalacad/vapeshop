@@ -41,10 +41,10 @@
     @endphp
 
     <!-- Status Banner -->
-    <div class="alert alert-{{ $statusColors[$transfer->status] }} border-0 shadow-sm mb-4">
+    <div class="alert alert-{{ $statusColors[$transfer->status] ?? 'secondary' }} border-0 shadow-sm mb-4">
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
-                <i class="bi {{ $statusIcons[$transfer->status] }} fs-2 me-3"></i>
+                <i class="bi {{ $statusIcons[$transfer->status] ?? 'bi-info-circle' }} fs-2 me-3"></i>
                 <div>
                     <h4 class="mb-1 fw-bold">{{ ucfirst($transfer->status) }}</h4>
                     <p class="mb-0">
@@ -161,17 +161,17 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h6 class="fw-semibold text-primary">From Branch</h6>
-                            <p class="mb-1"><strong>{{ $transfer->fromBranch->name }}</strong></p>
-                            <p class="mb-1 small">{{ $transfer->fromBranch->address }}</p>
-                            <p class="mb-1 small">Manager: {{ $transfer->fromBranch->manager_name }}</p>
-                            <p class="mb-0 small">Phone: {{ $transfer->fromBranch->phone }}</p>
+                            <p class="mb-1"><strong>{{ $transfer->fromBranch->name ?? 'N/A' }}</strong></p>
+                            <p class="mb-1 small">{{ $transfer->fromBranch->address ?? 'N/A' }}</p>
+                            <p class="mb-1 small">Manager: {{ $transfer->fromBranch->manager_name ?? 'N/A' }}</p>
+                            <p class="mb-0 small">Phone: {{ $transfer->fromBranch->phone ?? 'N/A' }}</p>
                         </div>
                         <div class="col-md-6">
                             <h6 class="fw-semibold text-success">To Branch</h6>
-                            <p class="mb-1"><strong>{{ $transfer->toBranch->name }}</strong></p>
-                            <p class="mb-1 small">{{ $transfer->toBranch->address }}</p>
-                            <p class="mb-1 small">Manager: {{ $transfer->toBranch->manager_name }}</p>
-                            <p class="mb-0 small">Phone: {{ $transfer->toBranch->phone }}</p>
+                            <p class="mb-1"><strong>{{ $transfer->toBranch->name ?? 'N/A' }}</strong></p>
+                            <p class="mb-1 small">{{ $transfer->toBranch->address ?? 'N/A' }}</p>
+                            <p class="mb-1 small">Manager: {{ $transfer->toBranch->manager_name ?? 'N/A' }}</p>
+                            <p class="mb-0 small">Phone: {{ $transfer->toBranch->phone ?? 'N/A' }}</p>
                         </div>
                     </div>
                 </div>
@@ -188,16 +188,20 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="border rounded p-3 text-center bg-light">
-                        @if($transfer->product->image_url)
-                            <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 100) }}" 
-                                 alt="{{ $transfer->product->name }}"
-                                 style="max-height: 100px; object-fit: contain;">
-                        @elseif($transfer->product->image)
-                            <img src="{{ Storage::url($transfer->product->image) }}" 
-                                 alt="{{ $transfer->product->name }}"
-                                 style="max-height: 100px; object-fit: contain;">
+                        @if(isset($transfer->product) && $transfer->product)
+                            @if($transfer->product->image_url)
+                                <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 100) }}" 
+                                     alt="{{ $transfer->product->name }}"
+                                     style="max-height: 100px; object-fit: contain;">
+                            @elseif($transfer->product->image)
+                                <img src="{{ Storage::url($transfer->product->image) }}" 
+                                     alt="{{ $transfer->product->name }}"
+                                     style="max-height: 100px; object-fit: contain;">
+                            @else
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            @endif
                         @else
-                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
                         @endif
                     </div>
                 </div>
@@ -205,11 +209,11 @@
                     <table class="table table-borderless mb-0">
                         <tr>
                             <td class="text-muted" style="width: 150px;">Product:</td>
-                            <td class="fw-semibold">{{ $transfer->product->name }}</td>
+                            <td class="fw-semibold">{{ $transfer->product->name ?? 'N/A' }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Brand:</td>
-                            <td>{{ $transfer->product->brand }}</td>
+                            <td>{{ $transfer->product->brand ?? 'N/A' }}</td>
                         </tr>
                         <tr>
                             <td class="text-muted">Flavor:</td>
@@ -221,7 +225,7 @@
                         </tr>
                         <tr>
                             <td class="text-muted">Price:</td>
-                            <td>₱{{ number_format($transfer->product->price, 2) }}</td>
+                            <td>₱{{ number_format($transfer->product->price ?? 0, 2) }}</td>
                         </tr>
                     </table>
                 </div>

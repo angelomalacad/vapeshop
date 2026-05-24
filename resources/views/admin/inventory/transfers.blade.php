@@ -267,15 +267,19 @@
                             <td class="pe-4">
                                 <div class="btn-group btn-group-sm">
                                     <!-- View Details -->
-                                    <a href="{{ route('admin.inventory.transfers.show', $transfer) }}" class="btn btn-outline-info" title="View Details">
+                                    <button type="button" class="btn btn-outline-info" title="View Details" onclick="openTransferModal({{ $transfer->id }})">
                                         <i class="bi bi-eye"></i>
-                                    </a>
+                                    </button>
 
-                                    <!-- Edit (only pending) -->
+                                    <!-- Edit - Only show for pending transfers -->
                                     @if($transfer->status == 'pending')
-                                        <a href="{{ route('admin.inventory.transfers.edit', $transfer) }}" class="btn btn-outline-warning" title="Edit">
+                                        <button type="button" class="btn btn-outline-warning" title="Edit" onclick="openEditTransferModal({{ $transfer->id }})">
                                             <i class="bi bi-pencil"></i>
-                                        </a>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-outline-secondary" title="Cannot edit {{ $transfer->status }} transfers" disabled>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
                                     @endif
 
                                     <!-- Approve (only pending) -->
@@ -338,7 +342,7 @@
                                     </a>
                                 </div>
                             </td>
-                        </tr>
+                        </table>
                         @endforelse
                     </tbody>
                 </table>
@@ -351,4 +355,67 @@
         </div>
     </div>
 </div>
+
+<!-- Transfer Details Modal Container -->
+<div class="modal fade" id="transferModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content"><!-- loaded via AJAX --></div>
+    </div>
+</div>
+
+<!-- Edit Transfer Modal Container -->
+<div class="modal fade" id="editTransferModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content"><!-- loaded via AJAX --></div>
+    </div>
+</div>
+
+<script>
+    // Transfer Details Modal
+    function openTransferModal(id) {
+        const modalElement = document.getElementById('transferModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/transfers/' + id + '/show-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                new bootstrap.Modal(modalElement).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading details</div>';
+                new bootstrap.Modal(modalElement).show();
+            });
+    }
+    
+    // Edit Transfer Modal - Only for pending transfers
+    function openEditTransferModal(id) {
+        const modalElement = document.getElementById('editTransferModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/transfers/' + id + '/edit-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-warning" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Only pending transfers can be edited.');
+                }
+                return response.text();
+            })
+            .then(html => {
+                modalContent.innerHTML = html;
+                new bootstrap.Modal(modalElement).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+                modalContent.innerHTML = '<div class="text-center p-5"><p class="text-danger">Error loading form</p></div>';
+            });
+    }
+</script>
 @endsection

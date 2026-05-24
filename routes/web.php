@@ -171,7 +171,6 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
         })->name('index');
     });
 });
-
 // Admin Routes (Super Admin) - Require email verification and super_admin role
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -267,43 +266,56 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     });
    
     // ===== SUPER ADMIN INVENTORY ROUTES =====
-Route::prefix('inventory')->name('inventory.')->group(function () {
-    // ===== STATIC ROUTES FIRST (no parameters) =====
-    Route::get('/', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Admin\InventoryController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Admin\InventoryController::class, 'store'])->name('store');
-    Route::get('/low-stock', [App\Http\Controllers\Admin\InventoryController::class, 'lowStock'])->name('low-stock');
-    Route::get('/stock-history', [App\Http\Controllers\Admin\InventoryController::class, 'stockHistory'])->name('stock-history');
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        // ===== STATIC ROUTES FIRST (no parameters) =====
+        Route::get('/', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\InventoryController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\InventoryController::class, 'store'])->name('store');
+        Route::get('/low-stock', [App\Http\Controllers\Admin\InventoryController::class, 'lowStock'])->name('low-stock');
+        Route::get('/stock-history', [App\Http\Controllers\Admin\InventoryController::class, 'stockHistory'])->name('stock-history');
 
-    // ===== TRANSFER MANAGEMENT ROUTES =====
-    Route::get('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'transfers'])->name('transfers');
-    Route::get('/transfers/create', [App\Http\Controllers\Admin\InventoryController::class, 'createTransfer'])->name('create-transfer');
-    Route::post('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'storeTransfer'])->name('store-transfer');
-    Route::get('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'showTransfer'])->name('transfers.show');
-    Route::get('/transfers/{transfer}/edit', [App\Http\Controllers\Admin\InventoryController::class, 'editTransfer'])->name('transfers.edit');
-    Route::put('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'updateTransfer'])->name('transfers.update');
-    Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\Admin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
-    Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\Admin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
-    Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\Admin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
-    Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\Admin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
-    Route::delete('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'destroyTransfer'])->name('transfers.destroy');
-    Route::get('/branch/{branch}', [App\Http\Controllers\Admin\InventoryController::class, 'branchInventory'])->name('branch');
-    Route::get('/summary', [App\Http\Controllers\Admin\InventoryController::class, 'summary'])->name('summary');
+        // ===== TRANSFER MANAGEMENT ROUTES =====
+        Route::get('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'transfers'])->name('transfers');
+        Route::get('/transfers/create', [App\Http\Controllers\Admin\InventoryController::class, 'createTransfer'])->name('create-transfer');
+        Route::post('/transfers', [App\Http\Controllers\Admin\InventoryController::class, 'storeTransfer'])->name('store-transfer');
 
-    // ===== ROUTES WITH {inventory} PARAMETER =====
-    Route::get('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStockForm'])->name('add-stock');
-    Route::post('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStock'])->name('add-stock.post');
-    Route::post('/{inventory}/remove-stock', [App\Http\Controllers\Admin\InventoryController::class, 'removeStock'])->name('remove-stock');
-    Route::get('/{inventory}/edit', [App\Http\Controllers\Admin\InventoryController::class, 'edit'])->name('edit');
-    Route::put('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('update');
-    Route::delete('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('destroy');
-    Route::get('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'show'])->name('show');
-    
-    // Change these lines from POST to GET
-Route::get('/{inventory}/archive', [App\Http\Controllers\Admin\InventoryController::class, 'archive'])->name('archive');
-Route::get('/{inventory}/unarchive', [App\Http\Controllers\Admin\InventoryController::class, 'unarchive'])->name('unarchive');
-});
+        // ===== TRANSFER MODAL ROUTES - MUST COME BEFORE /transfers/{transfer} =====
+        Route::get('/transfers/{transfer}/show-modal', [App\Http\Controllers\Admin\InventoryController::class, 'showTransferModal'])->name('transfers.show-modal');
+        Route::get('/transfers/{transfer}/edit-modal', [App\Http\Controllers\Admin\InventoryController::class, 'editTransferModal'])->name('transfers.edit-modal');
 
+        // ===== TRANSFER ROUTES WITH PARAMETERS (THESE COME AFTER MODAL ROUTES) =====
+        Route::get('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'showTransfer'])->name('transfers.show');
+        Route::get('/transfers/{transfer}/edit', [App\Http\Controllers\Admin\InventoryController::class, 'editTransfer'])->name('transfers.edit');
+        Route::put('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'updateTransfer'])->name('transfers.update');
+        Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\Admin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
+        Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\Admin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
+        Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\Admin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
+        Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\Admin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
+        Route::delete('/transfers/{transfer}', [App\Http\Controllers\Admin\InventoryController::class, 'destroyTransfer'])->name('transfers.destroy');
+        
+        Route::get('/branch/{branch}', [App\Http\Controllers\Admin\InventoryController::class, 'branchInventory'])->name('branch');
+        Route::get('/summary', [App\Http\Controllers\Admin\InventoryController::class, 'summary'])->name('summary');
+
+        // ===== MODAL ROUTES FOR INVENTORY (GET requests for modals) =====
+        Route::get('/{inventory}/edit-modal', [App\Http\Controllers\Admin\InventoryController::class, 'editModal'])->name('edit-modal');
+        Route::get('/{inventory}/show-modal', [App\Http\Controllers\Admin\InventoryController::class, 'showModal'])->name('show-modal');
+        Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\Admin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
+
+        // ===== ROUTES WITH {inventory} PARAMETER =====
+        // Note: The old non-modal routes (edit, show, add-stock) have been removed
+        // Now using modal routes above instead
+        
+        // ADD STOCK POST ROUTE - Handles the form submission from add-stock-modal
+        Route::post('/{inventory}/add-stock', [App\Http\Controllers\Admin\InventoryController::class, 'addStock'])->name('add-stock.post');
+        
+        Route::post('/{inventory}/remove-stock', [App\Http\Controllers\Admin\InventoryController::class, 'removeStock'])->name('remove-stock');
+        Route::put('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('update');
+        Route::delete('/{inventory}', [App\Http\Controllers\Admin\InventoryController::class, 'destroy'])->name('destroy');
+        
+        // Archive routes (GET method)
+        Route::get('/{inventory}/archive', [App\Http\Controllers\Admin\InventoryController::class, 'archive'])->name('archive');
+        Route::get('/{inventory}/unarchive', [App\Http\Controllers\Admin\InventoryController::class, 'unarchive'])->name('unarchive');
+    });
     // ===== END OF SUPER ADMIN INVENTORY ROUTES =====
     
     // ===== CUSTOMER MANAGEMENT ROUTES =====

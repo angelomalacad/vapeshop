@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Stock Movement History - Vape Expo OwnerPanel')
+@section('title', 'Stock Movement History - Vape Expo')
 
 @section('content')
 <div class="container-fluid px-4">
-    <!-- Header with Logo and Navigation -->
+    <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center">
             <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
             <div>
-                <h1 class="h3 mb-1 fw-bold">Vape Expo</h1>
+                <h1 class="h3 mb-1 fw-bold">Stock Movement History</h1>
                 <p class="text-muted mb-0">
-                    <i class="bi bi-clock-history me-1"></i> Stock Movement History
+                    <i class="bi bi-clock-history me-1"></i> Complete log of all inventory changes
                 </p>
             </div>
         </div>
@@ -20,10 +20,7 @@
                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
             </a>
             <a href="{{ route('admin.inventory.index') }}" class="btn btn-primary rounded-pill px-3">
-                <i class="bi bi-box-seam me-1"></i> All Inventory
-            </a>
-            <a href="{{ route('admin.inventory.transfers') }}" class="btn btn-info text-white rounded-pill px-3">
-                <i class="bi bi-arrow-left-right me-1"></i> Transfers
+                <i class="bi bi-box-seam me-1"></i> Back to Inventory
             </a>
         </div>
     </div>
@@ -31,7 +28,7 @@
     <!-- Filter Section -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-semibold"><i class="bi bi-funnel me-2 text-primary"></i>Filter History</h5>
+            <h5 class="mb-0 fw-semibold"><i class="bi bi-funnel me-2 text-primary"></i>Filter Movements</h5>
         </div>
         <div class="card-body">
             <form method="GET" class="row g-3">
@@ -66,16 +63,14 @@
                         <option value="transfer_out" {{ request('movement_type') == 'transfer_out' ? 'selected' : '' }}>Transfer Out</option>
                         <option value="transfer_in" {{ request('movement_type') == 'transfer_in' ? 'selected' : '' }}>Transfer In</option>
                         <option value="adjustment" {{ request('movement_type') == 'adjustment' ? 'selected' : '' }}>Adjustment</option>
+                        <option value="initial" {{ request('movement_type') == 'initial' ? 'selected' : '' }}>Initial Stock</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold">Date Range</label>
-                    <div class="d-flex gap-2">
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" placeholder="From">
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" placeholder="To">
-                    </div>
+                    <label class="form-label fw-semibold">Date</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" placeholder="From">
                 </div>
-                <div class="col-12">
+                <div class="col-md-12">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-funnel me-1"></i> Apply Filters
                     </button>
@@ -116,6 +111,7 @@
                                 'transfer_in' => 'info',
                                 'return' => 'primary',
                                 'adjustment' => 'secondary',
+                                'initial' => 'primary',
                                 'damaged' => 'dark',
                                 'expired' => 'dark'
                             ];
@@ -124,7 +120,7 @@
                         <tr>
                             <td class="ps-4">{{ $movement->created_at->format('M d, Y - h:i A') }}</td>
                             <td>
-                                <span class="fw-semibold">{{ $movement->branch->name }}</span>
+                                <span class="fw-semibold">{{ $movement->branch->name ?? 'Unknown Branch' }}</span>
                             </td>
                             <td>{{ $movement->product->name ?? 'N/A' }}</td>
                             <td>{{ $movement->flavor->name ?? 'N/A' }}</td>
@@ -138,34 +134,28 @@
                             </td>
                             <td>{{ $movement->previous_quantity }}</td>
                             <td>{{ $movement->new_quantity }}</td>
-                            <td>{{ Str::limit($movement->notes, 20) }}</td>
+                            <td>{{ Str::limit($movement->notes, 30) }}</td>
                             <td class="pe-4">{{ $movement->creator->name ?? 'System' }}</td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="10" class="text-center py-5">
-                                <i class="bi bi-clock-history display-1 text-muted"></i>
-                                <p class="mt-3 text-muted">No stock movements found</p>
-                                <div class="d-flex justify-content-center gap-2 mt-2">
-                                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-4">
-                                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                                    </a>
-                                    <a href="{{ route('admin.inventory.index') }}" class="btn btn-primary rounded-pill px-4">
-                                        <i class="bi bi-box-seam me-1"></i> View Inventory
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="10" class="text-center py-5">
+                                    <i class="bi bi-clock-history display-1 text-muted"></i>
+                                    <p class="mt-3 text-muted">No stock movements found</p>
+                             </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+        @if($movements->hasPages())
         <div class="card-footer bg-white">
             <div class="d-flex justify-content-center">
-                {{ $movements->withQueryString()->links() }}
+                {{ $movements->links() }}
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection
