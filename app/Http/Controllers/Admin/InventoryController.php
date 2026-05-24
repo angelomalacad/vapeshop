@@ -42,10 +42,15 @@ class InventoryController extends Controller
         // Filter by stock status
         if ($request->filled('stock_status')) {
             if ($request->stock_status === 'low') {
-                $query->whereColumn('quantity', '<=', 'low_stock_threshold');
+                $query->whereColumn('quantity', '<=', 'low_stock_threshold')->where('is_archived', false);
             } elseif ($request->stock_status === 'out') {
-                $query->where('quantity', '<=', 0);
+                $query->where('quantity', '<=', 0)->where('is_archived', false);
+            } elseif ($request->stock_status === 'archived') {
+                $query->where('is_archived', true);
             }
+        } else {
+            // Default: exclude archived items unless explicitly requested
+            $query->where('is_archived', false);
         }
 
         $inventories = $query->orderBy('branch_id')->paginate(20);
@@ -442,7 +447,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Show transfer requests across all branches - UPDATED WITH NULL SAFETY
+     * Show transfer requests across all branches
      */
     public function transfers(Request $request)
     {
@@ -480,19 +485,6 @@ class InventoryController extends Controller
         $branches = Branch::where('is_active', true)->get();
         $statuses = ['pending', 'approved', 'completed', 'cancelled'];
 
-        // Log any transfers with missing relations for debugging
-        foreach ($transfers as $transfer) {
-            if (!$transfer->fromBranch) {
-                \Log::warning('Transfer ' . $transfer->id . ' has missing fromBranch');
-            }
-            if (!$transfer->toBranch) {
-                \Log::warning('Transfer ' . $transfer->id . ' has missing toBranch');
-            }
-            if (!$transfer->product) {
-                \Log::warning('Transfer ' . $transfer->id . ' has missing product');
-            }
-        }
-
         return view('admin.inventory.transfers', compact('transfers', 'branches', 'statuses'));
     }
 
@@ -503,11 +495,6 @@ class InventoryController extends Controller
     {
         $branches = Branch::where('is_active', true)->get();
         $products = Product::with('flavors')->where('is_active', true)->get();
-
-        // Debug: Check if flavors are loaded
-        foreach ($products as $product) {
-            \Log::info('Product: ' . $product->name . ' has ' . $product->flavors->count() . ' flavors');
-        }
 
         return view('admin.inventory.create-transfer', compact('branches', 'products'));
     }
@@ -801,7 +788,6 @@ class InventoryController extends Controller
                     'quantity' => $destInventory->quantity + $transfer->quantity,
                     'last_restocked_at' => now(),
                 ]);
-                $newDestQuantity = $destInventory->quantity;
             } else {
                 // Create new inventory record if it doesn't exist
                 $destInventory = BranchInventory::create([
@@ -815,7 +801,6 @@ class InventoryController extends Controller
                     'optimal_stock' => 50,
                     'last_restocked_at' => now(),
                 ]);
-                $newDestQuantity = $transfer->quantity;
             }
 
             // Log movements
@@ -939,5 +924,25 @@ class InventoryController extends Controller
         ];
 
         return response()->json($summary);
+    }
+
+    // ========== ARCHIVE / UNARCHIVE METHODS ==========
+
+    /**
+     * Archive an inventory item (soft hide from active lists)
+     */
+    public function archive(BranchInventory $inventory)
+    {
+        $inventory->update(['is_archived' => true]);
+        return redirect()->back()->with('success', 'Inventory item archived successfully.');
+    }
+
+    /**
+     * Restore an archived inventory item
+     */
+    public function unarchive(BranchInventory $inventory)
+    {
+        $inventory->update(['is_archived' => false]);
+        return redirect()->back()->with('success', 'Inventory item restored from archive.');
     }
 }

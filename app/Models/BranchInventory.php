@@ -14,7 +14,7 @@ class BranchInventory extends Model
     protected $fillable = [
         'branch_id', 'product_id', 'flavor_id', 'quantity', 'reserved_quantity',
         'low_stock_threshold', 'reorder_point', 'optimal_stock',
-        'last_purchase_price', 'last_restocked_at', 'expiration_date'
+        'last_purchase_price', 'last_restocked_at', 'expiration_date', 'is_archived'
     ];
 
     protected $casts = [
