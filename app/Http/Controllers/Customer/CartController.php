@@ -1,133 +1,71 @@
 <?php
-
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
-use App\Models\Inventory;
-use App\Models\Branch;
+use App\Helpers\CartHelper;
+use App\Models\BranchInventory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
 {
     public function index()
     {
-        $cart = Session::get('cart', []);
-        $branchId = Session::get('selected_branch');
-        
-        if (!$branchId) {
-            return redirect()->route('branches.index')
-                ->with('error', 'Please select a branch first');
-        }
-        
-        $branch = Branch::findOrFail($branchId);
+        $cart = CartHelper::getCart();
         $items = [];
         $subtotal = 0;
-        
-        foreach ($cart as $productId => $quantity) {
-            $inventory = Inventory::where('branch_id', $branchId)
-                ->where('product_id', $productId)
-                ->with('product')
-                ->first();
-            
-            if ($inventory && $inventory->product) {
-                $price = $inventory->product->price;
-                $items[] = [
-                    'id' => $productId,
-                    'name' => $inventory->product->name,
-                    'price' => $price,
-                    'quantity' => $quantity,
-                    'available' => $inventory->available_quantity,
-                    'image' => $inventory->product->image,
-                    'total' => $price * $quantity
-                ];
-                $subtotal += $price * $quantity;
+        foreach ($cart as $key => $item) {
+            $inventory = BranchInventory::find($item['inventory_id']);
+            if ($inventory && $inventory->available_quantity >= $item['quantity']) {
+                $items[] = $item;
+                $subtotal += $item['price'] * $item['quantity'];
+            } else {
+                CartHelper::removeItem($key);
             }
         }
-        
-        return view('customer.cart.index', compact('items', 'subtotal', 'branch'));
+        return view('customer.cart.index', compact('items', 'subtotal'));
     }
     
     public function add(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'inventory_id' => 'required|exists:branch_inventories,id',
             'quantity' => 'required|integer|min:1',
-            'branch_id' => 'required|exists:branches,id'
         ]);
         
-        // Check inventory
-        $inventory = Inventory::where('branch_id', $request->branch_id)
-            ->where('product_id', $request->product_id)
-            ->first();
-        
+        $inventory = BranchInventory::with(['product', 'flavor'])->find($request->inventory_id);
         if (!$inventory || $inventory->available_quantity < $request->quantity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient stock available'
-            ]);
+            return back()->with('error', 'Insufficient stock.');
         }
         
-        // Set selected branch
-        Session::put('selected_branch', $request->branch_id);
+        CartHelper::addItem(
+            $inventory->id,
+            $request->quantity,
+            $inventory->branch_id,
+            $inventory->product->name,
+            $inventory->product->price,
+            $inventory->flavor->name ?? null,
+            $inventory->product_id
+        );
         
-        // Add to cart
-        $cart = Session::get('cart', []);
-        $productId = $request->product_id;
-        
-        if (isset($cart[$productId])) {
-            $cart[$productId] += $request->quantity;
-        } else {
-            $cart[$productId] = $request->quantity;
-        }
-        
-        Session::put('cart', $cart);
-        
-        return response()->json([
-            'success' => true,
-            'cart_count' => array_sum($cart),
-            'message' => 'Product added to cart'
-        ]);
+        return redirect()->route('customer.cart.index')->with('success', 'Product added to cart.');
     }
     
-    public function update(Request $request, $id)
+    public function update(Request $request, $inventoryId)
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:1'
-        ]);
-        
-        $branchId = Session::get('selected_branch');
-        $inventory = Inventory::where('branch_id', $branchId)
-            ->where('product_id', $id)
-            ->first();
-        
-        if (!$inventory || $inventory->available_quantity < $request->quantity) {
-            return back()->with('error', 'Insufficient stock available');
-        }
-        
-        $cart = Session::get('cart', []);
-        $cart[$id] = $request->quantity;
-        Session::put('cart', $cart);
-        
-        return back()->with('success', 'Cart updated successfully');
+        $request->validate(['quantity' => 'required|integer|min:0']);
+        CartHelper::updateQuantity($inventoryId, $request->quantity);
+        return redirect()->route('customer.cart.index')->with('success', 'Cart updated.');
     }
     
-    public function remove($id)
+    public function remove($inventoryId)
     {
-        $cart = Session::get('cart', []);
-        
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            Session::put('cart', $cart);
-        }
-        
-        return back()->with('success', 'Item removed from cart');
+        CartHelper::removeItem($inventoryId);
+        return redirect()->route('customer.cart.index')->with('success', 'Item removed.');
     }
     
     public function clear()
     {
-        Session::forget('cart');
-        return back()->with('success', 'Cart cleared successfully');
+        CartHelper::clearCart();
+        return redirect()->route('customer.cart.index')->with('success', 'Cart cleared.');
     }
 }

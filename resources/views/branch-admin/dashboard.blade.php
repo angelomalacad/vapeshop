@@ -315,9 +315,9 @@
                         <a href="{{ route('branch-admin.pos.history') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Sales History
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <i class="bi bi-cart me-2"></i> Orders
-                        </a>
+                        {{-- <a href="{{ route('branch-admin.online-orders.index') }}" class="list-group-item list-group-item-action">
+    <i class="bi bi-cart me-2"></i> Online Orders
+</a> --}}
                         <a href="#" class="list-group-item list-group-item-action">
                             <i class="bi bi-graph-up me-2"></i> Reports
                         </a>

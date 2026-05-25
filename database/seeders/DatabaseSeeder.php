@@ -12,7 +12,9 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             CategorySeeder::class,    // Add this line
             AdminUserSeeder::class,
-            // ProductSeeder::class,  // You can add this later
+            ProductSeeder::class,
+            InventorySeeder::class,
+            DriverSeeder::class,  // You can add this later
         ]);
     }
 }

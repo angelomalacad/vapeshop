@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Exception;
 
 class BranchInventory extends Model
 {
@@ -66,5 +67,41 @@ class BranchInventory extends Model
     public function scopeByBranch($query, $branchId)
     {
         return $query->where('branch_id', $branchId);
+    }
+
+    // ========== NEW STOCK RESERVATION METHODS ==========
+
+    /**
+     * Reserve a quantity of stock (for pending orders)
+     */
+    public function reserve($quantity)
+    {
+        if ($this->available_quantity < $quantity) {
+            throw new Exception("Insufficient stock to reserve {$quantity} units. Available: {$this->available_quantity}");
+        }
+        $this->increment('reserved_quantity', $quantity);
+    }
+
+    /**
+     * Confirm reservation and deduct actual stock (when order is confirmed)
+     */
+    public function confirmReservation($quantity)
+    {
+        if ($this->reserved_quantity < $quantity) {
+            throw new Exception("Cannot confirm reservation: only {$this->reserved_quantity} units reserved.");
+        }
+        $this->decrement('reserved_quantity', $quantity);
+        $this->decrement('quantity', $quantity);
+    }
+
+    /**
+     * Release reservation without deducting stock (when order is cancelled/rejected)
+     */
+    public function releaseReservation($quantity)
+    {
+        if ($this->reserved_quantity < $quantity) {
+            throw new Exception("Cannot release reservation: only {$this->reserved_quantity} units reserved.");
+        }
+        $this->decrement('reserved_quantity', $quantity);
     }
 }

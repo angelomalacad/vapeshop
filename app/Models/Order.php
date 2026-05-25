@@ -25,13 +25,23 @@ class Order extends Model
         'customer_name',
         'customer_phone',
         'notes',
-        'estimated_delivery_time'
+        'estimated_delivery_time',
+        // NEW fields for online ordering
+        'customer_email',
+        'city',
+        'barangay',
+        'landmark',
+        'gcash_reference',
+        'order_status',      // new status column for online flow
+        'admin_notes',
     ];
     
     protected $casts = [
         'estimated_delivery_time' => 'datetime',
+        'order_status' => 'string',
     ];
     
+    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -45,5 +55,41 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+    
+    // NEW: Delivery relationship (one-to-one)
+    public function delivery()
+    {
+        return $this->hasOne(Delivery::class);
+    }
+    
+    // Helper: get readable order status
+    public function getOrderStatusLabelAttribute()
+    {
+        $labels = [
+            'pending' => 'Pending',
+            'confirmed' => 'Confirmed',
+            'processing' => 'Processing',
+            'ready' => 'Ready',
+            'out_for_delivery' => 'Out for Delivery',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+        ];
+        return $labels[$this->order_status] ?? ucfirst($this->order_status);
+    }
+    
+    // Helper: get CSS class for status badge
+    public function getOrderStatusBadgeClassAttribute()
+    {
+        $classes = [
+            'pending' => 'bg-warning',
+            'confirmed' => 'bg-info',
+            'processing' => 'bg-primary',
+            'ready' => 'bg-success',
+            'out_for_delivery' => 'bg-secondary',
+            'delivered' => 'bg-dark',
+            'cancelled' => 'bg-danger',
+        ];
+        return $classes[$this->order_status] ?? 'bg-secondary';
     }
 }

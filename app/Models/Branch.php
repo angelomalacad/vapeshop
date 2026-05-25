@@ -18,7 +18,8 @@ class Branch extends Model
         'email',
         'manager_name', 
         'opening_date',
-        'is_active'
+        'is_active',
+        'assigned_driver_id',  // ADD THIS
     ];
 
     protected $casts = [
@@ -94,5 +95,23 @@ class Branch extends Model
                     ->whereColumn('quantity', '<=', 'low_stock_threshold')
                     ->with('product')
                     ->get();
+    }
+
+    // ========== NEW RELATIONSHIP FOR ASSIGNED DRIVER ==========
+
+    /**
+     * Get the driver assigned to this branch.
+     */
+    public function assignedDriver()
+    {
+        return $this->belongsTo(User::class, 'assigned_driver_id');
+    }
+
+    /**
+     * Check if branch has an assigned driver.
+     */
+    public function getHasAssignedDriverAttribute()
+    {
+        return !is_null($this->assigned_driver_id);
     }
 }
