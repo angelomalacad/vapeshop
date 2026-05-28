@@ -14,7 +14,8 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             ProductSeeder::class,
             InventorySeeder::class,
-            DriverSeeder::class,  // You can add this later
+            DriverSeeder::class,
+            WarehouseInventory::class,  // You can add this later
         ]);
     }
 }

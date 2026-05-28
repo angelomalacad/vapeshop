@@ -6,75 +6,61 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\BranchInventory;
 use App\Models\Delivery;
+use App\Models\DriverShift;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OnlineOrderController extends Controller
 {
-    /**
-     * Display online orders for driver's assigned branch
-     * (Driver manages orders for their branch, but deliveries are personal)
-     */
     public function index()
     {
-        $branchId = Auth::user()->branch_id;
+        $todayShift = DriverShift::where('shift_date', today())
+            ->where('status', 'active')
+            ->where('driver_id', Auth::id())
+            ->first();
 
-        if (!$branchId) {
+        if (!$todayShift) {
             return redirect()->route('driver.dashboard')
-                ->with('error', 'You are not assigned to any branch. Please contact the owner.');
+                ->with('error', 'You are not assigned for today. Please contact the owner.');
         }
 
-        $orders = Order::where('branch_id', $branchId)
-            ->where('order_number', 'NOT LIKE', 'POS-%')
-            ->whereNotIn('order_status', ['cancelled', 'delivered', 'delivery_failed'])
-            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery')")
+        $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
+            ->whereNotIn('order_status', ['cancelled'])
+            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         $counts = [
-            'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-            'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-            'processing' => Order::where('branch_id', $branchId)->where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-            'ready' => Order::where('branch_id', $branchId)->where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-            'out_for_delivery' => Order::where('branch_id', $branchId)->where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-            'delivered' => Order::where('branch_id', $branchId)->where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'pending' => Order::where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'confirmed' => Order::where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'processing' => Order::where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'ready' => Order::where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'out_for_delivery' => Order::where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'delivered' => Order::where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
         ];
 
         return view('driver.online-orders.index', compact('orders', 'counts'));
     }
 
-    /**
-     * Show specific order
-     */
     public function show(Order $order)
     {
-        $branchId = Auth::user()->branch_id;
-
-        // Driver can only view orders from their branch
-        if ($order->branch_id != $branchId) {
-            abort(403, 'You are not authorized to view this order.');
-        }
-
         $order->load(['items.product', 'branch', 'delivery']);
         return view('driver.online-orders.show', compact('order'));
     }
 
-    /**
-     * Confirm order (deduct stock)
-     */
     public function confirm(Order $order)
     {
-        $branchId = Auth::user()->branch_id;
-
-        if ($order->branch_id != $branchId) {
-            abort(403);
-        }
-
         if ($order->order_status != 'pending') {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Order cannot be confirmed at this stage.']);
+            }
             return redirect()->back()->with('error', 'Order cannot be confirmed at this stage.');
         }
+
+        $branchId = $order->branch_id;
 
         DB::beginTransaction();
 
@@ -88,13 +74,11 @@ class OnlineOrderController extends Controller
                     throw new \Exception("Insufficient stock for product: {$item->product->name}");
                 }
 
-                // Deduct stock
                 $oldQuantity = $inventory->quantity;
                 $newQuantity = $oldQuantity - $item->quantity;
 
                 $inventory->update(['quantity' => $newQuantity]);
 
-                // Log stock movement
                 StockMovement::create([
                     'branch_id' => $branchId,
                     'product_id' => $item->product_id,
@@ -105,7 +89,7 @@ class OnlineOrderController extends Controller
                     'movement_type' => 'sale',
                     'reference_type' => 'order',
                     'reference_id' => $order->id,
-                    'notes' => "Order #{$order->order_number} confirmed",
+                    'notes' => "Order #{$order->order_number} confirmed by driver",
                     'created_by' => Auth::id(),
                 ]);
             }
@@ -114,92 +98,93 @@ class OnlineOrderController extends Controller
 
             DB::commit();
 
+            if (request()->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Order confirmed and stock deducted successfully.']);
+            }
             return redirect()->back()->with('success', 'Order confirmed and stock deducted successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            }
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    /**
-     * Mark order as processing
-     */
     public function markProcessing(Order $order)
     {
-        $branchId = Auth::user()->branch_id;
-
-        if ($order->branch_id != $branchId) {
-            abort(403);
-        }
-
         if ($order->order_status != 'confirmed') {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Order must be confirmed first.']);
+            }
             return redirect()->back()->with('error', 'Order must be confirmed first.');
         }
 
         $order->update(['order_status' => 'processing']);
 
+        if (request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Order marked as processing.']);
+        }
         return redirect()->back()->with('success', 'Order marked as processing.');
     }
 
-    /**
-     * Mark order as ready for pickup/delivery
-     */
     public function markReady(Order $order)
     {
-        $branchId = Auth::user()->branch_id;
-
-        if ($order->branch_id != $branchId) {
-            abort(403);
+        if (!in_array($order->order_status, ['confirmed', 'processing'])) {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Order cannot be marked as ready at this stage.']);
+            }
+            return redirect()->back()->with('error', 'Order cannot be marked as ready at this stage.');
         }
 
-        if (!in_array($order->order_status, ['confirmed', 'processing'])) {
-            return redirect()->back()->with('error', 'Order cannot be marked as ready at this stage.');
+        if ($order->delivery_type == 'delivery') {
+            // Check if delivery already exists
+            if (!$order->delivery) {
+                $driverId = Auth::id();
+                $activeShift = DriverShift::where('shift_date', today())
+                    ->where('status', 'active')
+                    ->where('driver_id', $driverId)
+                    ->first();
+
+                if ($activeShift) {
+                    $trackingNumber = 'DLV-' . strtoupper(uniqid());
+                    
+                    Delivery::create([
+                        'order_id' => $order->id,
+                        'driver_id' => $driverId,
+                        'tracking_number' => $trackingNumber,
+                        'status' => 'assigned',
+                        'delivery_address' => $order->delivery_address,
+                        'recipient_name' => $order->customer_name,
+                        'recipient_phone' => $order->customer_phone,
+                        'assigned_at' => now(),
+                    ]);
+                }
+            }
+            
+            // Update order status to out_for_delivery
+            $order->update(['order_status' => 'out_for_delivery']);
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Delivery started! Order is out for delivery.',
+                    'new_status' => 'out_for_delivery'
+                ]);
+            }
+            return redirect()->back()->with('success', 'Delivery started! Order is out for delivery.');
         }
 
         $order->update(['order_status' => 'ready']);
 
-        return redirect()->back()->with('success', 'Order is now ready for ' . ($order->delivery_type == 'delivery' ? 'delivery' : 'pickup') . '.');
-    }
-
-    /**
-     * Start delivery (create delivery record)
-     */
-    public function startDelivery(Order $order)
-    {
-        $branchId = Auth::user()->branch_id;
-        $driverId = Auth::id();
-
-        if ($order->branch_id != $branchId) {
-            abort(403);
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Order is ready for pickup.',
+                'new_status' => 'ready'
+            ]);
         }
-
-        if ($order->order_status != 'ready') {
-            return redirect()->back()->with('error', 'Order must be ready first.');
-        }
-
-        // Check if delivery already exists
-        if ($order->delivery) {
-            return redirect()->back()->with('error', 'Delivery already started for this order.');
-        }
-
-        // Create delivery record
-        $trackingNumber = 'DLV-' . strtoupper(uniqid());
-
-        $delivery = Delivery::create([
-            'order_id' => $order->id,
-            'driver_id' => $driverId,
-            'tracking_number' => $trackingNumber,
-            'status' => 'assigned',
-            'delivery_address' => $order->delivery_address,
-            'recipient_name' => $order->customer_name,
-            'recipient_phone' => $order->customer_phone,
-            'assigned_at' => now(),
-        ]);
-
-        $order->update(['order_status' => 'out_for_delivery']);
-
-        return redirect()->route('driver.deliveries.show', $delivery)
-            ->with('success', 'Delivery started! You can now track and update the delivery status.');
+        return redirect()->back()->with('success', 'Order is ready for pickup.');
     }
 }

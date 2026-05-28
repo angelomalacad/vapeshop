@@ -82,6 +82,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the deliveries assigned to this user (as driver).
+     */
+    public function deliveries()
+    {
+        return $this->hasMany(Delivery::class, 'driver_id');
+    }
+
+    /**
      * Check if user is super admin.
      */
     public function isSuperAdmin(): bool
@@ -111,6 +119,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCustomer(): bool
     {
         return $this->role === 'customer';
+    }
+
+    /**
+     * Check if user is driver.
+     */
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
     }
 
     /**
@@ -150,6 +166,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeStaff($query)
     {
         return $query->whereIn('role', ['branch_admin', 'staff']);
+    }
+
+    /**
+     * Scope a query to only include drivers.
+     */
+    public function scopeDrivers($query)
+    {
+        return $query->where('role', 'driver');
     }
 
     /**

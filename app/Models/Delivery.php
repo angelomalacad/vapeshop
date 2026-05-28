@@ -13,6 +13,7 @@ class Delivery extends Model
     protected $fillable = [
         'order_id',
         'driver_id',
+        'driver_shift_id',  // ADDED - link to driver shift
         'tracking_number',
         'status',
         'delivery_address',
@@ -24,11 +25,11 @@ class Delivery extends Model
         'picked_up_at',
         'delivered_at',
         'delivery_proof',
-        'payment_proof',      // ADDED
+        'payment_proof',
         'notes',
-        'driver_notes',       // ADDED
-        'driver_latitude',    // ADDED
-        'driver_longitude',   // ADDED
+        'driver_notes',
+        'driver_latitude',
+        'driver_longitude',
     ];
 
     protected $casts = [
@@ -50,6 +51,14 @@ class Delivery extends Model
     public function driver()
     {
         return $this->belongsTo(User::class, 'driver_id');
+    }
+
+    /**
+     * Get the driver shift that this delivery belongs to
+     */
+    public function driverShift()
+    {
+        return $this->belongsTo(DriverShift::class, 'driver_shift_id');
     }
 
     // Helper: get status badge CSS
@@ -78,6 +87,18 @@ class Delivery extends Model
         return $this->payment_proof ? Storage::url($this->payment_proof) : null;
     }
 
+    // Helper: check if delivery is completed
+    public function isCompleted()
+    {
+        return $this->status === 'delivered';
+    }
+
+    // Helper: check if delivery is in progress
+    public function isInProgress()
+    {
+        return in_array($this->status, ['assigned', 'picked_up', 'in_transit']);
+    }
+
     // Scopes
     public function scopePending($query)
     {
@@ -92,5 +113,20 @@ class Delivery extends Model
     public function scopeInTransit($query)
     {
         return $query->where('status', 'in_transit');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'delivered');
+    }
+
+    public function scopeForDriver($query, $driverId)
+    {
+        return $query->where('driver_id', $driverId);
+    }
+
+    public function scopeForShift($query, $shiftId)
+    {
+        return $query->where('driver_shift_id', $shiftId);
     }
 }

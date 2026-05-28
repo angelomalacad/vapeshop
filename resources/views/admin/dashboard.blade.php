@@ -263,176 +263,193 @@
         </div>
 
         <div class="row">
-            <!-- Sidebar Menu -->
-            <div class="col-md-3">
-                <div class="card sidebar-card">
-                    <div class="card-header">
-                        <i class="bi bi-grid me-2"></i> Owner Menu
-                    </div>
-                    <div class="list-group list-group-flush">
-                        <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                        
-                        <div class="text-muted">MANAGEMENT</div>
-                        
-                        <!-- Branch Admin Management link -->
-                        @if(Route::has('admin.branch-admin.index'))
-                            <a href="{{ route('admin.branch-admin.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branch-admin.*') ? 'active' : '' }}">
-                                <i class="bi bi-people me-2"></i> Branch Personnel
-                                @php $branchAdminCount = \App\Models\User::whereIn('role', ['branch_admin', 'staff'])->count(); @endphp
-                                <span class="badge bg-info float-end">{{ $branchAdminCount }}</span>
-                            </a>
-                        @endif
-                        
-                        <!-- ===== CUSTOMER MANAGEMENT LINK - ADDED HERE ===== -->
-                        @if(Route::has('admin.customers.index'))
-                            <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-                                <i class="bi bi-people-fill me-2"></i> Customers
-                                @php $customerCount = \App\Models\User::where('role', 'customer')->count(); @endphp
-                                <span class="badge bg-success float-end">{{ $customerCount }}</span>
-                            </a>
-                        @endif
-                        <!-- ===== END OF CUSTOMER MANAGEMENT LINK ===== -->
-                        
-                        @if(Route::has('admin.products.index'))
-                            <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                                <i class="bi bi-box me-2"></i> Products
-                                @php $productCount = \App\Models\Product::count(); @endphp
-                                <span class="badge bg-info float-end">{{ $productCount }}</span>
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-box me-2"></i> Products (Coming Soon)
-                            </a>
-                        @endif
-                        
-                        <div class="text-muted">INVENTORY</div>
-                        
-                        @if(Route::has('admin.inventory.index'))
-                            <a href="{{ route('admin.inventory.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.inventory.index') ? 'active' : '' }}">
-                                <i class="bi bi-clipboard-data me-2"></i> Inventory Overview
-                                @php $totalItems = \App\Models\BranchInventory::count(); @endphp
-                                <span class="badge bg-secondary float-end">{{ $totalItems }}</span>
-                            </a>
-                        @endif
-                        
-                        @if(Route::has('admin.inventory.low-stock') || Route::has('admin.inventory.transfers') || Route::has('admin.inventory.stock-history'))
-                            <div class="bg-light">
-                                <small class="text-muted"><i class="bi bi-arrow-right-short me-1"></i> QUICK LINKS</small>
-                            </div>
-                            
-                            @if(Route::has('admin.inventory.low-stock'))
-                            <a href="{{ route('admin.inventory.low-stock') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
-                                <i class="bi bi-exclamation-triangle me-2 text-warning"></i> Low Stock Alert
-                                @php
-                                    $lowStockCount = \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count();
-                                @endphp
-                                @if($lowStockCount > 0)
-                                    <span class="badge bg-danger rounded-pill float-end">{{ $lowStockCount }}</span>
-                                @endif
-                            </a>
-                            @endif
-                            
-                            @if(Route::has('admin.inventory.transfers'))
-                            <a href="{{ route('admin.inventory.transfers') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.transfers') ? 'active' : '' }}">
-                                <i class="bi bi-arrow-left-right me-2 text-info"></i> Stock Transfers
-                                @php
-                                    $pendingTransfers = \App\Models\StockTransfer::where('status', 'pending')->count();
-                                @endphp
-                                @if($pendingTransfers > 0)
-                                    <span class="badge bg-warning rounded-pill float-end">{{ $pendingTransfers }}</span>
-                                @endif
-                            </a>
-                            @endif
-                            
-                            @if(Route::has('admin.inventory.stock-history'))
-                            <a href="{{ route('admin.inventory.stock-history') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}">
-                                <i class="bi bi-clock-history me-2 text-secondary"></i> Stock History
-                            </a>
-                            @endif
-                        @endif
-                        
-                        <!-- ===== WAREHOUSE SECTION ===== -->
-                        <div class="text-muted">WAREHOUSE</div>
-
-                        <a href="{{ route('admin.warehouse.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.warehouse.index') ? 'active' : '' }}">
-                            <i class="bi bi-building me-2"></i> Warehouse Stock
-                        </a>
-
-                        <a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
-                            <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
-                            @php
-                                $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
-                                    ->where('status', 'pending')
-                                    ->count();
-                            @endphp
-                            @if($pendingWarehouseRequests > 0)
-                                <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
-                            @endif
-                        </a>
-                        <!-- ===== END OF WAREHOUSE SECTION ===== -->
-                        
-                        <div class="text-muted">TRANSACTIONS</div>
-                        
-                        @if(Route::has('admin.pos.history'))
-                            <a href="{{ route('admin.pos.history') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.pos.history') ? 'active' : '' }}">
-                                <i class="bi bi-clock-history me-2 text-secondary"></i> Sales History
-                            </a>
-                        @endif
-                        
-                        @if(Route::has('admin.orders.index'))
-                            <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                                <i class="bi bi-cart me-2"></i> Orders
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-cart me-2"></i> Orders (Coming Soon)
-                            </a>
-                        @endif
-                        
-                        <div class="text-muted">REPORTS</div>
-                        
-                        @if(Route::has('admin.reports.index'))
-                            <a href="{{ route('admin.reports.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-                                <i class="bi bi-graph-up me-2"></i> Reports
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-graph-up me-2"></i> Reports (Coming Soon)
-                            </a>
-                        @endif
-                        
-                        <div class="text-muted">SYSTEM</div>
-                        
-                        @if(Route::has('admin.users.index'))
-                            <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                <i class="bi bi-people me-2"></i> Users
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-people me-2"></i> Users (Coming Soon)
-                            </a>
-                        @endif
-                        
-                        @if(Route::has('admin.settings.index'))
-                            <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                                <i class="bi bi-gear me-2"></i> Settings
-                            </a>
-                        @else
-                            <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                                <i class="bi bi-gear me-2"></i> Settings (Coming Soon)
-                            </a>
-                        @endif
-                        
-                        <div class="dropdown-divider"></div>
-                        
-                        <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-house me-2"></i> Back to Home
-                        </a>
-                    </div>
+        <!-- Sidebar Menu -->
+<div class="col-md-3">
+    <div class="card sidebar-card">
+        <div class="card-header">
+            <i class="bi bi-grid me-2"></i> Owner Menu
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+            
+            <div class="text-muted">MANAGEMENT</div>
+            
+            <!-- Branch Admin Management link -->
+            @if(Route::has('admin.branch-admin.index'))
+                <a href="{{ route('admin.branch-admin.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.branch-admin.*') ? 'active' : '' }}">
+                    <i class="bi bi-people me-2"></i> Branch Personnel
+                    @php $branchAdminCount = \App\Models\User::whereIn('role', ['branch_admin', 'staff'])->count(); @endphp
+                    <span class="badge bg-info float-end">{{ $branchAdminCount }}</span>
+                </a>
+            @endif
+            
+            <!-- ===== CUSTOMER MANAGEMENT LINK ===== -->
+            @if(Route::has('admin.customers.index'))
+                <a href="{{ route('admin.customers.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
+                    <i class="bi bi-people-fill me-2"></i> Customers
+                    @php $customerCount = \App\Models\User::where('role', 'customer')->count(); @endphp
+                    <span class="badge bg-success float-end">{{ $customerCount }}</span>
+                </a>
+            @endif
+            
+            @if(Route::has('admin.products.index'))
+                <a href="{{ route('admin.products.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                    <i class="bi bi-box me-2"></i> Products
+                    @php $productCount = \App\Models\Product::count(); @endphp
+                    <span class="badge bg-info float-end">{{ $productCount }}</span>
+                </a>
+            @else
+                <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                    <i class="bi bi-box me-2"></i> Products (Coming Soon)
+                </a>
+            @endif
+            
+            <div class="text-muted">INVENTORY</div>
+            
+            @if(Route::has('admin.inventory.index'))
+                <a href="{{ route('admin.inventory.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.inventory.index') ? 'active' : '' }}">
+                    <i class="bi bi-clipboard-data me-2"></i> Inventory Overview
+                    @php $totalItems = \App\Models\BranchInventory::count(); @endphp
+                    <span class="badge bg-secondary float-end">{{ $totalItems }}</span>
+                </a>
+            @endif
+            
+            @if(Route::has('admin.inventory.low-stock') || Route::has('admin.inventory.transfers') || Route::has('admin.inventory.stock-history'))
+                <div class="bg-light">
+                    <small class="text-muted"><i class="bi bi-arrow-right-short me-1"></i> QUICK LINKS</small>
                 </div>
-            </div>
+                
+                @if(Route::has('admin.inventory.low-stock'))
+                <a href="{{ route('admin.inventory.low-stock') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i> Low Stock Alert
+                    @php
+                        $lowStockCount = \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count();
+                    @endphp
+                    @if($lowStockCount > 0)
+                        <span class="badge bg-danger rounded-pill float-end">{{ $lowStockCount }}</span>
+                    @endif
+                </a>
+                @endif
+                
+                @if(Route::has('admin.inventory.transfers'))
+                <a href="{{ route('admin.inventory.transfers') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.transfers') ? 'active' : '' }}">
+                    <i class="bi bi-arrow-left-right me-2 text-info"></i> Stock Transfers
+                    @php
+                        $pendingTransfers = \App\Models\StockTransfer::where('status', 'pending')->count();
+                    @endphp
+                    @if($pendingTransfers > 0)
+                        <span class="badge bg-warning rounded-pill float-end">{{ $pendingTransfers }}</span>
+                    @endif
+                </a>
+                @endif
+                
+                @if(Route::has('admin.inventory.stock-history'))
+                <a href="{{ route('admin.inventory.stock-history') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history me-2 text-secondary"></i> Stock History
+                </a>
+                @endif
+            @endif
+            
+            <!-- ===== WAREHOUSE SECTION ===== -->
+            <div class="text-muted">WAREHOUSE</div>
+
+            <a href="{{ route('admin.warehouse.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.warehouse.index') ? 'active' : '' }}">
+                <i class="bi bi-building me-2"></i> Warehouse Stock
+            </a>
+
+            <a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
+                <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
+                @php
+                    $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
+                        ->where('status', 'pending')
+                        ->count();
+                @endphp
+                @if($pendingWarehouseRequests > 0)
+                    <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
+                @endif
+            </a>
+            <!-- ===== END OF WAREHOUSE SECTION ===== -->
+            
+            <!-- ===== DELIVERIES SECTION ===== -->
+<div class="text-muted">DELIVERIES</div>
+
+<a href="{{ route('admin.deliveries.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.deliveries.index') ? 'active' : '' }}">
+    <i class="bi bi-truck me-2 text-primary"></i> All Deliveries
+    @php
+        $pendingDeliveries = \App\Models\Delivery::whereIn('status', ['pending', 'assigned', 'picked_up', 'in_transit'])->count();
+    @endphp
+    @if($pendingDeliveries > 0)
+        <span class="badge bg-warning rounded-pill float-end">{{ $pendingDeliveries }}</span>
+    @endif
+</a>
+
+
+<a href="{{ route('admin.driver-shifts.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.driver-shifts.*') ? 'active' : '' }}">
+    <i class="bi bi-calendar-check me-2 text-primary"></i> Driver Shifts
+    @php
+        $todayDriver = \App\Models\DriverShift::where('shift_date', today())->where('status', 'active')->first();
+    @endphp
+    @if($todayDriver)
+        <span class="badge bg-success float-end">{{ $todayDriver->driver->name }}</span>
+    @endif
+</a>
+
+
+<!-- ===== END OF DELIVERIES SECTION ===== -->
+            
+            <div class="text-muted">TRANSACTIONS</div>
+            
+            @if(Route::has('admin.pos.history'))
+                <a href="{{ route('admin.pos.history') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.pos.history') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history me-2 text-secondary"></i> Sales History
+                </a>
+            @endif
+            
+            @if(Route::has('admin.orders.index'))
+                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                    <i class="bi bi-cart me-2"></i> Orders
+                </a>
+            @else
+                <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                    <i class="bi bi-cart me-2"></i> Orders (Coming Soon)
+                </a>
+            @endif
+            
+            <div class="text-muted">REPORTS</div>
+            
+            @if(Route::has('admin.reports.index'))
+                <a href="{{ route('admin.reports.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                    <i class="bi bi-graph-up me-2"></i> Reports
+                </a>
+            @else
+                <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                    <i class="bi bi-graph-up me-2"></i> Reports (Coming Soon)
+                </a>
+            @endif
+            
+            <div class="text-muted">SYSTEM</div>
+            
+            
+            @if(Route::has('admin.settings.index'))
+                <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                    <i class="bi bi-gear me-2"></i> Settings
+                </a>
+            @else
+                <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
+                    <i class="bi bi-gear me-2"></i> Settings (Coming Soon)
+                </a>
+            @endif
+            
+            <div class="dropdown-divider"></div>
+            
+            <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-house me-2"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
 
             <!-- Main Content -->
             <div class="col-md-9">

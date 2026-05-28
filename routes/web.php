@@ -238,6 +238,23 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         }));
     })->name('api.product.flavors');
 
+// ===== DRIVER SHIFT MANAGEMENT =====
+Route::prefix('driver-shifts')->name('driver-shifts.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\DriverShiftController::class, 'index'])->name('index');
+    Route::post('/assign', [App\Http\Controllers\Admin\DriverShiftController::class, 'assign'])->name('assign');
+    Route::delete('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
+    Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
+});
+    // ===== DELIVERY MANAGEMENT (OWNER) =====
+Route::prefix('deliveries')->name('deliveries.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
+    Route::get('/{delivery}/modal', [App\Http\Controllers\Admin\DeliveryController::class, 'showModal'])->name('show-modal');
+    Route::get('/{delivery}', [App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('show');
+    Route::get('/{delivery}/proof/{type}', [App\Http\Controllers\Admin\DeliveryController::class, 'viewProof'])->name('view-proof');
+    Route::post('/{delivery}/assign-driver', [App\Http\Controllers\Admin\DeliveryController::class, 'assignDriver'])->name('assign-driver');
+    Route::get('/export/report', [App\Http\Controllers\Admin\DeliveryController::class, 'export'])->name('export');
+});
+
     // ===== WAREHOUSE MANAGEMENT (OWNER) =====
     Route::prefix('warehouse')->name('warehouse.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('index');
@@ -364,6 +381,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/{order}/delivered', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markDelivered'])->name('delivered');
         Route::post('/delivery/{delivery}/tracking', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateTracking'])->name('update-tracking');
     });
+    
 
     // Reports
     Route::get('/reports/sales', function () {

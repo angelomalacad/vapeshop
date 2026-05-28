@@ -1,4 +1,4 @@
-<div style="padding: 20px; max-height: 90vh; overflow-y: auto;">
+<div style="padding: 20px;">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0"><i class="bi bi-truck"></i> Delivery #{{ $delivery->tracking_number }}</h5>
         <button type="button" class="btn-close" onclick="closeModal()"></button>
@@ -29,22 +29,19 @@
             </div>
 
             <div class="card shadow-sm">
-                <div class="card-header bg-info text-white py-2">
-                    <h6 class="mb-0">Customer Details</h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><strong>Name:</strong> {{ $delivery->recipient_name }}</p>
-                    <p class="mb-1"><strong>Phone:</strong> {{ $delivery->recipient_phone }}</p>
-                    <p class="mb-1"><strong>Address:</strong> {{ $delivery->delivery_address }}</p>
-                    @if($delivery->order)
-                        <p class="mb-1"><strong>City/Barangay:</strong> {{ $delivery->order->city ?? 'N/A' }}, {{ $delivery->order->barangay ?? 'N/A' }}</p>
-                        @if($delivery->order->landmark)
-                            <p class="mb-1"><strong>Landmark:</strong> {{ $delivery->order->landmark }}</p>
-                        @endif
-                    @endif
-                </div>
-            </div>
-        </div>
+    <div class="card-header bg-info text-white py-2">
+        <h6 class="mb-0">Customer Details</h6>
+    </div>
+    <div class="card-body">
+        <p class="mb-1"><strong>Name:</strong> {{ $delivery->recipient_name }}</p>
+        <p class="mb-1"><strong>Phone:</strong> {{ $delivery->recipient_phone }}</p>
+        <p class="mb-1"><strong>Address:</strong> {{ $delivery->delivery_address }}</p>
+        <p class="mb-1"><strong>City/Barangay:</strong> {{ $delivery->order->city ?? 'N/A' }}, {{ $delivery->order->barangay ?? 'N/A' }}</p>
+        @if($delivery->order->landmark)
+            <p class="mb-1"><strong>Landmark:</strong> {{ $delivery->order->landmark }}</p>
+        @endif
+    </div>
+</div>
 
         <div class="col-md-6">
             @if($delivery->status == 'delivered')
@@ -168,32 +165,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* Custom scrollbar for modal content */
-    .modal-content {
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    /* Ensure content doesn't overflow on small screens */
-    @media (max-width: 768px) {
-        .modal-dialog {
-            margin: 10px;
-        }
-        .modal-content {
-            max-height: calc(100vh - 20px);
-        }
-    }
-    
-    /* Better image thumbnail styling */
-    .img-thumbnail {
-        transition: transform 0.2s;
-    }
-    .img-thumbnail:hover {
-        transform: scale(1.02);
-    }
-</style>
 
 <script>
     const statusSelect = document.getElementById('statusSelect');
