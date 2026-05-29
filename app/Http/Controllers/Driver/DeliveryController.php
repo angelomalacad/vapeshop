@@ -27,7 +27,7 @@ class DeliveryController extends Controller
             ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // Ensure order relationship is loaded for active deliveries
         $activeDeliveries->load('order');
 
@@ -37,7 +37,7 @@ class DeliveryController extends Controller
             ->with(['order', 'order.branch'])
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
-        
+
         // Ensure order relationship is loaded for completed deliveries
         $completedDeliveries->load('order');
 
@@ -73,121 +73,149 @@ class DeliveryController extends Controller
     }
 
     /**
- * Update delivery status (supports both AJAX and normal requests)
- */
-public function updateStatus(Request $request, Delivery $delivery)
-{
-    // Verify this delivery belongs to the logged-in driver
-    if ($delivery->driver_id !== Auth::id()) {
-        if ($request->ajax()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized access.']);
-        }
-        abort(403, 'This delivery is not assigned to you.');
-    }
-
-    $request->validate([
-        'status' => 'required|in:picked_up,in_transit,delivered,failed',
-        'notes' => 'nullable|string|max:500',
-        'delivery_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        'payment_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-    ]);
-
-    try {
-        $oldStatus = $delivery->status;
-        $newStatus = $request->status;
-
-        // ========== VALIDATION FOR DELIVERED STATUS ==========
-        if ($newStatus == 'delivered') {
-            $hasDeliveryProof = $delivery->delivery_proof || $request->hasFile('delivery_proof');
-            $hasPaymentProof = $delivery->payment_proof || $request->hasFile('payment_proof');
-            
-            if (!$hasDeliveryProof) {
-                $errorMessage = 'Delivery proof is required when marking as delivered.';
-                if ($request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $errorMessage]);
-                }
-                return redirect()->back()->with('error', $errorMessage);
-            }
-            
-            if (!$hasPaymentProof) {
-                $errorMessage = 'Payment proof is required when marking as delivered.';
-                if ($request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $errorMessage]);
-                }
-                return redirect()->back()->with('error', $errorMessage);
-            }
-        }
-
-        // Cannot update status if already delivered or failed
-        if (in_array($delivery->status, ['delivered', 'failed'])) {
-            $errorMessage = 'Cannot update status of a completed delivery.';
+     * Update delivery status (supports both AJAX and normal requests)
+     */
+    public function updateStatus(Request $request, Delivery $delivery)
+    {
+        // Verify this delivery belongs to the logged-in driver
+        if ($delivery->driver_id !== Auth::id()) {
             if ($request->ajax()) {
-                return response()->json(['success' => false, 'message' => $errorMessage]);
+                return response()->json(['success' => false, 'message' => 'Unauthorized access.']);
             }
-            return redirect()->back()->with('error', $errorMessage);
+            abort(403, 'This delivery is not assigned to you.');
         }
 
-        // Handle status change timestamps
-        if ($newStatus == 'picked_up' && !$delivery->picked_up_at) {
-            $delivery->picked_up_at = now();
-        }
-        if ($newStatus == 'delivered' && !$delivery->delivered_at) {
-            $delivery->delivered_at = now();
-        }
+        // Log the request for debugging
+        \Log::info('Update Status Request', [
+            'delivery_id' => $delivery->id,
+            'request_status' => $request->status,
+            'has_delivery_proof' => $request->hasFile('delivery_proof'),
+            'has_payment_proof' => $request->hasFile('payment_proof'),
+            'all_data' => $request->all()
+        ]);
 
-        // Handle proof of delivery images
-        if ($request->hasFile('delivery_proof')) {
-            if ($delivery->delivery_proof) {
-                Storage::disk('public')->delete($delivery->delivery_proof);
+        $request->validate([
+            'status' => 'required|in:picked_up,in_transit,delivered,failed',
+            'notes' => 'nullable|string|max:500',
+            'delivery_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Increased to 5MB
+            'payment_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Increased to 5MB
+        ]);
+
+        try {
+            $oldStatus = $delivery->status;
+            $newStatus = $request->status;
+
+            // Cannot update status if already delivered or failed
+            if (in_array($delivery->status, ['delivered', 'failed'])) {
+                $errorMessage = 'Cannot update status of a completed delivery.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $errorMessage]);
+                }
+                return redirect()->back()->with('error', $errorMessage);
             }
-            $delivery->delivery_proof = $request->file('delivery_proof')->store('delivery-proofs', 'public');
-        }
 
-        if ($request->hasFile('payment_proof')) {
-            if ($delivery->payment_proof) {
-                Storage::disk('public')->delete($delivery->payment_proof);
+            // ========== VALIDATION FOR DELIVERED STATUS ==========
+            if ($newStatus == 'delivered') {
+                // Check if delivery proof is provided (either existing or new)
+                $hasDeliveryProof = !empty($delivery->delivery_proof) || $request->hasFile('delivery_proof');
+                $hasPaymentProof = !empty($delivery->payment_proof) || $request->hasFile('payment_proof');
+
+                if (!$hasDeliveryProof) {
+                    $errorMessage = 'Delivery proof photo is required when marking as delivered.';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $errorMessage]);
+                    }
+                    return redirect()->back()->with('error', $errorMessage)->withInput();
+                }
+
+                if (!$hasPaymentProof) {
+                    $errorMessage = 'Payment proof photo is required when marking as delivered.';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $errorMessage]);
+                    }
+                    return redirect()->back()->with('error', $errorMessage)->withInput();
+                }
             }
-            $delivery->payment_proof = $request->file('payment_proof')->store('payment-proofs', 'public');
-        }
 
-        // Update notes
-        if ($request->filled('notes')) {
-            $delivery->driver_notes = $request->notes;
-        }
-
-        $delivery->status = $newStatus;
-        $delivery->save();
-
-        // Update order status based on delivery status
-        if ($delivery->order) {
-            $order = $delivery->order;
-            if ($newStatus == 'picked_up') {
-                $order->order_status = 'out_for_delivery';
-            } elseif ($newStatus == 'delivered') {
-                $order->order_status = 'delivered';
-            } elseif ($newStatus == 'failed') {
-                $order->order_status = 'delivery_failed';
+            // Handle status change timestamps
+            if ($newStatus == 'picked_up' && !$delivery->picked_up_at) {
+                $delivery->picked_up_at = now();
             }
-            $order->save();
-        }
+            if ($newStatus == 'delivered' && !$delivery->delivered_at) {
+                $delivery->delivered_at = now();
+            }
 
-        $message = 'Delivery status updated successfully!';
-        
-        // For AJAX requests, return JSON
-        if ($request->ajax()) {
-            return response()->json(['success' => true, 'message' => $message]);
-        }
-        
-        // For normal form submissions, redirect back with success message
-        return redirect()->back()->with('success', $message);
+            // Handle proof of delivery images
+            if ($request->hasFile('delivery_proof')) {
+                // Delete old proof if exists
+                if ($delivery->delivery_proof && Storage::disk('public')->exists($delivery->delivery_proof)) {
+                    Storage::disk('public')->delete($delivery->delivery_proof);
+                }
+                $delivery->delivery_proof = $request->file('delivery_proof')->store('delivery-proofs', 'public');
+                \Log::info('Delivery proof saved', ['path' => $delivery->delivery_proof]);
+            }
 
-    } catch (\Exception $e) {
-        if ($request->ajax()) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            if ($request->hasFile('payment_proof')) {
+                // Delete old proof if exists
+                if ($delivery->payment_proof && Storage::disk('public')->exists($delivery->payment_proof)) {
+                    Storage::disk('public')->delete($delivery->payment_proof);
+                }
+                $delivery->payment_proof = $request->file('payment_proof')->store('payment-proofs', 'public');
+                \Log::info('Payment proof saved', ['path' => $delivery->payment_proof]);
+            }
+
+            // Update notes
+            if ($request->filled('notes')) {
+                $delivery->driver_notes = $request->notes;
+            }
+
+            // Update delivery status
+            $delivery->status = $newStatus;
+            $delivery->save();
+
+            // Update order status based on delivery status
+            if ($delivery->order) {
+                $order = $delivery->order;
+                if ($newStatus == 'picked_up') {
+                    $order->order_status = 'out_for_delivery';
+                    $order->out_for_delivery_at = now();
+                } elseif ($newStatus == 'delivered') {
+                    $order->order_status = 'delivered';
+                    $order->delivered_at = now();
+                } elseif ($newStatus == 'failed') {
+                    $order->order_status = 'delivery_failed';
+                }
+                $order->save();
+                \Log::info('Order status updated', ['order_id' => $order->id, 'status' => $order->order_status]);
+            }
+
+            $message = 'Delivery status updated successfully to ' . ucfirst($newStatus) . '!';
+
+            // For AJAX requests, return JSON
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'new_status' => $newStatus,
+                    'delivery' => $delivery->fresh()
+                ]);
+            }
+
+            // For normal form submissions, redirect back with success message
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            \Log::error('Delivery update error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            }
+            return redirect()->back()->with('error', 'Error updating delivery status: ' . $e->getMessage());
         }
-        return redirect()->back()->with('error', 'Error updating delivery status: ' . $e->getMessage());
     }
-}
 
     /**
      * Driver dashboard with all stats
@@ -218,12 +246,12 @@ public function updateStatus(Request $request, Delivery $delivery)
         $pendingOrdersCount = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->whereIn('order_status', ['pending', 'confirmed', 'processing'])
             ->count();
-        
+
         // Get ready orders count (needs start delivery)
         $readyOrdersCount = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->where('order_status', 'ready')
             ->count();
-        
+
         // Get out for delivery count
         $outForDeliveryCount = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->where('order_status', 'out_for_delivery')
@@ -235,10 +263,18 @@ public function updateStatus(Request $request, Delivery $delivery)
             ->limit(10)
             ->get();
 
+        // Get recent online orders (last 10, excluding cancelled)
+        $recentOnlineOrders = Order::where('order_number', 'NOT LIKE', 'POS-%')
+            ->whereNotIn('order_status', ['cancelled'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
         return view('driver.dashboard', compact(
             'totalDeliveries', 'inTransitCount', 'deliveredCount',
-            'pendingDeliveries', 'pendingOrdersCount', 'readyOrdersCount', 
-            'outForDeliveryCount', 'recentDeliveries', 'todayShift'
+            'pendingDeliveries', 'pendingOrdersCount', 'readyOrdersCount',
+            'outForDeliveryCount', 'recentDeliveries', 'todayShift',
+            'recentOnlineOrders'
         ));
     }
 }

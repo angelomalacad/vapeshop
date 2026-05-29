@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'order_number',
         'user_id',
@@ -35,34 +35,34 @@ class Order extends Model
         'order_status',      // new status column for online flow
         'admin_notes',
     ];
-    
+
     protected $casts = [
         'estimated_delivery_time' => 'datetime',
         'order_status' => 'string',
     ];
-    
+
     // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);
     }
-    
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
-    
+
     // NEW: Delivery relationship (one-to-one)
     public function delivery()
     {
         return $this->hasOne(Delivery::class);
     }
-    
+
     // Helper: get readable order status
     public function getOrderStatusLabelAttribute()
     {
@@ -77,7 +77,7 @@ class Order extends Model
         ];
         return $labels[$this->order_status] ?? ucfirst($this->order_status);
     }
-    
+
     // Helper: get CSS class for status badge
     public function getOrderStatusBadgeClassAttribute()
     {
@@ -92,4 +92,5 @@ class Order extends Model
         ];
         return $classes[$this->order_status] ?? 'bg-secondary';
     }
+
 }

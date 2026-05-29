@@ -19,23 +19,25 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'branch_id',
-        'phone',
-        'address',
-        'city',
-        'province',
-        'zip_code',
-        'birthdate',
-        'receive_notifications',
-        'receive_promotions',
-        'is_active',
-        'last_login_at',
-        'last_login_ip',
-    ];
+    'name',
+    'email',
+    'password',
+    'role',
+    'branch_id',
+    'phone',
+    'address',
+    'city',
+    'barangay',      // Added
+    'landmark',      // Added
+    'province',
+    'zip_code',
+    'birthdate',
+    'receive_notifications',
+    'receive_promotions',
+    'is_active',
+    'last_login_at',
+    'last_login_ip',
+];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -148,7 +150,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->province,
             $this->zip_code
         ]);
-        
+
         return implode(', ', $parts);
     }
 

@@ -13,36 +13,47 @@ use Illuminate\Support\Facades\Auth;
 class CheckoutController extends Controller
 {
     public function index()
-    {
+{
+    // Check if this is a selected items checkout
+    if (session()->has('selected_checkout')) {
+        $cart = session()->get('selected_cart', []);
+        session()->forget('selected_checkout');
+        session()->forget('selected_cart');
+    } else {
         $cart = CartHelper::getCart();
-        if (empty($cart)) {
-            return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
-        }
-        
-        // Ensure all items belong to same branch
-        $branchId = null;
-        foreach ($cart as $item) {
-            if (!$branchId) $branchId = $item['branch_id'];
-            elseif ($branchId != $item['branch_id']) {
-                return redirect()->route('customer.cart.index')->with('error', 'Cart contains products from different branches. Please clear and select one branch.');
-            }
-        }
-        
-        $branch = Branch::find($branchId);
-        $subtotal = CartHelper::getTotal();
-        $tax = $subtotal * 0.12;
-        $total = $subtotal + $tax;
-        
-        return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total'));
     }
-    
+
+    if (empty($cart)) {
+        return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
+    }
+
+    // Ensure all items belong to same branch
+    $branchId = null;
+    foreach ($cart as $item) {
+        if (!$branchId) $branchId = $item['branch_id'];
+        elseif ($branchId != $item['branch_id']) {
+            return redirect()->route('customer.cart.index')->with('error', 'Cart contains products from different branches. Please clear and select one branch.');
+        }
+    }
+
+    $branch = Branch::find($branchId);
+    $subtotal = 0;
+    foreach ($cart as $item) {
+        $subtotal += $item['price'] * $item['quantity'];
+    }
+    $tax = $subtotal * 0.12;
+    $total = $subtotal + $tax;
+
+    return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total'));
+}
+
     public function store(Request $request)
     {
         $cart = CartHelper::getCart();
         if (empty($cart)) {
             return redirect()->route('customer.cart.index')->with('error', 'Cart is empty.');
         }
-        
+
         $branchId = null;
         foreach ($cart as $key => $item) {
             if (!$branchId) $branchId = $item['branch_id'];
@@ -50,7 +61,7 @@ class CheckoutController extends Controller
                 return back()->with('error', 'Products from multiple branches. Please clear cart and re-add.');
             }
         }
-        
+
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
@@ -64,7 +75,7 @@ class CheckoutController extends Controller
             'gcash_reference' => 'required_if:payment_method,gcash|nullable|string',
             'notes' => 'nullable|string',
         ]);
-        
+
         DB::beginTransaction();
         try {
             // 1. Check stock and reserve
@@ -75,7 +86,7 @@ class CheckoutController extends Controller
                 }
                 $inventory->reserve($item['quantity']);
             }
-            
+
             // 2. Create order
             $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(uniqid());
             $order = Order::create([
@@ -101,7 +112,7 @@ class CheckoutController extends Controller
                 'gcash_reference' => $request->gcash_reference,
                 'notes' => $request->notes,
             ]);
-            
+
             // 3. Create order items - FIXED: use $inventoryId as the key
             foreach ($cart as $inventoryId => $item) {
                 $order->items()->create([
@@ -112,12 +123,12 @@ class CheckoutController extends Controller
                     'subtotal' => $item['price'] * $item['quantity'],
                 ]);
             }
-            
+
             // 4. Clear cart
             CartHelper::clearCart();
-            
+
             DB::commit();
-            
+
             return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Awaiting confirmation.');
         } catch (\Exception $e) {
             DB::rollBack();

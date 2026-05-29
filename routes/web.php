@@ -153,17 +153,14 @@ Route::post('/email/verification-notification', function () {
 // ===========================================================================
 Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', function () {
-        $user = Auth::user();
-        if (!in_array($user->role, ['customer', 'super_admin', 'branch_admin'])) {
-            return redirect()->route('home')->with('error', 'Access denied. Customer area only.');
-        }
-        return view('customer.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
 
     // Products with branch selection
     Route::get('/products', [App\Http\Controllers\Customer\ProductController::class, 'index'])->name('products.index');
     Route::get('/products/branch/{branch}', [App\Http\Controllers\Customer\ProductController::class, 'byBranch'])->name('products.byBranch');
+
+    // AJAX route for product variants (used by the modal)
+    Route::get('/products/{product}/variants', [App\Http\Controllers\Customer\ProductController::class, 'getVariants'])->name('products.variants');
 
     // Shopping Cart
     Route::prefix('cart')->name('cart.')->group(function () {
@@ -175,6 +172,7 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
     });
 
     // Checkout
+    Route::post('/cart/checkout-selected', [App\Http\Controllers\Customer\CartController::class, 'checkoutSelected'])->name('cart.checkout-selected');
     Route::get('/checkout', [App\Http\Controllers\Customer\CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [App\Http\Controllers\Customer\CheckoutController::class, 'store'])->name('checkout.store');
 
@@ -183,6 +181,9 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
     Route::get('/orders/{order}', [App\Http\Controllers\Customer\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');
     Route::get('/orders/{order}/track', [App\Http\Controllers\Customer\OrderController::class, 'track'])->name('orders.track');
+
+    // Track Modal - AJAX route for modal content
+    Route::get('/orders/{order}/track-modal', [App\Http\Controllers\Customer\OrderController::class, 'trackModal'])->name('orders.track-modal');
 
     // Notifications (optional)
     Route::get('/notifications', [App\Http\Controllers\Customer\NotificationController::class, 'index'])->name('notifications.index');
@@ -381,7 +382,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/{order}/delivered', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markDelivered'])->name('delivered');
         Route::post('/delivery/{delivery}/tracking', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateTracking'])->name('update-tracking');
     });
-    
+
 
     // Reports
     Route::get('/reports/sales', function () {

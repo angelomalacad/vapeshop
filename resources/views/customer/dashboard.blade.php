@@ -1,119 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Dashboard - Vape Expo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+@extends('layouts.customer')
+
+@section('content')
     <style>
         * {
             font-family: 'Inter', sans-serif;
         }
-        
+
         body {
             background: #f5f7fb;
             min-height: 100vh;
         }
-        
+
         /* ===== ANIMATIONS ===== */
-        
-        /* Slide Down Animation for Navbar */
+
         @keyframes slideDown {
             from {
                 transform: translateY(-100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
             }
         }
-        
-        /* Fade In Up Animation */
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
-        /* Fade In Left Animation */
+
         @keyframes fadeInLeft {
             from {
                 opacity: 0;
                 transform: translateX(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
             }
         }
-        
-        /* Fade In Right Animation */
+
         @keyframes fadeInRight {
             from {
                 opacity: 0;
                 transform: translateX(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
             }
         }
-        
-        /* Floating Animation for Icons */
+
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0);
             }
+
             50% {
                 transform: translateY(-8px);
             }
         }
-        
-        /* Pulse Animation */
+
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
             }
+
             50% {
                 transform: scale(1.05);
             }
         }
-        
-        /* Shine Effect */
-        @keyframes shine {
-            0% {
-                left: -100%;
-            }
-            100% {
-                left: 100%;
-            }
-        }
-        
-        /* Rotate Animation for Banner */
+
         @keyframes rotate {
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
         }
-        
-        /* Apply Animations */
-        .navbar-custom {
-            background: #1a1a2e;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            animation: slideDown 0.5s ease;
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease forwards;
         }
-        
+
+        .animate-fadeInLeft {
+            animation: fadeInLeft 0.6s ease forwards;
+        }
+
+        .animate-fadeInRight {
+            animation: fadeInRight 0.6s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+            opacity: 0;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        .float-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Welcome Banner */
         .welcome-banner {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 20px;
@@ -123,7 +141,7 @@
             overflow: hidden;
             animation: fadeInUp 0.6s ease;
         }
-        
+
         .welcome-banner::before {
             content: '';
             position: absolute;
@@ -131,103 +149,93 @@
             right: -20%;
             width: 300px;
             height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
             border-radius: 50%;
             animation: rotate 20s linear infinite;
         }
-        
-        .sidebar-card {
-            border: none;
-            border-radius: 20px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            animation: fadeInLeft 0.5s ease;
-        }
-        
-        /* Action Cards with Staggered Animation */
+
+        /* Action Cards - Minimalist & Proper Alignment */
         .action-card {
             border: none;
-            border-radius: 20px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
             background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+            height: 100%;
             opacity: 0;
             animation: fadeInUp 0.5s ease forwards;
-            position: relative;
-            overflow: hidden;
         }
-        
-        /* Shine effect on hover */
-        .action-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
+
+        .action-card:nth-child(1) {
+            animation-delay: 0.1s;
         }
-        
-        .action-card:hover::before {
-            left: 100%;
+
+        .action-card:nth-child(2) {
+            animation-delay: 0.2s;
         }
-        
-        .action-card:nth-child(1) { animation-delay: 0.1s; }
-        .action-card:nth-child(2) { animation-delay: 0.2s; }
-        .action-card:nth-child(3) { animation-delay: 0.3s; }
-        
+
+        .action-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
         .action-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 30px rgba(0,0,0,0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: #e2e8f0;
         }
-        
+
         .action-card .card-icon {
-            width: 55px;
-            height: 55px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 15px;
+            border-radius: 12px;
             margin-bottom: 1rem;
+            background: #f8f9fa;
+            color: #4a5568;
             transition: all 0.3s ease;
         }
-        
+
         .action-card:hover .card-icon {
-            transform: scale(1.05);
+            background: #e74c3c;
+            color: white;
         }
-        
-        .card-icon.primary { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
-        .card-icon.success { background: rgba(46, 204, 113, 0.1); color: #27ae60; }
-        .card-icon.info { background: rgba(52, 152, 219, 0.1); color: #3498db; }
-        
+
         .action-card .btn {
-            border-radius: 12px;
+            border-radius: 30px;
             padding: 0.5rem 1rem;
             font-weight: 500;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+            width: 100%;
         }
-        
+
         .action-card .btn:hover {
-            transform: translateY(-2px);
+            background: #1a1a2e;
+            border-color: #1a1a2e;
+            color: white;
         }
-        
+
         /* Modern Cards */
         .modern-card {
             border: none;
             border-radius: 20px;
             background: white;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
             animation: fadeInUp 0.5s ease;
             transition: all 0.3s ease;
         }
-        
+
         .modern-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
-        
+
         .card-header-modern {
             background: white;
             border-bottom: 1px solid #eef2f6;
@@ -236,141 +244,190 @@
             border-radius: 20px 20px 0 0 !important;
             color: #1a1a2e;
         }
-        
+
         .card-header-modern i {
             color: #e74c3c;
         }
-        
-        /* Branch Cards with Hover Animation */
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Table Styles - Fitted to Box */
+        .order-table {
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .order-table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            padding: 0.75rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4a5568;
+        }
+
+        .order-table td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.8rem;
+        }
+
+        .order-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .order-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .order-table code {
+            font-size: 0.75rem;
+            word-break: break-word;
+        }
+
+        /* Table Responsive Container */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* Branch Cards */
         .branch-card {
             border: 1px solid #eef2f6;
             border-radius: 12px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background: white;
             margin-bottom: 0.75rem;
-            animation: fadeInRight 0.5s ease;
+            cursor: pointer;
         }
-        
+
         .branch-card:hover {
             border-color: #e74c3c;
             transform: translateX(8px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-        
-        /* Sidebar Items Animation */
-        .sidebar-card .list-group-item {
-            background: white;
-            color: #4a5568;
-            border: none;
-            padding: 0.7rem 1.25rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin: 2px 8px;
-            border-radius: 10px;
-        }
-        
-        .sidebar-card .list-group-item:hover {
-            background: #f8f9fa;
-            color: #e74c3c;
-            transform: translateX(8px);
-        }
-        
-        .sidebar-card .list-group-item.active {
-            background: #fff5f5;
-            color: #e74c3c;
+
+        .branch-card .badge {
+            background: #fef3e2;
+            color: #e67e22;
+            font-size: 0.65rem;
             font-weight: 500;
-            border-left: 3px solid #e74c3c;
+            padding: 2px 8px;
+            border-radius: 20px;
         }
-        
-        .sidebar-card .list-group-item i {
-            width: 24px;
-            color: #a0aec0;
-            transition: transform 0.3s ease;
+
+        /* Badge Styles */
+        .badge-modern {
+            padding: 0.35rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.65rem;
+            white-space: nowrap;
         }
-        
-        .sidebar-card .list-group-item:hover i {
-            transform: scale(1.1);
-            color: #e74c3c;
+
+        /* Map Container */
+        .map-container {
+            height: 280px;
+            width: 100%;
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
         }
-        
-        /* Floating Icon Animation */
-        .float-icon {
-            animation: float 3s ease-in-out infinite;
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
-        
-        /* Pulse Animation for attention */
-        .pulse-icon {
-            animation: pulse 2s ease-in-out infinite;
+
+        /* Branch List Container - No Horizontal Scroll */
+        .branch-list-container {
+            max-height: 250px;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
-        
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: #e74c3c;
             border-radius: 10px;
         }
-        
+
+        /* Footer */
+        .footer-custom {
+            border-top: 1px solid #eef2f6;
+            padding-top: 1rem;
+            margin-top: 2rem;
+            color: #6c757d;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .action-card {
                 margin-bottom: 1rem;
             }
-            
+
             .welcome-banner {
                 padding: 1rem;
             }
+
+            .order-table th,
+            .order-table td {
+                padding: 0.5rem;
+            }
+
+            .badge-modern {
+                font-size: 0.6rem;
+                padding: 0.25rem 0.5rem;
+            }
         }
     </style>
-</head>
-<body>
-    <!-- Navigation with Slide Down Animation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand text-white" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="32" class="d-inline-block align-text-top me-2">
-                Vape Expo
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item me-3">
-                        <span class="text-white-50 small">
-                            <i class="bi bi-person-circle me-1 float-icon"></i> Welcome, <strong class="text-white">{{ Auth::user()->name }}</strong>
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                                <i class="bi bi-box-arrow-right me-1"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container mt-4">
-        <!-- Welcome Banner with Rotating Background Animation -->
+
+    <div class="container">
+        <!-- Welcome Banner -->
         <div class="welcome-banner">
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h4 class="text-white mb-2 fw-bold">
                         <i class="bi bi-stars me-2 text-warning float-icon"></i>Welcome back, {{ Auth::user()->name }}!
                     </h4>
-                    <p class="text-white-50 mb-0">Discover the best vaping experience at Vape Expo. Quality products, great prices, and friendly service.</p>
+                    <p class="text-white-50 mb-0">Discover the best vaping experience at Vape Expo. Quality products, great
+                        prices, and friendly service.</p>
                 </div>
                 <div class="col-md-4 text-md-end">
                     <div class="d-inline-block bg-white bg-opacity-10 rounded-3 px-4 py-2">
@@ -381,194 +438,268 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Sidebar Menu with Fade In Left Animation -->
-            <div class="col-md-3">
-                <div class="card sidebar-card">
-                    <div class="card-header">
-                        <i class="bi bi-grid me-2"></i> Customer Menu
-                    </div>
-                    <div class="list-group list-group-flush">
-                        <a href="{{ route('customer.dashboard') }}" class="list-group-item list-group-item-action active">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                        <a href="{{ route('customer.products.index') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-shop me-2"></i> Browse Products
-                        </a>
-                        <a href="{{ route('customer.cart.index') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-cart me-2"></i> My Cart
-                        </a>
-                        <a href="{{ route('branches.index') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-geo-alt me-2"></i> Branch Locations
-                        </a>
-                        <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-house me-2"></i> Back to Home
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Shop Info Card with Animation -->
-                <div class="card modern-card mt-3">
-                    <div class="card-header-modern">
-                        <i class="bi bi-info-circle me-2"></i> Shop Information
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-person-circle fs-5 me-3 float-icon" style="color: #e74c3c;"></i>
-                            <div>
-                                <small class="text-muted d-block">Owner</small>
-                                <strong class="small">Carlo Caranto</strong>
-                            </div>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1 small">Total Orders</h6>
+                            <h3 class="mb-0 fw-bold text-primary">
+                                {{ ($orderCounts['pending'] ?? 0) + ($orderCounts['processing'] ?? 0) + ($orderCounts['out_for_delivery'] ?? 0) + ($orderCounts['delivered'] ?? 0) }}
+                            </h3>
                         </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-telephone fs-5 me-3 float-icon" style="color: #27ae60;"></i>
-                            <div>
-                                <small class="text-muted d-block">Contact</small>
-                                <strong class="small">0960 328 0432</strong>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clock fs-5 me-3 float-icon" style="color: #f39c12;"></i>
-                            <div>
-                                <small class="text-muted d-block">Business Hours</small>
-                                <strong class="small">9:00 AM – 10:00 PM</strong>
-                            </div>
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                            <i class="bi bi-receipt fs-4 text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Main Content -->
-            <div class="col-md-9">
-                <!-- Quick Action Cards with Staggered Fade In Up Animation -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card action-card">
-                            <div class="card-body">
-                                <div class="card-icon primary">
-                                    <i class="bi bi-shop fs-3"></i>
-                                </div>
-                                <h5 class="card-title">Browse Products</h5>
-                                <p class="card-text">View all available vape products from our collection.</p>
-                                <a href="{{ route('customer.products.index') }}" class="btn btn-primary w-100 rounded-pill">
-                                    Shop Now <i class="bi bi-arrow-right ms-2"></i>
-                                </a>
-                            </div>
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1 small">Total Spent</h6>
+                            <h3 class="mb-0 fw-bold text-success">₱{{ number_format($totalSpent ?? 0, 2) }}</h3>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card action-card">
-                            <div class="card-body">
-                                <div class="card-icon success">
-                                    <i class="bi bi-cart fs-3"></i>
-                                </div>
-                                <h5 class="card-title">My Cart</h5>
-                                <p class="card-text">View and manage your shopping cart items.</p>
-                                <a href="{{ route('customer.cart.index') }}" class="btn btn-success w-100 rounded-pill">
-                                    View Cart <i class="bi bi-arrow-right ms-2"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card action-card">
-                            <div class="card-body">
-                                <div class="card-icon info">
-                                    <i class="bi bi-geo-alt fs-3"></i>
-                                </div>
-                                <h5 class="card-title">Branches</h5>
-                                <p class="card-text">Find our 5 branches near you in Calamba.</p>
-                                <a href="{{ route('branches.index') }}" class="btn btn-info w-100 rounded-pill">
-                                    View Branches <i class="bi bi-arrow-right ms-2"></i>
-                                </a>
-                            </div>
+                        <div class="bg-success bg-opacity-10 p-2 rounded-circle">
+                            <i class="bi bi-cash-stack fs-4 text-success"></i>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Two Column Layout -->
-                <div class="row g-4">
-                    <!-- Recent Orders -->
-                    <div class="col-md-7">
-                        <div class="card modern-card">
-                            <div class="card-header-modern">
-                                <i class="bi bi-clock-history me-2"></i> Recent Orders
-                            </div>
-                            <div class="card-body">
-                                <div class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1 d-block mb-3 float-icon" style="color: #cbd5e0;"></i>
-                                    <p class="mb-3">No orders yet. Start shopping now!</p>
-                                    <a href="{{ route('customer.products.index') }}" class="btn btn-primary rounded-pill px-4">
-                                        <i class="bi bi-shop me-2"></i>Start Shopping
-                                    </a>
-                                </div>
-                            </div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1 small">In Transit</h6>
+                            <h3 class="mb-0 fw-bold text-warning">{{ $orderCounts['out_for_delivery'] ?? 0 }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-2 rounded-circle">
+                            <i class="bi bi-truck fs-4 text-warning"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1 small">Delivered</h6>
+                            <h3 class="mb-0 fw-bold text-info">{{ $orderCounts['delivered'] ?? 0 }}</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-2 rounded-circle">
+                            <i class="bi bi-check-circle-fill fs-4 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Branch Information with Fade In Right Animation -->
-                    <div class="col-md-5">
-                        <div class="card modern-card">
-                            <div class="card-header-modern">
-                                <i class="bi bi-geo-alt me-2"></i> Our Branches
+        <!-- Quick Action Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card action-card">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-shop fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold fs-6 mb-2">Browse Products</h5>
+                        <p class="card-text text-muted small mb-3">View all available vape products from our collection.</p>
+                        <a href="{{ route('customer.products.index') }}" class="btn rounded-pill">
+                            Shop Now <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card action-card">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-cart fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold fs-6 mb-2">My Cart</h5>
+                        <p class="card-text text-muted small mb-3">View and manage your shopping cart items.</p>
+                        <a href="{{ route('customer.cart.index') }}" class="btn rounded-pill">
+                            View Cart <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card action-card">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-truck fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-semibold fs-6 mb-2">Track Orders</h5>
+                        <p class="card-text text-muted small mb-3">Monitor your order status and delivery progress.</p>
+                        <a href="{{ route('customer.orders.index') }}" class="btn rounded-pill">
+                            Track Now <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent Orders Section -->
+            <div class="col-lg-7">
+                <div class="card modern-card">
+                    <div class="card-header-modern d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-clock-history me-2"></i> Recent Orders
+                        </div>
+                        <a href="{{ route('customer.orders.index') }}" class="btn btn-sm btn-link text-decoration-none p-0"
+                            style="color: #e74c3c;">
+                            View All <i class="bi bi-arrow-right ms-1 small"></i>
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (isset($recentOrders) && $recentOrders->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table order-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Date</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($recentOrders as $order)
+                                            <tr>
+                                                <td>
+                                                    <code class="fw-bold">{{ $order->order_number }}</code>
+                                                    @if ($order->delivery)
+                                                        <br><small class="text-muted"><i class="bi bi-upc-scan"></i>
+                                                            {{ $order->delivery->tracking_number ?? 'N/A' }}</small>
+                                                    @endif
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    {{ $order->created_at->format('M d, Y') }}<br>
+                                                    <small
+                                                        class="text-muted">{{ $order->created_at->format('h:i A') }}</small>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <strong
+                                                        class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $statusBadge = [
+                                                            'pending' => [
+                                                                'bg' => 'warning',
+                                                                'icon' => 'bi-clock-history',
+                                                            ],
+                                                            'confirmed' => [
+                                                                'bg' => 'info',
+                                                                'icon' => 'bi-check-circle',
+                                                            ],
+                                                            'processing' => ['bg' => 'primary', 'icon' => 'bi-gear'],
+                                                            'ready' => ['bg' => 'success', 'icon' => 'bi-box-seam'],
+                                                            'out_for_delivery' => [
+                                                                'bg' => 'secondary',
+                                                                'icon' => 'bi-truck',
+                                                            ],
+                                                            'delivered' => [
+                                                                'bg' => 'dark',
+                                                                'icon' => 'bi-check-circle-fill',
+                                                            ],
+                                                            'cancelled' => ['bg' => 'danger', 'icon' => 'bi-x-circle'],
+                                                        ];
+                                                        $badge = $statusBadge[$order->order_status] ?? [
+                                                            'bg' => 'secondary',
+                                                            'icon' => 'bi-info-circle',
+                                                        ];
+                                                    @endphp
+                                                    <span class="badge bg-{{ $badge['bg'] }} badge-modern">
+                                                        <i class="bi {{ $badge['icon'] }} me-1"></i>
+                                                        {{ ucfirst($order->order_status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('customer.orders.show', $order) }}"
+                                                        class="btn btn-sm btn-outline-primary rounded-pill">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="card-body p-3" style="max-height: 380px; overflow-y: auto;">
-                                <div class="branch-card p-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
-                                        <div class="flex-grow-1">
-                                            <strong class="d-block">Majada Out Branch</strong>
-                                            <small class="text-muted d-block">EFG Building, Majada Out Road</small>
-                                            <span class="badge mt-1">Near 7-Eleven and Gran Avila</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="branch-card p-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
-                                        <div class="flex-grow-1">
-                                            <strong class="d-block">Asia 1 Branch</strong>
-                                            <small class="text-muted d-block">Blk 67 Lot 1 Asia 1 Rd., Canlubang</small>
-                                            <span class="badge mt-1">Near Hernandez Grocery and Grimaldo</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="branch-card p-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
-                                        <div class="flex-grow-1">
-                                            <strong class="d-block">MCDC Branch</strong>
-                                            <small class="text-muted d-block">Blk 1 Lot 10 Kapayapaan, Canlubang</small>
-                                            <span class="badge mt-1">Near Geosnack and Mango Royale</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="branch-card p-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
-                                        <div class="flex-grow-1">
-                                            <strong class="d-block">Paciano Branch</strong>
-                                            <small class="text-muted d-block">215 National Road, Brgy. Paciano Rizal</small>
-                                            <span class="badge mt-1">In front of Barangay Hall and 7-Eleven</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="branch-card p-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
-                                        <div class="flex-grow-1">
-                                            <strong class="d-block">Paciano V2 Branch</strong>
-                                            <small class="text-muted d-block">39 Mayapa-Canlubang Cadre Road</small>
-                                            <span class="badge mt-1">Near the area</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr class="my-2">
-                                <div class="text-center mt-2">
-                                    <i class="bi bi-clock me-1 text-warning small float-icon"></i>
-                                    <small class="text-muted">All branches open daily: <strong>9:00 AM – 10:00 PM</strong></small>
-                                </div>
+                        @else
+                            <div class="text-center py-5">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 float-icon" style="color: #cbd5e0;"></i>
+                                <p class="mb-3">No orders yet. Start shopping now!</p>
+                                <a href="{{ route('customer.products.index') }}"
+                                    class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-shop me-2"></i>Start Shopping
+                                </a>
                             </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branch Information with Embedded Map & Directions -->
+            <div class="col-lg-5">
+                <div class="card modern-card">
+                    <div class="card-header-modern">
+                        <i class="bi bi-geo-alt me-2"></i> Our Branches
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="map-container">
+                            <iframe id="branchMap"
+                                src="https://maps.google.com/maps?q=Calamba%20City%20Laguna&t=&z=12&ie=UTF8&iwloc=&output=embed"
+                                allowfullscreen></iframe>
+                        </div>
+
+                        <div class="branch-list-container">
+                            @foreach ($branches as $branch)
+                                @php
+                                    $landmarks = [
+                                        'Majada Out Branch' => 'Near 7-Eleven and Gran Avila',
+                                        'Asia 1 Branch' => 'Near Hernandez Grocery and Grimaldo',
+                                        'MCDC Branch' => 'Near Geosnack and Mango Royale',
+                                        'Paciano Branch' => 'In front of Barangay Hall and 7-Eleven',
+                                        'Paciano V2 Branch' => 'Near the area',
+                                    ];
+                                    $landmark = $landmarks[$branch->name] ?? '';
+                                @endphp
+                                <div class="branch-card p-2 branch-location" data-address="{{ $branch->address }}"
+                                    data-name="{{ $branch->name }}">
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div class="d-flex align-items-start flex-grow-1">
+                                            <i class="bi bi-building fs-5 me-2 text-primary float-icon"></i>
+                                            <div class="flex-grow-1">
+                                                <strong class="d-block">{{ $branch->name }}</strong>
+                                                <small
+                                                    class="text-muted d-block">{{ Str::limit($branch->address, 50) }}</small>
+                                                @if ($landmark)
+                                                    <span class="badge mt-1">{{ $landmark }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="ms-2">
+                                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($branch->address) }}"
+                                                target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                                style="border-color: #e2e8f0; font-size: 0.7rem; padding: 0.2rem 0.5rem; white-space: nowrap;">
+                                                <i class="bi bi-compass"></i> Directions
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <hr class="my-2">
+                        <div class="text-center mt-2">
+                            <i class="bi bi-clock me-1 text-warning small float-icon"></i>
+                            <small class="text-muted">All branches open daily: <strong>9:00 AM – 10:00 PM</strong></small>
                         </div>
                     </div>
                 </div>
@@ -582,12 +713,23 @@
                     <small><i class="bi bi-shield-check me-1"></i> Vape Expo - Quality Vape Products Since 2024</small>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <small><i class="bi bi-telephone me-1"></i> Need help? Contact owner: <strong>Carlo Caranto - 0960 328 0432</strong></small>
+                    <small><i class="bi bi-telephone me-1"></i> Need help? Contact owner: <strong>Carlo Caranto - 0960 328
+                            0432</strong></small>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+    <script>
+        document.querySelectorAll('.branch-location').forEach(item => {
+            item.addEventListener('click', function() {
+                const address = encodeURIComponent(this.dataset.address);
+                const mapIframe = document.getElementById('branchMap');
+                mapIframe.src =
+                    `https://maps.google.com/maps?q=${address}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                document.querySelectorAll('.branch-location').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+@endsection

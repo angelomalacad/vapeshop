@@ -54,10 +54,7 @@ class OnlineOrderController extends Controller
     public function confirm(Order $order)
     {
         if ($order->order_status != 'pending') {
-            if (request()->ajax()) {
-                return response()->json(['success' => false, 'message' => 'Order cannot be confirmed at this stage.']);
-            }
-            return redirect()->back()->with('error', 'Order cannot be confirmed at this stage.');
+            return response()->json(['success' => false, 'message' => 'Order cannot be confirmed. Current status: ' . $order->order_status]);
         }
 
         $branchId = $order->branch_id;
@@ -98,48 +95,41 @@ class OnlineOrderController extends Controller
 
             DB::commit();
 
-            if (request()->ajax()) {
-                return response()->json(['success' => true, 'message' => 'Order confirmed and stock deducted successfully.']);
-            }
-            return redirect()->back()->with('success', 'Order confirmed and stock deducted successfully.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Order confirmed and stock deducted successfully.',
+                'new_status' => 'confirmed'
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            if (request()->ajax()) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()]);
-            }
-            return redirect()->back()->with('error', $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 
     public function markProcessing(Order $order)
     {
         if ($order->order_status != 'confirmed') {
-            if (request()->ajax()) {
-                return response()->json(['success' => false, 'message' => 'Order must be confirmed first.']);
-            }
-            return redirect()->back()->with('error', 'Order must be confirmed first.');
+            return response()->json(['success' => false, 'message' => 'Order must be confirmed first. Current status: ' . $order->order_status]);
         }
 
         $order->update(['order_status' => 'processing']);
 
-        if (request()->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Order marked as processing.']);
-        }
-        return redirect()->back()->with('success', 'Order marked as processing.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Order marked as processing.',
+            'new_status' => 'processing'
+        ]);
     }
 
     public function markReady(Order $order)
     {
         if (!in_array($order->order_status, ['confirmed', 'processing'])) {
-            if (request()->ajax()) {
-                return response()->json(['success' => false, 'message' => 'Order cannot be marked as ready at this stage.']);
-            }
-            return redirect()->back()->with('error', 'Order cannot be marked as ready at this stage.');
+            return response()->json(['success' => false, 'message' => 'Order cannot be marked as ready. Current status: ' . $order->order_status]);
         }
 
         if ($order->delivery_type == 'delivery') {
-            // Check if delivery already exists
+            // Create delivery if not exists
             if (!$order->delivery) {
                 $driverId = Auth::id();
                 $activeShift = DriverShift::where('shift_date', today())
@@ -149,7 +139,7 @@ class OnlineOrderController extends Controller
 
                 if ($activeShift) {
                     $trackingNumber = 'DLV-' . strtoupper(uniqid());
-                    
+
                     Delivery::create([
                         'order_id' => $order->id,
                         'driver_id' => $driverId,
@@ -162,29 +152,22 @@ class OnlineOrderController extends Controller
                     ]);
                 }
             }
-            
-            // Update order status to out_for_delivery
+
             $order->update(['order_status' => 'out_for_delivery']);
-            
-            if (request()->ajax()) {
-                return response()->json([
-                    'success' => true, 
-                    'message' => 'Delivery started! Order is out for delivery.',
-                    'new_status' => 'out_for_delivery'
-                ]);
-            }
-            return redirect()->back()->with('success', 'Delivery started! Order is out for delivery.');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Delivery started! Order is out for delivery.',
+                'new_status' => 'out_for_delivery'
+            ]);
         }
 
         $order->update(['order_status' => 'ready']);
 
-        if (request()->ajax()) {
-            return response()->json([
-                'success' => true, 
-                'message' => 'Order is ready for pickup.',
-                'new_status' => 'ready'
-            ]);
-        }
-        return redirect()->back()->with('success', 'Order is ready for pickup.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Order is ready for pickup.',
+            'new_status' => 'ready'
+        ]);
     }
 }

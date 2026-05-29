@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,26 +11,19 @@
     <style>
         body {
             background: transparent !important;
+            margin: 0;
+            padding: 0;
         }
-        .container-fluid {
-            padding: 20px;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .btn {
-            border-radius: 30px;
-        }
-        .badge {
-            border-radius: 30px;
-            padding: 0.35rem 0.75rem;
+
+        * {
+            box-sizing: border-box;
         }
     </style>
 </head>
+
 <body>
     @yield('content')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
