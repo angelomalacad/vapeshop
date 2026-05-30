@@ -56,10 +56,9 @@ public function index(Request $request)
     // Get all branches
     $branches = Branch::where('is_active', true)->get();
 
-    // Get active deliveries for today
+    // Get active deliveries (those with status assigned, picked_up, or in_transit) - FIXED
     $activeToday = Delivery::with(['order', 'order.branch', 'driver'])
         ->whereIn('status', ['assigned', 'picked_up', 'in_transit'])
-        ->whereDate('assigned_at', Carbon::today())
         ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
         ->get();
 
@@ -80,7 +79,7 @@ public function index(Request $request)
         'delivered' => Delivery::where('status', 'delivered')->count(),
         'failed' => Delivery::where('status', 'failed')->count(),
         'today' => Delivery::whereDate('created_at', Carbon::today())->count(),
-        'active_today' => $activeToday->count(),
+        'active_today' => Delivery::whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count(), // FIXED: Count all active deliveries by status
     ];
 
     // Calculate total revenue from delivered orders

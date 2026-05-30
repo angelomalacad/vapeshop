@@ -239,22 +239,29 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         }));
     })->name('api.product.flavors');
 
-// ===== DRIVER SHIFT MANAGEMENT =====
-Route::prefix('driver-shifts')->name('driver-shifts.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Admin\DriverShiftController::class, 'index'])->name('index');
-    Route::post('/assign', [App\Http\Controllers\Admin\DriverShiftController::class, 'assign'])->name('assign');
-    Route::delete('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
-    Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
-});
+    // ===== DRIVER SHIFT MANAGEMENT =====
+    Route::prefix('driver-shifts')->name('driver-shifts.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\DriverShiftController::class, 'index'])->name('index');
+        Route::post('/assign', [App\Http\Controllers\Admin\DriverShiftController::class, 'assign'])->name('assign');
+        Route::delete('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
+        Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
+    });
+    
     // ===== DELIVERY MANAGEMENT (OWNER) =====
-Route::prefix('deliveries')->name('deliveries.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
-    Route::get('/{delivery}/modal', [App\Http\Controllers\Admin\DeliveryController::class, 'showModal'])->name('show-modal');
-    Route::get('/{delivery}', [App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('show');
-    Route::get('/{delivery}/proof/{type}', [App\Http\Controllers\Admin\DeliveryController::class, 'viewProof'])->name('view-proof');
-    Route::post('/{delivery}/assign-driver', [App\Http\Controllers\Admin\DeliveryController::class, 'assignDriver'])->name('assign-driver');
-    Route::get('/export/report', [App\Http\Controllers\Admin\DeliveryController::class, 'export'])->name('export');
-});
+    Route::prefix('deliveries')->name('deliveries.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
+        Route::get('/{delivery}/modal', [App\Http\Controllers\Admin\DeliveryController::class, 'showModal'])->name('show-modal');
+        Route::get('/{delivery}', [App\Http\Controllers\Admin\DeliveryController::class, 'show'])->name('show');
+        Route::get('/{delivery}/proof/{type}', [App\Http\Controllers\Admin\DeliveryController::class, 'viewProof'])->name('view-proof');
+        Route::post('/{delivery}/assign-driver', [App\Http\Controllers\Admin\DeliveryController::class, 'assignDriver'])->name('assign-driver');
+        Route::get('/export/report', [App\Http\Controllers\Admin\DeliveryController::class, 'export'])->name('export');
+    });
+
+    // ===== ONLINE ORDERS MANAGEMENT (OWNER - READ ONLY) =====
+    Route::prefix('online-orders')->name('online-orders.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\OnlineOrderController::class, 'index'])->name('index');
+        Route::get('/{order}/modal', [App\Http\Controllers\Admin\OnlineOrderController::class, 'showModal'])->name('modal');
+    });
 
     // ===== WAREHOUSE MANAGEMENT (OWNER) =====
     Route::prefix('warehouse')->name('warehouse.')->group(function () {

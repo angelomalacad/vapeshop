@@ -459,11 +459,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <h6 class="text-muted mb-1 small">Total Spent</h6>
-                            <h3 class="mb-0 fw-bold text-success">₱{{ number_format($totalSpent ?? 0, 2) }}</h3>
+                            <h6 class="text-muted mb-1 small">Cart Items</h6>
+                            <h3 class="mb-0 fw-bold text-success">{{ $cartCount ?? 0 }}</h3>
                         </div>
                         <div class="bg-success bg-opacity-10 p-2 rounded-circle">
-                            <i class="bi bi-cash-stack fs-4 text-success"></i>
+                            <i class="bi bi-cart fs-4 text-success"></i>
                         </div>
                     </div>
                 </div>

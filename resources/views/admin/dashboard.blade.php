@@ -263,7 +263,7 @@
         </div>
 
         <div class="row">
-        <!-- Sidebar Menu -->
+ <!-- Sidebar Menu -->
 <div class="col-md-3">
     <div class="card sidebar-card">
         <div class="card-header">
@@ -373,31 +373,43 @@
             <!-- ===== END OF WAREHOUSE SECTION ===== -->
             
             <!-- ===== DELIVERIES SECTION ===== -->
-<div class="text-muted">DELIVERIES</div>
+            <div class="text-muted">DELIVERIES</div>
 
-<a href="{{ route('admin.deliveries.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.deliveries.index') ? 'active' : '' }}">
-    <i class="bi bi-truck me-2 text-primary"></i> All Deliveries
-    @php
-        $pendingDeliveries = \App\Models\Delivery::whereIn('status', ['pending', 'assigned', 'picked_up', 'in_transit'])->count();
-    @endphp
-    @if($pendingDeliveries > 0)
-        <span class="badge bg-warning rounded-pill float-end">{{ $pendingDeliveries }}</span>
-    @endif
-</a>
+            <a href="{{ route('admin.deliveries.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.deliveries.index') ? 'active' : '' }}">
+                <i class="bi bi-truck me-2 text-primary"></i> All Deliveries
+                @php
+                    $pendingDeliveries = \App\Models\Delivery::whereIn('status', ['pending', 'assigned', 'picked_up', 'in_transit'])->count();
+                @endphp
+                @if($pendingDeliveries > 0)
+                    <span class="badge bg-warning rounded-pill float-end">{{ $pendingDeliveries }}</span>
+                @endif
+            </a>
 
+            <!-- ===== ONLINE ORDERS SECTION (OWNER VIEW) ===== -->
+            @if(Route::has('admin.online-orders.index'))
+            <a href="{{ route('admin.online-orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.online-orders.*') ? 'active' : '' }}">
+                <i class="bi bi-cart me-2 text-primary"></i> Online Orders
+                @php
+                    $pendingOnlineOrders = \App\Models\Order::where('order_number', 'NOT LIKE', 'POS-%')
+                        ->whereIn('order_status', ['pending', 'confirmed', 'processing'])
+                        ->count();
+                @endphp
+                @if($pendingOnlineOrders > 0)
+                    <span class="badge bg-warning rounded-pill float-end">{{ $pendingOnlineOrders }}</span>
+                @endif
+            </a>
+            @endif
 
-<a href="{{ route('admin.driver-shifts.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.driver-shifts.*') ? 'active' : '' }}">
-    <i class="bi bi-calendar-check me-2 text-primary"></i> Driver Shifts
-    @php
-        $todayDriver = \App\Models\DriverShift::where('shift_date', today())->where('status', 'active')->first();
-    @endphp
-    @if($todayDriver)
-        <span class="badge bg-success float-end">{{ $todayDriver->driver->name }}</span>
-    @endif
-</a>
-
-
-<!-- ===== END OF DELIVERIES SECTION ===== -->
+            <a href="{{ route('admin.driver-shifts.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.driver-shifts.*') ? 'active' : '' }}">
+                <i class="bi bi-calendar-check me-2 text-primary"></i> Driver Shifts
+                @php
+                    $todayDriver = \App\Models\DriverShift::where('shift_date', today())->where('status', 'active')->first();
+                @endphp
+                @if($todayDriver)
+                    <span class="badge bg-success float-end">{{ $todayDriver->driver->name }}</span>
+                @endif
+            </a>
+            <!-- ===== END OF DELIVERIES SECTION ===== -->
             
             <div class="text-muted">TRANSACTIONS</div>
             

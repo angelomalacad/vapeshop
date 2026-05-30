@@ -12,52 +12,55 @@ use Carbon\Carbon;
 
 class DeliveryController extends Controller
 {
-    /**
-     * Display all deliveries assigned to this driver (across all branches)
-     * Separated into Active and Completed sections
-     */
-    public function index(Request $request)
-    {
-        $driverId = Auth::id();
+ /**
+ * Display all deliveries assigned to this driver (across all branches)
+ * Separated into Active and Completed sections
+ */
+public function index(Request $request)
+{
+    $driverId = Auth::id();
 
-        // Active deliveries (not yet delivered or failed)
-        $activeDeliveries = Delivery::where('driver_id', $driverId)
-            ->whereNotIn('status', ['delivered', 'failed'])
-            ->with(['order', 'order.branch'])
-            ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
-            ->orderBy('created_at', 'desc')
-            ->get();
+    // Active deliveries (not yet delivered or failed) - with pagination
+    $activeDeliveries = Delivery::where('driver_id', $driverId)
+        ->whereNotIn('status', ['delivered', 'failed'])
+        ->with(['order', 'order.branch'])
+        ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
-        // Ensure order relationship is loaded for active deliveries
-        $activeDeliveries->load('order');
+    // Ensure order relationship is loaded for active deliveries
+    $activeDeliveries->load('order');
 
-        // Completed deliveries (delivered or failed) - with pagination
-        $completedDeliveries = Delivery::where('driver_id', $driverId)
-            ->whereIn('status', ['delivered', 'failed'])
-            ->with(['order', 'order.branch'])
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10);
+    // Completed deliveries (delivered or failed) - with pagination
+    $completedDeliveries = Delivery::where('driver_id', $driverId)
+        ->whereIn('status', ['delivered', 'failed'])
+        ->with(['order', 'order.branch'])
+        ->orderBy('updated_at', 'desc')
+        ->paginate(10);
 
-        // Ensure order relationship is loaded for completed deliveries
-        $completedDeliveries->load('order');
+    // Ensure order relationship is loaded for completed deliveries
+    $completedDeliveries->load('order');
 
-        // Calculate total deliveries count
-        $totalDeliveries = Delivery::where('driver_id', $driverId)->count();
+    // Calculate total deliveries count
+    $totalDeliveries = Delivery::where('driver_id', $driverId)->count();
 
-        // Calculate counts for stats
-        $stats = [
-            'total' => $totalDeliveries,
-            'pending' => Delivery::where('driver_id', $driverId)->where('status', 'pending')->count(),
-            'assigned' => Delivery::where('driver_id', $driverId)->where('status', 'assigned')->count(),
-            'picked_up' => Delivery::where('driver_id', $driverId)->where('status', 'picked_up')->count(),
-            'in_transit' => Delivery::where('driver_id', $driverId)->where('status', 'in_transit')->count(),
-            'delivered' => Delivery::where('driver_id', $driverId)->where('status', 'delivered')->count(),
-            'failed' => Delivery::where('driver_id', $driverId)->where('status', 'failed')->count(),
-        ];
+    // Calculate counts for stats
+    $stats = [
+        'total' => $totalDeliveries,
+        'pending' => Delivery::where('driver_id', $driverId)->where('status', 'pending')->count(),
+        'assigned' => Delivery::where('driver_id', $driverId)->where('status', 'assigned')->count(),
+        'picked_up' => Delivery::where('driver_id', $driverId)->where('status', 'picked_up')->count(),
+        'in_transit' => Delivery::where('driver_id', $driverId)->where('status', 'in_transit')->count(),
+        'delivered' => Delivery::where('driver_id', $driverId)->where('status', 'delivered')->count(),
+        'failed' => Delivery::where('driver_id', $driverId)->where('status', 'failed')->count(),
+    ];
 
-        return view('driver.deliveries.index', compact('activeDeliveries', 'completedDeliveries', 'totalDeliveries', 'stats'));
-    }
+    // Calculate active and completed counts for the header badges
+    $activeCount = Delivery::where('driver_id', $driverId)->whereNotIn('status', ['delivered', 'failed'])->count();
+    $completedCount = Delivery::where('driver_id', $driverId)->whereIn('status', ['delivered', 'failed'])->count();
 
+    return view('driver.deliveries.index', compact('activeDeliveries', 'completedDeliveries', 'totalDeliveries', 'stats', 'activeCount', 'completedCount'));
+}
     /**
      * Show a specific delivery
      */
@@ -277,4 +280,5 @@ class DeliveryController extends Controller
             'recentOnlineOrders'
         ));
     }
+ 
 }
