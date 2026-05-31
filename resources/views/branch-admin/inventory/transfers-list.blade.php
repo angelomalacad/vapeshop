@@ -62,24 +62,26 @@
                             <td><code>{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
                             
-                            <!-- FROM Column -->
+                            <!-- FROM Column - Check for NULL from_branch_id (warehouse transfer) -->
                             <td>
-                                @if($transfer->transfer_type == 'warehouse_to_branch')
-                                    <span class="badge bg-primary">Warehouse</span>
+                                @if(is_null($transfer->from_branch_id))
+                                    Main Warehouse
+                                @elseif($transfer->fromBranch)
+                                    {{ $transfer->fromBranch->name }}
                                 @else
-                                    {{ $transfer->fromBranch->name ?? 'N/A' }}
+                                    <span class="text-muted">N/A</span>
                                 @endif
                                 @if($transfer->from_branch_id == Auth::user()->branch_id)
                                     <span class="badge bg-info ms-1">Your Branch</span>
                                 @endif
                             </td>
                             
-                            <!-- TO Column -->
+                            <!-- TO Column - Safe null handling -->
                             <td>
-                                @if($transfer->transfer_type == 'warehouse_to_branch')
-                                    {{ $transfer->toBranch->name ?? 'N/A' }}
+                                @if($transfer->toBranch)
+                                    {{ $transfer->toBranch->name }}
                                 @else
-                                    {{ $transfer->toBranch->name ?? 'N/A' }}
+                                    <span class="text-muted">Branch Deleted or N/A</span>
                                 @endif
                                 @if($transfer->to_branch_id == Auth::user()->branch_id)
                                     <span class="badge bg-info ms-1">Your Branch</span>
@@ -88,7 +90,7 @@
                             
                             <td>{{ $transfer->product->name ?? 'N/A' }}</td>
                             <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
-                            <td><strong>{{ $transfer->quantity }}</strong></td>
+                            <td><strong>{{ number_format($transfer->quantity) }}</strong></td>
                             <td>
                                 @php
                                     $statusColors = [
@@ -115,7 +117,7 @@
                                 @if($transfer->requestedBy)
                                     <small>{{ $transfer->requestedBy->name }}</small>
                                 @else
-                                    <small class="text-muted">N/A</small>
+                                    <small class="text-muted">System</small>
                                 @endif
                             </td>
                             <td>
@@ -123,7 +125,6 @@
                                     <!-- FOR OUTGOING TRANSFERS (from your branch - you are the SOURCE) -->
                                     @if($transfer->from_branch_id == Auth::user()->branch_id)
                                         @if($transfer->status == 'pending')
-                                            <!-- Outgoing pending - Source branch can approve or reject -->
                                             <form action="{{ route('branch-admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-success" title="Approve Transfer" onclick="return confirm('Approve this transfer request?')">
@@ -142,7 +143,6 @@
                                     <!-- FOR INCOMING TRANSFERS (to your branch - you are the DESTINATION) -->
                                     @if($transfer->to_branch_id == Auth::user()->branch_id)
                                         @if($transfer->status == 'approved')
-                                            <!-- Incoming approved - Destination branch can receive -->
                                             <form action="{{ route('branch-admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 <button type="submit" class="btn btn-primary" title="Receive Stock" onclick="return confirm('Mark this transfer as received?')">
@@ -154,7 +154,7 @@
                                         @endif
                                     @endif
                                     
-                                    <!-- REQUESTER CANCEL - Anyone can cancel their own pending request -->
+                                    <!-- REQUESTER CANCEL -->
                                     @if($transfer->requested_by == Auth::user()->id && $transfer->status == 'pending')
                                         <form action="{{ route('branch-admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline">
                                             @csrf
@@ -182,11 +182,26 @@
                 </table>
             </div>
             
-            <!-- Pagination -->
-            @if(method_exists($transfers, 'links'))
-            <div class="d-flex justify-content-center mt-4">
-                {{ $transfers->links() }}
-            </div>
+            <!-- Simple Previous/Next Pagination -->
+            @if(method_exists($transfers, 'hasPages') && $transfers->hasPages())
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
+                    <div class="text-muted small">
+                        Showing {{ $transfers->firstItem() }} to {{ $transfers->lastItem() }} of {{ $transfers->total() }} results
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if ($transfers->onFirstPage())
+                            <span class="btn btn-secondary disabled">Previous</span>
+                        @else
+                            <a href="{{ $transfers->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                        @endif
+                        
+                        @if ($transfers->hasMorePages())
+                            <a href="{{ $transfers->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                        @else
+                            <span class="btn btn-secondary disabled">Next</span>
+                        @endif
+                    </div>
+                </div>
             @endif
         </div>
     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Branch Admin Management - Vape Expo')
+@section('title', 'Branch Admin & Driver Management - Vape Expo')
 
 @section('content')
 <div class="container-fluid px-4">
@@ -9,9 +9,9 @@
         <div class="d-flex align-items-center">
             <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
             <div>
-                <h1 class="h3 mb-1 fw-bold">Branch Admin Management</h1>
+                <h1 class="h3 mb-1 fw-bold">Branch Admin & Driver Management</h1>
                 <p class="text-muted mb-0">
-                    <i class="bi bi-people-fill me-1"></i> Manage branch administrators and staff
+                    <i class="bi bi-people-fill me-1"></i> Manage branch administrators and drivers
                 </p>
             </div>
         </div>
@@ -29,8 +29,8 @@
     <div class="row g-3 mb-4">
         @php
             $totalBranchAdmins = \App\Models\User::where('role', 'branch_admin')->count();
-            $totalStaff = \App\Models\User::where('role', 'staff')->count();
-            $activeUsers = \App\Models\User::whereIn('role', ['branch_admin', 'staff'])->where('is_active', true)->count();
+            $totalDrivers = \App\Models\User::where('role', 'driver')->count();
+            $activeUsers = \App\Models\User::whereIn('role', ['branch_admin', 'driver'])->where('is_active', true)->count();
             $totalBranches = \App\Models\Branch::count();
         @endphp
         <div class="col-md-3">
@@ -49,22 +49,22 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card border-0 shadow-sm bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-white-50 mb-1">Staff Members</h6>
-                            <h2 class="mb-0 fw-bold">{{ $totalStaff }}</h2>
+                            <h6 class="text-white-50 mb-1">Drivers</h6>
+                            <h2 class="mb-0 fw-bold">{{ $totalDrivers }}</h2>
                         </div>
                         <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-person-badge fs-4"></i>
+                            <i class="bi bi-truck fs-4"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card border-0 shadow-sm bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -112,7 +112,7 @@
                     <select name="role" class="form-select">
                         <option value="">All Roles</option>
                         <option value="branch_admin" {{ request('role') == 'branch_admin' ? 'selected' : '' }}>Branch Admin</option>
-                        <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Staff</option>
+                        <option value="driver" {{ request('role') == 'driver' ? 'selected' : '' }}>Driver</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -151,7 +151,7 @@
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-semibold">
                 <i class="bi bi-people-fill me-2 text-primary"></i>
-                Branch Personnel
+                Branch Admins & Drivers
             </h5>
             <span class="text-muted small">Total: {{ $branchAdmins->total() }}</span>
         </div>
@@ -183,19 +183,19 @@
                                             <small class="text-muted">ID: #{{ $admin->id }}</small>
                                         </div>
                                     </div>
-                                </td>
-                                <td>{{ $admin->email }}</td>
+                                 </div>
+                                <td>{{ $admin->email }}</div>
                                 <td>
                                     @if ($admin->role == 'branch_admin')
                                         <span class="badge bg-primary px-3 py-2">
                                             <i class="bi bi-shield-check me-1"></i> Branch Admin
                                         </span>
-                                    @else
-                                        <span class="badge bg-info text-white px-3 py-2">
-                                            <i class="bi bi-person-badge me-1"></i> Staff
+                                    @elseif ($admin->role == 'driver')
+                                        <span class="badge bg-success px-3 py-2">
+                                            <i class="bi bi-truck me-1"></i> Driver
                                         </span>
                                     @endif
-                                </td>
+                                 </div>
                                 <td>
                                     @if($admin->branch)
                                         <span class="fw-semibold">{{ $admin->branch->name }}</span>
@@ -204,8 +204,8 @@
                                     @else
                                         <span class="text-muted">N/A</span>
                                     @endif
-                                </td>
-                                <td>{{ $admin->phone ?? 'N/A' }}</td>
+                                 </div>
+                                <td>{{ $admin->phone ?? 'N/A' }}</div>
                                 <td>
                                     @if ($admin->is_active ?? true)
                                         <span class="badge bg-success px-3 py-2">
@@ -216,7 +216,7 @@
                                             <i class="bi bi-x-circle me-1"></i> Inactive
                                         </span>
                                     @endif
-                                </td>
+                                 </div>
                                 <td class="pe-4 text-end">
                                     <div class="btn-group btn-group-sm">
                                         <button type="button" class="btn btn-outline-warning edit-btn" 
@@ -231,7 +231,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
-                                </td>
+                                 </div>
                             </tr>
                         @empty
                             <tr>
@@ -241,7 +241,7 @@
                                     <a href="{{ route('admin.branch-admin.create') }}" class="btn btn-primary rounded-pill px-4">
                                         <i class="bi bi-person-plus me-1"></i> Add First Record
                                     </a>
-                                </td>
+                                 </div>
                             </tr>
                         @endforelse
                     </tbody>
@@ -249,29 +249,49 @@
             </div>
         </div>
 
+        <!-- Pagination with Previous/Next only -->
         @if ($branchAdmins->hasPages())
             <div class="card-footer bg-white">
-                <div class="d-flex justify-content-center">
-                    {{ $branchAdmins->withQueryString()->links() }}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Showing {{ $branchAdmins->firstItem() }} to {{ $branchAdmins->lastItem() }} of {{ $branchAdmins->total() }} results
+                    </div>
+                    <div class="pagination-container">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination mb-0">
+                                @if ($branchAdmins->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link rounded-pill px-3">
+                                            <i class="bi bi-arrow-left me-1"></i> Previous
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill px-3" href="{{ $branchAdmins->previousPageUrl() }}" rel="prev">
+                                            <i class="bi bi-arrow-left me-1"></i> Previous
+                                        </a>
+                                    </li>
+                                @endif
+
+                                @if ($branchAdmins->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill px-3" href="{{ $branchAdmins->nextPageUrl() }}" rel="next">
+                                            Next <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link rounded-pill px-3">
+                                            Next <i class="bi bi-arrow-right ms-1"></i>
+                                        </span>
+                                    </li>
+                                @endif
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         @endif
-    </div>
-
-    <!-- Footer -->
-    <div class="mt-4 pt-3 text-muted border-top">
-        <div class="row">
-            <div class="col-md-6">
-                <p class="mb-0">
-                    <i class="bi bi-telephone me-2"></i> Contact: <strong>Carlo Caranto - 0960 328 0432</strong>
-                </p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <p class="mb-0">
-                    <i class="bi bi-shield-check me-2"></i> Vape Expo - Authorized Personnel Only
-                </p>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -291,7 +311,7 @@
 
 <!-- Delete Confirmation Modals -->
 @foreach ($branchAdmins as $admin)
-    <div class="modal fade" id="deleteModal{{ $admin->id }}" tabindex="-1">
+    <div class="modal fade id="deleteModal{{ $admin->id }}" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
@@ -321,19 +341,13 @@
 @endforeach
 
 <script>
-    // Simple modal loader
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded');
-        
-        // Add click handlers to edit buttons
         const editButtons = document.querySelectorAll('.edit-btn');
-        console.log('Found ' + editButtons.length + ' edit buttons');
         
         editButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const userId = this.getAttribute('data-id');
                 const url = '/admin/branch-admin/' + userId + '/modal-edit';
-                console.log('Opening modal for user:', userId);
                 
                 const editModal = document.getElementById('editModal');
                 const modalContent = editModal.querySelector('.modal-content');

@@ -18,85 +18,190 @@ use Carbon\Carbon;
 
 class InventoryController extends Controller
 {
-    /**
-     * Display branch inventory
-     */
-    public function index(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+  /**
+ * Display branch inventory
+ */
+public function index(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        $query = BranchInventory::with(['product', 'flavor'])
-            ->where('branch_id', $branchId);
+    // Your existing query for my branch
+    $query = BranchInventory::with(['product', 'flavor'])
+        ->where('branch_id', $branchId);
 
-        // Search filter
-        if ($request->filled('search')) {
-            $query->whereHas('product', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%');
+    // Search filter
+    if ($request->filled('search')) {
+        $query->whereHas('product', function($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%');
+        });
+    }
+
+    // Filter by product
+    if ($request->filled('product_id')) {
+        $query->where('product_id', $request->product_id);
+    }
+
+    // Filter by flavor
+    if ($request->filled('flavor_id')) {
+        $query->where('flavor_id', $request->flavor_id);
+    }
+
+    // Filter by stock status
+    if ($request->filled('stock_status')) {
+        if ($request->stock_status === 'low') {
+            $query->lowStock()->where('is_archived', false)->where('is_disposed', false);
+        } elseif ($request->stock_status === 'out') {
+            $query->outOfStock()->where('is_archived', false)->where('is_disposed', false);
+        } elseif ($request->stock_status === 'archived') {
+            $query->where('is_archived', true)->where('is_disposed', false);
+        }
+    } else {
+        $query->where('is_archived', false)->where('is_disposed', false);
+    }
+
+    $inventories = $query->paginate(20);
+
+    // Get all other branches
+    $otherBranchesQuery = \App\Models\Branch::where('id', '!=', $branchId);
+    
+    if ($request->filled('branch_filter')) {
+        $otherBranchesQuery->where('id', $request->branch_filter);
+    }
+    
+    $otherBranches = $otherBranchesQuery->get();
+    
+    // Get all products for filter dropdown
+    $allProducts = Product::where('is_active', true)->get();
+    
+    // Initialize array for branch inventories
+    $branchInventories = [];
+    
+    foreach ($otherBranches as $branch) {
+        // Get branch-specific page number
+        $pageKey = 'branch_page_' . $branch->id;
+        $page = $request->get($pageKey, 1);
+        
+        // Query for this branch's inventory
+        $branchQuery = BranchInventory::with(['product', 'flavor', 'branch'])
+            ->where('branch_id', $branch->id)
+            ->where('is_archived', false)
+            ->where('is_disposed', false)
+            ->where('quantity', '>', 0);
+        
+        // Apply search filter
+        if ($request->filled('search_other')) {
+            $branchQuery->whereHas('product', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search_other . '%');
             });
         }
-
-        // Filter by product
-        if ($request->filled('product_id')) {
-            $query->where('product_id', $request->product_id);
+        
+        // Apply product filter
+        if ($request->filled('product_id_other')) {
+            $branchQuery->where('product_id', $request->product_id_other);
         }
-
-        // Filter by flavor
-        if ($request->filled('flavor_id')) {
-            $query->where('flavor_id', $request->flavor_id);
-        }
-
-        // Filter by stock status (including archived)
-        if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'low') {
-                $query->lowStock()->where('is_archived', false);
-            } elseif ($request->stock_status === 'out') {
-                $query->outOfStock()->where('is_archived', false);
-            } elseif ($request->stock_status === 'archived') {
-                $query->where('is_archived', true);
-            }
-        } else {
-            // Default: exclude archived items unless explicitly requested
-            $query->where('is_archived', false);
-        }
-
-        $inventories = $query->paginate(20);
-
-        $products = Product::where('is_active', true)->get();
-        $lowStockCount = BranchInventory::where('branch_id', $branchId)->lowStock()->where('is_archived', false)->count();
-
-        return view('branch-admin.inventory.index', compact(
-            'inventories', 'products', 'lowStockCount'
-        ));
+        
+        // Get total count
+        $total = $branchQuery->count();
+        
+        // Paginate with 5 items per page
+        $branchItems = $branchQuery->paginate(5, ['*'], 'branch_page_' . $branch->id, $page);
+        
+        $branchInventories[$branch->id] = [
+            'items' => $branchItems,
+            'total' => $total
+        ];
     }
 
-    /**
-     * Show stock movement history for the branch.
-     * Can be filtered by product and flavor.
-     */
-    public function stockHistory(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+    $products = Product::where('is_active', true)->get();
+    $lowStockCount = BranchInventory::where('branch_id', $branchId)
+        ->lowStock()
+        ->where('is_archived', false)
+        ->where('is_disposed', false)
+        ->count();
 
-        // Build the query for StockMovement, eager loading relationships
-        $query = StockMovement::with(['product', 'flavor', 'creator'])
-            ->where('branch_id', $branchId);
+    return view('branch-admin.inventory.index', compact(
+        'inventories', 'products', 'lowStockCount', 'branchInventories', 'allProducts'
+    ));
+}
+  /**
+ * Show stock movement history for the branch.
+ * Can be filtered by product, flavor, type, and date range.
+ */
+public function stockHistory(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        // Filter by product if provided in the request
-        if ($request->filled('product_id')) {
-            $query->where('product_id', $request->product_id);
-        }
+    // Build the query for StockMovement, eager loading relationships
+    $query = StockMovement::with(['product', 'flavor', 'creator'])
+        ->where('branch_id', $branchId);
 
-        // Filter by flavor if provided in the request
-        if ($request->filled('flavor_id')) {
-            $query->where('flavor_id', $request->flavor_id);
-        }
-
-        // Order by most recent first and paginate
-        $movements = $query->orderBy('created_at', 'desc')->paginate(50);
-
-        return view('branch-admin.inventory.stock-history', compact('movements'));
+    // Filter by product if provided in the request
+    if ($request->filled('product_id')) {
+        $query->where('product_id', $request->product_id);
     }
 
+    // Filter by flavor if provided in the request
+    if ($request->filled('flavor_id')) {
+        $query->where('flavor_id', $request->flavor_id);
+    }
+
+    // Filter by movement type (purchase, sale, receive, transfer_out, transfer_in, adjustment, etc.)
+    if ($request->filled('type')) {
+        $query->where('movement_type', $request->type);
+    }
+
+    // Filter by date range - from date
+    if ($request->filled('date_from')) {
+        $query->whereDate('created_at', '>=', $request->date_from);
+    }
+
+    // Filter by date range - to date
+    if ($request->filled('date_to')) {
+        $query->whereDate('created_at', '<=', $request->date_to);
+    }
+
+    // Get summary statistics for the filtered results
+    $summary = [
+        'total_in' => (clone $query)->where('quantity_change', '>', 0)->sum('quantity_change'),
+        'total_out' => abs((clone $query)->where('quantity_change', '<', 0)->sum('quantity_change')),
+        'total_movements' => (clone $query)->count(),
+        'unique_products' => (clone $query)->distinct('product_id')->count('product_id'),
+    ];
+
+    // Order by most recent first and paginate
+    $movements = $query->orderBy('created_at', 'desc')->paginate(20);
+
+    // Get products for filter dropdown - FIXED: Use direct query instead of relationship
+    $products = \App\Models\Product::whereIn('id', function($subquery) use ($branchId) {
+        $subquery->select('product_id')
+            ->from('stock_movements')
+            ->where('branch_id', $branchId)
+            ->distinct();
+    })->get();
+
+    // Get flavors for filter dropdown - FIXED: Use direct query instead of relationship
+    $flavors = \App\Models\ProductFlavor::whereIn('id', function($subquery) use ($branchId) {
+        $subquery->select('flavor_id')
+            ->from('stock_movements')
+            ->where('branch_id', $branchId)
+            ->whereNotNull('flavor_id')
+            ->distinct();
+    })->get();
+
+    // Get movement types for filter dropdown
+    $movementTypes = StockMovement::where('branch_id', $branchId)
+        ->distinct()
+        ->pluck('movement_type');
+
+    // Pass filter parameters to view for maintaining filter state
+    return view('branch-admin.inventory.stock-history', compact(
+        'movements', 
+        'products', 
+        'flavors', 
+        'summary',
+        'movementTypes'
+    ));
+}
     /**
      * Show low stock items for this branch
      */
@@ -767,40 +872,47 @@ public function warehouseStock(Request $request)
     }
 
     /**
-     * Return only the transfer form (modal content) - no layout
-     */
-    public function transferModal(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+ * Return only the transfer form (modal content) - no layout
+ */
+public function transferModal(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        $products = Product::with('flavors')->where('is_active', true)->get();
-        $sourceBranches = Branch::where('id', '!=', $branchId)->get();
-        $currentBranch = Branch::where('id', $branchId)->first();
+    $products = Product::with('flavors')->where('is_active', true)->get();
+    $sourceBranches = Branch::where('id', '!=', $branchId)->get();
+    $currentBranch = Branch::where('id', $branchId)->first();
 
-        $selectedProduct = null;
-        $selectedFlavor = null;
-        $maxQuantity = 0;
+    $selectedProduct = null;
+    $selectedFlavor = null;
+    $maxQuantity = 0;
+    $preSelectedFromBranch = null;
 
-        if ($request->filled('inventory_id')) {
-            $inventory = BranchInventory::with(['product', 'flavor'])
-                ->where('branch_id', $branchId)
-                ->findOrFail($request->inventory_id);
+    // Check if we have an inventory_id from another branch
+    if ($request->filled('inventory_id')) {
+        // Don't filter by current branch - we need to get inventory from ANY branch
+        $inventory = BranchInventory::with(['product', 'flavor'])
+            ->findOrFail($request->inventory_id);
 
-            $selectedProduct = $inventory->product;
-            $selectedFlavor = $inventory->flavor;
-            $maxQuantity = $inventory->available_quantity;
-        }
-
-        $preSelectedFromBranch = $request->get('from_branch');
-        $preSelectedProductId = $request->get('product_id');
-        $preSelectedFlavorId = $request->get('flavor_id');
-
-        return view('branch-admin.inventory.modals.transfer', compact(
-            'products', 'sourceBranches', 'currentBranch',
-            'selectedProduct', 'selectedFlavor', 'maxQuantity',
-            'preSelectedFromBranch', 'preSelectedProductId', 'preSelectedFlavorId'
-        ));
+        $selectedProduct = $inventory->product;
+        $selectedFlavor = $inventory->flavor;
+        $maxQuantity = $inventory->available_quantity;
+        $preSelectedFromBranch = $inventory->branch_id;
     }
+    
+    // Get from_branch parameter from request (if provided directly)
+    if ($request->filled('from_branch')) {
+        $preSelectedFromBranch = $request->from_branch;
+    }
+
+    $preSelectedProductId = $request->get('product_id');
+    $preSelectedFlavorId = $request->get('flavor_id');
+
+    return view('branch-admin.inventory.modals.transfer', compact(
+        'products', 'sourceBranches', 'currentBranch',
+        'selectedProduct', 'selectedFlavor', 'maxQuantity',
+        'preSelectedFromBranch', 'preSelectedProductId', 'preSelectedFlavorId'
+    ));
+}
 
     /**
      * Return only the show modal content (no layout)
@@ -948,24 +1060,27 @@ public function warehouseStock(Request $request)
         }
     }
 
-    /**
-     * Complete a transfer (for DESTINATION branch - the one receiving stock)
-     */
-    public function completeTransfer(StockTransfer $transfer)
-    {
-        $branchId = Auth::user()->branch_id;
+   /**
+ * Complete a transfer (for DESTINATION branch - the one receiving stock)
+ */
+public function completeTransfer(StockTransfer $transfer)
+{
+    $branchId = Auth::user()->branch_id;
 
-        if ($transfer->to_branch_id !== $branchId) {
-            abort(403, 'Unauthorized access. Only the destination branch can complete transfers.');
-        }
+    if ($transfer->to_branch_id !== $branchId) {
+        abort(403, 'Unauthorized access. Only the destination branch can complete transfers.');
+    }
 
-        if ($transfer->status !== 'approved') {
-            return redirect()->back()->with('error', 'Only approved transfers can be completed.');
-        }
+    if ($transfer->status !== 'approved') {
+        return redirect()->back()->with('error', 'Only approved transfers can be completed.');
+    }
 
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        try {
+    try {
+        // Handle source inventory (only for branch-to-branch transfers)
+        $sourceInventory = null;
+        if ($transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
                 ->where('product_id', $transfer->product_id)
                 ->when($transfer->flavor_id, function($query) use ($transfer) {
@@ -975,79 +1090,95 @@ public function warehouseStock(Request $request)
 
             if ($sourceInventory) {
                 $sourceInventory->update([
-                    'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity,
-                    'quantity' => $sourceInventory->quantity - $transfer->quantity,
+                    'reserved_quantity' => max(0, $sourceInventory->reserved_quantity - $transfer->quantity),
+                    'quantity' => max(0, $sourceInventory->quantity - $transfer->quantity),
                 ]);
             }
+        }
 
-            $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
+        // Handle destination inventory
+        $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
 
-            if ($destInventory) {
-                $destInventory->update([
-                    'quantity' => $destInventory->quantity + $transfer->quantity,
-                    'last_restocked_at' => now(),
-                ]);
-            } else {
-                $destInventory = BranchInventory::create([
-                    'branch_id' => $transfer->to_branch_id,
-                    'product_id' => $transfer->product_id,
-                    'flavor_id' => $transfer->flavor_id,
-                    'quantity' => $transfer->quantity,
-                    'reserved_quantity' => 0,
-                    'low_stock_threshold' => 10,
-                    'reorder_point' => 20,
-                    'optimal_stock' => 50,
-                    'last_restocked_at' => now(),
-                ]);
-            }
+        $oldDestQuantity = $destInventory ? $destInventory->quantity : 0;
+        $newDestQuantity = $oldDestQuantity + $transfer->quantity;
 
+        if ($destInventory) {
+            $destInventory->update([
+                'quantity' => $newDestQuantity,
+                'last_restocked_at' => now(),
+            ]);
+        } else {
+            $destInventory = BranchInventory::create([
+                'branch_id' => $transfer->to_branch_id,
+                'product_id' => $transfer->product_id,
+                'flavor_id' => $transfer->flavor_id,
+                'quantity' => $transfer->quantity,
+                'reserved_quantity' => 0,
+                'low_stock_threshold' => 10,
+                'reorder_point' => 20,
+                'optimal_stock' => 50,
+                'last_restocked_at' => now(),
+            ]);
+        }
+
+        // Record stock movement for source (only if from_branch exists and not warehouse)
+        if ($sourceInventory && $transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
+            $fromBranchName = $transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown Branch';
             StockMovement::create([
                 'branch_id' => $transfer->from_branch_id,
                 'product_id' => $transfer->product_id,
                 'flavor_id' => $transfer->flavor_id,
-                'previous_quantity' => $sourceInventory ? $sourceInventory->quantity : 0,
-                'new_quantity' => $sourceInventory ? $sourceInventory->quantity : 0,
+                'previous_quantity' => $sourceInventory->quantity + $transfer->quantity,
+                'new_quantity' => $sourceInventory->quantity,
                 'quantity_change' => -$transfer->quantity,
                 'movement_type' => 'transfer_out',
                 'reference_type' => 'transfer',
                 'reference_id' => $transfer->id,
-                'notes' => 'Transfer to ' . $transfer->toBranch->name,
+                'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Branch') . ($transfer->transfer_type == 'warehouse_to_branch' ? ' (from Warehouse)' : ''),
                 'created_by' => Auth::id(),
             ]);
-
-            StockMovement::create([
-                'branch_id' => $transfer->to_branch_id,
-                'product_id' => $transfer->product_id,
-                'flavor_id' => $transfer->flavor_id,
-                'previous_quantity' => $destInventory->quantity - $transfer->quantity,
-                'new_quantity' => $destInventory->quantity,
-                'quantity_change' => $transfer->quantity,
-                'movement_type' => 'transfer_in',
-                'reference_type' => 'transfer',
-                'reference_id' => $transfer->id,
-                'notes' => 'Transfer from ' . $transfer->fromBranch->name,
-                'created_by' => Auth::id(),
-            ]);
-
-            $transfer->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer completed successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error completing transfer: ' . $e->getMessage());
         }
-    }
 
+        // Record stock movement for destination - SAFE with null checks
+        $toBranchName = $transfer->toBranch ? $transfer->toBranch->name : 'Your Branch';
+        $fromSourceName = ($transfer->transfer_type == 'warehouse_to_branch') ? 'Main Warehouse' : ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown');
+        
+        StockMovement::create([
+            'branch_id' => $transfer->to_branch_id,
+            'product_id' => $transfer->product_id,
+            'flavor_id' => $transfer->flavor_id,
+            'previous_quantity' => $oldDestQuantity,
+            'new_quantity' => $newDestQuantity,
+            'quantity_change' => $transfer->quantity,
+            'movement_type' => 'transfer_in',
+            'reference_type' => 'transfer',
+            'reference_id' => $transfer->id,
+            'notes' => 'Transfer from ' . $fromSourceName,
+            'created_by' => Auth::id(),
+        ]);
+
+        $transfer->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+            'received_by' => Auth::id(),
+            'received_at' => now(),
+        ]);
+
+        DB::commit();
+
+        return redirect()->back()->with('success', 'Transfer completed successfully. Stock has been added to your inventory.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error completing transfer: ' . $e->getMessage());
+        \Log::error('Transfer ID: ' . $transfer->id);
+        return redirect()->back()->with('error', 'Error completing transfer: ' . $e->getMessage());
+    }
+}
     /**
      * Cancel transfer (for the requester)
      */
@@ -1282,4 +1413,60 @@ public function warehouseStock(Request $request)
         $inventory->update(['is_archived' => false]);
         return redirect()->back()->with('success', 'Inventory item restored from archive.');
     }
+ /**
+ * Dispose an inventory item (permanently remove to disposed items)
+ */
+public function dispose(Request $request, BranchInventory $inventory)
+{
+    // Ensure inventory belongs to user's branch
+    if ($inventory->branch_id !== Auth::user()->branch_id) {
+        abort(403, 'Unauthorized access.');
+    }
+
+    // Debug logging to check if method is called
+    \Log::info('Dispose method called for inventory ID: ' . $inventory->id);
+    \Log::info('Dispose reason: ' . $request->dispose_reason);
+
+    try {
+        $inventory->update([
+            'is_disposed' => true,
+            'dispose_reason' => $request->dispose_reason,
+            'disposed_at' => now()
+        ]);
+        
+        \Log::info('Item disposed successfully. is_disposed = ' . $inventory->fresh()->is_disposed);
+        
+        // Redirect back to inventory index with success message and hash to disposed tab
+        return redirect()->route('branch-admin.inventory.index', ['tab' => 'disposed', '#disposed'])
+            ->with('success', 'Item disposed successfully.');
+    } catch (\Exception $e) {
+        \Log::error('Error disposing item: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Error disposing item: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Restore a disposed inventory item
+ */
+public function restoreDisposed(BranchInventory $inventory)
+{
+    // Ensure inventory belongs to user's branch
+    if ($inventory->branch_id !== Auth::user()->branch_id) {
+        abort(403, 'Unauthorized access.');
+    }
+
+    try {
+        $inventory->update([
+            'is_disposed' => false,
+            'dispose_reason' => null,
+            'disposed_at' => null
+        ]);
+        
+        return redirect()->route('branch-admin.inventory.index')
+            ->with('success', 'Item restored from disposed items.');
+    } catch (\Exception $e) {
+        \Log::error('Error restoring item: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Error restoring item: ' . $e->getMessage());
+    }
+}
 }

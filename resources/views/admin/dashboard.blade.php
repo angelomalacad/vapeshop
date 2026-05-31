@@ -419,15 +419,6 @@
                 </a>
             @endif
             
-            @if(Route::has('admin.orders.index'))
-                <a href="{{ route('admin.orders.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-                    <i class="bi bi-cart me-2"></i> Orders
-                </a>
-            @else
-                <a href="#" class="list-group-item list-group-item-action disabled" tabindex="-1" aria-disabled="true">
-                    <i class="bi bi-cart me-2"></i> Orders (Coming Soon)
-                </a>
-            @endif
             
             <div class="text-muted">REPORTS</div>
             

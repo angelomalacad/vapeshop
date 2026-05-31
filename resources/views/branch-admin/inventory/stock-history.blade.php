@@ -11,15 +11,83 @@
                 <i class="bi bi-clock-history me-1"></i> Complete log of all stock changes for your branch
             </p>
         </div>
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('branch-admin.warehouse.index') }}" class="btn btn-outline-primary">
+                <i class="bi bi-building"></i> Warehouse Requests
+            </a>
+            <a href="{{ url()->previous() }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
     </div>
 
-    <div class="card">
+    <!-- Filter Section Only (No Statistics Cards) -->
+    <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
+            <form method="GET" action="{{ route('branch-admin.inventory.stock-history') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Movement Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="purchase" {{ request('type') == 'purchase' ? 'selected' : '' }}>Purchase</option>
+                        <option value="sale" {{ request('type') == 'sale' ? 'selected' : '' }}>Sale</option>
+                        <option value="receive" {{ request('type') == 'receive' ? 'selected' : '' }}>Warehouse Receive</option>
+                        <option value="transfer_out" {{ request('type') == 'transfer_out' ? 'selected' : '' }}>Transfer Out</option>
+                        <option value="transfer_in" {{ request('type') == 'transfer_in' ? 'selected' : '' }}>Transfer In</option>
+                        <option value="adjustment" {{ request('type') == 'adjustment' ? 'selected' : '' }}>Adjustment</option>
+                        <option value="return" {{ request('type') == 'return' ? 'selected' : '' }}>Return</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Product</label>
+                    <select name="product_id" class="form-select">
+                        <option value="">All Products</option>
+                        @foreach($products ?? [] as $product)
+                            <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
+                                {{ $product->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Flavor</label>
+                    <select name="flavor_id" class="form-select">
+                        <option value="">All Flavors</option>
+                        @foreach($flavors ?? [] as $flavor)
+                            <option value="{{ $flavor->id }}" {{ request('flavor_id') == $flavor->id ? 'selected' : '' }}>
+                                {{ $flavor->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-secondary w-100">
+                            <i class="bi bi-arrow-repeat"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Date & Time</th>
@@ -37,8 +105,13 @@
                         @forelse($movements as $movement)
                         <tr>
                             <td>{{ $movement->created_at->format('M d, Y - h:i A') }}</td>
-                            <td>{{ $movement->product->name ?? 'N/A' }}</td>
-                            <td>{{ $movement->flavor->name ?? 'N/A' }}</td>
+                            <td>
+                                <strong>{{ $movement->product->name ?? 'N/A' }}</strong>
+                                @if($movement->product && $movement->product->brand)
+                                    <br><small class="text-muted">{{ $movement->product->brand }}</small>
+                                @endif
+                            </td>
+                            <td>{{ $movement->flavor->name ?? 'No Flavor' }}</td>
                             <td>
                                 @php
                                     $typeColors = [
@@ -46,24 +119,37 @@
                                         'sale' => 'danger',
                                         'transfer_out' => 'warning',
                                         'transfer_in' => 'info',
+                                        'receive' => 'primary',
                                         'return' => 'primary',
                                         'adjustment' => 'secondary',
-                                        'damaged' => 'dark',
-                                        'expired' => 'dark'
+                                    ];
+                                    $typeIcons = [
+                                        'purchase' => 'bi-box-arrow-in-down',
+                                        'sale' => 'bi-cart-x',
+                                        'receive' => 'bi-building',
+                                        'transfer_out' => 'bi-send',
+                                        'transfer_in' => 'bi-download',
+                                        'adjustment' => 'bi-sliders'
                                     ];
                                     $color = $typeColors[$movement->movement_type] ?? 'secondary';
+                                    $icon = $typeIcons[$movement->movement_type] ?? 'bi-clock';
                                 @endphp
                                 <span class="badge bg-{{ $color }}">
+                                    <i class="{{ $icon }} me-1"></i>
                                     {{ ucfirst(str_replace('_', ' ', $movement->movement_type)) }}
                                 </span>
-                            </td>
+                            <td>
                             <td class="{{ $movement->quantity_change > 0 ? 'text-success' : 'text-danger' }}">
-                                <strong>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ $movement->quantity_change }}</strong>
+                                <strong>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ number_format($movement->quantity_change) }}</strong>
                             </td>
-                            <td>{{ $movement->previous_quantity }}</td>
-                            <td>{{ $movement->new_quantity }}</td>
-                            <td>{{ Str::limit($movement->notes, 30) }}</td>
-                            <td>{{ $movement->creator->name ?? 'System' }}</td>
+                            <td>{{ number_format($movement->previous_quantity) }}</td>
+                            <td>{{ number_format($movement->new_quantity) }}</td>
+                            <td>
+                                <small class="text-muted">{{ Str::limit($movement->notes, 50) }}</small>
+                            </td>
+                            <td>
+                                <small>{{ $movement->creator->name ?? 'System' }}</small>
+                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -77,10 +163,27 @@
                 </table>
             </div>
 
-            <!-- Pagination Links -->
-            <div class="d-flex justify-content-center mt-4">
-                {{ $movements->withQueryString()->links() }}
-            </div>
+            <!-- Simple Previous/Next Pagination -->
+            @if ($movements->hasPages())
+                <div class="d-flex justify-content-between align-items-center p-3 bg-white">
+                    <div class="text-muted small">
+                        Showing {{ $movements->firstItem() }} to {{ $movements->lastItem() }} of {{ $movements->total() }} results
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if ($movements->onFirstPage())
+                            <span class="btn btn-secondary disabled">Previous</span>
+                        @else
+                            <a href="{{ $movements->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                        @endif
+                        
+                        @if ($movements->hasMorePages())
+                            <a href="{{ $movements->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                        @else
+                            <span class="btn btn-secondary disabled">Next</span>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

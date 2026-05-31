@@ -342,17 +342,36 @@
                                     </a>
                                 </div>
                             </td>
-                        </table>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="card-footer bg-white">
-            <div class="d-flex justify-content-center">
-                {{ $transfers->withQueryString()->links() }}
+        
+        <!-- Simple Previous/Next Pagination (No Chevrons) -->
+        @if ($transfers->hasPages())
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Showing {{ $transfers->firstItem() }} to {{ $transfers->lastItem() }} of {{ $transfers->total() }} results
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if ($transfers->onFirstPage())
+                            <span class="btn btn-secondary disabled">Previous</span>
+                        @else
+                            <a href="{{ $transfers->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                        @endif
+                        
+                        @if ($transfers->hasMorePages())
+                            <a href="{{ $transfers->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                        @else
+                            <span class="btn btn-secondary disabled">Next</span>
+                        @endif
+                    </div>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 </div>
 

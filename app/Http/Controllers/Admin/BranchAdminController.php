@@ -15,11 +15,11 @@ use Illuminate\Auth\Events\Registered;
 class BranchAdminController extends Controller
 {
     /**
-     * Display a listing of branch admins and staff.
+     * Display a listing of branch admins, staff, and drivers.
      */
     public function index()
     {
-        $branchAdmins = User::whereIn('role', ['branch_admin', 'staff'])
+        $branchAdmins = User::whereIn('role', ['branch_admin', 'staff', 'driver'])
                     ->with('branch')
                     ->orderBy('role')
                     ->orderBy('name')
@@ -31,7 +31,7 @@ class BranchAdminController extends Controller
     }
 
     /**
-     * Show the form for creating a new branch admin or staff.
+     * Show the form for creating a new branch admin, staff, or driver.
      */
     public function create()
     {
@@ -39,69 +39,67 @@ class BranchAdminController extends Controller
         return view('admin.branch-admin.create', compact('branches'));
     }
 
-    
     /**
- * Store a newly created branch admin or staff.
- */
-/**
- * Store a newly created branch admin or staff.
- */
-public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-        'password' => ['required', 'string', 'min:8', 'confirmed'],
-        'role' => ['required', 'in:branch_admin,staff'],
-        'branch_id' => ['required', 'exists:branches,id'],
-        'phone' => ['required', 'string', 'max:20'],
-        'address' => ['nullable', 'string', 'max:500'],
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()
-            ->withErrors($validator)
-            ->withInput();
-    }
-
-    try {
-        $plainPassword = $request->password;
-        
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($plainPassword),
-            'role' => $request->role,
-            'branch_id' => $request->branch_id,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'email_verified_at' => null, // Not verified yet
-            'is_active' => true,
+     * Store a newly created branch admin, staff, or driver.
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'in:branch_admin,staff,driver'],
+            'branch_id' => ['required', 'exists:branches,id'],
+            'phone' => ['required', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Send welcome email with verification link
-        Mail::to($user->email)->send(new WelcomeStaffMail($user, $plainPassword));
-        
-        // Trigger email verification notification
-        event(new Registered($user));
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
-        return redirect()->route('admin.branch-admin.index')
-            ->with('success', 'Branch staff account created successfully. A welcome email with verification link has been sent to ' . $user->email);
+        try {
+            $plainPassword = $request->password;
             
-    } catch (\Exception $e) {
-        \Log::error('Error creating user: ' . $e->getMessage());
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Error creating account: ' . $e->getMessage());
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($plainPassword),
+                'role' => $request->role,
+                'branch_id' => $request->branch_id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'email_verified_at' => null,
+                'is_active' => true,
+            ]);
+
+            // Send welcome email with verification link
+            Mail::to($user->email)->send(new WelcomeStaffMail($user, $plainPassword));
+            
+            // Trigger email verification notification
+            event(new Registered($user));
+
+            $roleName = $request->role == 'branch_admin' ? 'Branch Admin' : ($request->role == 'staff' ? 'Staff' : 'Driver');
+            
+            return redirect()->route('admin.branch-admin.index')
+                ->with('success', $roleName . ' account created successfully. A welcome email with verification link has been sent to ' . $user->email);
+                
+        } catch (\Exception $e) {
+            \Log::error('Error creating user: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error creating account: ' . $e->getMessage());
+        }
     }
-}
 
     /**
      * Show edit modal content
      */
     public function modalEdit(User $branchAdmin)
     {
-        if (!in_array($branchAdmin->role, ['branch_admin', 'staff'])) {
+        if (!in_array($branchAdmin->role, ['branch_admin', 'staff', 'driver'])) {
             abort(404);
         }
         
@@ -110,71 +108,74 @@ public function store(Request $request)
         return view('admin.branch-admin.modals.edit', compact('branchAdmin', 'branches'));
     }
 
-/**
- * Update a branch admin or staff account.
- */
-public function update(Request $request, User $branchAdmin)
-{
-    if (!in_array($branchAdmin->role, ['branch_admin', 'staff'])) {
-        abort(404);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $branchAdmin->id],
-        'role' => ['required', 'in:branch_admin,staff'],
-        'branch_id' => ['required', 'exists:branches,id'],
-        'phone' => ['required', 'string', 'max:20'],
-        'address' => ['nullable', 'string', 'max:500'],
-        'is_active' => ['boolean'],
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()
-            ->withErrors($validator)
-            ->withInput();
-    }
-
-    // Update password if provided
-    if ($request->filled('password')) {
-        $branchAdmin->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'branch_id' => $request->branch_id,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'is_active' => $request->has('is_active'),
-            'password' => Hash::make($request->password),
-        ]);
-    } else {
-        $branchAdmin->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'branch_id' => $request->branch_id,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'is_active' => $request->has('is_active'),
-        ]);
-    }
-
-    return redirect()->route('admin.branch-admin.index')
-        ->with('success', 'Account updated successfully.');
-}
-
     /**
-     * Remove a branch admin or staff account.
+     * Update a branch admin, staff, or driver account.
      */
-    public function destroy(User $branchAdmin)
+    public function update(Request $request, User $branchAdmin)
     {
-        if (!in_array($branchAdmin->role, ['branch_admin', 'staff'])) {
+        if (!in_array($branchAdmin->role, ['branch_admin', 'staff', 'driver'])) {
             abort(404);
         }
 
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $branchAdmin->id],
+            'role' => ['required', 'in:branch_admin,staff,driver'],
+            'branch_id' => ['required', 'exists:branches,id'],
+            'phone' => ['required', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'is_active' => ['boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Update password if provided
+        if ($request->filled('password')) {
+            $branchAdmin->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'role' => $request->role,
+                'branch_id' => $request->branch_id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'is_active' => $request->has('is_active'),
+                'password' => Hash::make($request->password),
+            ]);
+        } else {
+            $branchAdmin->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'role' => $request->role,
+                'branch_id' => $request->branch_id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'is_active' => $request->has('is_active'),
+            ]);
+        }
+
+        $roleName = $branchAdmin->role == 'branch_admin' ? 'Branch Admin' : ($branchAdmin->role == 'staff' ? 'Staff' : 'Driver');
+        
+        return redirect()->route('admin.branch-admin.index')
+            ->with('success', $roleName . ' account updated successfully.');
+    }
+
+    /**
+     * Remove a branch admin, staff, or driver account.
+     */
+    public function destroy(User $branchAdmin)
+    {
+        if (!in_array($branchAdmin->role, ['branch_admin', 'staff', 'driver'])) {
+            abort(404);
+        }
+
+        $roleName = $branchAdmin->role == 'branch_admin' ? 'Branch Admin' : ($branchAdmin->role == 'staff' ? 'Staff' : 'Driver');
         $branchAdmin->delete();
 
         return redirect()->route('admin.branch-admin.index')
-            ->with('success', 'Account deleted successfully.');
+            ->with('success', $roleName . ' account deleted successfully.');
     }
 }

@@ -29,11 +29,9 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Role <span class="text-danger">*</span></label>
-                    <select name="role" class="form-select" required>
-                        <option value="staff" {{ $branchAdmin->role == 'staff' ? 'selected' : '' }}>Staff</option>
-                        <option value="branch_admin" {{ $branchAdmin->role == 'branch_admin' ? 'selected' : '' }}>Branch Admin</option>
-                    </select>
+                    <label class="form-label">Role</label>
+                    <input type="text" class="form-control" value="{{ $branchAdmin->role == 'branch_admin' ? 'Branch Admin' : 'Driver' }}" readonly disabled>
+                    <small class="text-muted text-primary">Role cannot be changed</small>
                 </div>
             </div>
 

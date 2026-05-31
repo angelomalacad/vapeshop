@@ -22,6 +22,7 @@ class StockTransfer extends Model
         'notes',
         'approved_at',
         'completed_at',
+        'expiration_date',
     ];
 
     protected $casts = [

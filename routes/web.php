@@ -413,39 +413,45 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         ->name('api.product.flavors');
 
     // ===== BRANCH STAFF INVENTORY ROUTES =====
-    Route::prefix('inventory')->name('inventory.')->group(function () {
-        Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
-        Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
-        Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
-        Route::get('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStockForm'])->name('quick-add-stock');
-        Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
-        Route::get('/add-to-inventory/{product}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventoryForm'])->name('add-to-inventory');
-        Route::post('/add-to-inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventory'])->name('add-to-inventory.post');
-        Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
-        Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
-        Route::get('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferForm'])->name('transfer.form');
-        Route::post('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestTransfer'])->name('transfer.request');
-        Route::get('/transfers', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transfers'])->name('transfers');
-        Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
-        Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
-        Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
-        Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
-        Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
-        Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
-        Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
-        Route::get('/{inventory}/show-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'showModal'])->name('show-modal');
-        Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('check-availability');
-        Route::post('/{inventory}/archive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'archive'])->name('archive');
-        Route::post('/{inventory}/unarchive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'unarchive'])->name('unarchive');
-        Route::get('/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('edit');
-        Route::get('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockForm'])->name('add-stock');
-        Route::post('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStock'])->name('add-stock.post');
-        Route::get('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStockForm'])->name('adjust-stock');
-        Route::post('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStock'])->name('adjust-stock.post');
-        Route::put('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'update'])->name('update');
-        Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
-        Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
-    });
+Route::prefix('inventory')->name('inventory.')->group(function () {
+    Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
+    Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
+    Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
+    Route::get('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStockForm'])->name('quick-add-stock');
+    Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
+    Route::get('/add-to-inventory/{product}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventoryForm'])->name('add-to-inventory');
+    Route::post('/add-to-inventory', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventory'])->name('add-to-inventory.post');
+    Route::get('/low-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'lowStock'])->name('low-stock');
+    Route::get('/stock-history', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'stockHistory'])->name('stock-history');
+    Route::get('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferForm'])->name('transfer.form');
+    Route::post('/transfer/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestTransfer'])->name('transfer.request');
+    Route::get('/transfers', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transfers'])->name('transfers');
+    Route::post('/transfers/{transfer}/approve', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'approveTransfer'])->name('transfers.approve');
+    Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
+    Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
+    Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
+    
+    // MOVED THESE BEFORE THE PARAMETERIZED ROUTES
+    Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
+    Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('check-availability');
+    
+    // PARAMETERIZED ROUTES - KEEP THESE AT THE BOTTOM
+    Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
+    Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
+    Route::get('/{inventory}/show-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'showModal'])->name('show-modal');
+    Route::post('/{inventory}/archive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'archive'])->name('archive');
+    Route::post('/{inventory}/unarchive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'unarchive'])->name('unarchive');
+    Route::post('/{inventory}/dispose', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'dispose'])->name('dispose');
+    Route::post('/{inventory}/restore-disposed', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'restoreDisposed'])->name('restore-disposed');
+    Route::get('/{inventory}/edit', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'edit'])->name('edit');
+    Route::get('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockForm'])->name('add-stock');
+    Route::post('/{inventory}/add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStock'])->name('add-stock.post');
+    Route::get('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStockForm'])->name('adjust-stock');
+    Route::post('/{inventory}/adjust-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'adjustStock'])->name('adjust-stock.post');
+    Route::put('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'update'])->name('update');
+    Route::delete('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'destroy'])->name('destroy');
+    Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
+});
 
     // ===== POINT OF SALE ROUTES =====
     Route::prefix('pos')->name('pos.')->group(function () {
@@ -460,12 +466,16 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
     });
 
-    // ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
-    Route::prefix('warehouse')->name('warehouse.')->group(function () {
-        Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'warehouseStock'])->name('index');
-        Route::post('/request', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'requestWarehouseStock'])->name('request');
-        Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'receiveWarehouseStock'])->name('receive');
-    });
+    // ===== API ROUTE FOR FLAVORS =====
+Route::get('/api/products/{product}/flavors', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'getProductFlavors'])
+    ->name('api.product.flavors');
+
+// ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====
+Route::prefix('warehouse')->name('warehouse.')->group(function () {
+    Route::get('/', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'index'])->name('index');
+    Route::post('/request', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'requestStock'])->name('request');
+    Route::post('/transfer/{transfer}/receive', [App\Http\Controllers\BranchAdmin\WarehouseRequestController::class, 'receiveTransfer'])->name('receive');
+});
 });
 
 // ===========================================================================
