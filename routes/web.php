@@ -90,10 +90,13 @@ Route::post('/register', function () {
         'password' => 'required|string|min:8|confirmed',
         'phone' => 'required|string|max:20',
         'address' => 'required|string|max:500',
+        'barangay' => 'nullable|string|max:100',        
+        'landmark' => 'nullable|string|max:255', 
         'city' => 'nullable|string|max:100',
         'province' => 'nullable|string|max:100',
         'zip_code' => 'nullable|string|max:10',
         'birthdate' => 'nullable|date|before:'.now()->subYears(18)->format('Y-m-d'),
+        'gender' => 'nullable|string|in:male,female,prefer_not_to_say',
         'terms' => 'required|accepted',
     ]);
 
@@ -104,10 +107,13 @@ Route::post('/register', function () {
         'role' => 'customer',
         'phone' => $validated['phone'],
         'address' => $validated['address'],
+        'barangay' => $validated['barangay'] ?? null,      
+        'landmark' => $validated['landmark'] ?? null,
         'city' => $validated['city'] ?? 'Calamba',
         'province' => $validated['province'] ?? 'Laguna',
         'zip_code' => $validated['zip_code'] ?? null,
         'birthdate' => $validated['birthdate'] ?? null,
+        'gender' => $validated['gender'] ?? null,
         'receive_notifications' => request()->has('newsletter'),
         'receive_promotions' => request()->has('newsletter'),
         'is_active' => true,
@@ -528,6 +534,23 @@ Route::prefix('api')->group(function () {
             'reserved' => $inventory->reserved_quantity ?? 0,
         ]);
     })->name('api.stock.check');
+    
+    // ADD THIS - Warehouse availability check API
+    Route::get('/warehouse/check', function(\Illuminate\Http\Request $request) {
+        $query = \App\Models\WarehouseInventory::where('product_id', $request->product_id)
+            ->where('quantity', '>', 0);
+        
+        if ($request->flavor_id) {
+            $query->where('flavor_id', $request->flavor_id);
+        }
+        
+        $inventory = $query->first();
+        
+        return response()->json([
+            'success' => true,
+            'available' => $inventory ? $inventory->quantity : 0
+        ]);
+    })->name('api.warehouse.check');
 });
 
 // Temporary test route

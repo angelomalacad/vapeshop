@@ -89,31 +89,32 @@
                                 <div class="mb-1">
                                     <span class="badge bg-success">In Stock: {{ $inventoryItem->quantity }}</span>
                                 </div>
-                                <a href="{{ route('branch-admin.inventory.add-stock', $inventoryItem) }}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-plus-circle"></i> Add Stock
-                                </a>
                             @else
                                 <div class="mb-1">
                                     <span class="badge bg-secondary">Not in inventory</span>
                                 </div>
-                                <!-- UPDATED: Changed to new route -->
-                                <a href="{{ route('branch-admin.inventory.add-to-inventory', $product->id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-plus-circle"></i> Add to Inventory
-                                </a>
+                                <!-- REMOVED: Add to Inventory button -->
                             @endif
                         </div>
                         <div>
-                            <a href="{{ route('branch-admin.products.show', $product) }}" class="btn btn-sm btn-outline-info" title="View Details">
+                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#productModal{{ $product->id }}" title="View Details">
                                 <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-sm btn-outline-warning" title="Edit Product">
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editProductModal{{ $product->id }}" title="Edit Product">
                                 <i class="bi bi-pencil"></i>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Include View Modal -->
+        @include('branch-admin.products.modals.show', ['product' => $product])
+        
+        <!-- Include Edit Modal -->
+        @include('branch-admin.products.modals.edit', ['product' => $product])
+
         @empty
         <div class="col-12">
             <div class="card">

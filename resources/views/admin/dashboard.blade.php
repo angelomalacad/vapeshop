@@ -359,17 +359,7 @@
                 <i class="bi bi-building me-2"></i> Warehouse Stock
             </a>
 
-            <a href="{{ route('admin.warehouse.pending') }}" class="list-group-item list-group-item-action ps-4 {{ request()->routeIs('admin.warehouse.pending') ? 'active' : '' }}">
-                <i class="bi bi-clock-history me-2 text-warning"></i> Pending Requests
-                @php
-                    $pendingWarehouseRequests = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')
-                        ->where('status', 'pending')
-                        ->count();
-                @endphp
-                @if($pendingWarehouseRequests > 0)
-                    <span class="badge bg-danger rounded-pill float-end">{{ $pendingWarehouseRequests }}</span>
-                @endif
-            </a>
+           
             <!-- ===== END OF WAREHOUSE SECTION ===== -->
             
             <!-- ===== DELIVERIES SECTION ===== -->

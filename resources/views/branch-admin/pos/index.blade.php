@@ -248,9 +248,9 @@
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Customer Name</label>
+                            <label class="form-label">Customer Name (Optional)</label>
                             <input type="text" name="customer_name" class="form-control"
-                                placeholder="Walk-in Customer (optional)">
+                                placeholder="Walk-in Customer">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Customer Phone (Optional)</label>

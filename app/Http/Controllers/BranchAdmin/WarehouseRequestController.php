@@ -193,7 +193,7 @@ class WarehouseRequestController extends Controller
             'previous_quantity' => $oldQuantity,
             'new_quantity' => $newQuantity,
             'quantity_change' => $transfer->quantity,
-            'movement_type' => 'transfer_in',
+            'movement_type' => 'warehouse_receive', // Changed from 'transfer_in' to 'warehouse_receive'
             'reference_type' => 'stock_transfer',
             'reference_id' => $transfer->id,
             'notes' => 'Received from warehouse: ' . $transfer->transfer_number . ' | Product: ' . $productName . ' | Flavor: ' . $flavorName . ' | Expiry: ' . ($inventory->expiration_date ? \Carbon\Carbon::parse($inventory->expiration_date)->format('Y-m-d') : 'N/A'),

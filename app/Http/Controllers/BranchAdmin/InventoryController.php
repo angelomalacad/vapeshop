@@ -693,91 +693,133 @@ public function warehouseStock(Request $request)
     }
 
     /**
-     * Show form to request stock transfer
-     */
-    public function transferForm(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+ * Show form to request stock transfer
+ */
+public function transferForm(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        $products = Product::with('flavors')->where('is_active', true)->get();
+    $products = Product::with('flavors')->where('is_active', true)->get();
 
-        // Get ALL OTHER branches (potential sources of stock)
-        $sourceBranches = Branch::where('id', '!=', $branchId)->get();
+    // Get ALL OTHER branches (potential sources of stock)
+    $sourceBranches = Branch::where('id', '!=', $branchId)->get();
 
-        // Get current branch (destination)
-        $currentBranch = Branch::where('id', $branchId)->first();
+    // Get current branch (destination)
+    $currentBranch = Branch::where('id', $branchId)->first();
 
-        $selectedProduct = null;
-        $selectedFlavor = null;
-        $maxQuantity = 0;
+    $selectedProduct = null;
+    $selectedFlavor = null;
+    $maxQuantity = 0;
 
-        if ($request->filled('inventory_id')) {
-            $inventory = BranchInventory::with(['product', 'flavor'])
-                ->where('branch_id', $branchId)
-                ->findOrFail($request->inventory_id);
+    if ($request->filled('inventory_id')) {
+        $inventory = BranchInventory::with(['product', 'flavor'])
+            ->where('branch_id', $branchId)
+            ->findOrFail($request->inventory_id);
 
-            $selectedProduct = $inventory->product;
-            $selectedFlavor = $inventory->flavor;
-            $maxQuantity = $inventory->available_quantity;
-        }
-
-        return view('branch-admin.inventory.transfer', compact(
-            'products', 'sourceBranches', 'currentBranch',
-            'selectedProduct', 'selectedFlavor', 'maxQuantity'
-        ));
+        $selectedProduct = $inventory->product;
+        $selectedFlavor = $inventory->flavor;
+        $maxQuantity = $inventory->available_quantity;
     }
 
+    return view('branch-admin.inventory.transfer', compact(
+        'products', 'sourceBranches', 'currentBranch',
+        'selectedProduct', 'selectedFlavor', 'maxQuantity'
+    ));
+}
+
     /**
-     * Request stock transfer (for requesting branch)
-     */
-    public function requestTransfer(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+ * Request stock transfer (for requesting branch)
+ */
+public function requestTransfer(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        $request->validate([
-            'from_branch_id' => 'required|exists:branches,id|different:' . $branchId,
-            'to_branch_id' => 'required|exists:branches,id',
-            'product_id' => 'required|exists:products,id',
-            'flavor_id' => 'nullable|exists:product_flavors,id',
-            'quantity' => 'required|integer|min:1',
-            'notes' => 'nullable|string|max:500',
-        ]);
+    $request->validate([
+        'from_branch_id' => 'required',
+        'to_branch_id' => 'required|exists:branches,id',
+        'product_id' => 'required|exists:products,id',
+        'flavor_id' => 'nullable|exists:product_flavors,id',
+        'quantity' => 'required|integer|min:1',
+        'notes' => 'nullable|string|max:500',
+    ]);
 
-        // Verify that to_branch_id is the requesting branch (your branch)
-        if ($request->to_branch_id != $branchId) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'You can only request stock to your own branch.');
-        }
+    // Verify that to_branch_id is the requesting branch (your branch)
+    if ($request->to_branch_id != $branchId) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'You can only request stock to your own branch.');
+    }
 
-        // Build the query to find inventory in source branch
-        $query = BranchInventory::where('branch_id', $request->from_branch_id)
-            ->where('product_id', $request->product_id);
+    DB::beginTransaction();
 
-        if ($request->filled('flavor_id')) {
-            $query->where('flavor_id', $request->flavor_id);
-        }
+    try {
+        // Check if requesting from Main Warehouse (value "0")
+        if ($request->from_branch_id == '0') {
+            // Check warehouse inventory
+            $warehouse = WarehouseInventory::where('product_id', $request->product_id)
+                ->when($request->filled('flavor_id'), function($query) use ($request) {
+                    return $query->where('flavor_id', $request->flavor_id);
+                })
+                ->first();
 
-        $sourceInventory = $query->first();
+            if (!$warehouse) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'This product is not available in the warehouse.');
+            }
 
-        // Check if product exists in source branch
-        if (!$sourceInventory) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'This product is not available in the selected source branch.');
-        }
+            if ($warehouse->quantity < $request->quantity) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Insufficient stock at warehouse. Available: {$warehouse->quantity}, Requested: {$request->quantity}");
+            }
 
-        // Check if enough stock is available
-        if ($sourceInventory->available_quantity < $request->quantity) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', "Insufficient stock at source branch. Available: {$sourceInventory->available_quantity}, Requested: {$request->quantity}");
-        }
+            // Create transfer request from warehouse
+            $transfer = StockTransfer::create([
+                'transfer_type' => 'warehouse_to_branch',
+                'from_branch_id' => null,
+                'to_branch_id' => $request->to_branch_id,
+                'product_id' => $request->product_id,
+                'flavor_id' => $request->flavor_id,
+                'quantity' => $request->quantity,
+                'status' => 'pending',
+                'requested_by' => Auth::id(),
+                'transfer_number' => 'WH-REQ-' . date('Ymd') . '-' . rand(1000, 9999),
+                'notes' => $request->notes,
+                'expiration_date' => $warehouse->expiration_date,
+            ]);
 
-        DB::beginTransaction();
+            DB::commit();
 
-        try {
-            // Create transfer request
+            return redirect()->route('branch-admin.inventory.transfers')
+                ->with('success', 'Stock request sent to owner for approval!');
+
+        } else {
+            // Check branch inventory (existing logic)
+            $query = BranchInventory::where('branch_id', $request->from_branch_id)
+                ->where('product_id', $request->product_id);
+
+            if ($request->filled('flavor_id')) {
+                $query->where('flavor_id', $request->flavor_id);
+            }
+
+            $sourceInventory = $query->first();
+
+            // Check if product exists in source branch
+            if (!$sourceInventory) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'This product is not available in the selected source branch.');
+            }
+
+            // Check if enough stock is available
+            if ($sourceInventory->available_quantity < $request->quantity) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Insufficient stock at source branch. Available: {$sourceInventory->available_quantity}, Requested: {$request->quantity}");
+            }
+
+            // Create transfer request for branch-to-branch
             $transfer = StockTransfer::create([
                 'transfer_type' => 'branch_to_branch',
                 'from_branch_id' => $request->from_branch_id,
@@ -787,6 +829,7 @@ public function warehouseStock(Request $request)
                 'quantity' => $request->quantity,
                 'status' => 'pending',
                 'requested_by' => Auth::id(),
+                'transfer_number' => 'TRF-' . date('Ymd') . '-' . rand(1000, 9999),
                 'notes' => $request->notes,
             ]);
 
@@ -799,52 +842,78 @@ public function warehouseStock(Request $request)
 
             return redirect()->route('branch-admin.inventory.transfers')
                 ->with('success', 'Transfer request submitted successfully. Waiting for source branch approval.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error requesting transfer: ' . $e->getMessage());
         }
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Error requesting transfer: ' . $e->getMessage());
     }
+}
+
 
     /**
-     * View transfer requests
+     * View Transfer
      */
-    public function transfers(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
-
-        $query = StockTransfer::with([
-                'fromBranch',
-                'toBranch',
-                'product',
-                'flavor',
-                'requestedBy',
-                'approvedBy'
-            ])
-            ->where(function($q) use ($branchId) {
-                $q->where('from_branch_id', $branchId)
-                  ->orWhere('to_branch_id', $branchId);
+public function transfers(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
+    $activeTab = $request->get('tab', 'all');
+    $filter = $request->get('filter', 'all');
+    
+    $query = StockTransfer::with([
+            'fromBranch',
+            'toBranch',
+            'product',
+            'flavor',
+            'requestedBy',
+            'approvedBy'
+        ]);
+    
+    if ($activeTab == 'warehouse') {
+        // MAIN WAREHOUSE TAB - ONLY transfers FROM warehouse TO this branch
+        // from_branch_id is NULL AND to_branch_id is current branch
+        $query->whereNull('from_branch_id')
+              ->where('to_branch_id', $branchId);
+              
+    } elseif ($activeTab == 'branch') {
+        // BRANCH TO BRANCH TAB - EXCLUDE warehouse transfers
+        $query->whereNotNull('from_branch_id')
+              ->where('transfer_type', 'branch_to_branch');
+        
+        if ($filter == 'incoming') {
+            $query->where('to_branch_id', $branchId);
+        } elseif ($filter == 'outgoing') {
+            $query->where('from_branch_id', $branchId);
+        } else {
+            $query->where(function($q) use ($branchId) {
+                $q->where('to_branch_id', $branchId)
+                  ->orWhere('from_branch_id', $branchId);
             });
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
         }
-
-        // Filter by type (incoming/outgoing)
-        if ($request->filled('filter')) {
-            if ($request->filter === 'incoming') {
-                $query->where('to_branch_id', $branchId);
-            } elseif ($request->filter === 'outgoing') {
-                $query->where('from_branch_id', $branchId);
-            }
-        }
-
-        $transfers = $query->orderBy('created_at', 'desc')->paginate(20);
-
-        return view('branch-admin.inventory.transfers-list', compact('transfers'));
+    } else {
+        // ALL TRANSFERS TAB - Show everything related to this branch
+        $query->where(function($q) use ($branchId) {
+            // Incoming: to_branch_id is current branch
+            $q->where('to_branch_id', $branchId)
+              // Outgoing: from_branch_id is current branch
+              ->orWhere('from_branch_id', $branchId);
+        });
     }
-
+    
+    // Debug: Log the SQL query (remove after testing)
+    \Log::info('Active Tab: ' . $activeTab);
+    \Log::info('SQL: ' . $query->toSql());
+    \Log::info('Bindings: ', $query->getBindings());
+    
+    $transfers = $query->orderBy('created_at', 'desc')->paginate(20);
+    
+    // Debug: Log the count
+    \Log::info('Transfers count: ' . $transfers->total());
+    
+    return view('branch-admin.inventory.transfers-list', compact('transfers', 'activeTab', 'filter'));
+}
     // ===== MODAL CONTENT METHODS =====
 
     /**

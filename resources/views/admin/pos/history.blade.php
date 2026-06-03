@@ -151,7 +151,9 @@
                                 @foreach($salesByPayment as $payment)
                                 <tr>
                                     <td>
-                                        <span class="badge bg-info text-uppercase">{{ $payment->payment_method }}</span>
+                                        <span class="badge bg-{{ $payment->payment_method == 'cash' ? 'success' : 'info' }} text-uppercase">
+                                            {{ $payment->payment_method == 'cash' ? 'Cash' : 'GCash' }}
+                                        </span>
                                     </td>
                                     <td class="text-center">{{ $payment->total_orders }}</td>
                                     <td class="text-end">₱{{ number_format($payment->total_amount, 2) }}</td>
@@ -201,8 +203,6 @@
                         <option value="">All Methods</option>
                         <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
                         <option value="gcash" {{ request('payment_method') == 'gcash' ? 'selected' : '' }}>GCash</option>
-                        <option value="paymaya" {{ request('payment_method') == 'paymaya' ? 'selected' : '' }}>PayMaya</option>
-                        <option value="card" {{ request('payment_method') == 'card' ? 'selected' : '' }}>Card</option>
                     </select>
                 </div>
                 <div class="col-12">
@@ -234,6 +234,7 @@
                             <th>Total</th>
                             <th>Payment</th>
                             <th>Cashier</th>
+                            <th>Notes</th>
                             <th class="pe-4">Receipt</th>
                         </tr>
                     </thead>
@@ -245,17 +246,20 @@
                             <td>
                                 <span class="badge bg-info">{{ $order->branch->name }}</span>
                             </td>
-                            <td>{{ $order->customer_name }}</td>
+                            <td>{{ $order->customer_name ?? 'Walk-in Customer' }}</td>
                             <td>{{ $order->items->count() }} items</td>
                             <td>₱{{ number_format($order->subtotal, 2) }}</td>
                             <td>₱{{ number_format($order->tax, 2) }}</td>
                             <td class="fw-bold text-primary">₱{{ number_format($order->total_amount, 2) }}</td>
                             <td>
                                 <span class="badge bg-{{ $order->payment_method == 'cash' ? 'success' : 'info' }} text-uppercase">
-                                    {{ $order->payment_method }}
+                                    {{ $order->payment_method == 'cash' ? 'Cash' : 'GCash' }}
                                 </span>
                             </td>
                             <td>{{ $order->user->name }}</td>
+                            <td>
+                                <small class="text-muted">{{ Str::limit($order->notes, 30) ?? '—' }}</small>
+                            </td>
                             <td class="pe-4">
                                 <button type="button" class="btn btn-sm btn-outline-primary" 
                                         data-bs-toggle="modal" data-bs-target="#receiptModal{{ $order->id }}">
@@ -290,8 +294,14 @@
                                                     </div>
                                                     <div class="d-flex justify-content-between">
                                                         <span class="text-muted">Customer:</span>
-                                                        <span>{{ $order->customer_name }}</span>
+                                                        <span>{{ $order->customer_name ?? 'Walk-in Customer' }}</span>
                                                     </div>
+                                                    @if($order->notes)
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted">Notes:</span>
+                                                        <span class="text-muted">{{ $order->notes }}</span>
+                                                    </div>
+                                                    @endif
                                                 </div>
                                                 
                                                 <hr>
@@ -300,6 +310,9 @@
                                                 <div class="d-flex justify-content-between mb-1">
                                                     <div>
                                                         {{ $item->product->name }}
+                                                        @if($item->flavor)
+                                                            <br><small class="text-muted">{{ $item->flavor->name }}</small>
+                                                        @endif
                                                         <br><small class="text-muted">{{ $item->quantity }} x ₱{{ number_format($item->price, 2) }}</small>
                                                     </div>
                                                     <span>₱{{ number_format($item->subtotal, 2) }}</span>
@@ -325,7 +338,7 @@
                                                 
                                                 <div class="d-flex justify-content-between">
                                                     <span>Payment:</span>
-                                                    <span class="text-uppercase">{{ $order->payment_method }}</span>
+                                                    <span class="text-uppercase">{{ $order->payment_method == 'cash' ? 'Cash' : 'GCash' }}</span>
                                                 </div>
                                                 
                                                 <div class="text-center mt-3">
@@ -345,7 +358,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center py-5">
+                            <td colspan="12" class="text-center py-5">
                                 <i class="bi bi-receipt display-1 text-muted"></i>
                                 <p class="mt-3 text-muted">No sales found</p>
                                 <a href="{{ route('admin.pos.index') }}" class="btn btn-primary rounded-pill px-4">

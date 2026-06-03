@@ -626,7 +626,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.warehouse.index') }}">
-                            <i class="bi bi-building"></i> Request Stock
+                            <i class="bi bi-building"></i> Warehouse Stock
                         </a>
                     </li>
                     <!-- ===== END OF WAREHOUSE SECTION ===== -->

@@ -16,21 +16,22 @@
                         
                         <div class="alert alert-info mb-4">
                             <i class="bi bi-info-circle me-2"></i>
-                            You are requesting stock FROM another branch TO <strong>{{ $currentBranch->name ?? Auth::user()->branch->name }}</strong> (your branch)
+                            You are requesting stock FROM another branch or warehouse TO <strong>{{ $currentBranch->name ?? Auth::user()->branch->name }}</strong> (your branch)
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">From Branch (Source) <span class="text-danger">*</span></label>
                                 <select name="from_branch_id" id="fromBranchSelect" class="form-select" required>
-                                    <option value="">Select source branch...</option>
+                                    <option value="">Select source...</option>
+                                    <option value="0" {{ old('from_branch_id') == '0' ? 'selected' : '' }}>Main Warehouse</option>
                                     @foreach($sourceBranches as $branch)
                                         <option value="{{ $branch->id }}" {{ old('from_branch_id') == $branch->id ? 'selected' : '' }}>
                                             {{ $branch->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <small class="text-muted">Select the branch that has the stock you need</small>
+                                <small class="text-muted">Select Main Warehouse or another branch that has the stock you need</small>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -66,7 +67,7 @@
                         <div class="mb-3">
                             <label class="form-label">Quantity <span class="text-danger">*</span></label>
                             <input type="number" name="quantity" id="quantity" class="form-control" min="1" required>
-                            <small class="text-muted" id="availableStock">Select source branch and product to check availability</small>
+                            <small class="text-muted" id="availableStock">Select source and product to check availability</small>
                         </div>
 
                         <div class="mb-3">
@@ -147,10 +148,18 @@ function checkAvailability() {
     // Show loading
     availableStockSpan.innerHTML = 'Checking availability...';
     
-    // Build URL with query parameters
-    let url = `/api/inventory/check?branch_id=${fromBranch}&product_id=${productId}`;
-    if (flavorId) {
-        url += `&flavor_id=${flavorId}`;
+    // Check if source is warehouse (value "0")
+    let url;
+    if (fromBranch === '0') {
+        url = `/api/warehouse/check?product_id=${productId}`;
+        if (flavorId) {
+            url += `&flavor_id=${flavorId}`;
+        }
+    } else {
+        url = `/api/inventory/check?branch_id=${fromBranch}&product_id=${productId}`;
+        if (flavorId) {
+            url += `&flavor_id=${flavorId}`;
+        }
     }
     
     fetch(url)
@@ -159,11 +168,7 @@ function checkAvailability() {
             if (data.success) {
                 const available = data.available;
                 availableStockSpan.innerHTML = `Max available: <strong class="text-primary">${available}</strong> units`;
-                
-                // Set max attribute for quantity input
                 quantityInput.max = available;
-                
-                // Validate current quantity
                 if (parseInt(quantityInput.value) > available) {
                     quantityInput.value = available;
                 }

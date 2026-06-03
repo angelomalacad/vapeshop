@@ -15,7 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .register-card {
-            max-width: 550px;
+            max-width: 650px;
             margin: 0 auto;
             border: none;
             border-radius: 15px;
@@ -291,6 +291,20 @@
                                 </div>
                             </div>
 
+                            <!-- Gender Field -->
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="gender" class="form-label">
+                                        <i class="bi bi-gender-ambiguous me-2 text-primary-custom"></i>Gender
+                                    </label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <!-- Address Information -->
                             <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
                             
@@ -300,10 +314,35 @@
                                 </label>
                                 <textarea class="form-control @error('address') is-invalid @enderror" 
                                           id="address" name="address" rows="2" 
-                                          placeholder="Street, Barangay, City, Province" required>{{ old('address') }}</textarea>
+                                          placeholder="Street, Building, House Number" required>{{ old('address') }}</textarea>
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+
+                            <!-- Barangay Field -->
+                            <div class="mb-3">
+                                <label for="barangay" class="form-label">
+                                    <i class="bi bi-building me-2 text-primary-custom"></i>Barangay *
+                                </label>
+                                <input type="text" class="form-control @error('barangay') is-invalid @enderror" 
+                                       id="barangay" name="barangay" value="{{ old('barangay') }}" 
+                                       placeholder="Enter your barangay" required>
+                                <div class="form-text">Your barangay/village/subdivision</div>
+                                @error('barangay')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Landmark Field -->
+                            <div class="mb-3">
+                                <label for="landmark" class="form-label">
+                                    <i class="bi bi-pin-map-fill me-2 text-primary-custom"></i>Landmark (Optional)
+                                </label>
+                                <input type="text" class="form-control" id="landmark" name="landmark" 
+                                       value="{{ old('landmark') }}" 
+                                       placeholder="e.g., Near 7-Eleven, Beside Jollibee">
+                                <div class="form-text">Help our riders find your location easily</div>
                             </div>
 
                             <div class="row">

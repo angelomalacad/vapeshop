@@ -122,7 +122,8 @@
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">From Branch</label>
                     <select name="from_branch" class="form-select">
-                        <option value="">All Branches</option>
+                        <option value="">All</option>
+                        <option value="warehouse">Main Warehouse</option>
                         @foreach($branches as $branch)
                             <option value="{{ $branch->id }}" {{ request('from_branch') == $branch->id ? 'selected' : '' }}>
                                 {{ $branch->name }}
@@ -133,7 +134,8 @@
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">To Branch</label>
                     <select name="to_branch" class="form-select">
-                        <option value="">All Branches</option>
+                        <option value="">All</option>
+                        <option value="warehouse">Main Warehouse</option>
                         @foreach($branches as $branch)
                             <option value="{{ $branch->id }}" {{ request('to_branch') == $branch->id ? 'selected' : '' }}>
                                 {{ $branch->name }}
@@ -200,30 +202,31 @@
                             <td class="ps-4"><code class="fw-semibold">{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
                             
-                            <!-- From Branch with null check -->
+                            <!-- From Branch - Handle Warehouse -->
                             <td>
-                                @if($transfer->fromBranch)
+                                @if(is_null($transfer->from_branch_id))
+                                    <span class="fw-semibold text-primary">
+                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                    </span>
+                                    <span class="badge bg-primary ms-1">Warehouse</span>
+                                @elseif($transfer->fromBranch)
                                     {{ $transfer->fromBranch->name }}
-                                    @if($transfer->transfer_type == 'warehouse_to_branch')
-                                        <span class="badge bg-primary ms-1">Warehouse</span>
-                                    @endif
                                 @else
                                     <span class="text-muted">N/A</span>
-                                @endif
-                                @if($transfer->from_branch_id == Auth::user()->branch_id ?? false)
-                                    <span class="badge bg-info ms-1">Your Branch</span>
                                 @endif
                             </td>
                             
-                            <!-- To Branch with null check -->
+                            <!-- To Branch - Handle Warehouse -->
                             <td>
-                                @if($transfer->toBranch)
+                                @if(is_null($transfer->to_branch_id))
+                                    <span class="fw-semibold text-primary">
+                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                    </span>
+                                    <span class="badge bg-primary ms-1">Warehouse</span>
+                                @elseif($transfer->toBranch)
                                     {{ $transfer->toBranch->name }}
                                 @else
                                     <span class="text-muted">N/A</span>
-                                @endif
-                                @if(isset(Auth::user()->branch_id) && $transfer->to_branch_id == Auth::user()->branch_id)
-                                    <span class="badge bg-info ms-1">Your Branch</span>
                                 @endif
                             </td>
                             
@@ -245,7 +248,7 @@
                                 @endif
                             </td>
                             
-                            <td><span class="fw-bold">{{ $transfer->quantity }}</span></td>
+                            <td><span class="fw-bold">{{ number_format($transfer->quantity) }}</span></td>
                             
                             <!-- Status -->
                             <td>
@@ -260,7 +263,7 @@
                                 @if($transfer->requestedBy)
                                     {{ $transfer->requestedBy->name }}
                                 @else
-                                    <span class="text-muted">Unknown</span>
+                                    <span class="text-muted">System</span>
                                 @endif
                             </td>
                             

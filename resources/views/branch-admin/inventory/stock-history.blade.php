@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <!-- Filter Section Only (No Statistics Cards) -->
+    <!-- Filter Section -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('branch-admin.inventory.stock-history') }}" class="row g-3">
@@ -31,7 +31,7 @@
                         <option value="">All Types</option>
                         <option value="purchase" {{ request('type') == 'purchase' ? 'selected' : '' }}>Purchase</option>
                         <option value="sale" {{ request('type') == 'sale' ? 'selected' : '' }}>Sale</option>
-                        <option value="receive" {{ request('type') == 'receive' ? 'selected' : '' }}>Warehouse Receive</option>
+                        <option value="warehouse_receive" {{ request('type') == 'warehouse_receive' ? 'selected' : '' }}>Warehouse Receive</option>
                         <option value="transfer_out" {{ request('type') == 'transfer_out' ? 'selected' : '' }}>Transfer Out</option>
                         <option value="transfer_in" {{ request('type') == 'transfer_in' ? 'selected' : '' }}>Transfer In</option>
                         <option value="adjustment" {{ request('type') == 'adjustment' ? 'selected' : '' }}>Adjustment</option>
@@ -90,21 +90,21 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Date & Time</th>
-                            <th>Product</th>
-                            <th>Flavor</th>
-                            <th>Type</th>
-                            <th>Change</th>
-                            <th>Previous Qty</th>
-                            <th>New Qty</th>
-                            <th>Notes</th>
-                            <th>By</th>
+                            <th style="width: 15%">Date & Time</th>
+                            <th style="width: 20%">Product</th>
+                            <th style="width: 15%">Flavor</th>
+                            <th style="width: 15%">Type</th>
+                            <th style="width: 10%">Change</th>
+                            <th style="width: 10%">Previous Qty</th>
+                            <th style="width: 10%">New Qty</th>
+                            <th style="width: 30%">Notes</th>
+                            <th style="width: 15%">By</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($movements as $movement)
                         <tr>
-                            <td>{{ $movement->created_at->format('M d, Y - h:i A') }}</td>
+                            <td class="text-nowrap">{{ $movement->created_at->format('M d, Y - h:i A') }}</td>
                             <td>
                                 <strong>{{ $movement->product->name ?? 'N/A' }}</strong>
                                 @if($movement->product && $movement->product->brand)
@@ -114,38 +114,56 @@
                             <td>{{ $movement->flavor->name ?? 'No Flavor' }}</td>
                             <td>
                                 @php
+                                    // Map movement types to display names
+                                    $typeDisplay = [
+                                        'purchase' => 'Purchase',
+                                        'sale' => 'Sale',
+                                        'transfer_out' => 'Transfer Out',
+                                        'transfer_in' => 'Transfer In',
+                                        'receive' => 'Warehouse Receive',
+                                        'warehouse_receive' => 'Warehouse Receive',
+                                        'return' => 'Return',
+                                        'adjustment' => 'Adjustment',
+                                    ];
+                                    
                                     $typeColors = [
                                         'purchase' => 'success',
                                         'sale' => 'danger',
                                         'transfer_out' => 'warning',
                                         'transfer_in' => 'info',
                                         'receive' => 'primary',
+                                        'warehouse_receive' => 'primary',
                                         'return' => 'primary',
                                         'adjustment' => 'secondary',
                                     ];
+                                    
                                     $typeIcons = [
                                         'purchase' => 'bi-box-arrow-in-down',
                                         'sale' => 'bi-cart-x',
-                                        'receive' => 'bi-building',
                                         'transfer_out' => 'bi-send',
                                         'transfer_in' => 'bi-download',
+                                        'receive' => 'bi-building',
+                                        'warehouse_receive' => 'bi-building',
                                         'adjustment' => 'bi-sliders'
                                     ];
-                                    $color = $typeColors[$movement->movement_type] ?? 'secondary';
-                                    $icon = $typeIcons[$movement->movement_type] ?? 'bi-clock';
+                                    
+                                    $movementType = $movement->movement_type;
+                                    $displayName = $typeDisplay[$movementType] ?? ucfirst(str_replace('_', ' ', $movementType));
+                                    $color = $typeColors[$movementType] ?? 'secondary';
+                                    $icon = $typeIcons[$movementType] ?? 'bi-clock';
                                 @endphp
                                 <span class="badge bg-{{ $color }}">
                                     <i class="{{ $icon }} me-1"></i>
-                                    {{ ucfirst(str_replace('_', ' ', $movement->movement_type)) }}
+                                    {{ $displayName }}
                                 </span>
-                            <td>
+                            </td>
                             <td class="{{ $movement->quantity_change > 0 ? 'text-success' : 'text-danger' }}">
                                 <strong>{{ $movement->quantity_change > 0 ? '+' : '' }}{{ number_format($movement->quantity_change) }}</strong>
                             </td>
                             <td>{{ number_format($movement->previous_quantity) }}</td>
                             <td>{{ number_format($movement->new_quantity) }}</td>
                             <td>
-                                <small class="text-muted">{{ Str::limit($movement->notes, 50) }}</small>
+                                <small class="text-muted">{{ Str::limit($movement->notes, 60) }}</small>
                             </td>
                             <td>
                                 <small>{{ $movement->creator->name ?? 'System' }}</small>
@@ -165,7 +183,7 @@
 
             <!-- Simple Previous/Next Pagination -->
             @if ($movements->hasPages())
-                <div class="d-flex justify-content-between align-items-center p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center p-3 bg-white border-top">
                     <div class="text-muted small">
                         Showing {{ $movements->firstItem() }} to {{ $movements->lastItem() }} of {{ $movements->total() }} results
                     </div>

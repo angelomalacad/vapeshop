@@ -16,27 +16,57 @@
         </a>
     </div>
 
-    <!-- Filter Tabs -->
-    <ul class="nav nav-tabs mb-4">
+    <!-- Main Tabs: All, Warehouse, Branch to Branch -->
+    <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link {{ !request('filter') || request('filter') == 'all' ? 'active' : '' }}" 
-               href="{{ route('branch-admin.inventory.transfers', ['filter' => 'all']) }}">
-                All
+            <a class="nav-link {{ $activeTab == 'all' ? 'active' : '' }}" 
+               href="{{ route('branch-admin.inventory.transfers', ['tab' => 'all', 'filter' => $filter ?? 'all']) }}">
+                <i class="bi bi-grid-3x3-gap-fill me-1"></i> All Transfers
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ request('filter') == 'incoming' ? 'active' : '' }}" 
-               href="{{ route('branch-admin.inventory.transfers', ['filter' => 'incoming']) }}">
-                Incoming (To Your Branch)
+            <a class="nav-link {{ $activeTab == 'warehouse' ? 'active' : '' }}" 
+               href="{{ route('branch-admin.inventory.transfers', ['tab' => 'warehouse', 'filter' => 'incoming']) }}">
+                <i class="bi bi-building me-1"></i> Main Warehouse
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ request('filter') == 'outgoing' ? 'active' : '' }}" 
-               href="{{ route('branch-admin.inventory.transfers', ['filter' => 'outgoing']) }}">
-                Outgoing (From Your Branch)
+            <a class="nav-link {{ $activeTab == 'branch' ? 'active' : '' }}" 
+               href="{{ route('branch-admin.inventory.transfers', ['tab' => 'branch', 'filter' => $filter ?? 'incoming']) }}">
+                <i class="bi bi-shop me-1"></i> Branch to Branch
             </a>
         </li>
     </ul>
+
+    <!-- Sub Tabs (only for Branch to Branch) -->
+    @if($activeTab == 'branch')
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link {{ ($filter ?? 'incoming') == 'incoming' ? 'active bg-primary text-white' : 'bg-light text-dark' }}" 
+               href="{{ route('branch-admin.inventory.transfers', ['tab' => 'branch', 'filter' => 'incoming']) }}">
+                <i class="bi bi-download me-1"></i> Incoming (To Your Branch)
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ ($filter ?? 'incoming') == 'outgoing' ? 'active bg-primary text-white' : 'bg-light text-dark' }}" 
+               href="{{ route('branch-admin.inventory.transfers', ['tab' => 'branch', 'filter' => 'outgoing']) }}">
+                <i class="bi bi-upload me-1"></i> Outgoing (From Your Branch)
+            </a>
+        </li>
+    </ul>
+    @endif
+
+    <!-- Info Alert -->
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle me-1"></i> 
+        @if($activeTab == 'warehouse')
+            Showing warehouse transfers <strong>to your branch</strong> (stock sent from Main Warehouse to you)
+        @elseif($activeTab == 'branch')
+            Showing branch-to-branch transfers where stock is <strong>{{ ($filter ?? 'incoming') == 'incoming' ? 'coming to your branch' : 'leaving your branch' }}</strong>
+        @else
+            Showing all transfers related to your branch
+        @endif
+    </div>
 
     <div class="card">
         <div class="card-body">
@@ -62,12 +92,14 @@
                             <td><code>{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
                             
-                            <!-- FROM Column - Check for NULL from_branch_id (warehouse transfer) -->
+                            <!-- FROM Column -->
                             <td>
                                 @if(is_null($transfer->from_branch_id))
-                                    Main Warehouse
+                                    <span class="fw-semibold text-primary">
+                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                    </span>
                                 @elseif($transfer->fromBranch)
-                                    {{ $transfer->fromBranch->name }}
+                                    <i class="bi bi-shop me-1"></i> {{ $transfer->fromBranch->name }}
                                 @else
                                     <span class="text-muted">N/A</span>
                                 @endif
@@ -76,12 +108,12 @@
                                 @endif
                             </td>
                             
-                            <!-- TO Column - Safe null handling -->
+                            <!-- TO Column -->
                             <td>
                                 @if($transfer->toBranch)
-                                    {{ $transfer->toBranch->name }}
+                                    <i class="bi bi-shop me-1"></i> {{ $transfer->toBranch->name }}
                                 @else
-                                    <span class="text-muted">Branch Deleted or N/A</span>
+                                    <span class="text-muted">N/A</span>
                                 @endif
                                 @if($transfer->to_branch_id == Auth::user()->branch_id)
                                     <span class="badge bg-info ms-1">Your Branch</span>
@@ -122,44 +154,59 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <!-- FOR OUTGOING TRANSFERS (from your branch - you are the SOURCE) -->
-                                    @if($transfer->from_branch_id == Auth::user()->branch_id)
-                                        @if($transfer->status == 'pending')
-                                            <form action="{{ route('branch-admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success" title="Approve Transfer" onclick="return confirm('Approve this transfer request?')">
-                                                    <i class="bi bi-check-lg"></i> Approve
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('branch-admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-danger" title="Reject Transfer" onclick="return confirm('Reject this transfer request?')">
-                                                    <i class="bi bi-x-lg"></i> Reject
-                                                </button>
-                                            </form>
+                                    <!-- Warehouse Transfer Actions (only incoming) -->
+                                    @if(is_null($transfer->from_branch_id))
+                                        @if($transfer->to_branch_id == Auth::user()->branch_id)
+                                            @if($transfer->status == 'approved')
+                                                <form action="{{ route('branch-admin.warehouse.receive', $transfer) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Receive Stock" onclick="return confirm('Receive this stock? It will be added to your inventory.')">
+                                                        <i class="bi bi-download"></i> Receive
+                                                    </button>
+                                                </form>
+                                            @elseif($transfer->status == 'pending')
+                                                <span class="badge bg-warning">Waiting for owner</span>
+                                            @endif
+                                        @endif
+                                    @else
+                                        <!-- Branch to Branch Transfer Actions -->
+                                        @if($transfer->from_branch_id == Auth::user()->branch_id)
+                                            @if($transfer->status == 'pending')
+                                                <form action="{{ route('branch-admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Approve Transfer" onclick="return confirm('Approve this transfer request?')">
+                                                        <i class="bi bi-check-lg"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('branch-admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-danger btn-sm" title="Reject Transfer" onclick="return confirm('Reject this transfer request?')">
+                                                        <i class="bi bi-x-lg"></i> Reject
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+                                        
+                                        @if($transfer->to_branch_id == Auth::user()->branch_id)
+                                            @if($transfer->status == 'approved')
+                                                <form action="{{ route('branch-admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary btn-sm" title="Receive Stock" onclick="return confirm('Mark this transfer as received?')">
+                                                        <i class="bi bi-check-lg"></i> Receive
+                                                    </button>
+                                                </form>
+                                            @elseif($transfer->status == 'pending')
+                                                <span class="badge bg-warning">Waiting for source</span>
+                                            @endif
                                         @endif
                                     @endif
                                     
-                                    <!-- FOR INCOMING TRANSFERS (to your branch - you are the DESTINATION) -->
-                                    @if($transfer->to_branch_id == Auth::user()->branch_id)
-                                        @if($transfer->status == 'approved')
-                                            <form action="{{ route('branch-admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary" title="Receive Stock" onclick="return confirm('Mark this transfer as received?')">
-                                                    <i class="bi bi-check-lg"></i> Receive Stock
-                                                </button>
-                                            </form>
-                                        @elseif($transfer->status == 'pending')
-                                            <span class="badge bg-warning">Waiting for source approval</span>
-                                        @endif
-                                    @endif
-                                    
-                                    <!-- REQUESTER CANCEL -->
+                                    <!-- Cancel for own requests -->
                                     @if($transfer->requested_by == Auth::user()->id && $transfer->status == 'pending')
                                         <form action="{{ route('branch-admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-danger" title="Cancel My Request" onclick="return confirm('Cancel this transfer request you made?')">
-                                                <i class="bi bi-x-circle"></i> Cancel Request
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancel My Request" onclick="return confirm('Cancel this transfer request you made?')">
+                                                <i class="bi bi-x-circle"></i> Cancel
                                             </button>
                                         </form>
                                     @endif
@@ -171,7 +218,15 @@
                             <td colspan="10" class="text-center py-5">
                                 <i class="bi bi-arrow-left-right display-1 text-muted"></i>
                                 <h5 class="mt-3">No Transfer Requests Found</h5>
-                                <p class="text-muted mb-3">There are no stock transfer requests to display.</p>
+                                <p class="text-muted mb-3">
+                                    @if($activeTab == 'warehouse')
+                                        No warehouse transfers found.
+                                    @elseif($activeTab == 'branch')
+                                        No branch-to-branch transfers {{ ($filter ?? 'incoming') == 'incoming' ? 'to' : 'from' }} your branch.
+                                    @else
+                                        No transfers related to your branch.
+                                    @endif
+                                </p>
                                 <a href="{{ route('branch-admin.inventory.transfer.form') }}" class="btn btn-primary">
                                     <i class="bi bi-plus-circle"></i> Create New Transfer Request
                                 </a>
