@@ -142,7 +142,7 @@
                                 <td colspan="10" class="text-center py-5">
                                     <i class="bi bi-clock-history display-1 text-muted"></i>
                                     <p class="mt-3 text-muted">No stock movements found</p>
-                             </td>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -151,8 +151,26 @@
         </div>
         @if($movements->hasPages())
         <div class="card-footer bg-white">
-            <div class="d-flex justify-content-center">
-                {{ $movements->links() }}
+            <div class="d-flex justify-content-end">
+                @if ($movements->onFirstPage())
+                    <span class="btn btn-outline-secondary disabled rounded-pill px-3 me-2">
+                        Previous
+                    </span>
+                @else
+                    <a href="{{ $movements->previousPageUrl() }}" class="btn btn-outline-primary rounded-pill px-3 me-2">
+                        Previous
+                    </a>
+                @endif
+
+                @if ($movements->hasMorePages())
+                    <a href="{{ $movements->nextPageUrl() }}" class="btn btn-outline-primary rounded-pill px-3">
+                        Next
+                    </a>
+                @else
+                    <span class="btn btn-outline-secondary disabled rounded-pill px-3">
+                        Next
+                    </span>
+                @endif
             </div>
         </div>
         @endif

@@ -4,6 +4,21 @@
 
 @section('content')
     <div class="container-fluid px-4">
+        <!-- Success and Error Messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <!-- Header -->
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center">
@@ -38,9 +53,10 @@
         <div class="row g-3 mb-4">
             @php
                 $totalItems = \App\Models\BranchInventory::count();
-                $lowStock = \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count();
-                $outOfStock = \App\Models\BranchInventory::where('quantity', '<=', 0)->count();
-                $totalValue = \App\Models\BranchInventory::with('product')->get()->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $lowStock = \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->where('is_disposed', false)->count();
+                $outOfStock = \App\Models\BranchInventory::where('quantity', '<=', 0)->where('is_disposed', false)->count();
+                $totalValue = \App\Models\BranchInventory::with('product')->where('is_disposed', false)->get()->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $disposedCount = \App\Models\BranchInventory::where('is_disposed', true)->count();
             @endphp
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm bg-primary bg-gradient text-white">
@@ -82,6 +98,21 @@
                             </div>
                             <div class="bg-white bg-opacity-25 p-3 rounded-circle">
                                 <i class="bi bi-x-circle fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-secondary bg-gradient text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-1">Disposed Items</h6>
+                                <h2 class="mb-0 fw-bold">{{ $disposedCount }}</h2>
+                            </div>
+                            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
+                                <i class="bi bi-trash fs-4"></i>
                             </div>
                         </div>
                     </div>
@@ -144,6 +175,7 @@
                             <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock</option>
                             <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Out of Stock</option>
                             <option value="archived" {{ request('stock_status') == 'archived' ? 'selected' : '' }}>Archived</option>
+                            <option value="disposed" {{ request('stock_status') == 'disposed' ? 'selected' : '' }}>Disposed</option>
                         </select>
                     </div>
                     <div class="col-12">
@@ -165,7 +197,8 @@
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-4">Branch</th>
+                                <th class="ps-4">Image</th>
+                                <th>Branch</th>
                                 <th>Product</th>
                                 <th>Flavor</th>
                                 <th>In Stock</th>
@@ -180,22 +213,56 @@
                         <tbody>
                             @forelse($inventories as $inv)
                                 @php
+                                    $product = $inv->product;
                                     $available = $inv->quantity - $inv->reserved_quantity;
                                     $isArchived = $inv->is_archived ?? false;
-                                    $statusClass = $isArchived ? 'secondary' : ($available <= 0 ? 'danger' : ($available <= $inv->low_stock_threshold ? 'warning' : 'success'));
-                                    $statusText = $isArchived ? 'Archived' : ($available <= 0 ? 'Out of Stock' : ($available <= $inv->low_stock_threshold ? 'Low Stock' : 'In Stock'));
+                                    $isDisposed = $inv->is_disposed ?? false;
+                                    $imageUrl = null;
+                                    if ($product && $product->image) {
+                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                            $imageUrl = $product->image;
+                                        } elseif (Storage::disk('public')->exists($product->image)) {
+                                            $imageUrl = Storage::url($product->image);
+                                        }
+                                    }
+                                    
+                                    if ($isDisposed) {
+                                        $statusClass = 'secondary';
+                                        $statusText = 'Disposed';
+                                    } elseif ($isArchived) {
+                                        $statusClass = 'secondary';
+                                        $statusText = 'Archived';
+                                    } elseif ($available <= 0) {
+                                        $statusClass = 'danger';
+                                        $statusText = 'Out of Stock';
+                                    } elseif ($available <= $inv->low_stock_threshold) {
+                                        $statusClass = 'warning';
+                                        $statusText = 'Low Stock';
+                                    } else {
+                                        $statusClass = 'success';
+                                        $statusText = 'In Stock';
+                                    }
                                     $expiry = $inv->expiration_date ? \Carbon\Carbon::parse($inv->expiration_date) : null;
                                 @endphp
                                 <tr>
-                                    <td class="ps-4">
+                                    <td class="ps-4" style="width: 60px">
+                                        @if($imageUrl)
+                                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                        @else
+                                            <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-box-seam text-muted"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <span class="fw-semibold">{{ $inv->branch->name }}</span>
                                         <br>
                                         <small class="text-muted">{{ $inv->branch->manager_name }}</small>
                                     </td>
                                     <td>
-                                        <span class="fw-semibold">{{ $inv->product->name }}</span>
+                                        <span class="fw-semibold">{{ $product->name ?? 'N/A' }}</span>
                                         <br>
-                                        <small class="text-muted">{{ $inv->product->brand ?? 'N/A' }}</small>
+                                        <small class="text-muted">{{ $product->brand ?? 'N/A' }}</small>
                                     </td>
                                     <td>{{ $inv->flavor->name ?? 'N/A' }}</td>
                                     <td>{{ $inv->quantity }}</td>
@@ -208,7 +275,7 @@
                                     </td>
                                     <td>{{ $inv->low_stock_threshold }}</td>
                                     <td>
-                                        @if($expiry)
+                                        @if($expiry && !$isDisposed)
                                             {{ $expiry->format('M d, Y') }}
                                             @if($expiry->isPast())
                                                 <span class="badge bg-danger ms-1">Expired</span>
@@ -221,42 +288,57 @@
                                     </td>
                                     <td class="pe-4">
                                         <div class="btn-group btn-group-sm">
-                                            <!-- View Details - Modal -->
-                                            <button type="button" class="btn btn-outline-info" title="View Details" onclick="openShowModal({{ $inv->id }})">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            
-                                            <!-- Edit - Modal -->
-                                            <button type="button" class="btn btn-outline-warning" title="Edit" onclick="openEditModal({{ $inv->id }})">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            
-                                            <!-- Add Stock - Modal -->
-                                            <button type="button" class="btn btn-outline-success" title="Add Stock" onclick="openAddStockModal({{ $inv->id }})">
-                                                <i class="bi bi-plus-circle"></i>
-                                            </button>
-                                            
-                                            @if($inv->is_archived)
-                                                <a href="{{ route('admin.inventory.unarchive', $inv) }}" 
-                                                   class="btn btn-outline-secondary" 
+                                            @if($isDisposed)
+                                                <a href="{{ route('admin.inventory.restore-disposed', $inv) }}" 
+                                                   class="btn btn-outline-success" 
                                                    title="Restore"
-                                                   onclick="return confirm('Restore this item?')">
-                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                   onclick="return confirm('Restore this item back to inventory?')">
+                                                    <i class="bi bi-arrow-counterclockwise"></i> Restore
                                                 </a>
                                             @else
-                                                <a href="{{ route('admin.inventory.archive', $inv) }}" 
-                                                   class="btn btn-outline-secondary" 
-                                                   title="Archive"
-                                                   onclick="return confirm('Archive this item? It will be hidden from active inventory.')">
-                                                    <i class="bi bi-archive"></i>
-                                                </a>
+                                                <button type="button" class="btn btn-outline-info" title="View Details" onclick="openShowModal({{ $inv->id }})">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                
+                                                <button type="button" class="btn btn-outline-warning" title="Edit" onclick="openEditModal({{ $inv->id }})">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                
+                                                <button type="button" class="btn btn-outline-success" title="Add Stock" onclick="openAddStockModal({{ $inv->id }})">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                                
+                                                @if($isArchived)
+                                                    <a href="{{ route('admin.inventory.unarchive', $inv) }}" 
+                                                       class="btn btn-outline-secondary" 
+                                                       title="Restore"
+                                                       onclick="return confirm('Restore this item?')">
+                                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('admin.inventory.archive', $inv) }}" 
+                                                       class="btn btn-outline-secondary" 
+                                                       title="Archive"
+                                                       onclick="return confirm('Archive this item? It will be hidden from active inventory.')">
+                                                        <i class="bi bi-archive"></i>
+                                                    </a>
+                                                @endif
+                                                
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                    title="Dispose Item" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#disposeModal" 
+                                                    data-id="{{ $inv->id }}" 
+                                                    data-name="{{ $product->name ?? 'Item' }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             @endif
                                         </div>
-                                    </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-box-seam display-1 text-muted"></i>
                                         <p class="mt-3 text-muted">No inventory items found</p>
                                         <a href="{{ route('admin.inventory.create') }}" class="btn btn-primary rounded-pill px-4">
@@ -278,7 +360,6 @@
                         @if ($inventories->hasPages())
                             <nav aria-label="Page navigation">
                                 <ul class="pagination pagination-sm mb-0">
-                                    {{-- Previous Page Link --}}
                                     @if ($inventories->onFirstPage())
                                         <li class="page-item disabled">
                                             <span class="page-link">Previous</span>
@@ -289,7 +370,6 @@
                                         </li>
                                     @endif
 
-                                    {{-- Next Page Link --}}
                                     @if ($inventories->hasMorePages())
                                         <li class="page-item">
                                             <a class="page-link" href="{{ $inventories->nextPageUrl() }}" rel="next">Next</a>
@@ -311,31 +391,60 @@
     <!-- Modal Containers -->
     <div class="modal fade" id="showInventoryModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl">
-            <div class="modal-content"><!-- loaded via AJAX --></div>
+            <div class="modal-content"></div>
         </div>
     </div>
 
     <div class="modal fade" id="editInventoryModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content"><!-- loaded via AJAX --></div>
+            <div class="modal-content"></div>
         </div>
     </div>
 
     <div class="modal fade" id="addStockModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog">
-            <div class="modal-content"><!-- loaded via AJAX --></div>
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Dispose Modal -->
+    <div class="modal fade" id="disposeModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-trash me-2"></i> Dispose Item
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="disposeForm" method="POST" action="">
+                    @csrf
+                    <div class="modal-body">
+                        <p>Are you sure you want to dispose this item?</p>
+                        <p class="fw-bold" id="disposeItemName"></p>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Disposal (Optional)</label>
+                            <textarea name="dispose_reason" class="form-control" rows="3" placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i> Dispose
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-        // Auto-submit form when dropdowns change
         document.querySelectorAll('select[name="branch_id"], select[name="product_id"], select[name="stock_status"]').forEach(function(select) {
             select.addEventListener('change', function() {
                 document.getElementById('filterForm').submit();
             });
         });
 
-        // Show Inventory Modal
         function openShowModal(id) {
             const modalElement = document.getElementById('showInventoryModal');
             const modalContent = modalElement.querySelector('.modal-content');
@@ -356,7 +465,6 @@
                 });
         }
 
-        // Edit Inventory Modal
         function openEditModal(id) {
             const modalElement = document.getElementById('editInventoryModal');
             const modalContent = modalElement.querySelector('.modal-content');
@@ -377,7 +485,6 @@
                 });
         }
 
-        // Add Stock Modal
         function openAddStockModal(id) {
             const modalElement = document.getElementById('addStockModal');
             const modalContent = modalElement.querySelector('.modal-content');
@@ -396,6 +503,19 @@
                     modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
                     new bootstrap.Modal(modalElement).show();
                 });
+        }
+
+        const disposeModal = document.getElementById('disposeModal');
+        if (disposeModal) {
+            disposeModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const inventoryId = button.getAttribute('data-id');
+                const itemName = button.getAttribute('data-name');
+                
+                document.getElementById('disposeItemName').textContent = itemName;
+                const disposeForm = document.getElementById('disposeForm');
+                disposeForm.action = '/admin/inventory/' + inventoryId + '/dispose';
+            });
         }
     </script>
 @endsection

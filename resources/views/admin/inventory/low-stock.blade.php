@@ -4,6 +4,21 @@
 
 @section('content')
 <div class="container-fluid px-4">
+    <!-- Success and Error Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Header with Logo and Navigation -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center">
@@ -31,6 +46,8 @@
     @php
         $lowStockItems = \App\Models\BranchInventory::with(['branch', 'product', 'flavor'])
             ->whereColumn('quantity', '<=', 'low_stock_threshold')
+            ->where('is_disposed', false)
+            ->where('is_archived', false)
             ->orderBy('branch_id')
             ->orderBy('quantity', 'asc')
             ->get()
@@ -151,6 +168,28 @@
                 modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
                 new bootstrap.Modal(modalElement).show();
             });
+    }
+
+    // Check for success message in URL and display it
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMessage = urlParams.get('success');
+    if (successMessage) {
+        const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999; min-width: 300px;" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> ${decodeURIComponent(successMessage)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('afterbegin', alertHtml);
+        
+        const url = new URL(window.location.href);
+        url.searchParams.delete('success');
+        window.history.replaceState({}, '', url);
+        
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-success');
+            if (alert) alert.remove();
+        }, 5000);
     }
 </script>
 @endsection

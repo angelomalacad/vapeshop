@@ -20,46 +20,64 @@ class InventoryController extends Controller
      * Display inventory across all branches
      */
     public function index(Request $request)
-    {
-        $query = BranchInventory::with(['branch', 'product', 'flavor']);
+{
+    $query = BranchInventory::with(['branch', 'product', 'flavor']);
 
-        if ($request->filled('search')) {
-            $query->whereHas('product', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        // Filter by branch
-        if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
-        }
-
-        // Filter by product
-        if ($request->filled('product_id')) {
-            $query->where('product_id', $request->product_id);
-        }
-
-        // Filter by stock status
-        if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'low') {
-                $query->whereColumn('quantity', '<=', 'low_stock_threshold')->where('is_archived', false);
-            } elseif ($request->stock_status === 'out') {
-                $query->where('quantity', '<=', 0)->where('is_archived', false);
-            } elseif ($request->stock_status === 'archived') {
-                $query->where('is_archived', true);
-            }
-        } else {
-            // Default: exclude archived items unless explicitly requested
-            $query->where('is_archived', false);
-        }
-
-        $inventories = $query->orderBy('branch_id')->paginate(20);
-
-        $branches = Branch::where('is_active', true)->get();
-        $products = Product::where('is_active', true)->get();
-
-        return view('admin.inventory.index', compact('inventories', 'branches', 'products'));
+    // Search filter
+    if ($request->filled('search')) {
+        $query->whereHas('product', function($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%');
+        });
     }
+
+    // Branch filter
+    if ($request->filled('branch_id')) {
+        $query->where('branch_id', $request->branch_id);
+    }
+
+    // Product filter
+    if ($request->filled('product_id')) {
+        $query->where('product_id', $request->product_id);
+    }
+
+    // Stock status filter
+    if ($request->filled('stock_status')) {
+        switch ($request->stock_status) {
+            case 'low':
+                $query->whereColumn('quantity', '<=', 'low_stock_threshold')
+                      ->where('is_disposed', false)
+                      ->where('is_archived', false);
+                break;
+            case 'out':
+                $query->where('quantity', '<=', 0)
+                      ->where('is_disposed', false)
+                      ->where('is_archived', false);
+                break;
+            case 'archived':
+                $query->where('is_archived', true)
+                      ->where('is_disposed', false);
+                break;
+            case 'disposed':
+                $query->where('is_disposed', true);
+                break;
+            default:
+                $query->where('is_disposed', false)
+                      ->where('is_archived', false);
+                break;
+        }
+    } else {
+        // Default: exclude disposed AND archived items
+        $query->where('is_disposed', false)
+              ->where('is_archived', false);
+    }
+
+    $inventories = $query->orderBy('created_at', 'desc')->paginate(20);
+
+    $branches = Branch::all();
+    $products = Product::where('is_active', true)->get();
+
+    return view('admin.inventory.index', compact('inventories', 'branches', 'products'));
+}
 
     /**
      * Show form to create new inventory item
@@ -256,59 +274,100 @@ class InventoryController extends Controller
         }
     }
 
-    /**
-     * Add stock to inventory
-     */
-    public function addStock(Request $request, BranchInventory $inventory)
-    {
-        $request->validate([
-            'quantity' => 'required|integer|min:1',
-            'notes' => 'nullable|string|max:500',
-            'purchase_price' => 'nullable|numeric|min:0',
-        ]);
+/**
+ * Add stock to inventory (coming from warehouse)
+ */
+public function addStock(Request $request, BranchInventory $inventory)
+{
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+        'notes' => 'nullable|string|max:500',
+        'purchase_price' => 'nullable|numeric|min:0',
+    ]);
 
-        DB::beginTransaction();
+    // Check if warehouse has enough stock
+    $warehouseInventory = \App\Models\WarehouseInventory::where('product_id', $inventory->product_id)
+        ->when($inventory->flavor_id, function($query) use ($inventory) {
+            return $query->where('flavor_id', $inventory->flavor_id);
+        })
+        ->first();
 
-        try {
-            $oldQuantity = $inventory->quantity;
-            $newQuantity = $oldQuantity + $request->quantity;
-
-            $updateData = [
-                'quantity' => $newQuantity,
-                'last_restocked_at' => now(),
-            ];
-
-            if ($request->filled('purchase_price')) {
-                $updateData['last_purchase_price'] = $request->purchase_price;
-            }
-
-            $inventory->update($updateData);
-
-            // Log movement
-            StockMovement::create([
-                'branch_id' => $inventory->branch_id,
-                'product_id' => $inventory->product_id,
-                'flavor_id' => $inventory->flavor_id,
-                'previous_quantity' => $oldQuantity,
-                'new_quantity' => $newQuantity,
-                'quantity_change' => $request->quantity,
-                'movement_type' => 'purchase',
-                'notes' => $request->notes ?: 'Stock added by super admin',
-                'created_by' => Auth::id(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('admin.inventory.show', $inventory)
-                ->with('success', "Added {$request->quantity} units to inventory.");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error adding stock: ' . $e->getMessage());
+    if (!$warehouseInventory) {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Product not found in warehouse inventory.']);
         }
+        return redirect()->back()->withInput()->with('error', 'Product not found in warehouse inventory.');
     }
 
+    if ($warehouseInventory->quantity < $request->quantity) {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => "Insufficient stock in warehouse. Available: {$warehouseInventory->quantity}"]);
+        }
+        return redirect()->back()->withInput()->with('error', "Insufficient stock in warehouse. Available: {$warehouseInventory->quantity}");
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Deduct from warehouse
+        $warehouseInventory->update([
+            'quantity' => $warehouseInventory->quantity - $request->quantity
+        ]);
+
+        // Add to branch inventory
+        $oldQuantity = $inventory->quantity;
+        $newQuantity = $oldQuantity + $request->quantity;
+
+        $updateData = [
+            'quantity' => $newQuantity,
+            'last_restocked_at' => now(),
+        ];
+
+        if ($request->filled('purchase_price')) {
+            $updateData['last_purchase_price'] = $request->purchase_price;
+        }
+
+        $inventory->update($updateData);
+
+        // Log branch stock movement
+        StockMovement::create([
+            'branch_id' => $inventory->branch_id,
+            'product_id' => $inventory->product_id,
+            'flavor_id' => $inventory->flavor_id,
+            'previous_quantity' => $oldQuantity,
+            'new_quantity' => $newQuantity,
+            'quantity_change' => $request->quantity,
+            'movement_type' => 'warehouse_transfer_in',
+            'notes' => $request->notes ?: 'Stock transferred from warehouse',
+            'created_by' => Auth::id(),
+        ]);
+
+        DB::commit();
+
+        $successMessage = "Successfully added {$request->quantity} units to {$inventory->branch->name} from warehouse.";
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true, 
+                'message' => $successMessage,
+                'redirect' => route('admin.inventory.index')
+            ]);
+        }
+
+        return redirect()->route('admin.inventory.index')
+            ->with('success', $successMessage);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Error adding stock: ' . $e->getMessage()]);
+        }
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Error adding stock: ' . $e->getMessage());
+    }
+}
     /**
      * Show form to add stock
      */
@@ -993,7 +1052,17 @@ public function showModal(BranchInventory $inventory)
 public function addStockModal(BranchInventory $inventory)
 {
     $inventory->load(['product', 'flavor', 'branch']);
-    return view('admin.inventory.modals.add-stock', compact('inventory'));
+    
+    // Get warehouse stock for this product
+    $warehouseStock = \App\Models\WarehouseInventory::where('product_id', $inventory->product_id)
+        ->when($inventory->flavor_id, function($query) use ($inventory) {
+            return $query->where('flavor_id', $inventory->flavor_id);
+        })
+        ->first();
+    
+    $availableWarehouseStock = $warehouseStock ? $warehouseStock->quantity : 0;
+    
+    return view('admin.inventory.modals.add-stock', compact('inventory', 'availableWarehouseStock'));
 }
 /**
  * Show transfer details modal
@@ -1016,5 +1085,34 @@ public function editTransferModal(StockTransfer $transfer)
     $products = Product::with('flavors')->where('is_active', true)->get();
     
     return view('admin.inventory.modals.edit-transfer', compact('transfer', 'branches', 'products'));
+}
+/**
+ * Dispose an inventory item (permanently remove to disposed items)
+ */
+public function dispose(Request $request, BranchInventory $inventory)
+{
+    $inventory->update([
+        'is_disposed' => true,
+        'dispose_reason' => $request->dispose_reason,
+        'disposed_at' => now()
+    ]);
+    
+    return redirect()->route('admin.inventory.index')
+        ->with('success', 'Item disposed successfully.');
+}
+
+/**
+ * Restore a disposed inventory item
+ */
+public function restoreDisposed(BranchInventory $inventory)
+{
+    $inventory->update([
+        'is_disposed' => false,
+        'dispose_reason' => null,
+        'disposed_at' => null
+    ]);
+    
+    return redirect()->route('admin.inventory.index')
+        ->with('success', 'Item restored from disposed items.');
 }
 }
