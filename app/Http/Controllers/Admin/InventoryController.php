@@ -104,6 +104,7 @@ class InventoryController extends Controller
             'reorder_point' => 'required|integer|min:1',
             'optimal_stock' => 'required|integer|min:1',
             'last_purchase_price' => 'nullable|numeric|min:0',
+            'expiration_date' => 'nullable|date', 
         ]);
 
         // Check if already exists
@@ -132,6 +133,7 @@ class InventoryController extends Controller
                 'optimal_stock' => $request->optimal_stock,
                 'last_purchase_price' => $request->last_purchase_price,
                 'last_restocked_at' => $request->quantity > 0 ? now() : null,
+                'expiration_date' => $request->expiration_date ? Carbon::parse($request->expiration_date) : null,
             ]);
 
             // Log initial stock movement
@@ -192,88 +194,120 @@ class InventoryController extends Controller
         return view('admin.inventory.edit', compact('inventory', 'branches', 'products'));
     }
 
-    /**
-     * Update inventory item
-     */
-    public function update(Request $request, BranchInventory $inventory)
-    {
-        $request->validate([
-            'branch_id' => 'required|exists:branches,id',
-            'product_id' => 'required|exists:products,id',
-            'flavor_id' => 'nullable|exists:product_flavors,id',
-            'quantity' => 'required|integer|min:0',
-            'reserved_quantity' => 'required|integer|min:0',
-            'low_stock_threshold' => 'required|integer|min:1',
-            'reorder_point' => 'required|integer|min:1',
-            'optimal_stock' => 'required|integer|min:1',
-            'last_purchase_price' => 'nullable|numeric|min:0',
-            'last_restocked_at' => 'nullable|date',
-        ]);
+  /**
+ * Update inventory item
+ */
+public function update(Request $request, BranchInventory $inventory)
+{
+    $request->validate([
+        'branch_id' => 'required|exists:branches,id',
+        'product_id' => 'required|exists:products,id',
+        'flavor_id' => 'nullable|exists:product_flavors,id',
+        'quantity' => 'required|integer|min:0',
+        'reserved_quantity' => 'required|integer|min:0',
+        'low_stock_threshold' => 'required|integer|min:1',
+        'reorder_point' => 'required|integer|min:1',
+        'optimal_stock' => 'required|integer|min:1',
+        'last_purchase_price' => 'nullable|numeric|min:0',
+        'last_restocked_at' => 'nullable|date',
+        'expiration_date' => 'nullable|date',
+    ]);
 
-        // Check if changing branch/product/flavor combination would create duplicate
-        if ($inventory->branch_id != $request->branch_id ||
-            $inventory->product_id != $request->product_id ||
-            $inventory->flavor_id != $request->flavor_id) {
+    // FIX: Convert empty string to null for flavor_id
+    $flavorId = $request->flavor_id === '' ? null : $request->flavor_id;
+    $currentFlavorId = $inventory->flavor_id === '' ? null : $inventory->flavor_id;
 
-            $exists = BranchInventory::where('branch_id', $request->branch_id)
-                ->where('product_id', $request->product_id)
-                ->where('flavor_id', $request->flavor_id)
-                ->where('id', '!=', $inventory->id)
-                ->exists();
+    // Check if changing branch/product/flavor combination would create duplicate
+    $branchChanged = $inventory->branch_id != $request->branch_id;
+    $productChanged = $inventory->product_id != $request->product_id;
+    $flavorChanged = $currentFlavorId != $flavorId;
 
-            if ($exists) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'This product already exists in this branch inventory.');
+    if ($branchChanged || $productChanged || $flavorChanged) {
+        $exists = BranchInventory::where('branch_id', $request->branch_id)
+            ->where('product_id', $request->product_id)
+            ->where(function($query) use ($flavorId) {
+                // Handle null vs empty string properly
+                if ($flavorId === null) {
+                    $query->whereNull('flavor_id');
+                } else {
+                    $query->where('flavor_id', $flavorId);
+                }
+            })
+            ->where('id', '!=', $inventory->id)
+            ->exists();
+
+        if ($exists) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'This product already exists in this branch inventory.']);
             }
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $oldQuantity = $inventory->quantity;
-            $oldReserved = $inventory->reserved_quantity;
-
-            $inventory->update([
-                'branch_id' => $request->branch_id,
-                'product_id' => $request->product_id,
-                'flavor_id' => $request->flavor_id,
-                'quantity' => $request->quantity,
-                'reserved_quantity' => $request->reserved_quantity,
-                'low_stock_threshold' => $request->low_stock_threshold,
-                'reorder_point' => $request->reorder_point,
-                'optimal_stock' => $request->optimal_stock,
-                'last_purchase_price' => $request->last_purchase_price,
-                'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
-            ]);
-
-            // Log stock movement if quantity changed
-            if ($oldQuantity != $request->quantity) {
-                StockMovement::create([
-                    'branch_id' => $request->branch_id,
-                    'product_id' => $request->product_id,
-                    'flavor_id' => $request->flavor_id,
-                    'previous_quantity' => $oldQuantity,
-                    'new_quantity' => $request->quantity,
-                    'quantity_change' => $request->quantity - $oldQuantity,
-                    'movement_type' => 'adjustment',
-                    'notes' => 'Manual adjustment by super admin',
-                    'created_by' => Auth::id(),
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.inventory.show', $inventory)
-                ->with('success', 'Inventory updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error updating inventory: ' . $e->getMessage());
+                ->with('error', 'This product already exists in this branch inventory.');
         }
     }
 
+    DB::beginTransaction();
+
+    try {
+        $oldQuantity = $inventory->quantity;
+
+        $updateData = [
+            'branch_id' => $request->branch_id,
+            'product_id' => $request->product_id,
+            'flavor_id' => $flavorId,  // Use the cleaned value
+            'quantity' => $request->quantity,
+            'reserved_quantity' => $request->reserved_quantity,
+            'low_stock_threshold' => $request->low_stock_threshold,
+            'reorder_point' => $request->reorder_point,
+            'optimal_stock' => $request->optimal_stock,
+            'last_purchase_price' => $request->last_purchase_price,
+            'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
+            'expiration_date' => $request->expiration_date ? Carbon::parse($request->expiration_date) : null,
+        ];
+
+        $inventory->update($updateData);
+
+        // Log stock movement if quantity changed
+        if ($oldQuantity != $request->quantity) {
+            StockMovement::create([
+                'branch_id' => $inventory->branch_id,
+                'product_id' => $inventory->product_id,
+                'flavor_id' => $flavorId,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $request->quantity,
+                'quantity_change' => $request->quantity - $oldQuantity,
+                'movement_type' => 'adjustment',
+                'notes' => 'Manual adjustment by super admin',
+                'created_by' => Auth::id(),
+            ]);
+        }
+
+        DB::commit();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory updated successfully.'
+            ]);
+        }
+
+        return redirect()->route('admin.inventory.index')
+            ->with('success', 'Inventory updated successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating inventory: ' . $e->getMessage()
+            ]);
+        }
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Error updating inventory: ' . $e->getMessage());
+    }
+}
 /**
  * Add stock to inventory (coming from warehouse)
  */
@@ -1014,12 +1048,12 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
         $inventory->update(['is_archived' => false]);
         return redirect()->back()->with('success', 'Inventory item restored from archive.');
     }
-    /**
+  /**
  * Show edit modal
  */
 public function editModal(BranchInventory $inventory)
 {
-    $inventory->load(['product', 'flavor']);
+    $inventory->load(['product.flavors', 'flavor']);
     $branches = Branch::where('is_active', true)->get();
     $products = Product::with('flavors')->where('is_active', true)->get();
     

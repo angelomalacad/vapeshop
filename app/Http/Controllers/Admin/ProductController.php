@@ -8,10 +8,12 @@ use App\Models\Category;
 use App\Models\BranchInventory;
 use App\Models\Branch;
 use App\Models\StockMovement;
+use App\Models\WarehouseInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use App\Helpers\GoogleDriveHelper;
 
 class ProductController extends Controller
@@ -272,10 +274,10 @@ class ProductController extends Controller
     public function addStockToBranch(Request $request, Product $product)
     {
         $validator = Validator::make($request->all(), [
-            'branch_id' => 'required|exists:branches,id',
+            'branch_id' => 'required',
             'flavor_id' => 'nullable|exists:product_flavors,id',
             'quantity' => 'required|integer|min:1',
-            'expiration_date' => 'nullable|date|after:today',
+            'expiration_date' => 'nullable|date',
             'purchase_price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
@@ -287,69 +289,203 @@ class ProductController extends Controller
             ], 422);
         }
 
-        // Find or create inventory record
-        $inventory = BranchInventory::firstOrNew([
-            'branch_id' => $request->branch_id,
+        // Check if adding to Main Warehouse (direct addition)
+        if ($request->branch_id == 'warehouse') {
+            return $this->addToWarehouse($request, $product);
+        }
+
+        // Adding to branch - must check warehouse inventory first
+        return $this->transferToBranch($request, $product);
+    }
+
+    /**
+     * Add stock directly to warehouse inventory
+     */
+    private function addToWarehouse(Request $request, Product $product)
+    {
+        // Find or create warehouse inventory
+        $inventory = WarehouseInventory::firstOrNew([
             'product_id' => $product->id,
             'flavor_id' => $request->flavor_id,
         ]);
 
         if (!$inventory->exists) {
             $inventory->quantity = 0;
-            $inventory->reserved_quantity = 0;
             $inventory->low_stock_threshold = 10;
             $inventory->reorder_point = 20;
-            $inventory->optimal_stock = 50;
         }
 
-        $oldQuantity = $inventory->quantity;
+        $oldQuantity = $inventory->quantity ?? 0;
         $newQuantity = $oldQuantity + $request->quantity;
 
         $inventory->quantity = $newQuantity;
         $inventory->last_restocked_at = now();
+        
         if ($request->filled('purchase_price')) {
             $inventory->last_purchase_price = $request->purchase_price;
         }
         if ($request->filled('expiration_date')) {
             $inventory->expiration_date = $request->expiration_date;
         }
+        
         $inventory->save();
 
+        // Record stock movement
         StockMovement::create([
-            'branch_id' => $request->branch_id,
+            'branch_id' => null,
             'product_id' => $product->id,
             'flavor_id' => $request->flavor_id,
             'previous_quantity' => $oldQuantity,
             'new_quantity' => $newQuantity,
             'quantity_change' => $request->quantity,
             'movement_type' => 'purchase',
-            'notes' => $request->notes ?: 'Added via product management',
+            'reference_type' => 'warehouse',
+            'reference_id' => $inventory->id,
+            'notes' => $request->notes ?: 'Added to warehouse via product management',
             'created_by' => Auth::id(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => "Successfully added {$request->quantity} units to branch inventory."
+            'message' => "Successfully added {$request->quantity} units to Main Warehouse."
         ]);
     }
-    /**
- * Return edit form as modal content (no layout).
- */
-public function editModal(Product $product)
-{
-    $product->load('flavors');
-    return view('admin.products.modals.edit', compact('product'));
-}
 
-/**
- * Return product details as modal content (no layout).
- */
-public function showModal(Product $product)
-{
-    $product->load(['flavors']);
-    $branchInventories = BranchInventory::with('branch')
-        ->where('product_id', $product->id)
-        ->get();
-    return view('admin.products.modals.show', compact('product', 'branchInventories'));
-}
+    /**
+     * Transfer stock from warehouse to branch
+     */
+    private function transferToBranch(Request $request, Product $product)
+    {
+        // Validate branch exists
+        $branch = Branch::find($request->branch_id);
+        if (!$branch) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['branch_id' => ['Selected branch does not exist.']]
+            ], 422);
+        }
+
+        // Check if product exists in warehouse inventory
+        $warehouseInventory = WarehouseInventory::where('product_id', $product->id)
+            ->where('flavor_id', $request->flavor_id)
+            ->first();
+
+        if (!$warehouseInventory) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['quantity' => ["This product is not available in Main Warehouse. Please add stock to warehouse first."]]
+            ], 422);
+        }
+
+        // Check if enough stock in warehouse
+        if ($warehouseInventory->quantity < $request->quantity) {
+            $available = $warehouseInventory->quantity;
+            return response()->json([
+                'success' => false,
+                'errors' => ['quantity' => ["Insufficient warehouse stock. Available: {$available} units. Please add more stock to warehouse first."]]
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Deduct from warehouse
+            $oldWarehouseQty = $warehouseInventory->quantity;
+            $newWarehouseQty = $oldWarehouseQty - $request->quantity;
+            $warehouseInventory->quantity = $newWarehouseQty;
+            $warehouseInventory->save();
+
+            // Record warehouse stock movement (outgoing)
+            StockMovement::create([
+                'branch_id' => null,
+                'product_id' => $product->id,
+                'flavor_id' => $request->flavor_id,
+                'previous_quantity' => $oldWarehouseQty,
+                'new_quantity' => $newWarehouseQty,
+                'quantity_change' => -$request->quantity,
+                'movement_type' => 'transfer_out',
+                'reference_type' => 'warehouse_transfer',
+                'reference_id' => $warehouseInventory->id,
+                'notes' => $request->notes ?: "Transferred to {$branch->name} via product management",
+                'created_by' => Auth::id(),
+            ]);
+
+            // Find or create branch inventory
+            $branchInventory = BranchInventory::firstOrNew([
+                'branch_id' => $request->branch_id,
+                'product_id' => $product->id,
+                'flavor_id' => $request->flavor_id,
+            ]);
+
+            if (!$branchInventory->exists) {
+                $branchInventory->quantity = 0;
+                $branchInventory->reserved_quantity = 0;
+                $branchInventory->low_stock_threshold = 10;
+                $branchInventory->reorder_point = 20;
+                $branchInventory->optimal_stock = 50;
+            }
+
+            $oldBranchQty = $branchInventory->quantity;
+            $newBranchQty = $oldBranchQty + $request->quantity;
+
+            $branchInventory->quantity = $newBranchQty;
+            $branchInventory->last_restocked_at = now();
+            
+            if ($request->filled('expiration_date')) {
+                $branchInventory->expiration_date = $request->expiration_date;
+            }
+            
+            $branchInventory->save();
+
+            // Record branch stock movement (incoming)
+            StockMovement::create([
+                'branch_id' => $request->branch_id,
+                'product_id' => $product->id,
+                'flavor_id' => $request->flavor_id,
+                'previous_quantity' => $oldBranchQty,
+                'new_quantity' => $newBranchQty,
+                'quantity_change' => $request->quantity,
+                'movement_type' => 'transfer_in',
+                'reference_type' => 'branch_transfer',
+                'reference_id' => $branchInventory->id,
+                'notes' => $request->notes ?: "Received from warehouse via product management",
+                'created_by' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully transferred {$request->quantity} units from Main Warehouse to {$branch->name}."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'errors' => ['general' => ['Error processing transfer: ' . $e->getMessage()]]
+            ], 500);
+        }
+    }
+
+    /**
+     * Return edit form as modal content (no layout).
+     */
+    public function editModal(Product $product)
+    {
+        $product->load('flavors');
+        return view('admin.products.modals.edit', compact('product'));
+    }
+
+    /**
+     * Return product details as modal content (no layout).
+     */
+    public function showModal(Product $product)
+    {
+        $product->load(['flavors']);
+        $branchInventories = BranchInventory::with('branch')
+            ->where('product_id', $product->id)
+            ->get();
+        return view('admin.products.modals.show', compact('product', 'branchInventories'));
+    }
 }

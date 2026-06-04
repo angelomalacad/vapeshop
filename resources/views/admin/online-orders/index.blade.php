@@ -220,7 +220,7 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h1 class="page-title mb-1"><i class="bi bi-cart me-2 text-primary"></i> Online Orders Management</h1>
+                <h1 class="page-title mb-1"><i class="bi bi-cart me-2 text-primary"></i> Online Orders History</h1>
                 <p class="page-subtitle mb-0">Monitor customer orders from confirmation to delivery (Read-only)</p>
             </div>
             <div>
