@@ -8,18 +8,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">
-                Vape Expo - Admin Panel
+            <a class="navbar-brand text-white fw-bold" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30" class="d-inline-block align-text-top me-2">
+                Vape Expo - Owner Panel
             </a>
             <div class="navbar-nav ms-auto">
-                <span class="navbar-text text-white me-3">
-                    <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+                <span class="navbar-text text-white-50 me-3">
+                    <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} (Owner)
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm">
+                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill">
                         <i class="bi bi-box-arrow-right me-1"></i> Logout
                     </button>
                 </form>

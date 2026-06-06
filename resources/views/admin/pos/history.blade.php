@@ -9,7 +9,7 @@
         <div class="d-flex align-items-center">
             <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
             <div>
-                <h1 class="h3 mb-1 fw-bold">Sales History</h1>
+                <h1 class="h3 mb-1 fw-bold">POS Sales History</h1>
                 <p class="text-muted mb-0">
                     <i class="bi bi-receipt me-1"></i> All POS sales across all branches
                 </p>

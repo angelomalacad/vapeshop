@@ -73,7 +73,7 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4">Product</th>
-                            <th>Flavor</th>
+                            <th>Flavor or Item</th>
                             <th>Current Stock</th>
                             <th>Threshold</th>
                             <th>Status</th>
