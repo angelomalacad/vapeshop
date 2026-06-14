@@ -24,36 +24,36 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with(['flavors']);
-        
+
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                   ->orWhere('sku', 'like', '%' . $request->search . '%');
             });
         }
-        
+
         if ($request->filled('brand')) {
             $query->where('brand', $request->brand);
         }
-        
+
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
-        
+
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
-        
+
         if ($request->filled('status')) {
             $query->where('is_active', $request->status === 'active');
         }
-        
+
         $products = $query->orderBy('name')->paginate(15);
-        
+
         $brands = Product::distinct()->pluck('brand');
         $categories = Product::distinct()->pluck('category');
         $types = Product::distinct()->pluck('type');
-        
+
         return view('admin.products.index', compact('products', 'brands', 'categories', 'types'));
     }
 
@@ -163,99 +163,134 @@ class ProductController extends Controller
     }
 
     public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'brand' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'cost' => 'nullable|numeric|min:0',
-            'nicotine_strength' => 'nullable|string|max:50',
-            'puff_count' => 'nullable|integer',
-            'battery_capacity' => 'nullable|integer',
-            'charging_type' => 'nullable|string|max:50',
-            'liquid_capacity' => 'nullable|numeric',
-            'adjustable_airflow' => 'nullable|boolean',
-            'smart_display' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image_url' => 'nullable|url|max:500',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'brand' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'category' => 'required|string|max:255',
+        'type' => 'required|string|max:255',
+        'price' => 'required|numeric|min:0',
+        'cost' => 'nullable|numeric|min:0',
+        'nicotine_strength' => 'nullable|string|max:50',
+        'puff_count' => 'nullable|integer',
+        'battery_capacity' => 'nullable|integer',
+        'charging_type' => 'nullable|string|max:50',
+        'liquid_capacity' => 'nullable|numeric',
+        'adjustable_airflow' => 'nullable|boolean',
+        'smart_display' => 'nullable|boolean',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'image_url' => 'nullable|url|max:500',
+    ]);
 
-        $brand = $request->brand;
-        if ($brand === 'Other' && $request->filled('custom_brand')) {
-            $brand = $request->custom_brand;
-        }
-
-        $category = $request->category;
-        if ($category === 'New' && $request->filled('new_category')) {
-            $category = $request->new_category;
-        }
-
-        $product->update([
-            'name' => $request->name,
-            'brand' => $brand,
-            'description' => $request->description,
-            'category' => $category,
-            'type' => $request->type,
-            'price' => $request->price,
-            'cost' => $request->cost,
-            'nicotine_strength' => $request->nicotine_strength,
-            'puff_count' => $request->puff_count,
-            'battery_capacity' => $request->battery_capacity,
-            'charging_type' => $request->charging_type,
-            'liquid_capacity' => $request->liquid_capacity,
-            'adjustable_airflow' => $request->has('adjustable_airflow'),
-            'smart_display' => $request->has('smart_display'),
-        ]);
-
-        if ($request->filled('image_url')) {
-            $product->update([
-                'image_url' => $request->image_url,
-                'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url)
-            ]);
-        } elseif ($request->has('remove_image')) {
-            $product->update([
-                'image_url' => null,
-                'gdrive_file_id' => null
-            ]);
-        }
-
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $imagePath = $request->file('image')->store('products', 'public');
-            $product->update(['image' => $imagePath]);
-        }
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully!');
+    $brand = $request->brand;
+    if ($brand === 'Other' && $request->filled('custom_brand')) {
+        $brand = $request->custom_brand;
     }
 
-    public function destroy(Product $product)
-    {
-        $inventoryCount = BranchInventory::where('product_id', $product->id)->count();
-        if ($inventoryCount > 0) {
-            return redirect()->back()
-                ->with('error', 'Cannot delete product that exists in inventory.');
-        }
+    $category = $request->category;
+    if ($category === 'New' && $request->filled('new_category')) {
+        $category = $request->new_category;
+    }
+
+    $product->update([
+        'name' => $request->name,
+        'brand' => $brand,
+        'description' => $request->description,
+        'category' => $category,
+        'type' => $request->type,
+        'price' => $request->price,
+        'cost' => $request->cost,
+        'nicotine_strength' => $request->nicotine_strength,
+        'puff_count' => $request->puff_count,
+        'battery_capacity' => $request->battery_capacity,
+        'charging_type' => $request->charging_type,
+        'liquid_capacity' => $request->liquid_capacity,
+        'adjustable_airflow' => $request->has('adjustable_airflow'),
+        'smart_display' => $request->has('smart_display'),
+    ]);
+
+    if ($request->filled('image_url')) {
+        $product->update([
+            'image_url' => $request->image_url,
+            'gdrive_file_id' => GoogleDriveHelper::extractFileId($request->image_url)
+        ]);
+    } elseif ($request->has('remove_image')) {
+        $product->update([
+            'image_url' => null,
+            'gdrive_file_id' => null
+        ]);
+    }
+
+    if ($request->hasFile('image')) {
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
-        $product->flavors()->delete();
-        $product->delete();
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product deleted successfully.');
+        $imagePath = $request->file('image')->store('products', 'public');
+        $product->update(['image' => $imagePath]);
     }
 
-    public function toggleStatus(Product $product)
-    {
-        $product->update(['is_active' => !$product->is_active]);
-        return redirect()->back()
-            ->with('success', 'Product status updated successfully.');
+    // ADD THIS FOR AJAX RESPONSE
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Product updated successfully!'
+        ]);
     }
+
+    return redirect()->route('admin.products.index')
+        ->with('success', 'Product updated successfully!');
+}
+
+    public function destroy(Request $request, Product $product)
+{
+    $inventoryCount = BranchInventory::where('product_id', $product->id)->count();
+    if ($inventoryCount > 0) {
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete product that exists in inventory.'
+            ]);
+        }
+        return redirect()->back()
+            ->with('error', 'Cannot delete product that exists in inventory.');
+    }
+
+    if ($product->image) {
+        Storage::disk('public')->delete($product->image);
+    }
+
+    $productName = $product->name;
+    $product->flavors()->delete();
+    $product->delete();
+
+    // ADD THIS FOR AJAX RESPONSE
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Product "' . $productName . '" deleted successfully.'
+        ]);
+    }
+
+    return redirect()->route('admin.products.index')
+        ->with('success', 'Product deleted successfully.');
+}
+
+   public function toggleStatus(Product $product)
+{
+    $product->update(['is_active' => !$product->is_active]);
+    $status = $product->is_active ? 'activated' : 'deactivated';
+
+    if (request()->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => "Product {$status} successfully."
+        ]);
+    }
+
+    return redirect()->back()
+        ->with('success', "Product {$status} successfully.");
+}
 
     // ========== ADD STOCK METHODS ==========
 
@@ -320,14 +355,14 @@ class ProductController extends Controller
 
         $inventory->quantity = $newQuantity;
         $inventory->last_restocked_at = now();
-        
+
         if ($request->filled('purchase_price')) {
             $inventory->last_purchase_price = $request->purchase_price;
         }
         if ($request->filled('expiration_date')) {
             $inventory->expiration_date = $request->expiration_date;
         }
-        
+
         $inventory->save();
 
         // Record stock movement
@@ -430,11 +465,11 @@ class ProductController extends Controller
 
             $branchInventory->quantity = $newBranchQty;
             $branchInventory->last_restocked_at = now();
-            
+
             if ($request->filled('expiration_date')) {
                 $branchInventory->expiration_date = $request->expiration_date;
             }
-            
+
             $branchInventory->save();
 
             // Record branch stock movement (incoming)

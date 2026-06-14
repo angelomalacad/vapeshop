@@ -17,7 +17,7 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $query = User::where('role', 'customer')->with('branch');
-        
+
         // Search filter
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
@@ -26,7 +26,7 @@ class CustomerController extends Controller
                   ->orWhere('phone', 'like', '%' . $request->search . '%');
             });
         }
-        
+
         // Status filter
         if ($request->filled('status')) {
             if ($request->status == 'active') {
@@ -35,7 +35,7 @@ class CustomerController extends Controller
                 $query->where('is_active', false);
             }
         }
-        
+
         // Date filter
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -43,16 +43,16 @@ class CustomerController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
-        
+
         $customers = $query->orderBy('created_at', 'desc')->paginate(15);
-        
+
         $totalCustomers = User::where('role', 'customer')->count();
         $activeCustomers = User::where('role', 'customer')->where('is_active', true)->count();
         $inactiveCustomers = User::where('role', 'customer')->where('is_active', false)->count();
         $newThisMonth = User::where('role', 'customer')
             ->whereMonth('created_at', now()->month)
             ->count();
-        
+
         return view('admin.customers.index', compact('customers', 'totalCustomers', 'activeCustomers', 'inactiveCustomers', 'newThisMonth'));
     }
 
@@ -75,11 +75,13 @@ class CustomerController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['required', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
-            'zip_code' => ['nullable', 'string', 'max:10'],
-            'birthdate' => ['nullable', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:100'],
+            'province' => ['required', 'string', 'max:100'],
+            'barangay' => ['required', 'string', 'max:100'],
+            'landmark' => ['required', 'string', 'max:255'],
+            'zip_code' => ['required', 'string', 'max:10'],
+            'birthdate' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
             'is_active' => ['boolean'],
         ]);
 
@@ -98,6 +100,8 @@ class CustomerController extends Controller
             'address' => $request->address,
             'city' => $request->city,
             'province' => $request->province,
+            'barangay' => $request->barangay,
+            'landmark' => $request->landmark,
             'zip_code' => $request->zip_code,
             'birthdate' => $request->birthdate,
             'email_verified_at' => now(),
@@ -116,81 +120,104 @@ class CustomerController extends Controller
         if ($customer->role !== 'customer') {
             abort(404);
         }
-        
+
         return view('admin.customers.modals.edit', compact('customer'));
     }
 
     /**
-     * Update a customer account.
-     */
-    public function update(Request $request, User $customer)
-    {
-        if ($customer->role !== 'customer') {
-            abort(404);
-        }
+ * Update a customer account.
+ */
+public function update(Request $request, User $customer)
+{
+    if ($customer->role !== 'customer') {
+        abort(404);
+    }
 
+    $validator = Validator::make($request->all(), [
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $customer->id],
+        'phone' => ['required', 'string', 'max:20'],
+        'address' => ['required', 'string', 'max:500'],
+        'city' => ['required', 'string', 'max:100'],
+        'province' => ['required', 'string', 'max:100'],
+        'barangay' => ['required', 'string', 'max:100'],
+        'landmark' => ['required', 'string', 'max:255'],
+        'zip_code' => ['required', 'string', 'max:10'],
+        'birthdate' => ['required', 'date'],
+        'is_active' => ['boolean'],
+    ]);
+
+    if ($validator->fails()) {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()]);
+        }
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
+
+    $updateData = [
+        'name' => $request->name,
+        'email' => $request->email,
+        'phone' => $request->phone,
+        'address' => $request->address,
+        'city' => $request->city,
+        'province' => $request->province,
+        'barangay' => $request->barangay,
+        'landmark' => $request->landmark,
+        'zip_code' => $request->zip_code,
+        'birthdate' => $request->birthdate,
+        'is_active' => $request->has('is_active'),
+    ];
+
+    // Only update password if provided
+    if ($request->filled('password')) {
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $customer->id],
-            'phone' => ['required', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
-            'zip_code' => ['nullable', 'string', 'max:10'],
-            'birthdate' => ['nullable', 'date'],
-            'is_active' => ['boolean'],
+            'password' => ['min:8', 'confirmed'],
         ]);
-
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $updateData = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'city' => $request->city,
-            'province' => $request->province,
-            'zip_code' => $request->zip_code,
-            'birthdate' => $request->birthdate,
-            'is_active' => $request->has('is_active'),
-        ];
-        
-        // Only update password if provided
-        if ($request->filled('password')) {
-            $validator = Validator::make($request->all(), [
-                'password' => ['min:8', 'confirmed'],
-            ]);
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $validator->errors()->first()]);
             }
-            $updateData['password'] = Hash::make($request->password);
+            return redirect()->back()->withErrors($validator)->withInput();
         }
-
-        $customer->update($updateData);
-
-        return redirect()->route('admin.customers.index')
-            ->with('success', 'Customer account updated successfully.');
+        $updateData['password'] = Hash::make($request->password);
     }
 
-    /**
-     * Remove a customer account.
-     */
-    public function destroy(User $customer)
-    {
-        if ($customer->role !== 'customer') {
-            abort(404);
-        }
+    $customer->update($updateData);
 
-        $customer->delete();
-
-        return redirect()->route('admin.customers.index')
-            ->with('success', 'Customer account deleted successfully.');
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer account updated successfully.'
+        ]);
     }
-    
+
+    return redirect()->route('admin.customers.index')
+        ->with('success', 'Customer account updated successfully.');
+}
+
+   /**
+ * Remove a customer account.
+ */
+public function destroy(Request $request, User $customer)
+{
+    if ($customer->role !== 'customer') {
+        abort(404);
+    }
+
+    $customerName = $customer->name;
+    $customer->delete();
+
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer "' . $customerName . '" deleted successfully.'
+        ]);
+    }
+
+    return redirect()->route('admin.customers.index')
+        ->with('success', 'Customer account deleted successfully.');
+}
+
     /**
      * Toggle customer status.
      */
@@ -199,10 +226,21 @@ class CustomerController extends Controller
         if ($customer->role !== 'customer') {
             abort(404);
         }
-        
+
         $customer->update(['is_active' => !$customer->is_active]);
-        
+
         $status = $customer->is_active ? 'activated' : 'deactivated';
         return redirect()->back()->with('success', "Customer account {$status} successfully.");
     }
+    /**
+ * Show customer details for modal view.
+ */
+public function show(User $customer)
+{
+    if ($customer->role !== 'customer') {
+        abort(404);
+    }
+
+    return view('admin.customers.modals.show', compact('customer'));
+}
 }

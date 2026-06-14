@@ -90,8 +90,8 @@ Route::post('/register', function () {
         'password' => 'required|string|min:8|confirmed',
         'phone' => 'required|string|max:20',
         'address' => 'required|string|max:500',
-        'barangay' => 'nullable|string|max:100',        
-        'landmark' => 'nullable|string|max:255', 
+        'barangay' => 'nullable|string|max:100',
+        'landmark' => 'nullable|string|max:255',
         'city' => 'nullable|string|max:100',
         'province' => 'nullable|string|max:100',
         'zip_code' => 'nullable|string|max:10',
@@ -107,7 +107,7 @@ Route::post('/register', function () {
         'role' => 'customer',
         'phone' => $validated['phone'],
         'address' => $validated['address'],
-        'barangay' => $validated['barangay'] ?? null,      
+        'barangay' => $validated['barangay'] ?? null,
         'landmark' => $validated['landmark'] ?? null,
         'city' => $validated['city'] ?? 'Calamba',
         'province' => $validated['province'] ?? 'Laguna',
@@ -246,7 +246,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::delete('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
         Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
     });
-    
+
     // ===== DELIVERY MANAGEMENT (OWNER) =====
     Route::prefix('deliveries')->name('deliveries.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\DeliveryController::class, 'index'])->name('index');
@@ -332,6 +332,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::get('/', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\Admin\CustomerController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('store');
+        Route::get('/{customer}/show', [App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('show');
         Route::get('/{customer}/modal-edit', [App\Http\Controllers\Admin\CustomerController::class, 'modalEdit'])->name('modal-edit');
         Route::put('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'update'])->name('update');
         Route::delete('/{customer}', [App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('destroy');
@@ -366,7 +367,7 @@ Route::get('/debug-dashboard', function() {
         ->orderBy('total_sold', 'desc')
         ->limit(5)
         ->get();
-    
+
     return [
         'expiringSoon_count' => $data['expiringSoon']->count(),
         'expiringSoon_data' => $data['expiringSoon']->toArray(),
@@ -440,15 +441,15 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::get('/api/warehouse-stock/{product}', function($productId, Request $request) {
         $flavorId = $request->get('flavor_id');
         $query = \App\Models\WarehouseInventory::where('product_id', $productId);
-        
+
         if ($flavorId) {
             $query->where('flavor_id', $flavorId);
         } else {
             $query->whereNull('flavor_id');
         }
-        
+
         $inventory = $query->first();
-        
+
         return response()->json([
             'success' => true,
             'quantity' => $inventory ? $inventory->quantity : 0
@@ -473,11 +474,11 @@ Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::post('/transfers/{transfer}/reject', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'rejectTransfer'])->name('transfers.reject');
     Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
     Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
-    
+
     // MOVED THESE BEFORE THE PARAMETERIZED ROUTES
     Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
     Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('check-availability');
-    
+
     // PARAMETERIZED ROUTES - KEEP THESE AT THE BOTTOM
     Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
     Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
@@ -571,18 +572,18 @@ Route::prefix('api')->group(function () {
             'reserved' => $inventory->reserved_quantity ?? 0,
         ]);
     })->name('api.stock.check');
-    
+
     // ADD THIS - Warehouse availability check API
     Route::get('/warehouse/check', function(\Illuminate\Http\Request $request) {
         $query = \App\Models\WarehouseInventory::where('product_id', $request->product_id)
             ->where('quantity', '>', 0);
-        
+
         if ($request->flavor_id) {
             $query->where('flavor_id', $request->flavor_id);
         }
-        
+
         $inventory = $query->first();
-        
+
         return response()->json([
             'success' => true,
             'available' => $inventory ? $inventory->quantity : 0
