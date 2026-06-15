@@ -165,7 +165,7 @@ public function update(Request $request, User $customer)
         'landmark' => $request->landmark,
         'zip_code' => $request->zip_code,
         'birthdate' => $request->birthdate,
-        'is_active' => $request->has('is_active'),
+        'is_active' => $request->is_active == '1' ? true : false,
     ];
 
     // Only update password if provided
