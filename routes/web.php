@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductController;
@@ -238,7 +239,24 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             return ['id' => $flavor->id, 'name' => $flavor->name];
         }));
     })->name('api.product.flavors');
+// ===== API ROUTE TO CHECK WAREHOUSE STOCK (ADMIN) =====
+Route::get('/api/warehouse-stock/{product}', function($productId, Request $request) {
+    $flavorId = $request->get('flavor_id');
+    $query = \App\Models\WarehouseInventory::where('product_id', $productId);
 
+    if ($flavorId && $flavorId !== '') {
+        $query->where('flavor_id', $flavorId);
+    } else {
+        $query->whereNull('flavor_id');
+    }
+
+    $inventory = $query->first();
+
+    return response()->json([
+        'success' => true,
+        'quantity' => $inventory ? $inventory->quantity : 0
+    ]);
+})->name('admin.api.warehouse-stock');
     // ===== DRIVER SHIFT MANAGEMENT =====
     Route::prefix('driver-shifts')->name('driver-shifts.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\DriverShiftController::class, 'index'])->name('index');

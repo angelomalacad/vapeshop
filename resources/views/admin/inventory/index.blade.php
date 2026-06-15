@@ -540,6 +540,28 @@
         </div>
 
         <script>
+            // Auto dismiss session alerts after 5 seconds
+            (function() {
+                const successAlert = document.querySelector('.alert-success');
+                if (successAlert && !successAlert.closest('.modal')) {
+                    setTimeout(() => {
+                        successAlert.style.transition = 'opacity 0.5s ease';
+                        successAlert.style.opacity = '0';
+                        setTimeout(() => successAlert.remove(), 500);
+                    }, 5000);
+                }
+
+                const errorAlert = document.querySelector('.alert-danger');
+                if (errorAlert && !errorAlert.closest('.modal')) {
+                    setTimeout(() => {
+                        errorAlert.style.transition = 'opacity 0.5s ease';
+                        errorAlert.style.opacity = '0';
+                        setTimeout(() => errorAlert.remove(), 500);
+                    }, 5000);
+                }
+            })();
+
+            // Filter auto-submit
             document.querySelectorAll('select[name="branch_id"], select[name="product_id"], select[name="stock_status"]')
                 .forEach(function(select) {
                     select.addEventListener('change', function() {

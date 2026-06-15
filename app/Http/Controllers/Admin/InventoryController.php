@@ -104,7 +104,7 @@ class InventoryController extends Controller
             'reorder_point' => 'required|integer|min:1',
             'optimal_stock' => 'required|integer|min:1',
             'last_purchase_price' => 'nullable|numeric|min:0',
-            'expiration_date' => 'nullable|date', 
+            'expiration_date' => 'nullable|date',
         ]);
 
         // Check if already exists
@@ -206,8 +206,6 @@ public function update(Request $request, BranchInventory $inventory)
         'quantity' => 'required|integer|min:0',
         'reserved_quantity' => 'required|integer|min:0',
         'low_stock_threshold' => 'required|integer|min:1',
-        'reorder_point' => 'required|integer|min:1',
-        'optimal_stock' => 'required|integer|min:1',
         'last_purchase_price' => 'nullable|numeric|min:0',
         'last_restocked_at' => 'nullable|date',
         'expiration_date' => 'nullable|date',
@@ -295,14 +293,14 @@ public function update(Request $request, BranchInventory $inventory)
             ->with('success', 'Inventory updated successfully.');
     } catch (\Exception $e) {
         DB::rollBack();
-        
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating inventory: ' . $e->getMessage()
             ]);
         }
-        
+
         return redirect()->back()
             ->withInput()
             ->with('error', 'Error updating inventory: ' . $e->getMessage());
@@ -382,7 +380,7 @@ public function addStock(Request $request, BranchInventory $inventory)
 
         if ($request->ajax()) {
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => $successMessage,
                 'redirect' => route('admin.inventory.index')
             ]);
@@ -392,11 +390,11 @@ public function addStock(Request $request, BranchInventory $inventory)
             ->with('success', $successMessage);
     } catch (\Exception $e) {
         DB::rollBack();
-        
+
         if ($request->ajax()) {
             return response()->json(['success' => false, 'message' => 'Error adding stock: ' . $e->getMessage()]);
         }
-        
+
         return redirect()->back()
             ->withInput()
             ->with('error', 'Error adding stock: ' . $e->getMessage());
@@ -774,11 +772,11 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
             ->with('success', 'Transfer updated successfully.');
     } catch (\Exception $e) {
         DB::rollBack();
-        
+
         if (request()->ajax()) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
-        
+
         return redirect()->back()
             ->withInput()
             ->with('error', 'Error updating transfer: ' . $e->getMessage());
@@ -1056,7 +1054,7 @@ public function editModal(BranchInventory $inventory)
     $inventory->load(['product.flavors', 'flavor']);
     $branches = Branch::where('is_active', true)->get();
     $products = Product::with('flavors')->where('is_active', true)->get();
-    
+
     return view('admin.inventory.modals.edit', compact('inventory', 'branches', 'products'));
 }
 
@@ -1066,7 +1064,7 @@ public function editModal(BranchInventory $inventory)
 public function showModal(BranchInventory $inventory)
 {
     $inventory->load(['branch', 'product', 'flavor']);
-    
+
     $movements = StockMovement::where('branch_id', $inventory->branch_id)
         ->where('product_id', $inventory->product_id)
         ->when($inventory->flavor_id, function($query) use ($inventory) {
@@ -1076,7 +1074,7 @@ public function showModal(BranchInventory $inventory)
         ->orderBy('created_at', 'desc')
         ->limit(10)
         ->get();
-    
+
     return view('admin.inventory.modals.show', compact('inventory', 'movements'));
 }
 
@@ -1086,16 +1084,16 @@ public function showModal(BranchInventory $inventory)
 public function addStockModal(BranchInventory $inventory)
 {
     $inventory->load(['product', 'flavor', 'branch']);
-    
+
     // Get warehouse stock for this product
     $warehouseStock = \App\Models\WarehouseInventory::where('product_id', $inventory->product_id)
         ->when($inventory->flavor_id, function($query) use ($inventory) {
             return $query->where('flavor_id', $inventory->flavor_id);
         })
         ->first();
-    
+
     $availableWarehouseStock = $warehouseStock ? $warehouseStock->quantity : 0;
-    
+
     return view('admin.inventory.modals.add-stock', compact('inventory', 'availableWarehouseStock'));
 }
 /**
@@ -1114,10 +1112,10 @@ public function editTransferModal(StockTransfer $transfer)
     if ($transfer->status !== 'pending') {
         return redirect()->back()->with('error', 'Only pending transfers can be edited.');
     }
-    
+
     $branches = Branch::where('is_active', true)->get();
     $products = Product::with('flavors')->where('is_active', true)->get();
-    
+
     return view('admin.inventory.modals.edit-transfer', compact('transfer', 'branches', 'products'));
 }
 /**
@@ -1130,7 +1128,7 @@ public function dispose(Request $request, BranchInventory $inventory)
         'dispose_reason' => $request->dispose_reason,
         'disposed_at' => now()
     ]);
-    
+
     return redirect()->route('admin.inventory.index')
         ->with('success', 'Item disposed successfully.');
 }
@@ -1145,7 +1143,7 @@ public function restoreDisposed(BranchInventory $inventory)
         'dispose_reason' => null,
         'disposed_at' => null
     ]);
-    
+
     return redirect()->route('admin.inventory.index')
         ->with('success', 'Item restored from disposed items.');
 }

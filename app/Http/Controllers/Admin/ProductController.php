@@ -523,4 +523,25 @@ class ProductController extends Controller
             ->get();
         return view('admin.products.modals.show', compact('product', 'branchInventories'));
     }
+    /**
+ * Get warehouse stock for a product (AJAX)
+ */
+public function getWarehouseStock(Request $request, $productId)
+{
+    $flavorId = $request->get('flavor_id');
+    $query = WarehouseInventory::where('product_id', $productId);
+
+    if ($flavorId && $flavorId !== '') {
+        $query->where('flavor_id', $flavorId);
+    } else {
+        $query->whereNull('flavor_id');
+    }
+
+    $inventory = $query->first();
+
+    return response()->json([
+        'success' => true,
+        'quantity' => $inventory ? $inventory->quantity : 0
+    ]);
+}
 }
