@@ -483,7 +483,7 @@
             </div>
         </div>
 
-        <!-- Delete Confirmation Modal - ONLY UI CLASSES CHANGED, STRUCTURE KEPT INTACT -->
+        <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -500,13 +500,9 @@
                     </div>
                     <div class="delete-modal-footer">
                         <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                        <form id="deleteForm" method="POST" action="" style="display: inline-block; margin: 0;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-delete">
-                                <i class="bi bi-trash me-2"></i> Delete
-                            </button>
-                        </form>
+                        <button type="button" class="btn-delete" id="confirmDeleteBtn">
+                            <i class="bi bi-trash me-2"></i> Delete
+                        </button>
                     </div>
                 </div>
             </div>
@@ -526,40 +522,6 @@
                     }, 5000);
                 }
 
-                // Function to show notification
-                function showNotification(message, type) {
-                    let notificationContainer = document.querySelector('.notification-container');
-                    if (!notificationContainer) {
-                        notificationContainer = document.createElement('div');
-                        notificationContainer.className = 'notification-container';
-                        notificationContainer.style.position = 'fixed';
-                        notificationContainer.style.top = '20px';
-                        notificationContainer.style.right = '20px';
-                        notificationContainer.style.zIndex = '9999';
-                        document.body.appendChild(notificationContainer);
-                    }
-
-                    const alert = document.createElement('div');
-                    alert.className = `alert alert-${type} alert-dismissible fade show shadow`;
-                    alert.style.marginBottom = '10px';
-                    alert.style.minWidth = '300px';
-                    alert.innerHTML = `
-                    <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-
-                    notificationContainer.appendChild(alert);
-
-                    setTimeout(() => {
-                        alert.style.transition = 'opacity 0.5s ease';
-                        alert.style.opacity = '0';
-                        setTimeout(() => {
-                            alert.remove();
-                        }, 500);
-                    }, 5000);
-                }
-
                 // Edit button functionality with AJAX form submission
                 const editButtons = document.querySelectorAll('.edit-btn');
 
@@ -572,13 +534,13 @@
                         const modalContent = editModal.querySelector('.modal-content');
 
                         modalContent.innerHTML = `
-                        <div class="text-center p-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Loading form...</p>
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    `;
+                        <p class="mt-2 text-muted">Loading form...</p>
+                    </div>
+                `;
 
                         fetch(url, {
                                 headers: {
@@ -628,7 +590,6 @@
                                     updateForm.addEventListener('submit', function(e) {
                                         e.preventDefault();
 
-                                        // If "All Branches" is selected, clear address
                                         if (branchSelect && branchSelect.value === 'all' &&
                                             addressField) {
                                             addressField.value = '';
@@ -640,7 +601,6 @@
                                             'button[type="submit"]');
                                         const originalButtonText = submitButton.innerHTML;
 
-                                        // Show loading state
                                         submitButton.disabled = true;
                                         submitButton.innerHTML =
                                             '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Updating...';
@@ -656,18 +616,21 @@
                                             .then(response => response.json())
                                             .then(data => {
                                                 if (data.success) {
-                                                    // Close modal
                                                     const modal = updateForm.closest(
                                                         '.modal');
                                                     const bootstrapModal = bootstrap
                                                         .Modal.getInstance(modal);
                                                     bootstrapModal.hide();
 
-                                                    // Show success notification
-                                                    showNotification(data.message,
-                                                        'success');
+                                                    if (typeof window
+                                                        .showNotification === 'function'
+                                                    ) {
+                                                        window.showNotification(data
+                                                            .message, 'success');
+                                                    } else {
+                                                        alert(data.message);
+                                                    }
 
-                                                    // Reload page after 1 second to refresh the table
                                                     setTimeout(() => {
                                                         window.location
                                                             .reload();
@@ -676,9 +639,17 @@
                                                     submitButton.disabled = false;
                                                     submitButton.innerHTML =
                                                         originalButtonText;
-                                                    showNotification(data.message ||
-                                                        'Update failed. Please try again.',
-                                                        'danger');
+                                                    if (typeof window
+                                                        .showNotification === 'function'
+                                                    ) {
+                                                        window.showNotification(data
+                                                            .message ||
+                                                            'Update failed. Please try again.',
+                                                            'error');
+                                                    } else {
+                                                        alert(data.message ||
+                                                            'Update failed');
+                                                    }
                                                 }
                                             })
                                             .catch(error => {
@@ -686,9 +657,14 @@
                                                 submitButton.innerHTML =
                                                     originalButtonText;
                                                 console.error('Error:', error);
-                                                showNotification(
-                                                    'An error occurred. Please try again.',
-                                                    'danger');
+                                                if (typeof window.showNotification ===
+                                                    'function') {
+                                                    window.showNotification(
+                                                        'An error occurred. Please try again.',
+                                                        'error');
+                                                } else {
+                                                    alert('An error occurred');
+                                                }
                                             });
                                     });
                                 }
@@ -696,17 +672,17 @@
                             .catch(error => {
                                 console.error('Error:', error);
                                 modalContent.innerHTML = `
-                                <div class="modal-header bg-danger text-white">
-                                    <h5 class="modal-title">Error</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Failed to load form.</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                </div>
-                            `;
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Error</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Failed to load form.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        `;
                             });
 
                         const bsModal = new bootstrap.Modal(editModal);
@@ -714,25 +690,86 @@
                     });
                 });
 
-                // Delete button functionality - COMPLETELY UNCHANGED
+                // ========== DELETE BUTTON FUNCTIONALITY ==========
                 const deleteButtons = document.querySelectorAll('.delete-btn');
                 const deleteModal = document.getElementById('deleteModal');
-                const deleteForm = document.getElementById('deleteForm');
                 const deleteUserNameSpan = document.getElementById('deleteUserName');
+                let currentDeleteUrl = '';
+
+                // Simple URL - no route helper needed
+                const baseDeleteUrl = '/admin/branch-admin/';
 
                 deleteButtons.forEach(button => {
                     button.addEventListener('click', function() {
                         const userId = this.getAttribute('data-id');
                         const userName = this.getAttribute('data-name');
-                        const deleteUrl = '/admin/branch-admin/' + userId;
-
+                        currentDeleteUrl = baseDeleteUrl + userId;
                         deleteUserNameSpan.textContent = userName;
-                        deleteForm.action = deleteUrl;
+
+                        console.log('Delete URL:', currentDeleteUrl);
 
                         const bsModal = new bootstrap.Modal(deleteModal);
                         bsModal.show();
                     });
                 });
+
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+                if (confirmDeleteBtn) {
+                    confirmDeleteBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        if (!currentDeleteUrl) {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification('No item selected for deletion', 'error');
+                            }
+                            return;
+                        }
+
+                        const bsModal = bootstrap.Modal.getInstance(deleteModal);
+                        bsModal.hide();
+
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Deleting...', 'info');
+                        }
+
+                        fetch(currentDeleteUrl, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                        .getAttribute('content'),
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('HTTP ' + response.status);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    if (typeof window.showNotification === 'function') {
+                                        window.showNotification(data.message || 'Deleted successfully',
+                                            'success');
+                                    }
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    if (typeof window.showNotification === 'function') {
+                                        window.showNotification(data.message || 'Delete failed', 'error');
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification('Network error. Please try again.', 'error');
+                                }
+                            });
+                    });
+                }
             });
         </script>
     @endsection

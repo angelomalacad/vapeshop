@@ -176,63 +176,47 @@
                                 const bootstrapModal = bootstrap.Modal.getInstance(modal);
                                 bootstrapModal.hide();
 
-                                // Show success notification
-                                showNotification(data.message, 'success');
+                                // Use global notification from parent window
+                                if (window.parent && typeof window.parent.showNotification === 'function') {
+                                    window.parent.showNotification(data.message, 'success');
+                                } else if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message, 'success');
+                                } else {
+                                    alert(data.message);
+                                }
 
                                 // Reload page after 1 second to refresh the table
                                 setTimeout(() => {
-                                    window.location.reload();
+                                    window.parent.location.reload();
                                 }, 1000);
                             } else {
                                 submitButton.disabled = false;
                                 submitButton.innerHTML = originalButtonText;
-                                showNotification(data.message || 'Update failed. Please try again.',
-                                    'danger');
+                                if (window.parent && typeof window.parent.showNotification === 'function') {
+                                    window.parent.showNotification(data.message ||
+                                        'Update failed. Please try again.', 'error');
+                                } else if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Update failed. Please try again.', 'error');
+                                } else {
+                                    alert(data.message || 'Update failed');
+                                }
                             }
                         })
                         .catch(error => {
                             submitButton.disabled = false;
                             submitButton.innerHTML = originalButtonText;
                             console.error('Error:', error);
-                            showNotification('An error occurred. Please try again.', 'danger');
+                            if (window.parent && typeof window.parent.showNotification === 'function') {
+                                window.parent.showNotification('An error occurred. Please try again.',
+                                    'error');
+                            } else if (typeof window.showNotification === 'function') {
+                                window.showNotification('An error occurred. Please try again.', 'error');
+                            } else {
+                                alert('An error occurred. Please try again.');
+                            }
                         });
                 });
-            }
-
-            // Helper function to show notification
-            function showNotification(message, type) {
-                // Check if notification container exists, if not create it
-                let notificationContainer = document.querySelector('.notification-container');
-                if (!notificationContainer) {
-                    notificationContainer = document.createElement('div');
-                    notificationContainer.className = 'notification-container';
-                    notificationContainer.style.position = 'fixed';
-                    notificationContainer.style.top = '20px';
-                    notificationContainer.style.right = '20px';
-                    notificationContainer.style.zIndex = '9999';
-                    document.body.appendChild(notificationContainer);
-                }
-
-                const alert = document.createElement('div');
-                alert.className = `alert alert-${type} alert-dismissible fade show shadow`;
-                alert.style.marginBottom = '10px';
-                alert.style.minWidth = '300px';
-                alert.innerHTML = `
-                <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-
-                notificationContainer.appendChild(alert);
-
-                // Auto dismiss after 5 seconds
-                setTimeout(() => {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 500);
-                }, 5000);
             }
         })();
     </script>

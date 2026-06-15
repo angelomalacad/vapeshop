@@ -1732,46 +1732,45 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                                     </div>
                                     <div class="card-body p-0">
                                         @if ($expiringSoon->count() > 0)
-                                            <div class="table-responsive">
-                                                <table class="table table-hover mb-0 w-100">
-                                                    <thead class="bg-light">
+                                            <table class="table table-hover mb-0 w-100">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th>Branch</th>
+                                                        <th>Product</th>
+                                                        <th>Expiration Date</th>
+                                                        <th>Days Left</th>
+                                                        <th>Qty</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($expiringSoon as $item)
                                                         <tr>
-                                                            <th>Branch</th>
-                                                            <th>Product</th>
-                                                            <th>Expiration Date</th>
-                                                            <th>Days Left</th>
-                                                            <th>Qty</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($expiringSoon as $item)
-                                                            <tr>
-                                                                <td>{{ $item->branch->name ?? 'N/A' }}
-                                            </div>
-                                            <td>{{ $item->product->name ?? 'N/A' }}
+                                                            <td>{{ $item->branch->name ?? 'N/A' }}
                                     </div>
-                                    <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
+                                    <td>{{ $item->product->name ?? 'N/A' }}
                                 </div>
-                                <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
-                                    <span
-                                        class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }}
-                                        days</span>
+                                <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
                             </div>
-                            <td>{{ number_format($item->quantity) }}
+                            <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
+                                <span
+                                    class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }}
+                                    days</span>
                         </div>
-                        </tr>
-                        @endforeach
-                        </tbody>
-                        </table>
+                        <td>{{ number_format($item->quantity) }}
                     </div>
-                @else
-                    <div class="text-center py-4 text-success"><i class="bi bi-check-circle fs-2"></i>
-                        <p class="mb-0">No products expiring soon</p>
-                    </div>
-                    @endif
+                    </tr>
+                    @endforeach
+                    </tbody>
+                    </table>
                 </div>
+            @else
+                <div class="text-center py-4 text-success"><i class="bi bi-check-circle fs-2"></i>
+                    <p class="mb-0">No products expiring soon</p>
+                </div>
+                @endif
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Charts Row -->
@@ -1881,31 +1880,30 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                 </div>
                 <div class="card-body p-0">
                     @if ($fastMovingProducts->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 w-100">
-                                <thead class="bg-light">
+                        <table class="table table-hover mb-0 w-100">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th class="text-end">Rank</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($fastMovingProducts as $index => $product)
                                     <tr>
-                                        <th>Product</th>
-                                        <th>Units Sold</th>
-                                        <th>Revenue</th>
-                                        <th class="text-end">Rank</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($fastMovingProducts as $index => $product)
-                                        <tr>
-                                            <td><strong>{{ $product->name }}</strong>
-                        </div>
-                        <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
+                                        <td><strong>{{ $product->name }}</strong>
                 </div>
-                <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
+                <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
             </div>
-            <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
+            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
         </div>
-        </tr>
-        @endforeach
-        </tbody>
-        </table>
+        <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
+    </div>
+    </tr>
+    @endforeach
+    </tbody>
+    </table>
     </div>
 @else
     <div class="text-center py-4 text-muted"><i class="bi bi-box-seam fs-2"></i>

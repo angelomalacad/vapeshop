@@ -269,7 +269,7 @@
                 branchSelect.addEventListener('change', handleBranchChange);
             }
 
-            // Handle form submission via AJAX with success notification
+            // Handle form submission via AJAX with global notification
             const createForm = document.getElementById('createForm');
 
             if (createForm) {
@@ -281,7 +281,11 @@
                     const confirm = document.getElementById('password_confirmation').value;
 
                     if (password !== confirm) {
-                        showNotification('Password and Confirm Password do not match!', 'danger');
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Password and Confirm Password do not match!', 'error');
+                        } else {
+                            alert('Password and Confirm Password do not match!');
+                        }
                         return;
                     }
 
@@ -319,8 +323,12 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Show success notification
-                                showNotification(data.message, 'success');
+                                // Use global notification
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message, 'success');
+                                } else {
+                                    alert(data.message);
+                                }
 
                                 // Reset form
                                 createForm.reset();
@@ -347,8 +355,13 @@
                                 const hidden = createForm.querySelector(
                                     'input[name="branch_id"][type="hidden"]');
                                 if (hidden) hidden.remove();
-                                showNotification(data.message || 'Creation failed. Please try again.',
-                                    'danger');
+
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Creation failed. Please try again.', 'error');
+                                } else {
+                                    alert(data.message || 'Creation failed. Please try again.');
+                                }
                             }
                         })
                         .catch(error => {
@@ -360,58 +373,14 @@
                                 'input[name="branch_id"][type="hidden"]');
                             if (hidden) hidden.remove();
                             console.error('Error:', error);
-                            showNotification('An error occurred. Please try again.', 'danger');
+
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification('An error occurred. Please try again.', 'error');
+                            } else {
+                                alert('An error occurred. Please try again.');
+                            }
                         });
                 });
-            }
-
-            // Helper function to show notification
-            function showNotification(message, type) {
-                // Remove any existing notifications
-                const existingAlerts = document.querySelectorAll('.notification-toast');
-                existingAlerts.forEach(alert => alert.remove());
-
-                // Create notification container if not exists
-                let notificationContainer = document.querySelector('.notification-container');
-                if (!notificationContainer) {
-                    notificationContainer = document.createElement('div');
-                    notificationContainer.className = 'notification-container';
-                    notificationContainer.style.position = 'fixed';
-                    notificationContainer.style.top = '20px';
-                    notificationContainer.style.right = '20px';
-                    notificationContainer.style.zIndex = '9999';
-                    document.body.appendChild(notificationContainer);
-                }
-
-                const alert = document.createElement('div');
-                alert.className = `alert alert-${type} alert-dismissible fade show shadow notification-toast`;
-                alert.style.marginBottom = '10px';
-                alert.style.minWidth = '300px';
-                alert.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
-                alert.style.color = type === 'success' ? '#155724' : '#721c24';
-                alert.style.border = type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
-                alert.style.borderRadius = '8px';
-                alert.style.padding = '12px 20px';
-                alert.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2 fs-5"></i>
-                    <span class="flex-grow-1">${message}</span>
-                    <button type="button" class="btn-close ms-3" style="font-size: 0.75rem;" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            `;
-
-                notificationContainer.appendChild(alert);
-
-                // Auto dismiss after 5 seconds
-                setTimeout(() => {
-                    if (alert) {
-                        alert.style.transition = 'opacity 0.5s ease';
-                        alert.style.opacity = '0';
-                        setTimeout(() => {
-                            if (alert) alert.remove();
-                        }, 500);
-                    }
-                }, 5000);
             }
         })();
     </script>

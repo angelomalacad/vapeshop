@@ -168,7 +168,7 @@ public function store(Request $request)
         return view('admin.branch-admin.modals.edit', compact('branchAdmin', 'branches'));
     }
 
-  /**
+ /**
  * Update a branch admin, staff, or driver account.
  */
 public function update(Request $request, User $branchAdmin)
@@ -199,6 +199,9 @@ public function update(Request $request, User $branchAdmin)
         $branchId = null;
     }
 
+    // Convert is_active correctly
+    $isActive = $request->is_active == '1' ? true : false;
+
     // Update password if provided
     if ($request->filled('password')) {
         $request->validate([
@@ -211,7 +214,7 @@ public function update(Request $request, User $branchAdmin)
             'branch_id' => $branchId,
             'phone' => $request->phone,
             'address' => $request->address,
-            'is_active' => $request->has('is_active'),
+            'is_active' => $isActive,
             'password' => Hash::make($request->password),
         ]);
     } else {
@@ -221,7 +224,7 @@ public function update(Request $request, User $branchAdmin)
             'branch_id' => $branchId,
             'phone' => $request->phone,
             'address' => $request->address,
-            'is_active' => $request->has('is_active'),
+            'is_active' => $isActive,
         ]);
     }
 
@@ -237,20 +240,35 @@ public function update(Request $request, User $branchAdmin)
     return redirect()->route('admin.branch-admin.index')
         ->with('success', $roleName . ' account updated successfully.');
 }
-
     /**
      * Remove a branch admin, staff, or driver account.
      */
-    public function destroy(User $branchAdmin)
-    {
-        if (!in_array($branchAdmin->role, ['branch_admin', 'staff', 'driver'])) {
-            abort(404);
+    public function destroy(Request $request, $id)
+{
+    $branchAdmin = User::find($id);
+
+    if (!$branchAdmin) {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'User not found']);
         }
-
-        $roleName = $branchAdmin->role == 'branch_admin' ? 'Branch Admin' : ($branchAdmin->role == 'staff' ? 'Staff' : 'Driver');
-        $branchAdmin->delete();
-
-        return redirect()->route('admin.branch-admin.index')
-            ->with('success', $roleName . ' account deleted successfully.');
+        return redirect()->back()->with('error', 'User not found');
     }
+
+    if (!in_array($branchAdmin->role, ['branch_admin', 'staff', 'driver'])) {
+        abort(404);
+    }
+
+    $roleName = $branchAdmin->role == 'branch_admin' ? 'Branch Admin' : ($branchAdmin->role == 'staff' ? 'Staff' : 'Driver');
+    $branchAdmin->delete();
+
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => $roleName . ' account deleted successfully.'
+        ]);
+    }
+
+    return redirect()->route('admin.branch-admin.index')
+        ->with('success', $roleName . ' account deleted successfully.');
+}
 }
