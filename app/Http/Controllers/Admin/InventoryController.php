@@ -1027,25 +1027,39 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
         return response()->json($summary);
     }
 
-    // ========== ARCHIVE / UNARCHIVE METHODS ==========
-
     /**
-     * Archive an inventory item (soft hide from active lists)
-     */
-    public function archive(BranchInventory $inventory)
-    {
-        $inventory->update(['is_archived' => true]);
-        return redirect()->back()->with('success', 'Inventory item archived successfully.');
+ * Archive an inventory item (soft hide from active lists)
+ */
+public function archive(Request $request, BranchInventory $inventory)
+{
+    $inventory->update(['is_archived' => true]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Item archived successfully.'
+        ]);
     }
 
-    /**
-     * Restore an archived inventory item
-     */
-    public function unarchive(BranchInventory $inventory)
-    {
-        $inventory->update(['is_archived' => false]);
-        return redirect()->back()->with('success', 'Inventory item restored from archive.');
+    return redirect()->back()->with('success', 'Inventory item archived successfully.');
+}
+
+/**
+ * Restore an archived inventory item
+ */
+public function unarchive(Request $request, BranchInventory $inventory)
+{
+    $inventory->update(['is_archived' => false]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Item restored from archive successfully.'
+        ]);
     }
+
+    return redirect()->back()->with('success', 'Inventory item restored from archive.');
+}
   /**
  * Show edit modal
  */
@@ -1129,6 +1143,14 @@ public function dispose(Request $request, BranchInventory $inventory)
         'disposed_at' => now()
     ]);
 
+    // Check if request is AJAX
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Item disposed successfully.'
+        ]);
+    }
+
     return redirect()->route('admin.inventory.index')
         ->with('success', 'Item disposed successfully.');
 }
@@ -1136,13 +1158,21 @@ public function dispose(Request $request, BranchInventory $inventory)
 /**
  * Restore a disposed inventory item
  */
-public function restoreDisposed(BranchInventory $inventory)
+public function restoreDisposed(Request $request, BranchInventory $inventory)
 {
     $inventory->update([
         'is_disposed' => false,
         'dispose_reason' => null,
         'disposed_at' => null
     ]);
+
+    // Check if request is AJAX
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Item restored successfully.'
+        ]);
+    }
 
     return redirect()->route('admin.inventory.index')
         ->with('success', 'Item restored from disposed items.');

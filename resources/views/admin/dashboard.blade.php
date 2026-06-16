@@ -1711,66 +1711,59 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                         </div>
                     </div>
 
-                    <!-- ANALYTICS TAB (FIXED) -->
-                    <div class="tab-pane fade" id="analytics" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics
-                            </h3>
-                        </div>
+                <!-- ANALYTICS TAB (FIXED) -->
+<div class="tab-pane fade" id="analytics" role="tabpanel">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics</h3>
+    </div>
 
-                        <!-- Expiring Soon -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-1">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next
-                                        30 days)
-                                        @if ($expiringSoon->count() > 0)
-                                            <span class="badge bg-danger float-end">{{ $expiringSoon->count() }}
-                                                items</span>
-                                        @endif
-                                    </div>
-                                    <div class="card-body p-0">
-                                        @if ($expiringSoon->count() > 0)
-                                            <table class="table table-hover mb-0 w-100">
-                                                <thead class="bg-light">
-                                                    <tr>
-                                                        <th>Branch</th>
-                                                        <th>Product</th>
-                                                        <th>Expiration Date</th>
-                                                        <th>Days Left</th>
-                                                        <th>Qty</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($expiringSoon as $item)
-                                                        <tr>
-                                                            <td>{{ $item->branch->name ?? 'N/A' }}
-                                    </div>
-                                    <td>{{ $item->product->name ?? 'N/A' }}
-                                </div>
-                                <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
-                            </div>
-                            <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
-                                <span
-                                    class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }}
-                                    days</span>
+    <!-- Expiring Soon -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-12">
+            <div class="card analytics-card animate-fade-up delay-1">
+                <div class="card-header bg-white">
+                    <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next 30 days)
+                    @if ($expiringSoon->count() > 0)
+                        <span class="badge bg-danger float-end">{{ $expiringSoon->count() }} items</span>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    @if ($expiringSoon->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 w-100">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Branch</th>
+                                        <th>Product</th>
+                                        <th>Expiration Date</th>
+                                        <th>Days Left</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($expiringSoon as $item)
+                                        <tr>
+                                            <td>{{ $item->branch->name ?? 'N/A' }}</td>
+                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}</td>
+                                            <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
+                                                <span class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }} days</span>
+                                            </td>
+                                            <td>{{ number_format($item->quantity) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <td>{{ number_format($item->quantity) }}
-                    </div>
-                    </tr>
-                    @endforeach
-                    </tbody>
-                    </table>
+                    @else
+                        <div class="text-center py-4 text-success">
+                            <i class="bi bi-check-circle fs-2"></i>
+                            <p class="mb-0">No products expiring soon</p>
+                        </div>
+                    @endif
                 </div>
-            @else
-                <div class="text-center py-4 text-success"><i class="bi bi-check-circle fs-2"></i>
-                    <p class="mb-0">No products expiring soon</p>
-                </div>
-                @endif
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Charts Row -->
@@ -1802,8 +1795,7 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                                             default => 'secondary',
                                         };
                                     @endphp
-                                    <span
-                                        class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
+                                    <span class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
                                     <div class="fw-bold mt-1">{{ $count }}</div>
                                 </div>
                             @endforeach
@@ -1825,9 +1817,7 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                 </div>
                 <div class="card-body text-center">
                     @php
-                        $hasSalesData =
-                            ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 ||
-                            ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
+                        $hasSalesData = ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 || ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
                     @endphp
                     @if ($hasSalesData)
                         <div class="chart-container-small">
@@ -1836,13 +1826,11 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                         <div class="row text-center mt-3">
                             <div class="col-6">
                                 <span class="badge bg-primary status-badge">Delivery</span>
-                                <h5 class="mb-0 mt-1">
-                                    ₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}</h5>
+                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}</h5>
                             </div>
                             <div class="col-6">
                                 <span class="badge bg-success status-badge">POS</span>
-                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}
-                                </h5>
+                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}</h5>
                             </div>
                         </div>
                     @else
@@ -1863,8 +1851,7 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                     <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
                     <small class="text-muted">of customers ordered more than once</small>
                     <div class="progress mt-3" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar"
-                            style="width: {{ $repeatCustomerRate }}%;"></div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $repeatCustomerRate }}%;"></div>
                     </div>
                 </div>
             </div>
@@ -1880,45 +1867,39 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                 </div>
                 <div class="card-body p-0">
                     @if ($fastMovingProducts->count() > 0)
-                        <table class="table table-hover mb-0 w-100">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Units Sold</th>
-                                    <th>Revenue</th>
-                                    <th class="text-end">Rank</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($fastMovingProducts as $index => $product)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 w-100">
+                                <thead class="bg-light">
                                     <tr>
-                                        <td><strong>{{ $product->name }}</strong>
+                                        <th>Product</th>
+                                        <th>Units Sold</th>
+                                        <th>Revenue</th>
+                                        <th class="text-end">Rank</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($fastMovingProducts as $index => $product)
+                                        <tr>
+                                            <td><strong>{{ $product->name }}</strong></td>
+                                            <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span></td>
+                                            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}</td>
+                                            <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-box-seam fs-2"></i>
+                            <p>No product sales data yet</p>
+                        </div>
+                    @endif
                 </div>
-                <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
             </div>
-            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
         </div>
-        <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
     </div>
-    </tr>
-    @endforeach
-    </tbody>
-    </table>
-    </div>
-@else
-    <div class="text-center py-4 text-muted"><i class="bi bi-box-seam fs-2"></i>
-        <p>No product sales data yet</p>
-    </div>
-    @endif
-    </div>
-    </div>
-    </div>
-    </div>
-    </div> <!-- THIS CLOSES THE ANALYTICS TAB-PANE -->
-    </div> <!-- THIS CLOSES THE TAB-CONTENT -->
-    </div> <!-- THIS CLOSES THE COL-MD-9 -->
-    </div> <!-- THIS CLOSES THE ROW -->
-    </div> <!-- THIS CLOSES THE CONTAINER-FLUID -->
+</div> <!-- THIS CLOSES THE ANALYTICS TAB-PANE - MOVED TO THE END -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
