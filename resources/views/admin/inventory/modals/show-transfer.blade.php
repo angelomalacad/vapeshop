@@ -1,141 +1,254 @@
-<div class="modal-content">
-    <div class="modal-header bg-info text-white">
-        <h5 class="modal-title">
-            <i class="bi bi-arrow-left-right me-2"></i> Transfer Details
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+@extends('layouts.admin-modal')
+
+@section('content')
+<div class="modal-header-minimal">
+    <h5 class="modal-title">
+        <i class="bi bi-arrow-left-right"></i> Transfer Details
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="closeAdminModal()"></button>
+</div>
+
+@php
+    $statusColors = [
+        'pending' => 'warning',
+        'approved' => 'info',
+        'completed' => 'success',
+        'cancelled' => 'danger'
+    ];
+    $statusIcons = [
+        'pending' => 'bi-hourglass',
+        'approved' => 'bi-check-circle',
+        'completed' => 'bi-check-circle-fill',
+        'cancelled' => 'bi-x-circle'
+    ];
+@endphp
+
+<!-- Status Banner -->
+<div class="alert alert-{{ $statusColors[$transfer->status] ?? 'secondary' }} alert-minimal">
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <i class="bi {{ $statusIcons[$transfer->status] ?? 'bi-info-circle' }} fs-4 me-3"></i>
+            <div>
+                <h6 class="mb-0 fw-bold">{{ ucfirst($transfer->status) }}</h6>
+                <small>
+                    @if($transfer->status == 'pending')
+                        This transfer is waiting for approval
+                    @elseif($transfer->status == 'approved')
+                        This transfer has been approved and is ready to be completed
+                    @elseif($transfer->status == 'completed')
+                        This transfer has been completed successfully
+                    @elseif($transfer->status == 'cancelled')
+                        This transfer has been cancelled
+                    @endif
+                </small>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            @if($transfer->status == 'pending')
+                <button type="button" class="btn btn-success btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#approveModal"
+                    data-id="{{ $transfer->id }}"
+                    data-name="{{ $transfer->transfer_number }}">
+                    <i class="bi bi-check-lg me-1"></i> Approve
+                </button>
+            @endif
+            @if($transfer->status == 'pending')
+                <button type="button" class="btn btn-danger btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#rejectModal"
+                    data-id="{{ $transfer->id }}"
+                    data-name="{{ $transfer->transfer_number }}">
+                    <i class="bi bi-x-lg me-1"></i> Reject
+                </button>
+            @endif
+            @if($transfer->status == 'approved')
+                <button type="button" class="btn btn-success btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#completeModal"
+                    data-id="{{ $transfer->id }}"
+                    data-name="{{ $transfer->transfer_number }}">
+                    <i class="bi bi-check-circle-fill me-1"></i> Complete
+                </button>
+            @endif
+            @if(in_array($transfer->status, ['pending', 'approved']))
+                <button type="button" class="btn btn-secondary btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#cancelModal"
+                    data-id="{{ $transfer->id }}"
+                    data-name="{{ $transfer->transfer_number }}">
+                    <i class="bi bi-stop-circle me-1"></i> Cancel
+                </button>
+            @endif
+            @if(in_array($transfer->status, ['cancelled', 'completed']))
+                <button type="button" class="btn btn-danger btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deleteModal"
+                    data-id="{{ $transfer->id }}"
+                    data-name="{{ $transfer->transfer_number }}">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+            @endif
+        </div>
     </div>
-    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-        @php
-            $statusColors = [
-                'pending' => 'warning',
-                'approved' => 'info',
-                'completed' => 'success',
-                'cancelled' => 'danger'
-            ];
-            $statusIcons = [
-                'pending' => 'bi-hourglass',
-                'approved' => 'bi-check-circle',
-                'completed' => 'bi-check-circle-fill',
-                'cancelled' => 'bi-x-circle'
-            ];
-        @endphp
+</div>
 
-        <!-- Status Banner -->
-        <div class="alert alert-{{ $statusColors[$transfer->status] ?? 'secondary' }} border-0 shadow-sm mb-4">
-            <div class="d-flex align-items-center">
-                <i class="bi {{ $statusIcons[$transfer->status] ?? 'bi-info-circle' }} fs-2 me-3"></i>
-                <div>
-                    <h5 class="mb-1 fw-bold">{{ ucfirst($transfer->status) }}</h5>
-                    <p class="mb-0">
-                        @if($transfer->status == 'pending')
-                            This transfer is waiting for approval
-                        @elseif($transfer->status == 'approved')
-                            This transfer has been approved and is ready to be completed
-                        @elseif($transfer->status == 'completed')
-                            This transfer has been completed successfully
-                        @elseif($transfer->status == 'cancelled')
-                            This transfer has been cancelled
-                        @endif
-                    </p>
-                </div>
+<div class="row">
+    <!-- Transfer Information -->
+    <div class="col-md-6 mb-3">
+        <div class="info-card">
+            <div class="card-header-minimal">
+                <h6><i class="bi bi-info-circle"></i> Transfer Information</h6>
             </div>
-        </div>
-
-        <div class="row">
-            <!-- Transfer Information -->
-            <div class="col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Transfer Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr><td class="text-muted">Transfer Number:</td><td class="fw-semibold"><code>{{ $transfer->transfer_number }}</code></td></tr>
-                            <tr><td class="text-muted">Date Requested:</td><td>{{ $transfer->created_at->format('F d, Y h:i A') }}</td></tr>
-                            <tr><td class="text-muted">Requested By:</td><td>{{ $transfer->requestedBy->name ?? 'N/A' }}</td></tr>
-                            @if($transfer->approved_at)<tr><td class="text-muted">Approved Date:</td><td>{{ $transfer->approved_at->format('F d, Y h:i A') }}</td></tr>@endif
-                            @if($transfer->approvedBy)<tr><td class="text-muted">Approved By:</td><td>{{ $transfer->approvedBy->name ?? 'N/A' }}</td></tr>@endif
-                            @if($transfer->completed_at)<tr><td class="text-muted">Completed Date:</td><td>{{ $transfer->completed_at->format('F d, Y h:i A') }}</td></tr>@endif
-                        </table>
-                    </div>
+            <div class="card-body-minimal">
+                <div class="info-row">
+                    <span class="info-label">Transfer #</span>
+                    <span class="info-value"><code>{{ $transfer->transfer_number }}</code></span>
                 </div>
-            </div>
-
-            <!-- Branch Information -->
-            <div class="col-md-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="mb-0 fw-semibold"><i class="bi bi-shop me-2 text-primary"></i>Branch Details</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="fw-semibold text-primary">From Branch</h6>
-                                <p class="mb-1"><strong>{{ $transfer->fromBranch->name ?? 'N/A' }}</strong></p>
-                                <p class="mb-1 small">{{ $transfer->fromBranch->address ?? 'N/A' }}</p>
-                                <p class="mb-1 small">Manager: {{ $transfer->fromBranch->manager_name ?? 'N/A' }}</p>
-                                <p class="mb-0 small">Phone: {{ $transfer->fromBranch->phone ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="fw-semibold text-success">To Branch</h6>
-                                <p class="mb-1"><strong>{{ $transfer->toBranch->name ?? 'N/A' }}</strong></p>
-                                <p class="mb-1 small">{{ $transfer->toBranch->address ?? 'N/A' }}</p>
-                                <p class="mb-1 small">Manager: {{ $transfer->toBranch->manager_name ?? 'N/A' }}</p>
-                                <p class="mb-0 small">Phone: {{ $transfer->toBranch->phone ?? 'N/A' }}</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="info-row">
+                    <span class="info-label">Date</span>
+                    <span class="info-value">{{ $transfer->created_at->format('F d, Y h:i A') }}</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Product Information -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3">
-                <h6 class="mb-0 fw-semibold"><i class="bi bi-box me-2 text-primary"></i>Product Details</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 text-center">
-                        @if(isset($transfer->product) && $transfer->product)
-                            @if($transfer->product->image_url)
-                                <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 100) }}" 
-                                     alt="{{ $transfer->product->name }}"
-                                     style="max-height: 80px; object-fit: contain;">
-                            @elseif($transfer->product->image)
-                                <img src="{{ Storage::url($transfer->product->image) }}" 
-                                     alt="{{ $transfer->product->name }}"
-                                     style="max-height: 80px; object-fit: contain;">
-                            @else
-                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                            @endif
-                        @else
-                            <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
-                        @endif
-                    </div>
-                    <div class="col-md-9">
-                        <table class="table table-sm mb-0">
-                            <tr><td class="text-muted" style="width: 120px;">Product:</td><td class="fw-semibold">{{ $transfer->product->name ?? 'N/A' }}</td></tr>
-                            <tr><td class="text-muted">Brand:</td><td>{{ $transfer->product->brand ?? 'N/A' }}</td></tr>
-                            <tr><td class="text-muted">Flavor:</td><td>{{ $transfer->flavor->name ?? 'N/A' }}</td></tr>
-                            <tr><td class="text-muted">Quantity:</td><td><span class="fw-bold fs-5">{{ $transfer->quantity }}</span> units</td></tr>
-                            <tr><td class="text-muted">Price:</td><td>₱{{ number_format($transfer->product->price ?? 0, 2) }}</td></tr>
-                        </table>
-                    </div>
+                <div class="info-row">
+                    <span class="info-label">Requested By</span>
+                    <span class="info-value">{{ $transfer->requestedBy->name ?? 'N/A' }}</span>
                 </div>
-                @if($transfer->notes)
-                <div class="mt-3 p-3 bg-light rounded">
-                    <strong>Notes:</strong>
-                    <p class="mb-0">{{ $transfer->notes }}</p>
+                @if($transfer->approved_at)
+                <div class="info-row">
+                    <span class="info-label">Approved Date</span>
+                    <span class="info-value">{{ $transfer->approved_at->format('F d, Y h:i A') }}</span>
+                </div>
+                @endif
+                @if($transfer->approvedBy)
+                <div class="info-row">
+                    <span class="info-label">Approved By</span>
+                    <span class="info-value">{{ $transfer->approvedBy->name ?? 'N/A' }}</span>
+                </div>
+                @endif
+                @if($transfer->completed_at)
+                <div class="info-row">
+                    <span class="info-label">Completed Date</span>
+                    <span class="info-value">{{ $transfer->completed_at->format('F d, Y h:i A') }}</span>
                 </div>
                 @endif
             </div>
         </div>
     </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-circle me-1"></i> Close
-        </button>
+
+    <!-- Branch Information -->
+    <div class="col-md-6 mb-3">
+        <div class="info-card">
+            <div class="card-header-minimal">
+                <h6><i class="bi bi-shop"></i> Branch Details</h6>
+            </div>
+            <div class="card-body-minimal">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-1" style="font-size: 0.75rem; font-weight: 600;">From Branch</h6>
+                        <p class="mb-0" style="font-size: 0.8rem; font-weight: 500;">{{ $transfer->fromBranch->name ?? 'N/A' }}</p>
+                        <small class="text-muted">{{ $transfer->fromBranch->address ?? 'N/A' }}</small>
+                        <br><small class="text-muted">Manager: {{ $transfer->fromBranch->manager_name ?? 'N/A' }}</small>
+                        <br><small class="text-muted">Phone: {{ $transfer->fromBranch->phone ?? 'N/A' }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success mb-1" style="font-size: 0.75rem; font-weight: 600;">To Branch</h6>
+                        <p class="mb-0" style="font-size: 0.8rem; font-weight: 500;">{{ $transfer->toBranch->name ?? 'N/A' }}</p>
+                        <small class="text-muted">{{ $transfer->toBranch->address ?? 'N/A' }}</small>
+                        <br><small class="text-muted">Manager: {{ $transfer->toBranch->manager_name ?? 'N/A' }}</small>
+                        <br><small class="text-muted">Phone: {{ $transfer->toBranch->phone ?? 'N/A' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Product Information -->
+<div class="info-card">
+    <div class="card-header-minimal">
+        <h6><i class="bi bi-box"></i> Product Details</h6>
+    </div>
+    <div class="card-body-minimal">
+        <div class="row">
+            <div class="col-md-2 text-center">
+                @if(isset($transfer->product) && $transfer->product)
+                    @if($transfer->product->image_url)
+                        <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 80) }}" 
+                             alt="{{ $transfer->product->name }}"
+                             style="max-height: 60px; object-fit: contain;">
+                    @elseif($transfer->product->image)
+                        <img src="{{ Storage::url($transfer->product->image) }}" 
+                             alt="{{ $transfer->product->name }}"
+                             style="max-height: 60px; object-fit: contain;">
+                    @else
+                        <i class="bi bi-image text-muted" style="font-size: 2.5rem;"></i>
+                    @endif
+                @else
+                    <i class="bi bi-box text-muted" style="font-size: 2.5rem;"></i>
+                @endif
+            </div>
+            <div class="col-md-10">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Product</span>
+                            <span class="info-value">{{ $transfer->product->name ?? 'N/A' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Brand</span>
+                            <span class="info-value">{{ $transfer->product->brand ?? 'N/A' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Flavor</span>
+                            <span class="info-value">{{ $transfer->flavor->name ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-label">Quantity</span>
+                            <span class="info-value"><strong>{{ $transfer->quantity }}</strong> units</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Price</span>
+                            <span class="info-value">₱{{ number_format($transfer->product->price ?? 0, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if($transfer->notes)
+        <div class="mt-3 p-3 bg-light rounded" style="border-radius: 12px;">
+            <strong style="font-size: 0.7rem; text-transform: uppercase; color: #64748b;">Notes:</strong>
+            <p class="mb-0" style="font-size: 0.8rem;">{{ $transfer->notes }}</p>
+        </div>
+        @endif
+    </div>
+</div>
+
+<script>
+    function openEditTransferModal(id) {
+        const currentModal = bootstrap.Modal.getInstance(document.getElementById('transferModal'));
+        if (currentModal) currentModal.hide();
+        
+        const modalElement = document.getElementById('editTransferModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/transfers/' + id + '/edit-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-warning" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading edit form</div>';
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            });
+    }
+</script>
+@endsection

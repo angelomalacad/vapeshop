@@ -108,9 +108,6 @@
                         <i class="bi bi-x-circle me-1"></i> Cancel
                     </a>
                     <div>
-                        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-4 me-2">
-                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                        </a>
                         <button type="submit" class="btn btn-primary rounded-pill px-5">
                             <i class="bi bi-check-circle me-1"></i> Create Transfer
                         </button>

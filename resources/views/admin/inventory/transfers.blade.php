@@ -1,7 +1,105 @@
 @extends('layouts.admin')
 
 @section('title', 'Stock Transfers - Vape Expo')
+<style>
+.stat-card-modern {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    border: 1px solid #eef2f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
 
+.stat-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    border-color: #e0e7ed;
+}
+
+.stat-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card-modern:hover .stat-icon-wrapper {
+    transform: scale(1.02);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    color: #8b9cb0;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+/* Individual icon colors - Updated for transfers */
+.col-md-3:nth-child(1) .stat-icon-wrapper {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.col-md-3:nth-child(2) .stat-icon-wrapper {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.col-md-3:nth-child(3) .stat-icon-wrapper {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.col-md-3:nth-child(4) .stat-icon-wrapper {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+@media (max-width: 768px) {
+    .stat-card-modern {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .stat-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+        border-radius: 14px;
+    }
+
+    .stat-value {
+        font-size: 1.4rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+}
+</style>
 @section('content')
 <div class="container-fluid px-4">
     <!-- Header with Logo and Navigation -->
@@ -16,9 +114,6 @@
             </div>
         </div>
         <div class="mt-2 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-3">
-                <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
             <a href="{{ route('admin.inventory.create-transfer') }}" class="btn btn-primary rounded-pill px-3">
                 <i class="bi bi-plus-circle me-1"></i> New Transfer
             </a>
@@ -32,74 +127,66 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="row g-3 mb-4">
-        @php
-            $pendingCount = \App\Models\StockTransfer::where('status', 'pending')->count();
-            $approvedCount = \App\Models\StockTransfer::where('status', 'approved')->count();
-            $completedCount = \App\Models\StockTransfer::where('status', 'completed')->count();
-            $cancelledCount = \App\Models\StockTransfer::where('status', 'cancelled')->count();
-        @endphp
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-warning bg-gradient text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Pending</h6>
-                            <h2 class="mb-0 fw-bold">{{ $pendingCount }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-hourglass fs-4"></i>
-                        </div>
-                    </div>
-                </div>
+<div class="row g-3 mb-4">
+    @php
+        $pendingCount = \App\Models\StockTransfer::where('status', 'pending')->count();
+        $approvedCount = \App\Models\StockTransfer::where('status', 'approved')->count();
+        $completedCount = \App\Models\StockTransfer::where('status', 'completed')->count();
+        $rejectedCount = \App\Models\StockTransfer::where('status', 'cancelled')->count();
+    @endphp
+    
+    <!-- Pending -->
+    <div class="col-md-3 col-6">
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-hourglass"></i>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Approved</h6>
-                            <h2 class="mb-0 fw-bold">{{ $approvedCount }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-check-circle fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Completed</h6>
-                            <h2 class="mb-0 fw-bold">{{ $completedCount }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-check-circle-fill fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-secondary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-1">Cancelled</h6>
-                            <h2 class="mb-0 fw-bold">{{ $cancelledCount }}</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-                            <i class="bi bi-x-circle fs-4"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-content">
+                <span class="stat-label">Pending</span>
+                <h3 class="stat-value">{{ $pendingCount }}</h3>
             </div>
         </div>
     </div>
+
+    <!-- Approved -->
+    <div class="col-md-3 col-6">
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Approved</span>
+                <h3 class="stat-value">{{ $approvedCount }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="col-md-3 col-6">
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Completed</span>
+                <h3 class="stat-value">{{ $completedCount }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejected -->
+    <div class="col-md-3 col-6">
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Rejected</span>
+                <h3 class="stat-value">{{ $rejectedCount }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Filter Section -->
     <div class="card border-0 shadow-sm mb-4">
@@ -201,72 +288,38 @@
                         <tr>
                             <td class="ps-4"><code class="fw-semibold">{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
-                            
-                            <!-- From Branch - Handle Warehouse -->
                             <td>
                                 @if(is_null($transfer->from_branch_id))
                                     <span class="fw-semibold text-primary">
                                         <i class="bi bi-building me-1"></i> Main Warehouse
                                     </span>
-                                    <span class="badge bg-primary ms-1">Warehouse</span>
                                 @elseif($transfer->fromBranch)
                                     {{ $transfer->fromBranch->name }}
                                 @else
                                     <span class="text-muted">N/A</span>
                                 @endif
                             </td>
-                            
-                            <!-- To Branch - Handle Warehouse -->
                             <td>
                                 @if(is_null($transfer->to_branch_id))
                                     <span class="fw-semibold text-primary">
                                         <i class="bi bi-building me-1"></i> Main Warehouse
                                     </span>
-                                    <span class="badge bg-primary ms-1">Warehouse</span>
                                 @elseif($transfer->toBranch)
                                     {{ $transfer->toBranch->name }}
                                 @else
                                     <span class="text-muted">N/A</span>
                                 @endif
                             </td>
-                            
-                            <!-- Product with null check -->
-                            <td>
-                                @if($transfer->product)
-                                    {{ $transfer->product->name }}
-                                @else
-                                    <span class="text-muted">Product Deleted</span>
-                                @endif
-                            </td>
-                            
-                            <!-- Flavor with null check -->
-                            <td>
-                                @if($transfer->flavor)
-                                    {{ $transfer->flavor->name }}
-                                @else
-                                    <span class="text-muted">N/A</span>
-                                @endif
-                            </td>
-                            
+                            <td>{{ $transfer->product->name ?? 'N/A' }}</td>
+                            <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
                             <td><span class="fw-bold">{{ number_format($transfer->quantity) }}</span></td>
-                            
-                            <!-- Status -->
                             <td>
                                 <span class="badge bg-{{ $statusColors[$transfer->status] }} px-3 py-2">
                                     <i class="bi {{ $statusIcons[$transfer->status] }} me-1"></i>
                                     {{ ucfirst($transfer->status) }}
                                 </span>
                             </td>
-                            
-                            <!-- Requested By with null check -->
-                            <td>
-                                @if($transfer->requestedBy)
-                                    {{ $transfer->requestedBy->name }}
-                                @else
-                                    <span class="text-muted">System</span>
-                                @endif
-                            </td>
-                            
+                            <td>{{ $transfer->requestedBy->name ?? 'System' }}</td>
                             <td class="pe-4">
                                 <div class="btn-group btn-group-sm">
                                     <!-- View Details -->
@@ -279,51 +332,51 @@
                                         <button type="button" class="btn btn-outline-warning" title="Edit" onclick="openEditTransferModal({{ $transfer->id }})">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                    @else
-                                        <button type="button" class="btn btn-outline-secondary" title="Cannot edit {{ $transfer->status }} transfers" disabled>
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
                                     @endif
 
                                     <!-- Approve (only pending) -->
                                     @if($transfer->status == 'pending')
-                                        <form action="{{ route('admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-success" title="Approve" onclick="return confirm('Approve this transfer?')">
-                                                <i class="bi bi-check-lg"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-outline-success" title="Approve"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#approveModal"
+                                            data-id="{{ $transfer->id }}"
+                                            data-name="{{ $transfer->transfer_number }}">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
                                     @endif
 
                                     <!-- Reject (only pending) -->
                                     @if($transfer->status == 'pending')
-                                        <form action="{{ route('admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-danger" title="Reject" onclick="return confirm('Reject this transfer?')">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-outline-danger" title="Reject"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#rejectModal"
+                                            data-id="{{ $transfer->id }}"
+                                            data-name="{{ $transfer->transfer_number }}">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
                                     @endif
 
                                     <!-- Complete (only approved) -->
                                     @if($transfer->status == 'approved')
-                                        <form action="{{ route('admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-success" title="Complete" onclick="return confirm('Complete this transfer?')">
-                                                <i class="bi bi-check-circle-fill"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-outline-success" title="Complete"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#completeModal"
+                                            data-id="{{ $transfer->id }}"
+                                            data-name="{{ $transfer->transfer_number }}">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
                                     @endif
+
 
                                     <!-- Delete (only cancelled or completed) -->
                                     @if(in_array($transfer->status, ['cancelled', 'completed']))
-                                        <form action="{{ route('admin.inventory.transfers.destroy', $transfer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Delete this transfer? This action cannot be undone.')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-outline-danger" title="Delete"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal"
+                                            data-id="{{ $transfer->id }}"
+                                            data-name="{{ $transfer->transfer_number }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -333,17 +386,6 @@
                             <td colspan="10" class="text-center py-5">
                                 <i class="bi bi-arrow-left-right display-1 text-muted"></i>
                                 <p class="mt-3 text-muted">No transfer requests found</p>
-                                <div class="d-flex justify-content-center gap-2 mt-2">
-                                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-4">
-                                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
-                                    </a>
-                                    <a href="{{ route('admin.inventory.create-transfer') }}" class="btn btn-primary rounded-pill px-4">
-                                        <i class="bi bi-plus-circle me-1"></i> Create New Transfer
-                                    </a>
-                                    <a href="{{ route('admin.inventory.index') }}" class="btn btn-primary rounded-pill px-4">
-                                        <i class="bi bi-box-seam me-1"></i> View Inventory
-                                    </a>
-                                </div>
                             </td>
                         </tr>
                         @endforelse
@@ -351,8 +393,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- Simple Previous/Next Pagination (No Chevrons) -->
         @if ($transfers->hasPages())
             <div class="card-footer bg-white">
                 <div class="d-flex justify-content-between align-items-center">
@@ -365,7 +405,6 @@
                         @else
                             <a href="{{ $transfers->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
                         @endif
-                        
                         @if ($transfers->hasMorePages())
                             <a href="{{ $transfers->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
                         @else
@@ -381,14 +420,165 @@
 <!-- Transfer Details Modal Container -->
 <div class="modal fade" id="transferModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content"><!-- loaded via AJAX --></div>
+        <div class="modal-content"></div>
     </div>
 </div>
 
 <!-- Edit Transfer Modal Container -->
 <div class="modal fade" id="editTransferModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content"><!-- loaded via AJAX --></div>
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<!-- Approve Transfer Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle-fill me-2"></i> Approve Transfer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve this transfer?</p>
+                <p class="fw-bold" id="approveItemName"></p>
+                <p class="text-muted small">This will mark the transfer as approved and ready to be completed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form id="approveForm" method="POST" action="">
+                    @csrf
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i> Approve
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Transfer Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-x-circle-fill me-2"></i> Reject Transfer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reject this transfer?</p>
+                <p class="fw-bold" id="rejectItemName"></p>
+                <p class="text-muted small">This will cancel the transfer and release the reserved stock.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form id="rejectForm" method="POST" action="">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-lg me-1"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Transfer Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle-fill me-2"></i> Complete Transfer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to complete this transfer?</p>
+                <p class="fw-bold" id="completeItemName"></p>
+                <p class="text-muted small">This will move the stock from source to destination branch.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form id="completeForm" method="POST" action="">
+                    @csrf
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle-fill me-1"></i> Complete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Transfer Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-stop-circle-fill me-2"></i> Cancel Transfer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this transfer?</p>
+                <p class="fw-bold" id="cancelItemName"></p>
+                <p class="text-muted small">This will cancel the transfer and release the reserved stock.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form id="cancelForm" method="POST" action="">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-stop-circle me-1"></i> Cancel Transfer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Transfer Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-trash-fill me-2"></i> Delete Transfer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this transfer?</p>
+                <p class="fw-bold" id="deleteItemName"></p>
+                <p class="text-muted small text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form id="deleteForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -405,16 +595,23 @@
             .then(response => response.text())
             .then(html => {
                 modalContent.innerHTML = html;
-                new bootstrap.Modal(modalElement).show();
+                const modal = new bootstrap.Modal(modalElement);
+                
+                modalElement.addEventListener('hidden.bs.modal', function() {
+                    window.location.reload();
+                }, { once: true });
+                
+                modal.show();
             })
             .catch(error => {
                 console.error('Error:', error);
                 modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading details</div>';
-                new bootstrap.Modal(modalElement).show();
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
             });
     }
     
-    // Edit Transfer Modal - Only for pending transfers
+    // Edit Transfer Modal
     function openEditTransferModal(id) {
         const modalElement = document.getElementById('editTransferModal');
         const modalContent = modalElement.querySelector('.modal-content');
@@ -431,13 +628,175 @@
             })
             .then(html => {
                 modalContent.innerHTML = html;
-                new bootstrap.Modal(modalElement).show();
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert(error.message);
-                modalContent.innerHTML = '<div class="text-center p-5"><p class="text-danger">Error loading form</p></div>';
             });
     }
+
+    // Show Transfer Modal - Called after update
+    function openShowTransferModal(id) {
+        const modalElement = document.getElementById('transferModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/transfers/' + id + '/show-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                const modal = new bootstrap.Modal(modalElement);
+                
+                modalElement.addEventListener('hidden.bs.modal', function() {
+                    window.location.reload();
+                }, { once: true });
+                
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading details</div>';
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            });
+    }
+
+    // ============ ACTION MODALS ============
+    document.addEventListener('DOMContentLoaded', function() {
+        // Approve Modal
+        const approveModal = document.getElementById('approveModal');
+        if (approveModal) {
+            approveModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const transferId = button.getAttribute('data-id');
+                const transferName = button.getAttribute('data-name');
+                document.getElementById('approveItemName').textContent = transferName || 'Unknown Transfer';
+                document.getElementById('approveForm').action = '/admin/inventory/transfers/' + transferId + '/approve';
+            });
+        }
+
+        // Reject Modal
+        const rejectModal = document.getElementById('rejectModal');
+        if (rejectModal) {
+            rejectModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const transferId = button.getAttribute('data-id');
+                const transferName = button.getAttribute('data-name');
+                document.getElementById('rejectItemName').textContent = transferName || 'Unknown Transfer';
+                document.getElementById('rejectForm').action = '/admin/inventory/transfers/' + transferId + '/reject';
+            });
+        }
+
+        // Complete Modal
+        const completeModal = document.getElementById('completeModal');
+        if (completeModal) {
+            completeModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const transferId = button.getAttribute('data-id');
+                const transferName = button.getAttribute('data-name');
+                document.getElementById('completeItemName').textContent = transferName || 'Unknown Transfer';
+                document.getElementById('completeForm').action = '/admin/inventory/transfers/' + transferId + '/complete';
+            });
+        }
+
+        // Cancel Modal
+        const cancelModal = document.getElementById('cancelModal');
+        if (cancelModal) {
+            cancelModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const transferId = button.getAttribute('data-id');
+                const transferName = button.getAttribute('data-name');
+                document.getElementById('cancelItemName').textContent = transferName || 'Unknown Transfer';
+                document.getElementById('cancelForm').action = '/admin/inventory/transfers/' + transferId + '/cancel';
+            });
+        }
+
+        // Delete Modal
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const transferId = button.getAttribute('data-id');
+                const transferName = button.getAttribute('data-name');
+                document.getElementById('deleteItemName').textContent = transferName || 'Unknown Transfer';
+                document.getElementById('deleteForm').action = '/admin/inventory/transfers/' + transferId;
+            });
+        }
+    });
+
+    // ============ HANDLE EDIT FORM SUBMISSION ============
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form && form.id === 'editTransferForm') {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = document.getElementById('submitEditTransferBtn');
+                const originalText = submitBtn ? submitBtn.innerHTML : 'Update';
+                const actionUrl = form.action;
+                const transferId = formData.get('transfer_id');
+                
+                if (!transferId) {
+                    alert('Error: Could not find transfer ID');
+                    return;
+                }
+                
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
+                }
+                
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const editModal = bootstrap.Modal.getInstance(document.getElementById('editTransferModal'));
+                        if (editModal) editModal.hide();
+                        
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification(data.message || 'Transfer updated successfully!', 'success');
+                        }
+                        
+                        setTimeout(function() {
+                            if (typeof openShowTransferModal === 'function') {
+                                openShowTransferModal(transferId);
+                            }
+                        }, 500);
+                    } else {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification(data.message || 'Error updating transfer', 'error');
+                        }
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Network error. Please try again.', 'error');
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                });
+            }
+        });
+    });
 </script>
 @endsection

@@ -6,7 +6,7 @@
     <div class="container-fluid px-4">
         <!-- Success Message Alert -->
         @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 mb-4" role="alert">
+            <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert" id="flashSuccess">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
                     <div>
@@ -19,7 +19,7 @@
 
         <!-- Error Message Alert -->
         @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert" id="flashError">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
                     <div>
@@ -46,66 +46,63 @@
                         <span class="badge bg-danger ms-1">{{ $pendingCount }}</span>
                     @endif
                 </a>
-                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addStockModal">
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="openAddStockModal()">
                     <i class="bi bi-plus-circle me-2"></i>Add Stock to Warehouse
                 </button>
             </div>
         </div>
 
-        <!-- Stats Cards -->
+        <!-- Stats Cards - Global UI -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Total Products</h6>
-                                <h2 class="mb-0 fw-bold">{{ $inventory->total() }}</h2>
-                            </div>
-                            <i class="bi bi-box-seam fs-1 opacity-50"></i>
-                        </div>
+            <!-- Total Products -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #dbeafe; color: #2563eb;">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Products</span>
+                        <h3 class="stat-value">{{ $inventory->total() }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Low Stock Items</h6>
-                                <h2 class="mb-0 fw-bold">{{ $lowStockCount }}</h2>
-                            </div>
-                            <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
-                        </div>
+
+            <!-- Low Stock Items -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #fef3c7; color: #d97706;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Low Stock</span>
+                        <h3 class="stat-value">{{ $lowStockCount }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Total Value</h6>
-                                <h2 class="mb-0 fw-bold">₱{{ number_format($totalValue, 2) }}</h2>
-                            </div>
-                            <i class="bi bi-currency-dollar fs-1 opacity-50"></i>
-                        </div>
+
+            <!-- Total Value -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #d1fae5; color: #059669;">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Value</span>
+                        <h3 class="stat-value">₱{{ number_format($totalValue, 0) }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+
+            <!-- Pending Requests -->
+            <div class="col-md-3 col-6">
                 <a href="{{ route('admin.warehouse.pending') }}" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="text-white-50 mb-1">Pending Requests</h6>
-                                    <h2 class="mb-0 fw-bold">
-                                        {{ $pendingCount }}
-                                    </h2>
-                                </div>
-                                <i class="bi bi-clock-history fs-1 opacity-50"></i>
-                            </div>
+                    <div class="stat-card-modern" style="cursor: pointer;">
+                        <div class="stat-icon-wrapper" style="background: #fee2e2; color: #dc2626;">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Pending Requests</span>
+                            <h3 class="stat-value">{{ $pendingCount }}</h3>
                         </div>
                     </div>
                 </a>
@@ -126,26 +123,27 @@
         </div>
 
         <!-- Inventory Table -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Warehouse Inventory</h5>
-                    <!-- Search Form -->
-                    <form method="GET" action="{{ route('admin.warehouse.index') }}" class="d-flex">
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="Search product..." value="{{ request('search') }}">
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
-                            @if(request('search'))
-                                <a href="{{ route('admin.warehouse.index') }}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-x"></i>
-                                </a>
-                            @endif
-                        </div>
-                    </form>
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Warehouse Inventory</h5>
+            <!-- Search Form -->
+            <form method="GET" action="{{ route('admin.warehouse.index') }}" class="d-flex" id="searchForm" style="min-width: 250px;">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="search" class="form-control" placeholder="Search product, brand, category..." 
+                           value="{{ request('search') }}" id="searchInput">
+                    <button class="btn btn-outline-primary" type="submit" id="searchBtn">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('admin.warehouse.index') }}" class="btn btn-outline-secondary" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    @endif
                 </div>
-            </div>
+            </form>
+        </div>
+    </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -227,186 +225,23 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-warning rounded-pill me-1" data-bs-toggle="modal"
-                                                data-bs-target="#editModal{{ $item->id }}" title="Edit Stock">
+                                            <button type="button" class="btn btn-outline-warning rounded-pill me-1" 
+                                                onclick="openEditModal({{ $item->id }})" title="Edit Stock">
                                                 <i class="bi bi-pencil"></i> Edit
                                             </button>
-                                            <button type="button" class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal"
-                                                data-bs-target="#distributeModal{{ $item->id }}">
+                                            <button type="button" class="btn btn-outline-primary rounded-pill" 
+                                                onclick="openDistributeModal({{ $item->id }})">
                                                 <i class="bi bi-send"></i> Distribute
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-
-                                <!-- ========== EDIT MODAL ========== -->
-                                <div class="modal fade" id="editModal{{ $item->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Warehouse Stock</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="{{ route('admin.warehouse.update', $item->id) }}" method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Product <span class="text-danger">*</span></label>
-                                                            <select name="product_id" class="form-select product-select-edit"
-                                                                data-edit-id="{{ $item->id }}" required>
-                                                                <option value="">Select product...</option>
-                                                                @foreach ($products as $productOption)
-                                                                    <option value="{{ $productOption->id }}"
-                                                                        {{ $item->product_id == $productOption->id ? 'selected' : '' }}>
-                                                                        {{ $productOption->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Flavor <span class="text-danger">*</span></label>
-                                                            <select name="flavor_id" class="form-select flavor-select-edit"
-                                                                data-edit-id="{{ $item->id }}"
-                                                                data-current-flavor-id="{{ $item->flavor_id }}" required>
-                                                                <option value="">Loading flavors...</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row">
-                                                        <div class="col-md-4 mb-3">
-                                                            <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                                                            <input type="number" name="quantity" class="form-control quantity-input"
-                                                                value="{{ $item->quantity }}" min="0" required>
-                                                        </div>
-                                                        <div class="col-md-4 mb-3">
-                                                            <label class="form-label">Last Purchase Price (₱) <span class="text-danger">*</span></label>
-                                                            <input type="number" step="0.01" name="last_purchase_price"
-                                                                class="form-control price-input" value="{{ $item->last_purchase_price }}"
-                                                                min="0" required>
-                                                        </div>
-                                                        <div class="col-md-4 mb-3">
-                                                            <label class="form-label">Expiration Date</label>
-                                                            <input type="date" name="expiration_date" class="form-control"
-                                                                value="{{ $item->expiration_date ? \Carbon\Carbon::parse($item->expiration_date)->format('Y-m-d') : '' }}">
-                                                            <div class="form-text">Optional – leave empty if no expiry</div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Low Stock Threshold <span class="text-danger">*</span></label>
-                                                            <input type="number" name="low_stock_threshold" class="form-control"
-                                                                value="{{ $item->low_stock_threshold }}" min="1" required>
-                                                        </div>
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Reorder Point <span class="text-danger">*</span></label>
-                                                            <input type="number" name="reorder_point" class="form-control"
-                                                                value="{{ $item->reorder_point }}" min="1" required>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Last Restocked</label>
-                                                            <input type="text" class="form-control bg-light"
-                                                                value="{{ $item->last_restocked_at ? $item->last_restocked_at->format('M d, Y h:i A') : 'Never' }}"
-                                                                readonly>
-                                                        </div>
-                                                        <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Total Inventory Value</label>
-                                                            <input type="text"
-                                                                class="form-control total-value-display bg-primary text-white fw-bold"
-                                                                value="₱{{ number_format($item->quantity * ($item->last_purchase_price ?? 0), 2) }}"
-                                                                readonly>
-                                                        </div>
-                                                    </div>
-
-                                                    <hr>
-
-                                                    <div class="alert alert-warning">
-                                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                                        <strong>Note:</strong> Changing quantity will be recorded in stock movement history.
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Update Inventory</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Distribute Modal -->
-                                <div class="modal fade" id="distributeModal{{ $item->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title"><i class="bi bi-send me-2"></i>Distribute Stock</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="{{ route('admin.warehouse.distribute') }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="warehouse_stock_id" value="{{ $item->id }}">
-                                                <input type="hidden" name="product_id" value="{{ $item->product_id }}">
-                                                <input type="hidden" name="flavor_id" value="{{ $item->flavor_id }}">
-                                                <div class="modal-body">
-                                                    <div class="alert alert-info small">
-                                                        <i class="bi bi-info-circle me-1"></i>
-                                                        Distributing stock will immediately create an approved transfer. The branch can then receive it.
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Product</label>
-                                                        <input type="text" class="form-control" value="{{ $item->product->name ?? 'N/A' }}" readonly>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Flavor</label>
-                                                        <input type="text" class="form-control" value="{{ $item->flavor ? $item->flavor->name : 'N/A' }}" readonly>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Expiration Date</label>
-                                                        <input type="text" class="form-control" value="{{ $item->expiration_date ? \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') : 'No expiry' }}" readonly>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Available in Warehouse</label>
-                                                        <input type="text" class="form-control" value="{{ number_format($item->quantity) }} units" readonly>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Select Branch <span class="text-danger">*</span></label>
-                                                        <select name="branch_id" class="form-select" required>
-                                                            <option value="">Select branch...</option>
-                                                            @foreach (\App\Models\Branch::where('is_active', true)->get() as $branch)
-                                                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                                                        <input type="number" name="quantity" class="form-control" min="1" max="{{ $item->quantity }}" required>
-                                                        <div class="form-text">Max: {{ number_format($item->quantity) }} units</div>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Notes (Optional)</label>
-                                                        <textarea name="notes" class="form-control" rows="2" placeholder="Distribution notes..."></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Send to Branch</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             @empty
                                 <tr>
                                     <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
                                         <p class="text-muted">No products in warehouse inventory</p>
-                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStockModal">
+                                        <button class="btn btn-primary" onclick="openAddStockModal()">
                                             Add First Stock
                                         </button>
                                     </td>
@@ -445,163 +280,234 @@
         </div>
     </div>
 
-    <!-- Add Stock Modal -->
-    <div class="modal fade" id="addStockModal" tabindex="-1">
+    <!-- Edit Modal Container -->
+    <div class="modal fade" id="editModalContainer" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Stock to Warehouse</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form action="{{ route('admin.warehouse.add-stock') }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="alert alert-info small">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Adding stock will increase the warehouse inventory. The purchase price and expiration date will be tracked.
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Select Product <span class="text-danger">*</span></label>
-                                <select name="product_id" id="productSelectAdd" class="form-select" required>
-                                    <option value="">Select product...</option>
-                                    @foreach ($products as $product)
-                                        <option value="{{ $product->id }}" data-product-name="{{ $product->name }}">
-                                            {{ $product->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Select Flavor <span class="text-danger">*</span></label>
-                                <select name="flavor_id" id="flavorSelectAdd" class="form-select" required disabled>
-                                    <option value="">First select a product...</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                                <input type="number" name="quantity" class="form-control" min="1" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Purchase Price (₱)</label>
-                                <input type="number" step="0.01" name="purchase_price" class="form-control"
-                                    min="0" placeholder="Optional">
-                                <div class="form-text">Cost price per unit</div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Expiration Date</label>
-                                <input type="date" name="expiration_date" class="form-control">
-                                <div class="form-text">Optional – leave empty if no expiry</div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-secondary small">
-                            <i class="bi bi-box-seam me-1"></i>
-                            <strong>Note:</strong> Stock added here will be available for distribution to all branches.
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add to Warehouse</button>
-                    </div>
-                </form>
-            </div>
+            <div class="modal-content"></div>
         </div>
     </div>
 
-    <script>
-        // Auto-calculate total value when quantity or price changes in edit modals
-        document.querySelectorAll('.quantity-input, .price-input').forEach(input => {
-            input.addEventListener('input', function() {
-                const modal = this.closest('.modal');
-                const quantity = modal.querySelector('.quantity-input')?.value || 0;
-                const price = modal.querySelector('.price-input')?.value || 0;
-                const totalValue = quantity * price;
-                const totalDisplay = modal.querySelector('.total-value-display');
-                if (totalDisplay) {
-                    totalDisplay.value = '₱' + parseFloat(totalValue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                }
-            });
-        });
+    <!-- Distribute Modal Container -->
+    <div class="modal fade" id="distributeModalContainer" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"></div>
+        </div>
+    </div>
 
-        // Function to load flavors for a given product select element
-        function loadFlavors(productSelect, flavorSelect, currentFlavorId = null) {
-            const productId = productSelect.value;
-            if (!productId) {
-                flavorSelect.disabled = true;
-                flavorSelect.innerHTML = '<option value="">First select a product...</option>';
-                return;
+    <!-- Add Stock Modal Container -->
+    <div class="modal fade" id="addStockModalContainer" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+    <style>
+        .stat-card-modern {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid #eef2f6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+            border-color: #e0e7ed;
+        }
+
+        .stat-icon-wrapper {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card-modern:hover .stat-icon-wrapper {
+            transform: scale(1.02);
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+            color: #8b9cb0;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 768px) {
+            .stat-card-modern {
+                padding: 1rem;
+                gap: 0.75rem;
             }
 
-            flavorSelect.disabled = true;
-            flavorSelect.innerHTML = '<option value="">Loading flavors...</option>';
+            .stat-icon-wrapper {
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                border-radius: 14px;
+            }
 
-            fetch(`/admin/api/products/${productId}/flavors`)
-                .then(response => response.json())
-                .then(data => {
-                    flavorSelect.innerHTML = '<option value="">Select flavor...</option>';
-                    if (data.length > 0) {
-                        data.forEach(flavor => {
-                            const option = document.createElement('option');
-                            option.value = flavor.id;
-                            option.textContent = flavor.name;
-                            flavorSelect.appendChild(option);
-                        });
-                        flavorSelect.disabled = false;
-                        if (currentFlavorId) {
-                            flavorSelect.value = currentFlavorId;
-                        }
-                    } else {
-                        flavorSelect.innerHTML = '<option value="">No flavors available for this product</option>';
-                        flavorSelect.disabled = true;
-                    }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+
+    <script>
+        // ============ CONVERT SESSION FLASHES TO GLOBAL NOTIFICATIONS ============
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashSuccess = document.getElementById('flashSuccess');
+            const flashError = document.getElementById('flashError');
+            
+            if (flashSuccess && flashSuccess.textContent.trim()) {
+                const message = flashSuccess.textContent.trim();
+                const cleanMessage = message.replace(/Success!/g, '').trim();
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(cleanMessage, 'success');
+                }
+                flashSuccess.remove();
+            }
+            
+            if (flashError && flashError.textContent.trim()) {
+                const message = flashError.textContent.trim();
+                const cleanMessage = message.replace(/Error!/g, '').trim();
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(cleanMessage, 'error');
+                }
+                flashError.remove();
+            }
+        });
+
+        // ============ OPEN MODAL FUNCTIONS ============
+        function openEditModal(id) {
+            const modalElement = document.getElementById('editModalContainer');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/warehouse/' + id + '/edit-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
                 })
                 .catch(error => {
-                    console.error('Error loading flavors:', error);
-                    flavorSelect.innerHTML = '<option value="">Error loading flavors</option>';
-                    flavorSelect.disabled = true;
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
                 });
         }
 
-        // Setup for Add Stock modal
-        const productSelectAdd = document.getElementById('productSelectAdd');
-        const flavorSelectAdd = document.getElementById('flavorSelectAdd');
-        if (productSelectAdd && flavorSelectAdd) {
-            productSelectAdd.addEventListener('change', function() {
-                loadFlavors(productSelectAdd, flavorSelectAdd);
-            });
-            if (productSelectAdd.value) {
-                loadFlavors(productSelectAdd, flavorSelectAdd);
-            }
+        function openDistributeModal(id) {
+            const modalElement = document.getElementById('distributeModalContainer');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/warehouse/' + id + '/distribute-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                });
         }
 
-        // Setup for each Edit modal
-        document.querySelectorAll('.product-select-edit').forEach(productSelect => {
-            const editId = productSelect.dataset.editId;
-            const flavorSelect = document.querySelector(`.flavor-select-edit[data-edit-id="${editId}"]`);
-            if (!flavorSelect) return;
-
-            const currentFlavorId = flavorSelect.getAttribute('data-current-flavor-id');
-
-            const modal = productSelect.closest('.modal');
-            if (modal) {
-                modal.addEventListener('show.bs.modal', function() {
-                    const currentProductId = productSelect.value;
-                    if (currentProductId) {
-                        loadFlavors(productSelect, flavorSelect, currentFlavorId);
-                    } else {
-                        flavorSelect.disabled = true;
-                        flavorSelect.innerHTML = '<option value="">First select a product...</option>';
-                    }
+        function openAddStockModal() {
+            const modalElement = document.getElementById('addStockModalContainer');
+            const modalContent = modalElement.querySelector('.modal-content');
+            const url = '/admin/warehouse/add-stock-modal';
+            
+            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading form</div>';
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
                 });
-            }
+        }
 
-            productSelect.addEventListener('change', function() {
-                loadFlavors(productSelect, flavorSelect);
-            });
+        // ============ SEARCH FUNCTIONALITY ============
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchForm = document.getElementById('searchForm');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearSearch = document.getElementById('clearSearch');
+    
+    // Search on Enter key
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (searchForm) {
+                    searchForm.submit();
+                }
+            }
         });
+    }
+    
+    // Search on button click
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (searchForm) {
+                searchForm.submit();
+            }
+        });
+    }
+    
+    // Clear search
+    if (clearSearch) {
+        clearSearch.addEventListener('click', function(e) {
+            // The link already clears the search via the route
+            // This is just a fallback
+        });
+    }
+});
     </script>
 @endsection

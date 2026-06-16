@@ -13,15 +13,27 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
-    public function index()
-    {
-        $inventory = WarehouseInventory::with(['product', 'flavor'])->orderBy('product_id')->paginate(20);
-        $products = Product::where('is_active', true)->with('flavors')->get();
-        $lowStockCount = WarehouseInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count();
-        $totalValue = WarehouseInventory::with('product')->get()->sum(fn($item) => $item->quantity * ($item->last_purchase_price ?? 0));
-        
-        return view('admin.warehouse.index', compact('inventory', 'products', 'lowStockCount', 'totalValue'));
+    public function index(Request $request)
+{
+    $query = WarehouseInventory::with(['product', 'flavor']);
+    
+    // Search filter
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->whereHas('product', function($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+              ->orWhere('brand', 'like', '%' . $search . '%')
+              ->orWhere('category', 'like', '%' . $search . '%');
+        });
     }
+    
+    $inventory = $query->orderBy('product_id')->paginate(20);
+    $products = Product::where('is_active', true)->with('flavors')->get();
+    $lowStockCount = WarehouseInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count();
+    $totalValue = WarehouseInventory::with('product')->get()->sum(fn($item) => $item->quantity * ($item->last_purchase_price ?? 0));
+    
+    return view('admin.warehouse.index', compact('inventory', 'products', 'lowStockCount', 'totalValue'));
+}
     
     public function addStock(Request $request)
     {
@@ -68,172 +80,189 @@ class WarehouseController extends Controller
             'created_by' => auth()->id(),
         ]);
         
+        // Check if AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock added successfully!'
+            ]);
+        }
+        
         return redirect()->route('admin.warehouse.index')->with('success', 'Stock added to warehouse!');
     }
     
     public function distributeToBranch(Request $request)
-{
-    $request->validate([
-        'warehouse_stock_id' => 'required|exists:warehouse_inventories,id',
-        'product_id' => 'required|exists:products,id',
-        'flavor_id' => 'required|exists:product_flavors,id',
-        'branch_id' => 'required|exists:branches,id',
-        'quantity' => 'required|integer|min:1',
-        'notes' => 'nullable|string',
-    ]);
-    
-    DB::beginTransaction();
-    try {
-        $warehouse = WarehouseInventory::findOrFail($request->warehouse_stock_id);
+    {
+        $request->validate([
+            'warehouse_stock_id' => 'required|exists:warehouse_inventories,id',
+            'product_id' => 'required|exists:products,id',
+            'flavor_id' => 'required|exists:product_flavors,id',
+            'branch_id' => 'required|exists:branches,id',
+            'quantity' => 'required|integer|min:1',
+            'notes' => 'nullable|string',
+        ]);
         
-        if ($warehouse->quantity < $request->quantity) {
-            return back()->with('error', "Insufficient stock! Available: {$warehouse->quantity}");
+        DB::beginTransaction();
+        try {
+            $warehouse = WarehouseInventory::findOrFail($request->warehouse_stock_id);
+            
+            if ($warehouse->quantity < $request->quantity) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock! Available: {$warehouse->quantity}"
+                    ]);
+                }
+                return back()->with('error', "Insufficient stock! Available: {$warehouse->quantity}");
+            }
+            
+            $oldQuantity = $warehouse->quantity;
+            $warehouse->quantity = $oldQuantity - $request->quantity;
+            $warehouse->save();
+            
+            $transferNumber = 'DIST-' . date('Ymd') . '-' . rand(1000, 9999);
+            
+            $transfer = StockTransfer::create([
+                'transfer_number' => $transferNumber,
+                'from_branch_id' => null,
+                'to_branch_id' => $request->branch_id,
+                'product_id' => $request->product_id,
+                'flavor_id' => $request->flavor_id,
+                'quantity' => $request->quantity,
+                'status' => 'approved',
+                'transfer_type' => 'warehouse_to_branch',
+                'requested_by' => auth()->id(),
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'notes' => $request->notes ?? 'Direct distribution from warehouse',
+                'expiration_date' => $warehouse->expiration_date,
+            ]);
+            
+            StockMovement::create([
+                'branch_id' => null,
+                'product_id' => $request->product_id,
+                'flavor_id' => $request->flavor_id,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $warehouse->quantity,
+                'quantity_change' => -$request->quantity,
+                'movement_type' => 'transfer_out',
+                'reference_type' => 'stock_transfer',
+                'reference_id' => $transfer->id,
+                'notes' => "Distributed to branch ID: {$request->branch_id}",
+                'created_by' => auth()->id(),
+            ]);
+            
+            DB::commit();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully distributed {$request->quantity} units!"
+                ]);
+            }
+            
+            return redirect()->route('admin.warehouse.index')
+                ->with('success', "Successfully distributed {$request->quantity} units! Transfer #: {$transferNumber}");
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Distribution failed: ' . $e->getMessage()
+                ]);
+            }
+            
+            return back()->with('error', 'Distribution failed: ' . $e->getMessage());
+        }
+    }
+    
+    public function pendingDistributions(Request $request)
+    {
+        $allPending = StockTransfer::where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $transfers = StockTransfer::where('status', 'pending')
+            ->where(function($q) {
+                $q->where('transfer_type', 'warehouse_to_branch')
+                  ->orWhereNull('transfer_type')
+                  ->orWhere('transfer_type', '');
+            })
+            ->with(['toBranch', 'product', 'flavor'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+        
+        $historyTransfers = StockTransfer::whereIn('status', ['completed', 'cancelled', 'approved'])
+            ->where(function($q) {
+                $q->where('transfer_type', 'warehouse_to_branch')
+                  ->orWhereNull('transfer_type')
+                  ->orWhere('transfer_type', '');
+            })
+            ->with(['toBranch', 'product', 'flavor'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20, ['*'], 'history_page');
+        
+        $pendingCount = StockTransfer::where('status', 'pending')
+            ->where(function($q) {
+                $q->where('transfer_type', 'warehouse_to_branch')
+                  ->orWhereNull('transfer_type')
+                  ->orWhere('transfer_type', '');
+            })
+            ->count();
+        
+        return view('admin.warehouse.pending', compact('transfers', 'historyTransfers', 'pendingCount'));
+    }
+    
+    public function approveDistribution(StockTransfer $transfer)
+    {
+        if ($transfer->status != 'pending') {
+            return back()->with('error', 'Transfer is no longer pending.');
         }
         
-        $oldQuantity = $warehouse->quantity;
-        $warehouse->quantity = $oldQuantity - $request->quantity;
-        $warehouse->save();
+        $warehouse = WarehouseInventory::where('product_id', $transfer->product_id)
+            ->where('flavor_id', $transfer->flavor_id)
+            ->first();
         
-        $transferNumber = 'DIST-' . date('Ymd') . '-' . rand(1000, 9999);
+        if (!$warehouse || $warehouse->quantity < $transfer->quantity) {
+            return back()->with('error', 'Insufficient warehouse stock! Available: ' . ($warehouse->quantity ?? 0));
+        }
         
-        $transfer = StockTransfer::create([
-            'transfer_number' => $transferNumber,
-            'from_branch_id' => null,
-            'to_branch_id' => $request->branch_id,
-            'product_id' => $request->product_id,
-            'flavor_id' => $request->flavor_id,
-            'quantity' => $request->quantity,
-            'status' => 'approved',
-            'transfer_type' => 'warehouse_to_branch', // MAKE SURE THIS IS SET
-            'requested_by' => auth()->id(),
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'notes' => $request->notes ?? 'Direct distribution from warehouse',
-            'expiration_date' => $warehouse->expiration_date,
-        ]);
-        
-        // Log to verify
-        \Log::info('Transfer created:', [
-            'id' => $transfer->id,
-            'transfer_type' => $transfer->transfer_type,
-            'from_branch_id' => $transfer->from_branch_id,
-            'to_branch_id' => $transfer->to_branch_id
-        ]);
-        
-        StockMovement::create([
-            'branch_id' => null,
-            'product_id' => $request->product_id,
-            'flavor_id' => $request->flavor_id,
-            'previous_quantity' => $oldQuantity,
-            'new_quantity' => $warehouse->quantity,
-            'quantity_change' => -$request->quantity,
-            'movement_type' => 'transfer_out',
-            'reference_type' => 'stock_transfer',
-            'reference_id' => $transfer->id,
-            'notes' => "Distributed to branch ID: {$request->branch_id}",
-            'created_by' => auth()->id(),
-        ]);
-        
-        DB::commit();
-        
-        return redirect()->route('admin.warehouse.index')
-            ->with('success', "Successfully distributed {$request->quantity} units! Transfer #: {$transferNumber}");
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Distribution failed: ' . $e->getMessage());
-    }
-}
-    
-   public function pendingDistributions(Request $request)
-{
-    // Get ALL pending transfers regardless of type first
-    $allPending = StockTransfer::where('status', 'pending')
-        ->orderBy('created_at', 'desc')
-        ->get();
-    
-    // Then filter for warehouse_to_branch
-    $transfers = StockTransfer::where('status', 'pending')
-        ->where(function($q) {
-            $q->where('transfer_type', 'warehouse_to_branch')
-              ->orWhereNull('transfer_type')
-              ->orWhere('transfer_type', '');
-        })
-        ->with(['toBranch', 'product', 'flavor'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(20);
-    
-    $historyTransfers = StockTransfer::whereIn('status', ['completed', 'cancelled', 'approved'])
-        ->where(function($q) {
-            $q->where('transfer_type', 'warehouse_to_branch')
-              ->orWhereNull('transfer_type')
-              ->orWhere('transfer_type', '');
-        })
-        ->with(['toBranch', 'product', 'flavor'])
-        ->orderBy('created_at', 'desc')
-        ->paginate(20, ['*'], 'history_page');
-    
-    $pendingCount = StockTransfer::where('status', 'pending')
-        ->where(function($q) {
-            $q->where('transfer_type', 'warehouse_to_branch')
-              ->orWhereNull('transfer_type')
-              ->orWhere('transfer_type', '');
-        })
-        ->count();
-    
-    return view('admin.warehouse.pending', compact('transfers', 'historyTransfers', 'pendingCount'));
-}
-    public function approveDistribution(StockTransfer $transfer)
-{
-    if ($transfer->status != 'pending') {
-        return back()->with('error', 'Transfer is no longer pending.');
+        DB::beginTransaction();
+        try {
+            $oldQuantity = $warehouse->quantity;
+            $warehouse->quantity = $oldQuantity - $transfer->quantity;
+            $warehouse->save();
+            
+            StockMovement::create([
+                'branch_id' => null,
+                'product_id' => $transfer->product_id,
+                'flavor_id' => $transfer->flavor_id,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $warehouse->quantity,
+                'quantity_change' => -$transfer->quantity,
+                'movement_type' => 'transfer_out',
+                'reference_type' => 'stock_transfer',
+                'reference_id' => $transfer->id,
+                'notes' => 'Stock transferred to branch: ' . ($transfer->toBranch->name ?? 'Unknown'),
+                'created_by' => auth()->id(),
+            ]);
+            
+            $transfer->status = 'approved';
+            $transfer->approved_by = auth()->id();
+            $transfer->approved_at = now();
+            $transfer->save();
+            
+            DB::commit();
+            return redirect()->route('admin.warehouse.pending')->with('success', 'Distribution approved! Stock deducted from warehouse.');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
     
-    // Check if enough stock is available in warehouse
-    $warehouse = WarehouseInventory::where('product_id', $transfer->product_id)
-        ->where('flavor_id', $transfer->flavor_id)
-        ->first();
-    
-    if (!$warehouse || $warehouse->quantity < $transfer->quantity) {
-        return back()->with('error', 'Insufficient warehouse stock! Available: ' . ($warehouse->quantity ?? 0));
-    }
-    
-    DB::beginTransaction();
-    try {
-        // Deduct from warehouse
-        $oldQuantity = $warehouse->quantity;
-        $warehouse->quantity = $oldQuantity - $transfer->quantity;
-        $warehouse->save();
-        
-        // Record warehouse stock movement
-        StockMovement::create([
-            'branch_id' => null,
-            'product_id' => $transfer->product_id,
-            'flavor_id' => $transfer->flavor_id,
-            'previous_quantity' => $oldQuantity,
-            'new_quantity' => $warehouse->quantity,
-            'quantity_change' => -$transfer->quantity,
-            'movement_type' => 'transfer_out',
-            'reference_type' => 'stock_transfer',
-            'reference_id' => $transfer->id,
-            'notes' => 'Stock transferred to branch: ' . ($transfer->toBranch->name ?? 'Unknown'),
-            'created_by' => auth()->id(),
-        ]);
-        
-        // Update transfer status
-        $transfer->status = 'approved';
-        $transfer->approved_by = auth()->id();
-        $transfer->approved_at = now();
-        $transfer->save();
-        
-        DB::commit();
-        return redirect()->route('admin.warehouse.pending')->with('success', 'Distribution approved! Stock deducted from warehouse.');
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Error: ' . $e->getMessage());
-    }
-}
     public function rejectDistribution(StockTransfer $transfer)
     {
         if ($transfer->status != 'pending') {
@@ -301,10 +330,55 @@ class WarehouseController extends Controller
             
             $inventory->save();
             
+            // Check if AJAX request
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Stock updated successfully!'
+                ]);
+            }
+            
             return redirect()->route('admin.warehouse.index')->with('success', 'Warehouse inventory updated successfully!');
             
         } catch (\Exception $e) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating inventory: ' . $e->getMessage()
+                ]);
+            }
+            
             return back()->with('error', 'Error updating inventory: ' . $e->getMessage())->withInput();
         }
+    }
+
+    // ============ NEW MODAL METHODS ============
+    
+    /**
+     * Show edit modal
+     */
+    public function editModal($id)
+    {
+        $item = WarehouseInventory::with(['product', 'flavor'])->findOrFail($id);
+        $products = Product::where('is_active', true)->with('flavors')->get();
+        return view('admin.warehouse.modals.edit', compact('item', 'products'));
+    }
+
+    /**
+     * Show distribute modal
+     */
+    public function distributeModal($id)
+    {
+        $item = WarehouseInventory::with(['product', 'flavor'])->findOrFail($id);
+        return view('admin.warehouse.modals.distribute', compact('item'));
+    }
+
+    /**
+     * Show add stock modal
+     */
+    public function addStockModal()
+    {
+        $products = Product::where('is_active', true)->with('flavors')->get();
+        return view('admin.warehouse.modals.add-stock', compact('products'));
     }
 }

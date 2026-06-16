@@ -1,202 +1,197 @@
-@extends('layouts.admin')
-
-@section('title', 'Transfer Details - Vape Expo')
-
-@section('content')
-<div class="container-fluid px-4">
-    <!-- Header with Dashboard Button -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center">
-            <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
-            <div>
-                <h1 class="h3 mb-1 fw-bold">Transfer Details</h1>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-arrow-left-right me-1"></i> {{ $transfer->transfer_number }}
-                </p>
-            </div>
-        </div>
-        <div class="mt-2 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-3">
-                <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
-            <a href="{{ route('admin.inventory.transfers') }}" class="btn btn-outline-secondary rounded-pill px-3">
-                <i class="bi bi-arrow-left me-1"></i> Back to Transfers
-            </a>
-        </div>
+<div class="modal-content">
+    <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+            <i class="bi bi-arrow-left-right me-2"></i> Transfer Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        @php
+            $statusColors = [
+                'pending' => 'warning',
+                'approved' => 'info',
+                'completed' => 'success',
+                'cancelled' => 'danger'
+            ];
+            $statusIcons = [
+                'pending' => 'bi-hourglass',
+                'approved' => 'bi-check-circle',
+                'completed' => 'bi-check-circle-fill',
+                'cancelled' => 'bi-x-circle'
+            ];
+        @endphp
 
-    @php
-        $statusColors = [
-            'pending' => 'warning',
-            'approved' => 'info',
-            'completed' => 'success',
-            'cancelled' => 'danger'
-        ];
-        $statusIcons = [
-            'pending' => 'bi-hourglass',
-            'approved' => 'bi-check-circle',
-            'completed' => 'bi-check-circle-fill',
-            'cancelled' => 'bi-x-circle'
-        ];
-    @endphp
-
-    <!-- Status Banner -->
-    <div class="alert alert-{{ $statusColors[$transfer->status] ?? 'secondary' }} border-0 shadow-sm mb-4">
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center">
-                <i class="bi {{ $statusIcons[$transfer->status] ?? 'bi-info-circle' }} fs-2 me-3"></i>
-                <div>
-                    <h4 class="mb-1 fw-bold">{{ ucfirst($transfer->status) }}</h4>
-                    <p class="mb-0">
-                        @if($transfer->status == 'pending')
-                            This transfer is waiting for approval
-                        @elseif($transfer->status == 'approved')
-                            This transfer has been approved and is ready to be completed
-                        @elseif($transfer->status == 'completed')
-                            This transfer has been completed successfully
-                        @elseif($transfer->status == 'cancelled')
-                            This transfer has been cancelled
-                        @endif
-                    </p>
+        <!-- Status Banner -->
+        <div class="alert alert-{{ $statusColors[$transfer->status] ?? 'secondary' }} border-0 shadow-sm mb-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="bi {{ $statusIcons[$transfer->status] ?? 'bi-info-circle' }} fs-2 me-3"></i>
+                    <div>
+                        <h5 class="mb-1 fw-bold">{{ ucfirst($transfer->status) }}</h5>
+                        <p class="mb-0">
+                            @if($transfer->status == 'pending')
+                                This transfer is waiting for approval
+                            @elseif($transfer->status == 'approved')
+                                This transfer has been approved and is ready to be completed
+                            @elseif($transfer->status == 'completed')
+                                This transfer has been completed successfully
+                            @elseif($transfer->status == 'cancelled')
+                                This transfer has been cancelled
+                            @endif
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="d-flex gap-2">
-                @if($transfer->status == 'pending')
-                    <form action="{{ route('admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-success rounded-pill px-4" onclick="return confirm('Approve this transfer?')">
-                            <i class="bi bi-check-lg me-1"></i> Approve
+                <div class="d-flex gap-2">
+                    <!-- Edit Button (only for pending) -->
+                    @if($transfer->status == 'pending')
+                        <button type="button" class="btn btn-warning rounded-pill px-3" onclick="openEditTransferModal({{ $transfer->id }})">
+                            <i class="bi bi-pencil me-1"></i> Edit
                         </button>
-                    </form>
-                    <form action="{{ route('admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-danger rounded-pill px-4" onclick="return confirm('Reject this transfer?')">
-                            <i class="bi bi-x-lg me-1"></i> Reject
-                        </button>
-                    </form>
-                @endif
+                    @endif
 
-                @if($transfer->status == 'approved')
-                    <form action="{{ route('admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-success rounded-pill px-4" onclick="return confirm('Complete this transfer?')">
-                            <i class="bi bi-check-circle-fill me-1"></i> Complete
-                        </button>
-                    </form>
-                @endif
+                    <!-- Approve Button (only for pending) -->
+                    @if($transfer->status == 'pending')
+                        <form action="{{ route('admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline" id="approveForm{{ $transfer->id }}">
+                            @csrf
+                            <button type="submit" class="btn btn-success rounded-pill px-3" onclick="return confirm('Approve this transfer?')">
+                                <i class="bi bi-check-lg me-1"></i> Approve
+                            </button>
+                        </form>
+                    @endif
 
-                @if(in_array($transfer->status, ['pending', 'approved']))
-                    <form action="{{ route('admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-secondary rounded-pill px-4" onclick="return confirm('Cancel this transfer?')">
-                            <i class="bi bi-stop-circle me-1"></i> Cancel
-                        </button>
-                    </form>
-                @endif
+                    <!-- Reject Button (only for pending) -->
+                    @if($transfer->status == 'pending')
+                        <form action="{{ route('admin.inventory.transfers.reject', $transfer) }}" method="POST" class="d-inline" id="rejectForm{{ $transfer->id }}">
+                            @csrf
+                            <button type="submit" class="btn btn-danger rounded-pill px-3" onclick="return confirm('Reject this transfer?')">
+                                <i class="bi bi-x-lg me-1"></i> Reject
+                            </button>
+                        </form>
+                    @endif
 
-                @if(in_array($transfer->status, ['cancelled', 'completed']))
-                    <form action="{{ route('admin.inventory.transfers.destroy', $transfer) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger rounded-pill px-4" onclick="return confirm('Delete this transfer? This action cannot be undone.')">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                    </form>
-                @endif
-            </div>
-        </div>
-    </div>
+                    <!-- Complete Button (only for approved) -->
+                    @if($transfer->status == 'approved')
+                        <form action="{{ route('admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success rounded-pill px-3" onclick="return confirm('Complete this transfer?')">
+                                <i class="bi bi-check-circle-fill me-1"></i> Complete
+                            </button>
+                        </form>
+                    @endif
 
-    <div class="row">
-        <!-- Transfer Information -->
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Transfer Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td class="text-muted">Transfer Number:</td>
-                            <td class="fw-semibold"><code>{{ $transfer->transfer_number }}</code></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Date Requested:</td>
-                            <td>{{ $transfer->created_at->format('F d, Y h:i A') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Requested By:</td>
-                            <td>{{ $transfer->requestedBy->name ?? 'N/A' }}</td>
-                        </tr>
-                        @if($transfer->approved_at)
-                        <tr>
-                            <td class="text-muted">Approved Date:</td>
-                            <td>{{ $transfer->approved_at->format('F d, Y h:i A') }}</td>
-                        </tr>
-                        @endif
-                        @if($transfer->approvedBy)
-                        <tr>
-                            <td class="text-muted">Approved By:</td>
-                            <td>{{ $transfer->approvedBy->name ?? 'N/A' }}</td>
-                        </tr>
-                        @endif
-                        @if($transfer->completed_at)
-                        <tr>
-                            <td class="text-muted">Completed Date:</td>
-                            <td>{{ $transfer->completed_at->format('F d, Y h:i A') }}</td>
-                        </tr>
-                        @endif
-                    </table>
+                    <!-- Cancel Button (only for pending/approved) -->
+                    @if(in_array($transfer->status, ['pending', 'approved']))
+                        <form action="{{ route('admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-secondary rounded-pill px-3" onclick="return confirm('Cancel this transfer?')">
+                                <i class="bi bi-stop-circle me-1"></i> Cancel
+                            </button>
+                        </form>
+                    @endif
+
+                    <!-- Delete Button (only for cancelled/completed) -->
+                    @if(in_array($transfer->status, ['cancelled', 'completed']))
+                        <form action="{{ route('admin.inventory.transfers.destroy', $transfer) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger rounded-pill px-3" onclick="return confirm('Delete this transfer? This action cannot be undone.')">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- Branch Information -->
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-shop me-2 text-primary"></i>Branch Details</h5>
+        <div class="row">
+            <!-- Transfer Information -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Transfer Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <td class="text-muted" style="width: 130px;">Transfer Number:</td>
+                                <td class="fw-semibold"><code>{{ $transfer->transfer_number }}</code></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Date Requested:</td>
+                                <td>{{ $transfer->created_at->format('F d, Y h:i A') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Requested By:</td>
+                                <td>{{ $transfer->requestedBy->name ?? 'N/A' }}</td>
+                            </tr>
+                            @if($transfer->approved_at)
+                            <tr>
+                                <td class="text-muted">Approved Date:</td>
+                                <td>{{ $transfer->approved_at->format('F d, Y h:i A') }}</td>
+                            </tr>
+                            @endif
+                            @if($transfer->approvedBy)
+                            <tr>
+                                <td class="text-muted">Approved By:</td>
+                                <td>{{ $transfer->approvedBy->name ?? 'N/A' }}</td>
+                            </tr>
+                            @endif
+                            @if($transfer->completed_at)
+                            <tr>
+                                <td class="text-muted">Completed Date:</td>
+                                <td>{{ $transfer->completed_at->format('F d, Y h:i A') }}</td>
+                            </tr>
+                            @endif
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="fw-semibold text-primary">From Branch</h6>
-                            <p class="mb-1"><strong>{{ $transfer->fromBranch->name ?? 'N/A' }}</strong></p>
-                            <p class="mb-1 small">{{ $transfer->fromBranch->address ?? 'N/A' }}</p>
-                            <p class="mb-1 small">Manager: {{ $transfer->fromBranch->manager_name ?? 'N/A' }}</p>
-                            <p class="mb-0 small">Phone: {{ $transfer->fromBranch->phone ?? 'N/A' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="fw-semibold text-success">To Branch</h6>
-                            <p class="mb-1"><strong>{{ $transfer->toBranch->name ?? 'N/A' }}</strong></p>
-                            <p class="mb-1 small">{{ $transfer->toBranch->address ?? 'N/A' }}</p>
-                            <p class="mb-1 small">Manager: {{ $transfer->toBranch->manager_name ?? 'N/A' }}</p>
-                            <p class="mb-0 small">Phone: {{ $transfer->toBranch->phone ?? 'N/A' }}</p>
+            </div>
+
+            <!-- Branch Information -->
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-shop me-2 text-primary"></i>Branch Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-semibold text-primary">From Branch</h6>
+                                <p class="mb-1"><strong>{{ $transfer->fromBranch->name ?? 'N/A' }}</strong></p>
+                                <p class="mb-1 small">{{ $transfer->fromBranch->address ?? 'N/A' }}</p>
+                                <p class="mb-1 small">Manager: {{ $transfer->fromBranch->manager_name ?? 'N/A' }}</p>
+                                <p class="mb-0 small">Phone: {{ $transfer->fromBranch->phone ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-semibold text-success">To Branch</h6>
+                                <p class="mb-1"><strong>{{ $transfer->toBranch->name ?? 'N/A' }}</strong></p>
+                                <p class="mb-1 small">{{ $transfer->toBranch->address ?? 'N/A' }}</p>
+                                <p class="mb-1 small">Manager: {{ $transfer->toBranch->manager_name ?? 'N/A' }}</p>
+                                <p class="mb-0 small">Phone: {{ $transfer->toBranch->phone ?? 'N/A' }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Product Information -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-semibold"><i class="bi bi-box me-2 text-primary"></i>Product Details</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="border rounded p-3 text-center bg-light">
+        <!-- Product Information -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-box me-2 text-primary"></i>Product Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 text-center">
                         @if(isset($transfer->product) && $transfer->product)
                             @if($transfer->product->image_url)
-                                <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 100) }}" 
+                                <img src="{{ \App\Helpers\GoogleDriveHelper::getThumbnailUrl($transfer->product->image_url, 80) }}" 
                                      alt="{{ $transfer->product->name }}"
-                                     style="max-height: 100px; object-fit: contain;">
+                                     style="max-height: 80px; object-fit: contain;">
                             @elseif($transfer->product->image)
                                 <img src="{{ Storage::url($transfer->product->image) }}" 
                                      alt="{{ $transfer->product->name }}"
-                                     style="max-height: 100px; object-fit: contain;">
+                                     style="max-height: 80px; object-fit: contain;">
                             @else
                                 <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
                             @endif
@@ -204,39 +199,72 @@
                             <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
                         @endif
                     </div>
+                    <div class="col-md-10">
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td class="text-muted" style="width: 100px;">Product:</td>
+                                <td class="fw-semibold">{{ $transfer->product->name ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Brand:</td>
+                                <td>{{ $transfer->product->brand ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Flavor:</td>
+                                <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Quantity:</td>
+                                <td><span class="fw-bold fs-5">{{ $transfer->quantity }}</span> units</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Price:</td>
+                                <td>₱{{ number_format($transfer->product->price ?? 0, 2) }}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="col-md-9">
-                    <table class="table table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted" style="width: 150px;">Product:</td>
-                            <td class="fw-semibold">{{ $transfer->product->name ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Brand:</td>
-                            <td>{{ $transfer->product->brand ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Flavor:</td>
-                            <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Quantity:</td>
-                            <td><span class="fw-bold fs-5">{{ $transfer->quantity }}</span> units</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Price:</td>
-                            <td>₱{{ number_format($transfer->product->price ?? 0, 2) }}</td>
-                        </tr>
-                    </table>
+                @if($transfer->notes)
+                <div class="mt-3 p-3 bg-light rounded">
+                    <strong>Notes:</strong>
+                    <p class="mb-0">{{ $transfer->notes }}</p>
                 </div>
+                @endif
             </div>
-            @if($transfer->notes)
-            <div class="mt-3 p-3 bg-light rounded">
-                <strong>Notes:</strong>
-                <p class="mb-0">{{ $transfer->notes }}</p>
-            </div>
-            @endif
         </div>
     </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+    </div>
 </div>
-@endsection
+
+<script>
+    function openEditTransferModal(id) {
+        // Close current modal
+        const currentModal = bootstrap.Modal.getInstance(document.getElementById('transferModal'));
+        if (currentModal) currentModal.hide();
+        
+        // Open edit modal
+        const modalElement = document.getElementById('editTransferModal');
+        const modalContent = modalElement.querySelector('.modal-content');
+        const url = '/admin/inventory/transfers/' + id + '/edit-modal';
+        
+        modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-warning" role="status"></div><p>Loading...</p></div>';
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = '<div class="alert alert-danger m-3">Error loading edit form</div>';
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            });
+    }
+</script>

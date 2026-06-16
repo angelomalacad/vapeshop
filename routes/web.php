@@ -290,6 +290,10 @@ Route::get('/api/warehouse-stock/{product}', function($productId, Request $reque
         Route::post('/distribute', [App\Http\Controllers\Admin\WarehouseController::class, 'distributeToBranch'])->name('distribute');
         Route::post('/transfer/{transfer}/approve', [App\Http\Controllers\Admin\WarehouseController::class, 'approveDistribution'])->name('approve');
         Route::post('/transfer/{transfer}/reject', [App\Http\Controllers\Admin\WarehouseController::class, 'rejectDistribution'])->name('reject');
+        // ===== ADD THESE MODAL ROUTES =====
+    Route::get('/{id}/edit-modal', [App\Http\Controllers\Admin\WarehouseController::class, 'editModal'])->name('edit-modal');
+    Route::get('/{id}/distribute-modal', [App\Http\Controllers\Admin\WarehouseController::class, 'distributeModal'])->name('distribute-modal');
+    Route::get('/add-stock-modal', [App\Http\Controllers\Admin\WarehouseController::class, 'addStockModal'])->name('add-stock-modal');
     });
 
     // ===== PRODUCTS MANAGEMENT ROUTES =====

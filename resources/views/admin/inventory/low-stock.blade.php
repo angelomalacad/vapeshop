@@ -31,9 +31,6 @@
             </div>
         </div>
         <div class="mt-2 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-primary rounded-pill px-3">
-                <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
             <a href="{{ route('admin.inventory.index') }}" class="btn btn-primary rounded-pill px-3">
                 <i class="bi bi-box-seam me-1"></i> All Inventory
             </a>
