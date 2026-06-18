@@ -7,6 +7,7 @@ use App\Models\BranchInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -69,12 +70,23 @@ class OrderController extends Controller
             'delivered' => null,
         ];
 
+        // Helper function to ensure Carbon instance
+        $ensureCarbon = function($value) {
+            if ($value instanceof Carbon) {
+                return $value;
+            }
+            if ($value) {
+                return Carbon::parse($value);
+            }
+            return null;
+        };
+
         // Get confirmed timestamp
         if (in_array($order->order_status, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'])) {
             if (isset($order->confirmed_at) && $order->confirmed_at) {
-                $timestamps['confirmed'] = $order->confirmed_at;
+                $timestamps['confirmed'] = $ensureCarbon($order->confirmed_at);
             } elseif ($order->delivery && $order->delivery->assigned_at) {
-                $timestamps['confirmed'] = $order->delivery->assigned_at;
+                $timestamps['confirmed'] = $ensureCarbon($order->delivery->assigned_at);
             } else {
                 $timestamps['confirmed'] = $order->updated_at;
             }
@@ -83,7 +95,7 @@ class OrderController extends Controller
         // Get packing timestamp (maps from database 'processing')
         if (in_array($order->order_status, ['processing', 'ready', 'out_for_delivery', 'delivered'])) {
             if (isset($order->processing_at) && $order->processing_at) {
-                $timestamps['packing'] = $order->processing_at;
+                $timestamps['packing'] = $ensureCarbon($order->processing_at);
             } else {
                 $timestamps['packing'] = $order->updated_at;
             }
@@ -92,7 +104,7 @@ class OrderController extends Controller
         // Get ready timestamp
         if (in_array($order->order_status, ['ready', 'out_for_delivery', 'delivered'])) {
             if (isset($order->ready_at) && $order->ready_at) {
-                $timestamps['ready'] = $order->ready_at;
+                $timestamps['ready'] = $ensureCarbon($order->ready_at);
             } else {
                 $timestamps['ready'] = $order->updated_at;
             }
@@ -101,33 +113,29 @@ class OrderController extends Controller
         // Get out for delivery timestamp
         if (in_array($order->order_status, ['out_for_delivery', 'delivered'])) {
             if (isset($order->out_for_delivery_at) && $order->out_for_delivery_at) {
-                $timestamps['out_for_delivery'] = $order->out_for_delivery_at;
+                $timestamps['out_for_delivery'] = $ensureCarbon($order->out_for_delivery_at);
             } elseif ($order->delivery && $order->delivery->assigned_at) {
-                $timestamps['out_for_delivery'] = $order->delivery->assigned_at;
+                $timestamps['out_for_delivery'] = $ensureCarbon($order->delivery->assigned_at);
             } else {
                 $timestamps['out_for_delivery'] = $order->updated_at;
             }
         }
 
         // Get in_transit timestamp from delivery
-        // FIXED: Also show in_transit if picked_up has happened (as a fallback)
         if ($order->delivery) {
             if ($order->delivery->status == 'in_transit') {
-                // If driver explicitly set in_transit status
-                $timestamps['in_transit'] = $order->delivery->updated_at;
+                $timestamps['in_transit'] = $ensureCarbon($order->delivery->updated_at);
             } elseif ($order->delivery->picked_up_at && !$order->delivery->delivered_at) {
-                // If picked up but not delivered yet, use picked_up time as in_transit
-                $timestamps['in_transit'] = $order->delivery->picked_up_at;
+                $timestamps['in_transit'] = $ensureCarbon($order->delivery->picked_up_at);
             } elseif ($order->delivery->picked_up_at && $order->delivery->delivered_at) {
-                // If delivered, still show in_transit using picked_up time
-                $timestamps['in_transit'] = $order->delivery->picked_up_at;
+                $timestamps['in_transit'] = $ensureCarbon($order->delivery->picked_up_at);
             }
         }
 
         // Get delivered timestamp
         if ($order->order_status == 'delivered') {
             if ($order->delivery && $order->delivery->delivered_at) {
-                $timestamps['delivered'] = $order->delivery->delivered_at;
+                $timestamps['delivered'] = $ensureCarbon($order->delivery->delivered_at);
             } else {
                 $timestamps['delivered'] = $order->updated_at;
             }
