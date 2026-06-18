@@ -1,7 +1,84 @@
 @extends('layouts.admin')
 
 @section('title', 'Delivery Management - Vape Expo')
+<style>
+    .stat-card-modern {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        border: 1px solid #eef2f6;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
 
+    .stat-card-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+        border-color: #e0e7ed;
+    }
+
+    .stat-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card-modern:hover .stat-icon-wrapper {
+        transform: scale(1.02);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+        color: #8b9cb0;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+
+    @media (max-width: 768px) {
+        .stat-card-modern {
+            padding: 1rem;
+            gap: 0.75rem;
+        }
+
+        .stat-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            border-radius: 14px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+        }
+    }
+</style>
 @section('content')
     <div class="container-fluid px-4">
         <!-- Header -->
@@ -20,56 +97,57 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Total Deliveries</h6>
-                                <h2 class="mb-0 fw-bold">{{ $stats['total'] }}</h2>
-                            </div>
-                            <i class="bi bi-truck fs-1 opacity-50"></i>
-                        </div>
+        <div class="row g-4 mb-4">
+            <!-- Total Deliveries -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #dbeafe; color: #2563eb;">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Deliveries</span>
+                        <h3 class="stat-value">{{ $stats['total'] }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Active Deliveries</h6>
-                                <h2 class="mb-0 fw-bold">{{ $stats['active_today'] }}</h2>
-                            </div>
-                            <i class="bi bi-arrow-repeat fs-1 opacity-50"></i>
-                        </div>
+
+            <!-- Active Deliveries -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #fef3c7; color: #d97706;">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Active Deliveries</span>
+                        <h3 class="stat-value">{{ $stats['active_today'] }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Completed</h6>
-                                <h2 class="mb-0 fw-bold">{{ $stats['delivered'] }}</h2>
-                            </div>
-                            <i class="bi bi-check-circle fs-1 opacity-50"></i>
-                        </div>
+
+            <!-- Completed -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #d1fae5; color: #059669;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Completed</span>
+                        <h3 class="stat-value">{{ $stats['delivered'] }}</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm bg-info text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Today's Driver</h6>
-                                <h2 class="mb-0 fw-bold small">{{ $todayDriverName ?? 'Not assigned' }}</h2>
-                            </div>
-                            <i class="bi bi-person-badge fs-1 opacity-50"></i>
-                        </div>
+
+            <!-- Today's Driver -->
+            <div class="col-md-3 col-6">
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #ede9fe; color: #7c3aed;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Today's Driver</span>
+                        <h3 class="stat-value" style="font-size: 1.2rem; font-weight: 600;">
+                            {{ $todayDriverName ?? 'Not assigned' }}
+                        </h3>
                     </div>
                 </div>
             </div>

@@ -5,8 +5,9 @@
 @section('content')
     <div class="container-fluid px-4">
         <!-- Success Message Alert -->
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert" id="flashSuccess">
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert"
+                id="flashSuccess">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
                     <div>
@@ -18,8 +19,9 @@
         @endif
 
         <!-- Error Message Alert -->
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert" id="flashError">
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-4 d-none" role="alert"
+                id="flashError">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
                     <div>
@@ -42,7 +44,7 @@
                 <a href="{{ route('admin.warehouse.pending') }}" class="btn btn-warning rounded-pill px-4">
                     <i class="bi bi-clock-history me-2"></i>Pending Requests
                     @php $pendingCount = \App\Models\StockTransfer::where('transfer_type', 'warehouse_to_branch')->where('status', 'pending')->count(); @endphp
-                    @if($pendingCount > 0)
+                    @if ($pendingCount > 0)
                         <span class="badge bg-danger ms-1">{{ $pendingCount }}</span>
                     @endif
                 </a>
@@ -115,35 +117,42 @@
                 <i class="bi bi-info-circle-fill fs-3 me-3 text-primary"></i>
                 <div>
                     <strong>Warehouse Management Guide:</strong><br>
-                    <small>• Use <strong>"Add Stock"</strong> to increase warehouse inventory with new products or restock existing ones.<br>
-                    • Use <strong>"Distribute"</strong> to send stock directly to any branch. This will be immediately available for the branch to receive.<br>
-                    • Products with <strong class="text-warning">expiration dates</strong> will show warnings when nearing expiry.</small>
+                    <small>• Use <strong>"Add Stock"</strong> to increase warehouse inventory with new products or restock
+                        existing ones.<br>
+                        • Use <strong>"Distribute"</strong> to send stock directly to any branch. This will be immediately
+                        available for the branch to receive.<br>
+                        • Products with <strong class="text-warning">expiration dates</strong> will show warnings when
+                        nearing expiry.</small>
                 </div>
             </div>
         </div>
 
         <!-- Inventory Table -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Warehouse Inventory</h5>
-            <!-- Search Form -->
-            <form method="GET" action="{{ route('admin.warehouse.index') }}" class="d-flex" id="searchForm" style="min-width: 250px;">
-                <div class="input-group input-group-sm">
-                    <input type="text" name="search" class="form-control" placeholder="Search product, brand, category..." 
-                           value="{{ request('search') }}" id="searchInput">
-                    <button class="btn btn-outline-primary" type="submit" id="searchBtn">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('admin.warehouse.index') }}" class="btn btn-outline-secondary" id="clearSearch">
-                            <i class="bi bi-x"></i>
-                        </a>
-                    @endif
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Warehouse Inventory
+                    </h5>
+                    <!-- Search Form -->
+                    <form method="GET" action="{{ route('admin.warehouse.index') }}" class="d-flex" id="searchForm"
+                        style="min-width: 250px;">
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="search" class="form-control"
+                                placeholder="Search product, brand, category..." value="{{ request('search') }}"
+                                id="searchInput">
+                            <button class="btn btn-outline-primary" type="submit" id="searchBtn">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            @if (request('search'))
+                                <a href="{{ route('admin.warehouse.index') }}" class="btn btn-outline-secondary"
+                                    id="clearSearch">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -173,8 +182,8 @@
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
                                             @if ($product && $product->image)
-                                                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}"
-                                                    class="rounded me-2"
+                                                <img src="{{ Storage::url($product->image) }}"
+                                                    alt="{{ $product->name }}" class="rounded me-2"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                             @else
                                                 <div class="bg-light rounded d-flex align-items-center justify-content-center me-2"
@@ -184,7 +193,7 @@
                                             @endif
                                             <div>
                                                 <strong>{{ $product->name ?? 'N/A' }}</strong>
-                                                @if($product && $product->sku)
+                                                @if ($product && $product->sku)
                                                     <br><small class="text-muted">SKU: {{ $product->sku }}</small>
                                                 @endif
                                             </div>
@@ -197,7 +206,7 @@
                                         <span class="fw-bold {{ $isLowStock ? 'text-danger' : 'text-success' }}">
                                             {{ number_format($item->quantity) }}
                                         </span>
-                                        @if($item->quantity <= 0)
+                                        @if ($item->quantity <= 0)
                                             <span class="badge bg-danger ms-1">Out of Stock</span>
                                         @endif
                                     </td>
@@ -210,7 +219,8 @@
                                     </td>
                                     <td>₱{{ number_format($item->last_purchase_price ?? 0, 2) }}</td>
                                     <td>₱{{ number_format($totalItemValue, 2) }}</td>
-                                    <td>{{ $item->last_restocked_at ? $item->last_restocked_at->format('M d, Y') : 'Never' }}</td>
+                                    <td>{{ $item->last_restocked_at ? $item->last_restocked_at->format('M d, Y') : 'Never' }}
+                                    </td>
                                     <td>
                                         @if ($item->expiration_date)
                                             {{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
@@ -225,11 +235,11 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-warning rounded-pill me-1" 
+                                            <button type="button" class="btn btn-outline-warning rounded-pill me-1"
                                                 onclick="openEditModal({{ $item->id }})" title="Edit Stock">
                                                 <i class="bi bi-pencil"></i> Edit
                                             </button>
-                                            <button type="button" class="btn btn-outline-primary rounded-pill" 
+                                            <button type="button" class="btn btn-outline-primary rounded-pill"
                                                 onclick="openDistributeModal({{ $item->id }})">
                                                 <i class="bi bi-send"></i> Distribute
                                             </button>
@@ -254,7 +264,8 @@
             <div class="card-footer bg-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="text-muted small">
-                        Showing {{ $inventory->firstItem() ?? 0 }} to {{ $inventory->lastItem() ?? 0 }} of {{ $inventory->total() }} results
+                        Showing {{ $inventory->firstItem() ?? 0 }} to {{ $inventory->lastItem() ?? 0 }} of
+                        {{ $inventory->total() }} results
                     </div>
                     <div>
                         @if ($inventory->hasPages())
@@ -263,11 +274,14 @@
                                     @if ($inventory->onFirstPage())
                                         <li class="page-item disabled"><span class="page-link">Previous</span></li>
                                     @else
-                                        <li class="page-item"><a class="page-link" href="{{ $inventory->previousPageUrl() }}" rel="prev">Previous</a></li>
+                                        <li class="page-item"><a class="page-link"
+                                                href="{{ $inventory->previousPageUrl() }}" rel="prev">Previous</a>
+                                        </li>
                                     @endif
 
                                     @if ($inventory->hasMorePages())
-                                        <li class="page-item"><a class="page-link" href="{{ $inventory->nextPageUrl() }}" rel="next">Next</a></li>
+                                        <li class="page-item"><a class="page-link"
+                                                href="{{ $inventory->nextPageUrl() }}" rel="next">Next</a></li>
                                     @else
                                         <li class="page-item disabled"><span class="page-link">Next</span></li>
                                     @endif
@@ -385,7 +399,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const flashSuccess = document.getElementById('flashSuccess');
             const flashError = document.getElementById('flashError');
-            
+
             if (flashSuccess && flashSuccess.textContent.trim()) {
                 const message = flashSuccess.textContent.trim();
                 const cleanMessage = message.replace(/Success!/g, '').trim();
@@ -394,7 +408,7 @@
                 }
                 flashSuccess.remove();
             }
-            
+
             if (flashError && flashError.textContent.trim()) {
                 const message = flashError.textContent.trim();
                 const cleanMessage = message.replace(/Error!/g, '').trim();
@@ -410,10 +424,15 @@
             const modalElement = document.getElementById('editModalContainer');
             const modalContent = modalElement.querySelector('.modal-content');
             const url = '/admin/warehouse/' + id + '/edit-modal';
-            
-            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
-            
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+
+            modalContent.innerHTML =
+                '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(response => response.text())
                 .then(html => {
                     modalContent.innerHTML = html;
@@ -432,10 +451,15 @@
             const modalElement = document.getElementById('distributeModalContainer');
             const modalContent = modalElement.querySelector('.modal-content');
             const url = '/admin/warehouse/' + id + '/distribute-modal';
-            
-            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
-            
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+
+            modalContent.innerHTML =
+                '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(response => response.text())
                 .then(html => {
                     modalContent.innerHTML = html;
@@ -454,10 +478,15 @@
             const modalElement = document.getElementById('addStockModalContainer');
             const modalContent = modalElement.querySelector('.modal-content');
             const url = '/admin/warehouse/add-stock-modal';
-            
-            modalContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
-            
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+
+            modalContent.innerHTML =
+                '<div class="text-center p-5"><div class="spinner-border text-info" role="status"></div><p>Loading...</p></div>';
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(response => response.text())
                 .then(html => {
                     modalContent.innerHTML = html;
@@ -473,41 +502,169 @@
         }
 
         // ============ SEARCH FUNCTIONALITY ============
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const searchForm = document.getElementById('searchForm');
-    const searchBtn = document.getElementById('searchBtn');
-    const clearSearch = document.getElementById('clearSearch');
-    
-    // Search on Enter key
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (searchForm) {
-                    searchForm.submit();
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.getElementById('searchForm');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearSearch = document.getElementById('clearSearch');
+
+            // Search on Enter key
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (searchForm) {
+                            searchForm.submit();
+                        }
+                    }
+                });
+            }
+
+            // Search on button click
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (searchForm) {
+                        searchForm.submit();
+                    }
+                });
+            }
+
+            // Clear search
+            if (clearSearch) {
+                clearSearch.addEventListener('click', function(e) {
+                    // The link already clears the search via the route
+                    // This is just a fallback
+                });
+            }
+        });
+
+        // ============ FLAVOR LOADING FOR MODALS ============
+        // This function loads flavors when the edit modal is opened
+        function loadEditFlavors() {
+            var productSelect = document.querySelector('.product-select-edit');
+            var flavorSelect = document.querySelector('.flavor-select-edit');
+
+            if (!productSelect || !flavorSelect) {
+                return;
+            }
+
+            var productId = productSelect.value;
+            var currentFlavorId = flavorSelect.getAttribute('data-current-flavor-id') || '';
+
+            if (!productId) {
+                flavorSelect.disabled = true;
+                flavorSelect.innerHTML = '<option value="">First select a product...</option>';
+                return;
+            }
+
+            flavorSelect.disabled = true;
+            flavorSelect.innerHTML = '<option value="">Loading flavors...</option>';
+
+            fetch('/admin/api/products/' + productId + '/flavors')
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    flavorSelect.innerHTML = '<option value="">Select flavor...</option>';
+                    if (data.length > 0) {
+                        data.forEach(function(flavor) {
+                            var option = document.createElement('option');
+                            option.value = flavor.id;
+                            option.textContent = flavor.name;
+                            flavorSelect.appendChild(option);
+                        });
+                        flavorSelect.disabled = false;
+                        if (currentFlavorId) {
+                            flavorSelect.value = currentFlavorId;
+                        }
+                    } else {
+                        flavorSelect.innerHTML = '<option value="">No flavors available</option>';
+                        flavorSelect.disabled = true;
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading flavors:', error);
+                    flavorSelect.innerHTML = '<option value="">Error loading flavors</option>';
+                    flavorSelect.disabled = true;
+                });
+        }
+
+        // This function loads flavors when the add stock modal is opened
+        function loadAddFlavors() {
+            var productSelect = document.getElementById('productSelectAdd');
+            var flavorSelect = document.getElementById('flavorSelectAdd');
+
+            if (!productSelect || !flavorSelect) {
+                return;
+            }
+
+            var productId = productSelect.value;
+
+            if (!productId) {
+                flavorSelect.disabled = true;
+                flavorSelect.innerHTML = '<option value="">First select a product...</option>';
+                return;
+            }
+
+            flavorSelect.disabled = true;
+            flavorSelect.innerHTML = '<option value="">Loading flavors...</option>';
+
+            fetch('/admin/api/products/' + productId + '/flavors')
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    flavorSelect.innerHTML = '<option value="">Select flavor...</option>';
+                    if (data.length > 0) {
+                        data.forEach(function(flavor) {
+                            var option = document.createElement('option');
+                            option.value = flavor.id;
+                            option.textContent = flavor.name;
+                            flavorSelect.appendChild(option);
+                        });
+                        flavorSelect.disabled = false;
+                    } else {
+                        flavorSelect.innerHTML = '<option value="">No flavors available</option>';
+                        flavorSelect.disabled = true;
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading flavors:', error);
+                    flavorSelect.innerHTML = '<option value="">Error loading flavors</option>';
+                    flavorSelect.disabled = true;
+                });
+        }
+
+        // Listen for modal shown events to load flavors
+        document.addEventListener('shown.bs.modal', function(e) {
+            var target = e.target;
+
+            // Edit modal shown
+            if (target.id === 'editModalContainer') {
+                setTimeout(loadEditFlavors, 300);
+
+                // Also attach change event to product select
+                var productSelect = target.querySelector('.product-select-edit');
+                if (productSelect) {
+                    productSelect.addEventListener('change', function() {
+                        loadEditFlavors();
+                    });
+                }
+            }
+
+            // Add stock modal shown
+            if (target.id === 'addStockModalContainer') {
+                setTimeout(loadAddFlavors, 300);
+
+                // Also attach change event to product select
+                var productSelect = target.querySelector('#productSelectAdd');
+                if (productSelect) {
+                    productSelect.addEventListener('change', function() {
+                        loadAddFlavors();
+                    });
                 }
             }
         });
-    }
-    
-    // Search on button click
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (searchForm) {
-                searchForm.submit();
-            }
-        });
-    }
-    
-    // Clear search
-    if (clearSearch) {
-        clearSearch.addEventListener('click', function(e) {
-            // The link already clears the search via the route
-            // This is just a fallback
-        });
-    }
-});
     </script>
 @endsection
