@@ -1711,420 +1711,439 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                         </div>
                     </div>
 
-                <!-- ANALYTICS TAB (FIXED) -->
-<div class="tab-pane fade" id="analytics" role="tabpanel">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics</h3>
-    </div>
+                    <!-- ANALYTICS TAB (FIXED) -->
+                    <div class="tab-pane fade" id="analytics" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics
+                            </h3>
+                        </div>
 
-    <!-- Expiring Soon -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-12">
-            <div class="card analytics-card animate-fade-up delay-1">
-                <div class="card-header bg-white">
-                    <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next 30 days)
-                    @if ($expiringSoon->count() > 0)
-                        <span class="badge bg-danger float-end">{{ $expiringSoon->count() }} items</span>
-                    @endif
-                </div>
-                <div class="card-body p-0">
-                    @if ($expiringSoon->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 w-100">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th>Branch</th>
-                                        <th>Product</th>
-                                        <th>Expiration Date</th>
-                                        <th>Days Left</th>
-                                        <th>Qty</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($expiringSoon as $item)
-                                        <tr>
-                                            <td>{{ $item->branch->name ?? 'N/A' }}</td>
-                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}</td>
-                                            <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
-                                                <span class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }} days</span>
-                                            </td>
-                                            <td>{{ number_format($item->quantity) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-4 text-success">
-                            <i class="bi bi-check-circle fs-2"></i>
-                            <p class="mb-0">No products expiring soon</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="row g-4 mb-4">
-        <!-- Online Order Status -->
-        <div class="col-md-5">
-            <div class="card analytics-card h-100 animate-fade-up delay-2">
-                <div class="card-header bg-white">
-                    <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
-                    <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }} total</span>
-                </div>
-                <div class="card-body text-center">
-                    @if (count($onlineOrderStatus) > 0)
-                        <div class="chart-container-medium">
-                            <canvas id="orderStatusChart"></canvas>
-                        </div>
-                        <div class="row mt-3 text-center small">
-                            @foreach ($onlineOrderStatus as $status => $count)
-                                <div class="col-4 col-md-3 mb-2">
-                                    @php
-                                        $badgeClass = match ($status) {
-                                            'pending' => 'warning',
-                                            'confirmed' => 'info',
-                                            'processing' => 'primary',
-                                            'ready' => 'success',
-                                            'out_for_delivery' => 'dark',
-                                            'delivered' => 'secondary',
-                                            'cancelled' => 'danger',
-                                            default => 'secondary',
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
-                                    <div class="fw-bold mt-1">{{ $count }}</div>
+                        <!-- Expiring Soon -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="card analytics-card animate-fade-up delay-1">
+                                    <div class="card-header bg-white">
+                                        <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next
+                                        30 days)
+                                        @if ($expiringSoon->count() > 0)
+                                            <span class="badge bg-danger float-end">{{ $expiringSoon->count() }}
+                                                items</span>
+                                        @endif
+                                    </div>
+                                    <div class="card-body p-0">
+                                        @if ($expiringSoon->count() > 0)
+                                            <table class="table table-hover mb-0 w-100">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th>Branch</th>
+                                                        <th>Product</th>
+                                                        <th>Expiration Date</th>
+                                                        <th>Days Left</th>
+                                                        <th>Qty</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($expiringSoon as $item)
+                                                        <tr>
+                                                            <td>{{ $item->branch->name ?? 'N/A' }}</td>
+                                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                                            <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
+                                                            </td>
+                                                            <td>@php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
+                                                                <span
+                                                                    class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">{{ max(0, $daysLeft) }}
+                                                                    days</span>
+                                                            </td>
+                                                            <td>{{ number_format($item->quantity) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                    </div>
+                                @else
+                                    <div class="text-center py-4 text-success">
+                                        <i class="bi bi-check-circle fs-2"></i>
+                                        <p class="mb-0">No products expiring soon</p>
+                                    </div>
+                                    @endif
                                 </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="chart-fallback">
-                            <p class="text-muted">No online orders data yet</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Delivery vs POS -->
-        <div class="col-md-3">
-            <div class="card analytics-card h-100 animate-fade-up delay-3">
-                <div class="card-header bg-white">
-                    <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
-                </div>
-                <div class="card-body text-center">
-                    @php
-                        $hasSalesData = ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 || ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
-                    @endphp
-                    @if ($hasSalesData)
-                        <div class="chart-container-small">
-                            <canvas id="deliveryVsPickupChart"></canvas>
-                        </div>
-                        <div class="row text-center mt-3">
-                            <div class="col-6">
-                                <span class="badge bg-primary status-badge">Delivery</span>
-                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}</h5>
-                            </div>
-                            <div class="col-6">
-                                <span class="badge bg-success status-badge">POS</span>
-                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}</h5>
                             </div>
                         </div>
-                    @else
-                        <div class="chart-fallback">
-                            <p class="text-muted">No sales data yet</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
+                    </div>
 
-        <!-- Repeat Customer Rate -->
-        <div class="col-md-4">
-            <div class="card analytics-card h-100 text-center animate-fade-up delay-4">
-                <div class="card-body d-flex flex-column justify-content-center">
-                    <i class="bi bi-people-fill fs-1 text-primary"></i>
-                    <h5 class="mt-2">Repeat Customer Rate</h5>
-                    <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
-                    <small class="text-muted">of customers ordered more than once</small>
-                    <div class="progress mt-3" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $repeatCustomerRate }}%;"></div>
+                    <!-- Charts Row -->
+                    <div class="row g-4 mb-4">
+                        <!-- Online Order Status -->
+                        <div class="col-md-5">
+                            <div class="card analytics-card h-100 animate-fade-up delay-2">
+                                <div class="card-header bg-white">
+                                    <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
+                                    <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }}
+                                        total</span>
+                                </div>
+                                <div class="card-body text-center">
+                                    @if (count($onlineOrderStatus) > 0)
+                                        <div class="chart-container-medium">
+                                            <canvas id="orderStatusChart"></canvas>
+                                        </div>
+                                        <div class="row mt-3 text-center small">
+                                            @foreach ($onlineOrderStatus as $status => $count)
+                                                <div class="col-4 col-md-3 mb-2">
+                                                    @php
+                                                        $badgeClass = match ($status) {
+                                                            'pending' => 'warning',
+                                                            'confirmed' => 'info',
+                                                            'processing' => 'primary',
+                                                            'ready' => 'success',
+                                                            'out_for_delivery' => 'dark',
+                                                            'delivered' => 'secondary',
+                                                            'cancelled' => 'danger',
+                                                            default => 'secondary',
+                                                        };
+                                                    @endphp
+                                                    <span
+                                                        class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
+                                                    <div class="fw-bold mt-1">{{ $count }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="chart-fallback">
+                                            <p class="text-muted">No online orders data yet</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery vs POS -->
+                        <div class="col-md-3">
+                            <div class="card analytics-card h-100 animate-fade-up delay-3">
+                                <div class="card-header bg-white">
+                                    <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
+                                </div>
+                                <div class="card-body text-center">
+                                    @php
+                                        $hasSalesData =
+                                            ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 ||
+                                            ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
+                                    @endphp
+                                    @if ($hasSalesData)
+                                        <div class="chart-container-small">
+                                            <canvas id="deliveryVsPickupChart"></canvas>
+                                        </div>
+                                        <div class="row text-center mt-3">
+                                            <div class="col-6">
+                                                <span class="badge bg-primary status-badge">Delivery</span>
+                                                <h5 class="mb-0 mt-1">
+                                                    ₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}
+                                                </h5>
+                                            </div>
+                                            <div class="col-6">
+                                                <span class="badge bg-success status-badge">POS</span>
+                                                <h5 class="mb-0 mt-1">
+                                                    ₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="chart-fallback">
+                                            <p class="text-muted">No sales data yet</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Repeat Customer Rate -->
+                        <div class="col-md-4">
+                            <div class="card analytics-card h-100 text-center animate-fade-up delay-4">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <i class="bi bi-people-fill fs-1 text-primary"></i>
+                                    <h5 class="mt-2">Repeat Customer Rate</h5>
+                                    <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
+                                    <small class="text-muted">of customers ordered more than once</small>
+                                    <div class="progress mt-3" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                            style="width: {{ $repeatCustomerRate }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fastest Moving Products -->
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <div class="card analytics-card animate-fade-up delay-5">
+                                <div class="card-header bg-white">
+                                    <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving
+                                    Products
+                                </div>
+                                <div class="card-body p-0">
+                                    @if ($fastMovingProducts->count() > 0)
+                                        <table class="table table-hover mb-0 w-100">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th>Units Sold</th>
+                                                    <th>Revenue</th>
+                                                    <th class="text-end">Rank</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($fastMovingProducts as $index => $product)
+                                                    <tr>
+                                                        <td><strong>{{ $product->name }}</strong></td>
+                                                        <td><span
+                                                                class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
+                                                        </td>
+                                                        <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
+                                                        </td>
+                                                        <td class="text-end"><span
+                                                                class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                </div>
+                            @else
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-box-seam fs-2"></i>
+                                    <p>No product sales data yet</p>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div> <!-- THIS CLOSES THE ANALYTICS TAB-PANE - MOVED TO THE END -->
 
-    <!-- Fastest Moving Products -->
-    <div class="row g-4">
-        <div class="col-md-12">
-            <div class="card analytics-card animate-fade-up delay-5">
-                <div class="card-header bg-white">
-                    <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving Products
-                </div>
-                <div class="card-body p-0">
-                    @if ($fastMovingProducts->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 w-100">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Units Sold</th>
-                                        <th>Revenue</th>
-                                        <th class="text-end">Rank</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($fastMovingProducts as $index => $product)
-                                        <tr>
-                                            <td><strong>{{ $product->name }}</strong></td>
-                                            <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span></td>
-                                            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}</td>
-                                            <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span></td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-4 text-muted">
-                            <i class="bi bi-box-seam fs-2"></i>
-                            <p>No product sales data yet</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-</div> <!-- THIS CLOSES THE ANALYTICS TAB-PANE - MOVED TO THE END -->
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Loading screen hide after page load
-        window.addEventListener('load', function() {
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (loadingScreen) {
-                setTimeout(function() {
-                    loadingScreen.style.opacity = '0';
-                    setTimeout(function() {
-                        loadingScreen.style.display = 'none';
-                    }, 600);
-                }, 800);
-            }
-        });
-
-        // Mobile sidebar toggle functionality
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const sidebarWrapper = document.getElementById('sidebarWrapper');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-
-        function openSidebar() {
-            if (sidebarWrapper) {
-                sidebarWrapper.classList.add('sidebar-open');
-                sidebarOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                if (mobileMenuToggle) {
-                    mobileMenuToggle.querySelector('i').classList.remove('bi-list');
-                    mobileMenuToggle.querySelector('i').classList.add('bi-x');
-                }
-            }
-        }
-
-        function closeSidebar() {
-            if (sidebarWrapper) {
-                sidebarWrapper.classList.remove('sidebar-open');
-                sidebarOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-                if (mobileMenuToggle) {
-                    mobileMenuToggle.querySelector('i').classList.remove('bi-x');
-                    mobileMenuToggle.querySelector('i').classList.add('bi-list');
-                }
-            }
-        }
-
-        if (mobileMenuToggle) {
-            mobileMenuToggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (sidebarWrapper && sidebarWrapper.classList.contains('sidebar-open')) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-        }
-
-        if (sidebarCloseBtn) {
-            sidebarCloseBtn.addEventListener('click', closeSidebar);
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', closeSidebar);
-        }
-
-        const sidebarLinks = document.querySelectorAll('.sidebar-card .list-group-item');
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                if (window.innerWidth <= 768) {
-                    closeSidebar();
-                }
-            });
-        });
-
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                if (sidebarWrapper) {
-                    sidebarWrapper.classList.remove('sidebar-open');
-                }
-                if (sidebarOverlay) {
-                    sidebarOverlay.classList.remove('active');
-                }
-                document.body.style.overflow = '';
-            }
-        });
-
-        // Re-trigger animations when switching tabs
-        const tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
-        tabButtons.forEach(button => {
-            button.addEventListener('shown.bs.tab', function(e) {
-                const targetId = e.target.getAttribute('data-bs-target');
-                const targetPane = document.querySelector(targetId);
-
-                const animatedElements = targetPane.querySelectorAll(
-                    '.animate-scale, .animate-fade-up, .animate-fade-left, .animate-fade-right');
-                animatedElements.forEach(el => {
-                    const classes = el.className;
-                    el.classList.remove('animate-scale', 'animate-fade-up', 'animate-fade-left',
-                        'animate-fade-right');
-                    void el.offsetHeight;
-                    if (classes.includes('animate-scale')) el.classList.add('animate-scale');
-                    if (classes.includes('animate-fade-up')) el.classList.add('animate-fade-up');
-                    if (classes.includes('animate-fade-left')) el.classList.add(
-                        'animate-fade-left');
-                    if (classes.includes('animate-fade-right')) el.classList.add(
-                        'animate-fade-right');
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                // Loading screen hide after page load
+                window.addEventListener('load', function() {
+                    const loadingScreen = document.getElementById('loadingScreen');
+                    if (loadingScreen) {
+                        setTimeout(function() {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(function() {
+                                loadingScreen.style.display = 'none';
+                            }, 600);
+                        }, 800);
+                    }
                 });
 
-                if (targetId === '#analytics') {
-                    setTimeout(() => {
-                        const statusCanvas = document.getElementById('orderStatusChart');
-                        const dpCanvas = document.getElementById('deliveryVsPickupChart');
-                        if (statusCanvas && window.orderStatusChart) {
-                            window.orderStatusChart.resize();
+                // Mobile sidebar toggle functionality
+                const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                const sidebarWrapper = document.getElementById('sidebarWrapper');
+                const sidebarOverlay = document.getElementById('sidebarOverlay');
+                const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+                function openSidebar() {
+                    if (sidebarWrapper) {
+                        sidebarWrapper.classList.add('sidebar-open');
+                        sidebarOverlay.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                        if (mobileMenuToggle) {
+                            mobileMenuToggle.querySelector('i').classList.remove('bi-list');
+                            mobileMenuToggle.querySelector('i').classList.add('bi-x');
                         }
-                        if (dpCanvas && window.deliveryVsPickupChart) {
-                            window.deliveryVsPickupChart.resize();
-                        }
-                    }, 100);
+                    }
                 }
-            });
-        });
 
-        // Charts initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            // Online Order Status Pie Chart
-            const statusCanvas = document.getElementById('orderStatusChart');
-            if (statusCanvas) {
-                try {
-                    const statusLabels = @json(array_keys($onlineOrderStatus));
-                    const statusData = @json(array_values($onlineOrderStatus));
+                function closeSidebar() {
+                    if (sidebarWrapper) {
+                        sidebarWrapper.classList.remove('sidebar-open');
+                        sidebarOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        if (mobileMenuToggle) {
+                            mobileMenuToggle.querySelector('i').classList.remove('bi-x');
+                            mobileMenuToggle.querySelector('i').classList.add('bi-list');
+                        }
+                    }
+                }
 
-                    if (statusData.length > 0) {
-                        window.orderStatusChart = new Chart(statusCanvas, {
-                            type: 'pie',
-                            data: {
-                                labels: statusLabels.map(l => l.replace(/_/g, ' ').toUpperCase()),
-                                datasets: [{
-                                    data: statusData,
-                                    backgroundColor: ['#ffc107', '#0dcaf0', '#0d6efd', '#198754',
-                                        '#6c757d', '#dc3545', '#20c997'
-                                    ]
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'right',
-                                        labels: {
-                                            boxWidth: 12,
-                                            font: {
-                                                size: 11
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (sidebarWrapper && sidebarWrapper.classList.contains('sidebar-open')) {
+                            closeSidebar();
+                        } else {
+                            openSidebar();
+                        }
+                    });
+                }
+
+                if (sidebarCloseBtn) {
+                    sidebarCloseBtn.addEventListener('click', closeSidebar);
+                }
+
+                if (sidebarOverlay) {
+                    sidebarOverlay.addEventListener('click', closeSidebar);
+                }
+
+                const sidebarLinks = document.querySelectorAll('.sidebar-card .list-group-item');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            closeSidebar();
+                        }
+                    });
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        if (sidebarWrapper) {
+                            sidebarWrapper.classList.remove('sidebar-open');
+                        }
+                        if (sidebarOverlay) {
+                            sidebarOverlay.classList.remove('active');
+                        }
+                        document.body.style.overflow = '';
+                    }
+                });
+
+                // Re-trigger animations when switching tabs
+                const tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
+                tabButtons.forEach(button => {
+                    button.addEventListener('shown.bs.tab', function(e) {
+                        const targetId = e.target.getAttribute('data-bs-target');
+                        const targetPane = document.querySelector(targetId);
+
+                        const animatedElements = targetPane.querySelectorAll(
+                            '.animate-scale, .animate-fade-up, .animate-fade-left, .animate-fade-right');
+                        animatedElements.forEach(el => {
+                            const classes = el.className;
+                            el.classList.remove('animate-scale', 'animate-fade-up', 'animate-fade-left',
+                                'animate-fade-right');
+                            void el.offsetHeight;
+                            if (classes.includes('animate-scale')) el.classList.add('animate-scale');
+                            if (classes.includes('animate-fade-up')) el.classList.add('animate-fade-up');
+                            if (classes.includes('animate-fade-left')) el.classList.add(
+                                'animate-fade-left');
+                            if (classes.includes('animate-fade-right')) el.classList.add(
+                                'animate-fade-right');
+                        });
+
+                        if (targetId === '#analytics') {
+                            setTimeout(() => {
+                                const statusCanvas = document.getElementById('orderStatusChart');
+                                const dpCanvas = document.getElementById('deliveryVsPickupChart');
+                                if (statusCanvas && window.orderStatusChart) {
+                                    window.orderStatusChart.resize();
+                                }
+                                if (dpCanvas && window.deliveryVsPickupChart) {
+                                    window.deliveryVsPickupChart.resize();
+                                }
+                            }, 100);
+                        }
+                    });
+                });
+
+                // Charts initialization
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Online Order Status Pie Chart
+                    const statusCanvas = document.getElementById('orderStatusChart');
+                    if (statusCanvas) {
+                        try {
+                            const statusLabels = @json(array_keys($onlineOrderStatus));
+                            const statusData = @json(array_values($onlineOrderStatus));
+
+                            if (statusData.length > 0) {
+                                window.orderStatusChart = new Chart(statusCanvas, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: statusLabels.map(l => l.replace(/_/g, ' ').toUpperCase()),
+                                        datasets: [{
+                                            data: statusData,
+                                            backgroundColor: ['#ffc107', '#0dcaf0', '#0d6efd', '#198754',
+                                                '#6c757d', '#dc3545', '#20c997'
+                                            ]
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'right',
+                                                labels: {
+                                                    boxWidth: 12,
+                                                    font: {
+                                                        size: 11
+                                                    }
+                                                }
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (ctx) => `${ctx.label}: ${ctx.raw} orders`
+                                                }
                                             }
                                         }
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: (ctx) => `${ctx.label}: ${ctx.raw} orders`
-                                        }
                                     }
-                                }
+                                });
                             }
-                        });
+                        } catch (e) {
+                            console.warn('Chart error:', e);
+                        }
                     }
-                } catch (e) {
-                    console.warn('Chart error:', e);
-                }
-            }
 
-            // Delivery vs POS Donut Chart
-            const dpCanvas = document.getElementById('deliveryVsPickupChart');
-            if (dpCanvas) {
-                try {
-                    const deliverySales = {{ $deliveryVsPickup['delivery_sales'] ?? 0 }};
-                    const pickupSales = {{ $deliveryVsPickup['pickup_sales'] ?? 0 }};
+                    // Delivery vs POS Donut Chart
+                    const dpCanvas = document.getElementById('deliveryVsPickupChart');
+                    if (dpCanvas) {
+                        try {
+                            const deliverySales = {{ $deliveryVsPickup['delivery_sales'] ?? 0 }};
+                            const pickupSales = {{ $deliveryVsPickup['pickup_sales'] ?? 0 }};
 
-                    if (deliverySales > 0 || pickupSales > 0) {
-                        window.deliveryVsPickupChart = new Chart(dpCanvas, {
-                            type: 'doughnut',
-                            data: {
-                                labels: ['Delivery', 'POS (Walk-in)'],
-                                datasets: [{
-                                    data: [deliverySales, pickupSales],
-                                    backgroundColor: ['#0d6efd', '#198754']
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            boxWidth: 12,
-                                            font: {
-                                                size: 11
+                            if (deliverySales > 0 || pickupSales > 0) {
+                                window.deliveryVsPickupChart = new Chart(dpCanvas, {
+                                    type: 'doughnut',
+                                    data: {
+                                        labels: ['Delivery', 'POS (Walk-in)'],
+                                        datasets: [{
+                                            data: [deliverySales, pickupSales],
+                                            backgroundColor: ['#0d6efd', '#198754']
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {
+                                                    boxWidth: 12,
+                                                    font: {
+                                                        size: 11
+                                                    }
+                                                }
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (ctx) => `₱${ctx.raw.toFixed(2)}`
+                                                }
                                             }
                                         }
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: (ctx) => `₱${ctx.raw.toFixed(2)}`
-                                        }
                                     }
-                                }
+                                });
                             }
-                        });
+                        } catch (e) {
+                            console.warn('Chart error:', e);
+                        }
                     }
-                } catch (e) {
-                    console.warn('Chart error:', e);
-                }
-            }
 
-            const progressBars = document.querySelectorAll('.progress-bar');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 300);
-            });
-        });
-    </script>
+                    const progressBars = document.querySelectorAll('.progress-bar');
+                    progressBars.forEach(bar => {
+                        const width = bar.style.width;
+                        bar.style.width = '0%';
+                        setTimeout(() => {
+                            bar.style.width = width;
+                        }, 300);
+                    });
+                });
+            </script>
 </body>
 
 </html>
