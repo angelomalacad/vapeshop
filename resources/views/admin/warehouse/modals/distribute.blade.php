@@ -27,7 +27,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label-minimal">Flavor</label>
+            <label class="form-label-minimal">Variant</label>
             <input type="text" class="form-control-minimal" value="{{ $item->flavor ? $item->flavor->name : 'N/A' }}"
                 readonly>
         </div>

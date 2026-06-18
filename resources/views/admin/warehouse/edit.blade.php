@@ -202,14 +202,14 @@
                                                             </select>
                                                         </div>
                                                         <div class="col-md-6 mb-3">
-                                                            <label class="form-label">Flavor <span
+                                                            <label class="form-label">Variant <span
                                                                     class="text-danger">*</span></label>
                                                             <!-- FIXED: Added data-current-flavor-id -->
                                                             <select name="flavor_id"
                                                                 class="form-select flavor-select-edit"
                                                                 data-edit-id="{{ $item->id }}"
                                                                 data-current-flavor-id="{{ $item->flavor_id }}" required>
-                                                                <option value="">-- Select flavor --</option>
+                                                                <option value="">-- Select variant --</option>
                                                             </select>
                                                         </div>
                                                     </div>

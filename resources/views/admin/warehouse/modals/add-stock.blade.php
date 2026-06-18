@@ -30,7 +30,7 @@
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label-minimal">Select Flavor <span class="text-danger">*</span></label>
+                <label class="form-label-minimal">Select Variant <span class="text-danger">*</span></label>
                 <select name="flavor_id" id="flavorSelectAdd" class="form-select-minimal" required disabled>
                     <option value="">First select a product...</option>
                 </select>
