@@ -226,7 +226,7 @@
             <div class="d-flex align-items-center">
                 <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="45" class="me-3">
                 <div>
-                    <h1 class="h3 mb-1 fw-bold">Products Management</h1>
+                    <h1 class="h3 mb-1 fw-bold">Products List</h1>
                     <p class="text-muted mb-0">
                         <i class="bi bi-box me-1"></i> Manage all products across branches
                     </p>

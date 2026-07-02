@@ -86,7 +86,7 @@
             <div class="col-md-3 col-6">
                 <div class="stat-card-modern">
                     <div class="stat-icon-wrapper" style="background: #d1fae5; color: #059669;">
-                        <i class="bi bi-currency-dollar"></i>
+                        <span class="bi">₱</span>
                     </div>
                     <div class="stat-content">
                         <span class="stat-label">Total Value</span>

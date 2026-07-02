@@ -488,6 +488,12 @@
                 border: 1px solid #ddd;
             }
         }
+
+        /* Glassmorphism Navigation */
+        .navbar-glass {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            backdrop-filter: blur(10px);
+        }
     </style>
 
     @stack('styles')
@@ -495,23 +501,28 @@
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+    <nav class="navbar navbar-expand-lg navbar-glass">
         <div class="container-fluid px-4">
             <button type="button" id="sidebarCollapse" class="btn btn-light me-3">
                 <i class="bi bi-list"></i> Menu
             </button>
-            <a class="navbar-brand" href="{{ route('home') }}">
+            <a class="navbar-brand text-white fw-bold fs-4" href="{{ route('home') }}">
                 <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30"
                     class="d-inline-block align-text-top me-2">
-                Vape Expo - {{ Auth::user()->branch->name ?? 'Branch' }}
+                <span
+                    style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape
+                    Expo</span>
+                <small class="text-white-50 fs-6 ms-2">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
             </a>
+
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text text-white me-3">
                     <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} (Staff)
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm">
+                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill"
+                        style="border-color: rgba(255,255,255,0.3);">
                         <i class="bi bi-box-arrow-right me-1"></i> Logout
                     </button>
                 </form>

@@ -6,7 +6,7 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <h4 class="mb-4"><i class="bi bi-credit-card"></i> Delivery & Payment</h4>
+                        <h4 class="mb-4"><i class="bi bi-credit-card"></i> Delivery & Payment Method</h4>
 
                         <!-- Address Selection Toggle -->
                         <div class="mb-4">
@@ -165,8 +165,8 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+            <div class="col-lg-4" style="align-self: flex-start;">
+                <div class="card shadow-sm border-0" style="position: sticky; top: 0; z-index: 1;">
                     <div class="card-header bg-white fw-bold">
                         <i class="bi bi-receipt"></i> Order Summary
                     </div>

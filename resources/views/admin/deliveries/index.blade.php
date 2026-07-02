@@ -85,9 +85,9 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-1 fw-bold">
-                    <i class="bi bi-truck me-2 text-primary"></i>Delivery Management
+                    <i class="bi bi-truck me-2 text-primary"></i>Delivery History
                 </h1>
-                <p class="text-muted mb-0">Real-time delivery status updated by drivers</p>
+                <p class="text-muted mb-0">Delivery status updated by drivers</p>
             </div>
             <div class="mt-2 mt-md-0">
                 <a href="{{ route('admin.deliveries.export') }}" class="btn btn-success rounded-pill px-3">
