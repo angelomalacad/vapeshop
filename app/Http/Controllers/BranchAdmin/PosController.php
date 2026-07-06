@@ -12,6 +12,7 @@ use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class PosController extends Controller
@@ -35,14 +36,32 @@ class PosController extends Controller
 
         // Get cart from session
         $cart = session()->get('pos_cart', []);
+        
+        // Debug: Log cart contents
+        \Log::info('Cart contents in index:', $cart);
 
-        // Calculate cart totals
+        // Calculate cart totals - NO TAX
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+            // Ensure we have valid numeric values
+            $price = floatval($item['price'] ?? 0);
+            $quantity = intval($item['quantity'] ?? 0);
+            $subtotal += $price * $quantity;
+            
+            // Update subtotal in cart item if needed
+            if (isset($cart[$item['inventory_id']])) {
+                $cart[$item['inventory_id']]['subtotal'] = $price * $quantity;
+            }
         }
-        $tax = $subtotal * 0.12; // 12% VAT
-        $total = $subtotal + $tax;
+        
+        $tax = 0; // REMOVED TAX
+        $total = $subtotal; // NO TAX ADDED
+
+        // Debug: Log calculated values
+        \Log::info('Calculated totals - Subtotal: ' . $subtotal . ', Total: ' . $total);
+
+        // Update session with corrected subtotals
+        session()->put('pos_cart', $cart);
 
         return view('branch-admin.pos.index', compact('products', 'cart', 'subtotal', 'tax', 'total'));
     }
@@ -82,11 +101,11 @@ class PosController extends Controller
 
         // Get cart from session
         $cart = session()->get('pos_cart', []);
-        $cartKey = $inventory->id;
+        $cartKey = (string) $inventory->id; // Use string key for consistency
 
         if (isset($cart[$cartKey])) {
             // Update quantity if already in cart
-            $newQuantity = $cart[$cartKey]['quantity'] + $request->quantity;
+            $newQuantity = intval($cart[$cartKey]['quantity']) + intval($request->quantity);
 
             // Check if new quantity exceeds available stock
             if ($newQuantity > $inventory->available_quantity) {
@@ -97,30 +116,37 @@ class PosController extends Controller
             }
 
             $cart[$cartKey]['quantity'] = $newQuantity;
-            $cart[$cartKey]['subtotal'] = $cart[$cartKey]['price'] * $newQuantity;
+            $cart[$cartKey]['subtotal'] = floatval($cart[$cartKey]['price']) * $newQuantity;
         } else {
             // Add new item to cart
             $cart[$cartKey] = [
                 'inventory_id' => $inventory->id,
                 'product_id' => $inventory->product_id,
+                'flavor_id' => $inventory->flavor_id,
                 'product_name' => $inventory->product->name,
                 'flavor_name' => $inventory->flavor->name ?? null,
-                'price' => $inventory->product->price,
-                'quantity' => $request->quantity,
-                'subtotal' => $inventory->product->price * $request->quantity,
+                'price' => floatval($inventory->product->price),
+                'quantity' => intval($request->quantity),
+                'subtotal' => floatval($inventory->product->price) * intval($request->quantity),
                 'image' => $inventory->product->image ?? $inventory->product->image_url,
             ];
         }
 
         session()->put('pos_cart', $cart);
 
-        // Calculate cart totals
+        // Calculate cart totals - NO TAX
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+            $price = floatval($item['price'] ?? 0);
+            $quantity = intval($item['quantity'] ?? 0);
+            $subtotal += $price * $quantity;
         }
-        $tax = $subtotal * 0.12;
-        $total = $subtotal + $tax;
+        $tax = 0; // REMOVED TAX
+        $total = $subtotal; // NO TAX ADDED
+
+        // Debug: Log cart after update
+        \Log::info('Cart after add: ' . json_encode($cart));
+        \Log::info('Subtotal after add: ' . $subtotal);
 
         return response()->json([
             'success' => true,
@@ -145,7 +171,7 @@ class PosController extends Controller
 
         $branchId = Auth::user()->branch_id;
         $cart = session()->get('pos_cart', []);
-        $cartKey = $request->inventory_id;
+        $cartKey = (string) $request->inventory_id;
 
         if (!isset($cart[$cartKey])) {
             return response()->json([
@@ -171,19 +197,21 @@ class PosController extends Controller
             }
 
             // Update quantity
-            $cart[$cartKey]['quantity'] = $request->quantity;
-            $cart[$cartKey]['subtotal'] = $cart[$cartKey]['price'] * $request->quantity;
+            $cart[$cartKey]['quantity'] = intval($request->quantity);
+            $cart[$cartKey]['subtotal'] = floatval($cart[$cartKey]['price']) * intval($request->quantity);
         }
 
         session()->put('pos_cart', $cart);
 
-        // Calculate cart totals
+        // Calculate cart totals - NO TAX
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+            $price = floatval($item['price'] ?? 0);
+            $quantity = intval($item['quantity'] ?? 0);
+            $subtotal += $price * $quantity;
         }
-        $tax = $subtotal * 0.12;
-        $total = $subtotal + $tax;
+        $tax = 0; // REMOVED TAX
+        $total = $subtotal; // NO TAX ADDED
 
         return response()->json([
             'success' => true,
@@ -208,39 +236,115 @@ class PosController extends Controller
         ]);
     }
 
-   /**
+ /**
  * Process payment and create order
  */
 public function checkout(Request $request)
 {
-    $request->validate([
+    // Validate request
+    $validator = validator($request->all(), [
         'customer_name' => 'nullable|string|max:255',
         'customer_phone' => 'nullable|string|max:20',
         'payment_method' => 'required|in:cash,gcash',
         'amount_paid' => 'required|numeric|min:0',
+        'notes' => 'nullable|string',
+        'payment_proof' => 'nullable|file|max:5120|mimes:jpg,jpeg,png,gif,pdf', // 5MB max
     ]);
+
+    if ($validator->fails()) {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
 
     $branchId = Auth::user()->branch_id;
     $cart = session()->get('pos_cart', []);
 
     if (empty($cart)) {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart is empty'
+            ], 400);
+        }
         return redirect()->back()->with('error', 'Cart is empty');
     }
 
-    // Calculate totals
+    // Calculate totals - NO TAX
     $subtotal = 0;
     foreach ($cart as $item) {
-        $subtotal += $item['price'] * $item['quantity'];
+        $price = floatval($item['price'] ?? 0);
+        $quantity = intval($item['quantity'] ?? 0);
+        $subtotal += $price * $quantity;
     }
-    $tax = $subtotal * 0.12;
-    $total = $subtotal + $tax;
+    $tax = 0;
+    $total = $subtotal;
 
     // Check if amount paid is sufficient
     if ($request->amount_paid < $total) {
-        return redirect()->back()->with('error', "Insufficient payment. Total: ₱" . number_format($total, 2));
+        $errorMessage = "Insufficient payment. Amount paid: ₱" . number_format($request->amount_paid, 2) . " | Total: ₱" . number_format($total, 2);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage
+            ], 400);
+        }
+        return redirect()->back()->with('error', $errorMessage);
     }
 
     $change = $request->amount_paid - $total;
+
+    // Handle GCash proof upload (supports both file upload and camera capture)
+    $proofPath = null;
+    if ($request->payment_method === 'gcash') {
+        if ($request->hasFile('payment_proof')) {
+            $file = $request->file('payment_proof');
+            
+            // Log file details for debugging
+            \Log::info('GCash file received:', [
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType(),
+                'is_camera' => str_contains($file->getClientOriginalName(), 'captured_photo')
+            ]);
+            
+            // Generate unique filename
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            
+            // Store the file
+            $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
+            
+            // Log the saved path
+            \Log::info('GCash proof saved at: ' . $proofPath);
+            
+            // Verify the file was saved
+            if (!Storage::disk('public')->exists($proofPath)) {
+                \Log::error('File was NOT saved successfully!');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to save proof of payment. Please try again.'
+                    ], 500);
+                }
+                return redirect()->back()->with('error', 'Failed to save proof of payment. Please try again.');
+            }
+        } else {
+            // No file uploaded for GCash
+            \Log::warning('GCash payment but no file uploaded');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please upload a proof of payment or take a photo for GCash.'
+                ], 400);
+            }
+            return redirect()->back()->with('error', 'Please upload a proof of payment or take a photo for GCash.');
+        }
+    }
 
     DB::beginTransaction();
 
@@ -248,8 +352,8 @@ public function checkout(Request $request)
         // Generate order number
         $orderNumber = 'POS-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Create order with default customer name if empty
-        $order = Order::create([
+        // Create order
+        $orderData = [
             'order_number' => $orderNumber,
             'user_id' => Auth::id(),
             'branch_id' => $branchId,
@@ -257,14 +361,23 @@ public function checkout(Request $request)
             'tax' => $tax,
             'delivery_fee' => 0,
             'total_amount' => $total,
-            'status' => 'delivered',
-            'payment_status' => 'paid',
+            'status' => 'completed',
+            'payment_status' => $request->payment_method === 'gcash' ? 'pending' : 'paid',
             'payment_method' => $request->payment_method,
+            'payment_proof' => $proofPath,
             'delivery_type' => 'pickup',
-            'customer_name' => $request->customer_name ?: 'Walk-in Customer',  // ← ADD DEFAULT VALUE HERE
+            'customer_name' => $request->customer_name ?: 'Walk-in Customer',
             'customer_phone' => $request->customer_phone,
             'notes' => $request->notes,
-        ]);
+        ];
+
+        // Log the order data
+        \Log::info('Creating order with data:', $orderData);
+
+        $order = Order::create($orderData);
+
+        // Verify the order was created with payment_proof
+        \Log::info('Order created. Payment proof in DB: ' . ($order->payment_proof ?? 'null'));
 
         // Process each item in cart
         foreach ($cart as $item) {
@@ -283,32 +396,38 @@ public function checkout(Request $request)
             }
 
             // Create order item
-            OrderItem::create([
+            $orderItemData = [
                 'order_id' => $order->id,
                 'product_id' => $item['product_id'],
-                'flavor_id' => $inventory->flavor_id,  // ← ADD FLAVOR_ID
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'subtotal' => $item['subtotal'],
-            ]);
+                'quantity' => intval($item['quantity']),
+                'price' => floatval($item['price']),
+                'subtotal' => floatval($item['subtotal']),
+            ];
+
+            // Only add flavor_id if it exists in the cart item
+            if (isset($item['flavor_id']) && $item['flavor_id']) {
+                $orderItemData['flavor_id'] = $item['flavor_id'];
+            }
+
+            OrderItem::create($orderItemData);
 
             // Update inventory (deduct stock)
             $oldQuantity = $inventory->quantity;
-            $newQuantity = $oldQuantity - $item['quantity'];
+            $newQuantity = $oldQuantity - intval($item['quantity']);
 
             $inventory->update([
                 'quantity' => $newQuantity,
-                'reserved_quantity' => max(0, $inventory->reserved_quantity - $item['quantity']),
+                'reserved_quantity' => max(0, $inventory->reserved_quantity - intval($item['quantity'])),
             ]);
 
             // Log stock movement
             StockMovement::create([
                 'branch_id' => $branchId,
                 'product_id' => $item['product_id'],
-                'flavor_id' => $inventory->flavor_id,
+                'flavor_id' => $inventory->flavor_id ?? null,
                 'previous_quantity' => $oldQuantity,
                 'new_quantity' => $newQuantity,
-                'quantity_change' => -$item['quantity'],
+                'quantity_change' => -intval($item['quantity']),
                 'movement_type' => 'sale',
                 'reference_type' => 'order',
                 'reference_id' => $order->id,
@@ -334,18 +453,46 @@ public function checkout(Request $request)
             'amount_paid' => $request->amount_paid,
             'change' => $change,
             'payment_method' => $request->payment_method,
-            'branch_name' => Auth::user()->branch->name,
+            'branch_name' => Auth::user()->branch->name ?? 'Branch',
             'cashier' => Auth::user()->name,
         ]);
+
+        // For AJAX requests, return JSON response
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('branch-admin.pos.receipt'),
+                'order_number' => $orderNumber,
+                'payment_proof' => $proofPath
+            ]);
+        }
 
         return redirect()->route('branch-admin.pos.receipt')->with('success', 'Payment successful!');
 
     } catch (\Exception $e) {
         DB::rollBack();
+        
+        // Delete uploaded proof if exists and there was an error
+        if ($proofPath && Storage::disk('public')->exists($proofPath)) {
+            Storage::disk('public')->delete($proofPath);
+            \Log::info('Deleted proof file due to error: ' . $proofPath);
+        }
+        
+        // Log the error for debugging
+        \Log::error('POS Checkout Error: ' . $e->getMessage());
+        \Log::error('Cart data: ' . json_encode($cart));
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing payment: ' . $e->getMessage()
+            ], 500);
+        }
+        
         return redirect()->back()->with('error', 'Error processing payment: ' . $e->getMessage());
     }
 }
-
     /**
      * Show receipt
      */
@@ -359,59 +506,67 @@ public function checkout(Request $request)
 
         return view('branch-admin.pos.receipt', compact('receipt'));
     }
+
     /**
- * Show purchase history for the branch
- */
-public function history(Request $request)
-{
-    $branchId = Auth::user()->branch_id;
+     * Show purchase history for the branch
+     */
+    public function history(Request $request)
+    {
+        $branchId = Auth::user()->branch_id;
 
-    $query = Order::with(['items.product'])
-        ->where('branch_id', $branchId)
-        ->where('delivery_type', 'pickup') // POS orders only
-        ->orderBy('created_at', 'desc');
+        $query = Order::with(['items.product', 'user'])
+            ->where('branch_id', $branchId)
+            ->where('delivery_type', 'pickup')
+            ->orderBy('created_at', 'desc');
 
-    // Filter by date
-    if ($request->filled('date_from')) {
-        $query->whereDate('created_at', '>=', $request->date_from);
+        // Filter by date
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Filter by customer
+        if ($request->filled('customer')) {
+            $query->where('customer_name', 'like', '%' . $request->customer . '%');
+        }
+
+        $orders = $query->paginate(20);
+
+        // Calculate totals
+        $totalSales = Order::where('branch_id', $branchId)
+            ->where('delivery_type', 'pickup')
+            ->sum('total_amount');
+            
+        $totalOrders = Order::where('branch_id', $branchId)
+            ->where('delivery_type', 'pickup')
+            ->count();
+            
+        $todaySales = Order::where('branch_id', $branchId)
+            ->where('delivery_type', 'pickup')
+            ->whereDate('created_at', today())
+            ->sum('total_amount');
+
+        return view('branch-admin.pos.history', compact('orders', 'totalSales', 'totalOrders', 'todaySales'));
     }
 
-    if ($request->filled('date_to')) {
-        $query->whereDate('created_at', '<=', $request->date_to);
+    /**
+     * Show order receipt/invoice
+     */
+    public function showOrder(Order $order)
+    {
+        // Ensure order belongs to user's branch
+        if ($order->branch_id !== Auth::user()->branch_id) {
+            abort(403);
+        }
+
+        $order->load(['items.product', 'user']);
+
+        return view('branch-admin.pos.show-order', compact('order'));
     }
 
-    // Filter by customer
-    if ($request->filled('customer')) {
-        $query->where('customer_name', 'like', '%' . $request->customer . '%');
-    }
-
-    $orders = $query->paginate(20);
-
-    // Calculate totals
-    $totalSales = $orders->sum('total_amount');
-    $totalOrders = $orders->total();
-    $todaySales = Order::where('branch_id', $branchId)
-        ->where('delivery_type', 'pickup')
-        ->whereDate('created_at', today())
-        ->sum('total_amount');
-
-    return view('branch-admin.pos.history', compact('orders', 'totalSales', 'totalOrders', 'todaySales'));
-}
-
-/**
- * Show order receipt/invoice
- */
-public function showOrder(Order $order)
-{
-    // Ensure order belongs to user's branch
-    if ($order->branch_id !== Auth::user()->branch_id) {
-        abort(403);
-    }
-
-    $order->load(['items.product', 'user']);
-
-    return view('branch-admin.pos.show-order', compact('order'));
-}
     /**
      * Get product details for quick add
      */
@@ -440,5 +595,32 @@ public function showOrder(Order $order)
             });
 
         return response()->json($products);
+    }
+    
+    /**
+     * Upload proof of payment (standalone endpoint for AJAX)
+     */
+    public function uploadProof(Request $request)
+    {
+        $request->validate([
+            'payment_proof' => 'required|file|max:5120|mimes:jpg,jpeg,png,gif,pdf'
+        ]);
+        
+        if ($request->hasFile('payment_proof')) {
+            $file = $request->file('payment_proof');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $path = $file->storeAs('payment_proofs/temp', $filename, 'public');
+            
+            return response()->json([
+                'success' => true,
+                'path' => $path,
+                'url' => Storage::disk('public')->url($path)
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'No file uploaded'
+        ], 400);
     }
 }

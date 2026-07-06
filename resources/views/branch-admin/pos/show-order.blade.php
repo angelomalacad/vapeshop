@@ -76,10 +76,6 @@
                             <span>Subtotal:</span>
                             <span>₱{{ number_format($order->subtotal, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Tax (12%):</span>
-                            <span>₱{{ number_format($order->tax, 2) }}</span>
-                        </div>
                         <div class="d-flex justify-content-between fw-bold fs-5">
                             <span>TOTAL:</span>
                             <span class="text-primary">₱{{ number_format($order->total_amount, 2) }}</span>

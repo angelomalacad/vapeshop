@@ -58,10 +58,7 @@
                                 <span>Subtotal:</span>
                                 <span>₱{{ number_format($receipt['subtotal'], 2) }}</span>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Tax (12%):</span>
-                                <span>₱{{ number_format($receipt['tax'], 2) }}</span>
-                            </div>
+                            
                             <div class="d-flex justify-content-between fw-bold fs-5">
                                 <span>TOTAL:</span>
                                 <span>₱{{ number_format($receipt['total'], 2) }}</span>
