@@ -1015,6 +1015,8 @@ public function checkAvailability(Request $request)
     $productId = $request->product_id;
     $flavorId = $request->flavor_id;
 
+    \Log::info('checkAvailability - branch_id=' . $branchId . ', product_id=' . $productId . ', flavor_id=' . $flavorId);
+
     if (!$branchId || !$productId) {
         return response()->json(['success' => false, 'message' => 'Missing parameters', 'available' => 0]);
     }
@@ -1031,12 +1033,16 @@ public function checkAvailability(Request $request)
     $inventory = $query->first();
     $available = $inventory ? $inventory->available_quantity : 0;
 
+    \Log::info('checkAvailability result: available=' . $available);
+
     return response()->json([
         'success'   => true,
         'available' => $available,
         'message'   => $available > 0 ? 'Stock available' : 'Out of stock'
     ]);
 }
+
+
 
 /**
  * Check product availability in the main warehouse (AJAX)
@@ -1051,13 +1057,16 @@ public function checkWarehouseAvailability(Request $request)
     }
 
     $query = WarehouseInventory::where('product_id', $productId);
-
-    if ($flavorId) {
+    
+    // Handle 'no_flavor' special case
+    if ($flavorId === 'no_flavor') {
+        $query->whereNull('flavor_id');
+    } elseif ($flavorId) {
         $query->where('flavor_id', $flavorId);
     } else {
         $query->whereNull('flavor_id');
     }
-
+    
     $item = $query->first();
 
     if (!$item) {
@@ -1070,7 +1079,7 @@ public function checkWarehouseAvailability(Request $request)
         'message'   => $item->quantity > 0 ? 'Stock available' : 'Out of stock'
     ]);
 }
- /**
+/**
  * Get flavors for a product that have stock > 0 in the given source
  */
 public function getFlavors($productId, Request $request)
@@ -1084,18 +1093,41 @@ public function getFlavors($productId, Request $request)
 
     $flavors = $product->flavors;
 
-    // If product has no flavors, return empty (no variants to select)
-    if ($flavors->isEmpty()) {
-        return response()->json([]);
-    }
-
     // Get flavor IDs with stock > 0
     if ($branchId == '0') {
-        // Warehouse
-        $flavorIdsWithStock = WarehouseInventory::where('product_id', $productId)
+        // Warehouse - Check if product has flavors in warehouse
+        $flavorIdsWithStock = DB::table('warehouse_inventories')
+            ->where('product_id', $productId)
             ->where('quantity', '>', 0)
+            ->whereNotNull('flavor_id')
             ->pluck('flavor_id')
             ->toArray();
+        
+        // If no flavors with stock, check if product exists in warehouse without flavor
+        if (empty($flavorIdsWithStock)) {
+            $hasNoFlavorStock = DB::table('warehouse_inventories')
+                ->where('product_id', $productId)
+                ->whereNull('flavor_id')
+                ->where('quantity', '>', 0)
+                ->exists();
+            
+            // If product exists without flavor, we need to handle it
+            if ($hasNoFlavorStock) {
+                // Check if product has flavors in the product_flavors table
+                if ($flavors->isEmpty()) {
+                    // Product has no flavors, return a special entry
+                    return response()->json([
+                        ['id' => 'no_flavor', 'name' => 'No Flavor']
+                    ]);
+                } else {
+                    // Product has flavors but warehouse has no flavor-specific stock
+                    // Return all flavors with quantity 0 or just the no_flavor option
+                    return response()->json($flavors->map(function($flavor) {
+                        return ['id' => $flavor->id, 'name' => $flavor->name];
+                    }));
+                }
+            }
+        }
     } else {
         // Branch
         $flavorIdsWithStock = BranchInventory::where('branch_id', $branchId)
@@ -1105,9 +1137,23 @@ public function getFlavors($productId, Request $request)
             ->toArray();
     }
 
-    // 🔥 FIX: If no flavors have stock, return empty array
-    // This will cause the variant dropdown to show "No available variants"
+    \Log::info('getFlavors - product_id=' . $productId . ', branch_id=' . $branchId . ', flavorIdsWithStock=' . json_encode($flavorIdsWithStock));
+
+    // If no flavors have stock, return all flavors or empty
     if (empty($flavorIdsWithStock)) {
+        // For warehouse, if product has no flavor stock but exists, return all flavors
+        if ($branchId == '0') {
+            $productExists = DB::table('warehouse_inventories')
+                ->where('product_id', $productId)
+                ->where('quantity', '>', 0)
+                ->exists();
+            
+            if ($productExists && $flavors->isNotEmpty()) {
+                return response()->json($flavors->map(function($flavor) {
+                    return ['id' => $flavor->id, 'name' => $flavor->name];
+                }));
+            }
+        }
         return response()->json([]);
     }
 
@@ -1121,27 +1167,27 @@ public function getFlavors($productId, Request $request)
     }));
 }
 
+
+
+
 /**
- * Get products available in a source (branch or warehouse) – for AJAX dropdown
+ * Get warehouse products - WORKING VERSION
  */
-public function getAvailableProducts(Request $request)
+public function getWarehouseProducts(Request $request)
 {
     $branchId = $request->branch_id;
-
-    if (!$branchId) {
-        return response()->json([]);
-    }
-
-    $result = [];
-
+    
+    // If branch_id is 0 (warehouse), get all warehouse products
     if ($branchId == '0') {
-        // Main Warehouse - get products with stock > 0
-        $items = WarehouseInventory::with('product')
-            ->whereHas('product', function($q) {
-                $q->where('is_active', 1);
-            })
-            ->where('quantity', '>', 0)
+        $products = DB::table('warehouse_inventories')
+            ->join('products', 'warehouse_inventories.product_id', '=', 'products.id')
+            ->where('warehouse_inventories.quantity', '>', 0)
+            ->where('products.is_active', 1)
+            ->select('products.id', 'products.name')
+            ->distinct()
             ->get();
+        
+        return response()->json($products);
     } else {
         // Branch - get products with stock > 0
         $items = BranchInventory::with('product')
@@ -1151,21 +1197,20 @@ public function getAvailableProducts(Request $request)
             ->where('branch_id', $branchId)
             ->where('quantity', '>', 0)
             ->get();
-    }
 
-    // 🔥 Only show products that have at least one variant with stock > 0
-    $seen = [];
-    foreach ($items as $item) {
-        if ($item->product && !in_array($item->product_id, $seen)) {
-            $seen[] = $item->product_id;
-            $result[] = [
-                'id'   => $item->product_id,
-                'name' => $item->product->name,
-            ];
+        $result = [];
+        $seen = [];
+        foreach ($items as $item) {
+            if ($item->product && !in_array($item->product_id, $seen)) {
+                $seen[] = $item->product_id;
+                $result[] = [
+                    'id'   => $item->product_id,
+                    'name' => $item->product->name,
+                ];
+            }
         }
+        return response()->json($result);
     }
-
-    return response()->json($result);
 }
 
     // ===== END MODAL CONTENT METHODS =====

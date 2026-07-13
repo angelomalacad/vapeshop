@@ -79,7 +79,7 @@
                             <th>From</th>
                             <th>To</th>
                             <th>Product</th>
-                            <th>Flavor</th>
+                            <th>Variant</th>
                             <th>Quantity</th>
                             <th>Status</th>
                             <th>Requested By</th>

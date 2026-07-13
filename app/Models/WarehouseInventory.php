@@ -13,7 +13,7 @@ class WarehouseInventory extends Model
 
     protected $fillable = [
         'product_id',
-        'flavor_id',  // ADD THIS
+        'flavor_id',
         'quantity',
         'low_stock_threshold',
         'reorder_point',
@@ -29,7 +29,6 @@ class WarehouseInventory extends Model
         'reorder_point' => 'integer',
         'last_purchase_price' => 'decimal:2',
         'expiration_date' => 'date',
-
     ];
 
     public function product()
@@ -37,10 +36,15 @@ class WarehouseInventory extends Model
         return $this->belongsTo(Product::class);
     }
 
-    // ADD THIS RELATIONSHIP
     public function flavor()
     {
         return $this->belongsTo(ProductFlavor::class, 'flavor_id');
+    }
+
+    // ✅ ADD THIS
+    public function getAvailableQuantityAttribute()
+    {
+        return $this->quantity;
     }
 
     public function isLowStock()
