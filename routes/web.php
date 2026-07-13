@@ -477,7 +477,13 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
             'quantity' => $inventory ? $inventory->quantity : 0
         ]);
     })->name('admin.api.warehouse-stock');
-
+    // ===== API ROUTES FOR TRANSFER (AJAX) =====
+Route::prefix('api')->name('api.')->group(function () {
+    Route::get('/source-products', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'getAvailableProducts'])->name('source.products');
+    Route::get('/products/{product}/flavors', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'getFlavors'])->name('product.flavors');
+    Route::get('/inventory/check', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('inventory.check');
+    Route::get('/warehouse/check', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkWarehouseAvailability'])->name('warehouse.check');
+});
     // ===== BRANCH STAFF INVENTORY ROUTES =====
 Route::prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');

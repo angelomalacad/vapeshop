@@ -10,20 +10,22 @@ class StockTransfer extends Model
     use HasFactory;
 
     protected $fillable = [
-        'transfer_number',
-        'from_branch_id',
-        'to_branch_id',
-        'product_id',
-        'flavor_id',
-        'quantity',
-        'status',
-        'requested_by',
-        'approved_by',
-        'notes',
-        'approved_at',
-        'completed_at',
-        'expiration_date',
-    ];
+    'transfer_number',
+    'transfer_type',
+    'from_branch_id',
+    'to_branch_id',
+    'product_id',
+    'flavor_id',
+    'quantity',
+    'status',
+    'requested_by',
+    'approved_by',
+    'approved_at',
+    'completed_at',
+    'received_by',
+    'received_at',
+    'notes',
+];
 
     protected $casts = [
         'approved_at' => 'datetime',

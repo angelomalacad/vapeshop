@@ -1,5 +1,82 @@
 @extends('layouts.branch-admin')
+<style>
+    .stat-card-modern {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        border: 1px solid #eef2f6;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
 
+    .stat-card-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+        border-color: #e0e7ed;
+    }
+
+    .stat-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card-modern:hover .stat-icon-wrapper {
+        transform: scale(1.02);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+        color: #8b9cb0;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+
+    @media (max-width: 768px) {
+        .stat-card-modern {
+            padding: 1rem;
+            gap: 0.75rem;
+        }
+
+        .stat-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            border-radius: 14px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+        }
+    }
+</style>
 @section('title', 'Warehouse Stock Request - Vape Expo')
 
 @section('content')
@@ -51,7 +128,8 @@
                 <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-info rounded-pill px-4">
                     <i class="bi bi-clock-history me-2"></i>View Stock History
                 </a>
-                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#requestModal">
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
+                    data-bs-target="#requestModal">
                     <i class="bi bi-cart-plus me-2"></i>Request Stock
                 </button>
             </div>
@@ -65,8 +143,9 @@
                     <strong>How it works:</strong><br>
                     <small>Request stock from the main warehouse. The owner will review and approve your request. Once
                         approved, you'll need to receive the stock to add it to your branch inventory. The owner can also
-                        directly distribute stock to your branch. All received stock will appear in your 
-                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="alert-link">Stock History</a>.</small>
+                        directly distribute stock to your branch. All received stock will appear in your
+                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="alert-link">Stock
+                            History</a>.</small>
                 </div>
             </div>
         </div>
@@ -74,41 +153,35 @@
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Available Products</h6>
-                                <h2 class="mb-0 fw-bold">{{ $warehouseProducts->total() }}</h2>
-                            </div>
-                            <i class="bi bi-box-seam fs-1 opacity-50"></i>
-                        </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #dbeafe; color: #2563eb;">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Available Products</span>
+                        <h3 class="stat-value">{{ $warehouseProducts->total() }}</h3>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Pending Requests</h6>
-                                <h2 class="mb-0 fw-bold">{{ $pendingRequests->count() }}</h2>
-                            </div>
-                            <i class="bi bi-clock-history fs-1 opacity-50"></i>
-                        </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #fef3c7; color: #d97706;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Pending Requests</span>
+                        <h3 class="stat-value">{{ $pendingRequests->count() }}</h3>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-white-50 mb-1">Completed Transfers</h6>
-                                <h2 class="mb-0 fw-bold">{{ $completedRequests->total() }}</h2>
-                            </div>
-                            <i class="bi bi-check-circle fs-1 opacity-50"></i>
-                        </div>
+                <div class="stat-card-modern">
+                    <div class="stat-icon-wrapper" style="background: #d1fae5; color: #059669;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Completed Transfers</span>
+                        <h3 class="stat-value">{{ $completedRequests->total() }}</h3>
                     </div>
                 </div>
             </div>
@@ -121,10 +194,12 @@
                     <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>Available Warehouse Stock</h5>
                     <form method="GET" action="{{ route('branch-admin.warehouse.index') }}" class="d-flex">
                         <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="Search product..." value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="Search product..."
+                                value="{{ request('search') }}">
                             <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
                             @if (request('search'))
-                                <a href="{{ route('branch-admin.warehouse.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x"></i></a>
+                                <a href="{{ route('branch-admin.warehouse.index') }}" class="btn btn-outline-secondary"><i
+                                        class="bi bi-x"></i></a>
                             @endif
                         </div>
                     </form>
@@ -162,7 +237,9 @@
                                         @endif
                                     </td>
                                     <td class="pe-4 text-center">
-                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#requestProductModal{{ $item->id }}">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#requestProductModal{{ $item->id }}">
                                             <i class="bi bi-cart-plus me-1"></i>Request
                                         </button>
                                     </td>
@@ -173,8 +250,10 @@
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title"><i class="bi bi-cart-plus me-2"></i>Request Stock</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <h5 class="modal-title"><i class="bi bi-cart-plus me-2"></i>Request Stock
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="{{ route('branch-admin.warehouse.request') }}" method="POST">
                                                 @csrf
@@ -183,19 +262,26 @@
                                                 <div class="modal-body">
                                                     <div class="mb-3">
                                                         <label class="form-label">Product</label>
-                                                        <input type="text" class="form-control" value="{{ $item->product->name ?? 'N/A' }}" readonly>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ $item->product->name ?? 'N/A' }}" readonly>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Flavor</label>
-                                                        <input type="text" class="form-control" value="{{ $item->flavor ? $item->flavor->name : 'No flavor' }}" readonly>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ $item->flavor ? $item->flavor->name : 'No flavor' }}"
+                                                            readonly>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Expiration Date</label>
-                                                        <input type="text" class="form-control" value="{{ $item->expiration_date ? \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') : 'No expiry' }}" readonly>
+                                                        <input type="text" class="form-control"
+                                                            value="{{ $item->expiration_date ? \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') : 'No expiry' }}"
+                                                            readonly>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Quantity to Request <span class="text-danger">*</span></label>
-                                                        <input type="number" name="quantity" class="form-control" min="1" required>
+                                                        <label class="form-label">Quantity to Request <span
+                                                                class="text-danger">*</span></label>
+                                                        <input type="number" name="quantity" class="form-control"
+                                                            min="1" required>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Notes (Optional)</label>
@@ -203,7 +289,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Cancel</button>
                                                     <button type="submit" class="btn btn-primary">Submit Request</button>
                                                 </div>
                                             </form>
@@ -227,16 +314,19 @@
             @if ($warehouseProducts->hasPages())
                 <div class="card-footer bg-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">Showing {{ $warehouseProducts->firstItem() }} to {{ $warehouseProducts->lastItem() }} of {{ $warehouseProducts->total() }} results</div>
+                        <div class="text-muted small">Showing {{ $warehouseProducts->firstItem() }} to
+                            {{ $warehouseProducts->lastItem() }} of {{ $warehouseProducts->total() }} results</div>
                         <div class="d-flex gap-2">
                             @if ($warehouseProducts->onFirstPage())
                                 <span class="btn btn-secondary disabled">Previous</span>
                             @else
-                                <a href="{{ $warehouseProducts->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                                <a href="{{ $warehouseProducts->previousPageUrl() }}"
+                                    class="btn btn-outline-primary">Previous</a>
                             @endif
-                            
+
                             @if ($warehouseProducts->hasMorePages())
-                                <a href="{{ $warehouseProducts->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                                <a href="{{ $warehouseProducts->nextPageUrl() }}"
+                                    class="btn btn-outline-primary">Next</a>
                             @else
                                 <span class="btn btn-secondary disabled">Next</span>
                             @endif
@@ -292,7 +382,8 @@
         @if ($completedRequests->count() > 0)
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-info"></i>Request & Distribution History</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-info"></i>Request & Distribution
+                        History</h5>
                     <p class="text-muted small mb-0 mt-1">Log of all stock transfers from warehouse (view only)</p>
                 </div>
                 <div class="card-body p-0">
@@ -335,7 +426,7 @@
                                             @endif
                                         </td>
                                         <td class="pe-4">
-                                            @if($request->received_at)
+                                            @if ($request->received_at)
                                                 {{ \Carbon\Carbon::parse($request->received_at)->format('M d, Y') }}
                                             @else
                                                 <span class="text-muted">—</span>
@@ -347,21 +438,24 @@
                         </table>
                     </div>
                 </div>
-                
+
                 <!-- Pagination for History Section - Uses history_page parameter -->
                 @if ($completedRequests->hasPages())
                     <div class="card-footer bg-white">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted small">Showing {{ $completedRequests->firstItem() }} to {{ $completedRequests->lastItem() }} of {{ $completedRequests->total() }} results</div>
+                            <div class="text-muted small">Showing {{ $completedRequests->firstItem() }} to
+                                {{ $completedRequests->lastItem() }} of {{ $completedRequests->total() }} results</div>
                             <div class="d-flex gap-2">
                                 @if ($completedRequests->onFirstPage())
                                     <span class="btn btn-secondary disabled">Previous</span>
                                 @else
-                                    <a href="{{ $completedRequests->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                                    <a href="{{ $completedRequests->previousPageUrl() }}"
+                                        class="btn btn-outline-primary">Previous</a>
                                 @endif
-                                
+
                                 @if ($completedRequests->hasMorePages())
-                                    <a href="{{ $completedRequests->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                                    <a href="{{ $completedRequests->nextPageUrl() }}"
+                                        class="btn btn-outline-primary">Next</a>
                                 @else
                                     <span class="btn btn-secondary disabled">Next</span>
                                 @endif
@@ -391,7 +485,8 @@
                                     <option value="">Select product...</option>
                                     @foreach ($allWarehouseProducts->groupBy('product_id') as $productId => $items)
                                         @php $firstItem = $items->first(); @endphp
-                                        <option value="{{ $firstItem->product_id }}">{{ $firstItem->product->name ?? 'Unknown' }}</option>
+                                        <option value="{{ $firstItem->product_id }}">
+                                            {{ $firstItem->product->name ?? 'Unknown' }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -404,7 +499,8 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                            <input type="number" name="quantity" id="requestQuantity" class="form-control" min="1" required>
+                            <input type="number" name="quantity" id="requestQuantity" class="form-control"
+                                min="1" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Notes (Optional)</label>
