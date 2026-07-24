@@ -1203,7 +1203,7 @@
                     <div class="contact-card">
                         <i class="bi bi-telephone"></i>
                         <h6>Call Us</h6>
-                        <p>0960 328 0432</p>
+                        <p>0993 880 1044</p>
                         <small class="text-muted">All Branches</small>
                     </div>
                 </div>
@@ -1234,8 +1234,8 @@
                 <div class="col-md-4 mb-4">
                     <h5>VapeExpo</h5>
                     <p class="small">Your trusted vape shop since 2024.<br>Owner: Carlo Caranto</p>
-                    <p><i class="bi bi-telephone me-2"></i>0960 328 0432<br>
-                        <i class="bi bi-envelope me-2"></i>info@vapeexpo.com</p>
+                    <p><i class="bi bi-telephone me-2"></i>0993 990 1044<br>
+                        <i class="bi bi-envelope me-2"></i>vapeexpo2024@gmail.com</p>
                 </div>
                 
                 <div class="col-md-4 mb-4">

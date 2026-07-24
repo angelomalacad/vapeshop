@@ -29,6 +29,7 @@
             overflow: hidden;
             background: white;
             box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+            padding: 0.5rem;
         }
         
         .sidebar-card .card-header {
@@ -37,15 +38,16 @@
             padding: 1.25rem 1rem;
             color: white;
             font-weight: 600;
+            border-radius: 16px 16px 0 0;
         }
         
         .sidebar-card .list-group-item {
             background: white;
             color: #4a5568;
             border: none;
-            padding: 0.75rem 1.25rem;
+            padding: 0.75rem 1rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin: 4px 12px;
+            margin: 4px 8px;
             border-radius: 12px;
         }
         
@@ -254,13 +256,47 @@
             border-radius: 20px;
         }
     
+        /* Adds a sleek divider under the navbar like the image */
+        .navbar-divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+        }
 
+        /* Tab Styling to match the modern aesthetic */
+        .custom-tabs .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .custom-tabs .nav-link:hover {
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.05);
+        }
+        .custom-tabs .nav-link.active {
+            color: #0d6efd;
+            background: rgba(13, 110, 253, 0.1);
+            border-radius: 12px 12px 0 0;
+            border-bottom: 3px solid #0d6efd;
+        }
+
+        /* Making Branch Info Text Larger */
+        .branch-info-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        .branch-info-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-glass">
-    <div class="container">
+    <div class="container-fluid px-4">
         <a class="navbar-brand text-white fw-bold fs-4" href="{{ route('home') }}">
             <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="35" class="d-inline-block align-text-top me-2">
             <span style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape Expo</span>
@@ -272,16 +308,16 @@
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <span class="nav-link text-white">
-                        <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item me-3">
+                    <span class="nav-link text-white p-0">
+                        <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} <span class="badge bg-light text-dark ms-1 rounded-pill">Staff</span>
                     </span>
                 </li>
                 <li class="nav-item">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-outline-light btn-sm rounded-pill my-1" style="border-color: rgba(255,255,255,0.3);">
+                        <button type="submit" class="btn btn-outline-light btn-sm rounded-pill my-1 px-3" style="border-color: rgba(255,255,255,0.3);">
                             <i class="bi bi-box-arrow-right me-1"></i> Logout
                         </button>
                     </form>
@@ -290,14 +326,15 @@
         </div>
     </div>
 </nav>
+<div class="navbar-divider"></div>
     
-    <div class="container mt-4">
-        <div class="row g-4">
+    <div class="container-fluid px-4 mt-4">
+        <div class="row">
             <!-- Sidebar Menu -->
-            <div class="col-md-3">
+            <div class="col-lg-2">
                 <div class="card sidebar-card">
-                    <div class="card-header">
-                        <i class="bi bi-grid me-2"></i> Branch Menu
+                    <div class="card-header text-center">
+                        <i class="bi bi-grid me-2"></i> Owner Menu
                     </div>
                     <div class="list-group list-group-flush">
                         <a href="{{ route('branch-admin.dashboard') }}" class="list-group-item list-group-item-action active">
@@ -318,9 +355,9 @@
                         {{-- <a href="{{ route('branch-admin.online-orders.index') }}" class="list-group-item list-group-item-action">
     <i class="bi bi-cart me-2"></i> Online Orders
 </a> --}}
-                        <a href="#" class="list-group-item list-group-item-action">
+                        {{-- <a href="#" class="list-group-item list-group-item-action">
                             <i class="bi bi-graph-up me-2"></i> Reports
-                        </a>
+                        </a> --}}
                         <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-house me-2"></i> Back to Home
                         </a>
@@ -350,8 +387,8 @@
                 </div>
             </div>
 
-            <!-- Main Content -->
-            <div class="col-md-9">
+            <!-- Main Content: Widened -->
+            <div class="col-lg-10">
                 <!-- Welcome Banner -->
                 <div class="welcome-banner">
                     <div class="row align-items-center">
@@ -376,7 +413,7 @@
                 
                 @if($branch)
 
-                <!-- Branch Information Card -->
+                <!-- Branch Information Card (Enlarged Text) -->
                 <div class="card branch-info-card modern-card mb-4">
                     <div class="card-header bg-white border-0 pt-3 pb-0">
                         <i class="bi bi-shop me-2 text-primary"></i> <strong>{{ $branch->name }}</strong>
@@ -384,7 +421,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <p class="mb-2"><i class="bi bi-geo-alt-fill text-danger me-2"></i> <strong>Address:</strong><br>{{ $branch->address }}</p>
+                                <p class="branch-info-text"><i class="bi bi-geo-alt-fill text-danger me-2 fs-5"></i> <span class="branch-info-label">Address:</span><br>{{ $branch->address }}</p>
                                 @php
                                     $landmarks = [
                                         'Majada Out Branch' => 'Near 7-Eleven Majada Out and Gran Avila',
@@ -396,21 +433,21 @@
                                     $landmark = $landmarks[$branch->name] ?? '';
                                 @endphp
                                 @if($landmark)
-                                <p class="mb-2"><i class="bi bi-pin-map-fill text-warning me-2"></i> <strong>Landmark:</strong><br>{{ $landmark }}</p>
+                                <p class="branch-info-text"><i class="bi bi-pin-map-fill text-warning me-2 fs-5"></i> <span class="branch-info-label">Landmark:</span><br>{{ $landmark }}</p>
                                 @endif
                             </div>
                             <div class="col-md-6">
-                                <p class="mb-2"><i class="bi bi-telephone-fill text-primary me-2"></i> <strong>Contact:</strong><br>{{ $branch->phone ?? '0960 328 0432' }}</p>
-                                <p class="mb-2"><i class="bi bi-person-badge-fill text-success me-2"></i> <strong>Staff:</strong><br>{{ Auth::user()->name }}</p>
-                                <p class="mb-0"><i class="bi bi-calendar-event me-2"></i> <strong>Opened:</strong><br>{{ $branch->opening_date ?? '2024' }}</p>
+                                <p class="branch-info-text"><i class="bi bi-telephone-fill text-primary me-2 fs-5"></i> <span class="branch-info-label">Contact:</span><br>{{ $branch->phone ?? '0960 328 0432' }}</p>
+                                <p class="branch-info-text"><i class="bi bi-person-badge-fill text-success me-2 fs-5"></i> <span class="branch-info-label">Staff:</span><br>{{ Auth::user()->name }}</p>
+                                <p class="branch-info-text"><i class="bi bi-calendar-event me-2 fs-5"></i> <span class="branch-info-label">Opened:</span><br>{{ $branch->opening_date ?? '2024' }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Quick Action Cards - White Version -->
+                {{-- <!-- Quick Action Cards (4 columns per row) -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -424,7 +461,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -438,7 +475,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card action-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -452,7 +489,21 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div class="col-md-3">
+                        <div class="card action-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-info"></i>Sales History</h5>
+                                    <span class="badge rounded-pill px-3">Track Sales</span>
+                                </div>
+                                <p class="card-text text-muted small">View historical sales data, order counts, and branch revenue trends.</p>
+                                <a href="{{ route('branch-admin.pos.history') }}" class="btn btn-light w-100 rounded-pill mt-2">
+                                    <i class="bi bi-arrow-right me-2"></i>View History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div> --}}
                 
                 <!-- Quick Stats Section -->
                 <div class="card modern-card mb-4">
@@ -501,9 +552,10 @@
                     </div>
                 </div>
 
-                <!-- Additional Stats Row -->
+                <!-- Additional Stats Row (Out of Stock, Low Stock, Pending Transfers) -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-6">
+                    <!-- Out of Stock Card -->
+                    <div class="col-md-4">
                         <div class="card modern-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -512,154 +564,182 @@
                                         <h3 class="mb-0 fw-bold text-danger">{{ $outOfStockCount ?? 0 }}</h3>
                                     </div>
                                     <div class="stat-icon" style="background: rgba(220, 53, 69, 0.1); color: #dc3545;">
-    <i class="bi bi-x-circle fs-4"></i>
-</div>
+                                        <i class="bi bi-x-circle fs-4"></i>
+                                    </div>
                                 </div>
                                 <small class="text-muted">Items needing restock</small>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Pending Transfers Card - Updated to show Incoming + Outgoing -->
-<div class="col-md-6">
-    <div class="card modern-card">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1 small">Pending Transfers</h6>
-                    <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfersTotal ?? 0 }}</h3>
-                    <div class="mt-1">
-                        <small class="text-success">
-                            <i class="bi bi-download me-1"></i> Incoming: {{ $pendingTransfersIncoming ?? 0 }}
-                        </small>
-                        <br>
-                        <small class="text-info">
-                            <i class="bi bi-upload me-1"></i> Outgoing: {{ $pendingTransfersOutgoing ?? 0 }}
-                        </small>
-                    </div>
-                </div>
-                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-                    <i class="bi bi-arrow-left-right fs-4"></i>
-                </div>
-            </div>
-            <small class="text-muted">Stock transfer requests</small>
-            @if(($pendingTransfersTotal ?? 0) > 0)
-                <a href="{{ route('branch-admin.inventory.transfers') }}" class="btn btn-sm btn-outline-primary mt-2 w-100">
-                    View All Transfers <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            @endif
-        </div>
-    </div>
-</div>
 
-                <!-- Low Stock Items Alert -->
-                @if(($lowStockCount ?? 0) > 0)
-                <div class="alert alert-warning border-0 rounded-3 shadow-sm mb-4">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
-                        <div>
-                            <strong>{{ $lowStockCount }}</strong> item(s) are low on stock.
-                            <a href="{{ route('branch-admin.inventory.low-stock') }}" class="alert-link ms-2">View low stock items →</a>
+                    <!-- Low Stock Card -->
+                    <div class="col-md-4">
+                        <div class="card modern-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1 small">Low Stock</h6>
+                                        <h3 class="mb-0 fw-bold text-warning">{{ $lowStockCount ?? 0 }}</h3>
+                                    </div>
+                                    <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                                        <i class="bi bi-exclamation-triangle fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">Items below threshold</small>
+                                    @if(($lowStockCount ?? 0) > 0)
+                                        <a href="{{ route('branch-admin.inventory.low-stock') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                                            View <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pending Transfers Card -->
+                    <div class="col-md-4">
+                        <div class="card modern-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1 small">Pending Transfers</h6>
+                                        <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfersTotal ?? 0 }}</h3>
+                                        <div class="mt-1">
+                                            <small class="text-success">
+                                                <i class="bi bi-download me-1"></i> Incoming: {{ $pendingTransfersIncoming ?? 0 }}
+                                            </small>
+                                            <br>
+                                            <small class="text-info">
+                                                <i class="bi bi-upload me-1"></i> Outgoing: {{ $pendingTransfersOutgoing ?? 0 }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                                        <i class="bi bi-arrow-left-right fs-4"></i>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Stock transfer requests</small>
+                                @if(($pendingTransfersTotal ?? 0) > 0)
+                                    <a href="{{ route('branch-admin.inventory.transfers') }}" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                                        View All Transfers <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
-                @endif
 
-                <!-- Recent Activity Section -->
+                <!-- Tabs: Recent Activity & Recently Added Products -->
                 <div class="card modern-card mb-4">
-                    <div class="card-header bg-white border-0 pt-3 pb-0">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Activity</h5>
-                    </div>
                     <div class="card-body">
-                        @php
-                            $recentActivities = \App\Models\StockMovement::where('branch_id', $branch->id)
-                                ->with(['product', 'creator'])
-                                ->orderBy('created_at', 'desc')
-                                ->limit(10)
-                                ->get();
-                        @endphp
-                        
-                        @if($recentActivities->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach($recentActivities as $activity)
-                                    <div class="activity-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <i class="bi 
-                                                    @if($activity->quantity_change > 0) bi-arrow-up-circle-fill text-success
-                                                    @else bi-arrow-down-circle-fill text-danger
-                                                    @endif me-2 fs-5">
-                                                </i>
-                                                <strong>{{ $activity->product->name ?? 'Unknown Product' }}</strong>
-                                                <span class="text-muted small">
-                                                    @if($activity->quantity_change > 0)
-                                                        +{{ $activity->quantity_change }} units added
-                                                    @else
-                                                        {{ $activity->quantity_change }} units removed
-                                                    @endif
-                                                </span>
-                                                <br>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-person"></i> {{ $activity->creator->name ?? 'System' }} |
-                                                    <i class="bi bi-tag"></i> {{ ucfirst(str_replace('_', ' ', $activity->movement_type)) }}
-                                                </small>
+                        <ul class="nav nav-tabs custom-tabs mb-3" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="true">
+                                    <i class="bi bi-clock-history me-2"></i> Recent Activity
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">
+                                    <i class="bi bi-box-seam me-2"></i> Recently Added Products
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            
+                            <!-- Tab 1: Recent Activity -->
+                            <div class="tab-pane fade show active" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+                                @php
+                                    $recentActivities = \App\Models\StockMovement::where('branch_id', $branch->id)
+                                        ->with(['product', 'creator'])
+                                        ->orderBy('created_at', 'desc')
+                                        ->limit(5) /* CHANGED TO 5 */
+                                        ->get();
+                                @endphp
+                                
+                                @if($recentActivities->count() > 0)
+                                    <div class="list-group list-group-flush">
+                                        @foreach($recentActivities as $activity)
+                                            <div class="activity-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi 
+                                                            @if($activity->quantity_change > 0) bi-arrow-up-circle-fill text-success
+                                                            @else bi-arrow-down-circle-fill text-danger
+                                                            @endif me-2 fs-5">
+                                                        </i>
+                                                        <strong>{{ $activity->product->name ?? 'Unknown Product' }}</strong>
+                                                        <span class="text-muted small">
+                                                            @if($activity->quantity_change > 0)
+                                                                +{{ $activity->quantity_change }} units added
+                                                            @else
+                                                                {{ $activity->quantity_change }} units removed
+                                                            @endif
+                                                        </span>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-person"></i> {{ $activity->creator->name ?? 'System' }} |
+                                                            <i class="bi bi-tag"></i> {{ ucfirst(str_replace('_', ' ', $activity->movement_type)) }}
+                                                        </small>
+                                                    </div>
+                                                    <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
+                                                </div>
                                             </div>
-                                            <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
-                                        </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
+                                    <div class="text-center mt-3">
+                                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-outline-primary rounded-pill px-4">
+                                            <i class="bi bi-clock-history me-2"></i>View All Activity
+                                        </a>
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                        <p>No recent activity to display.</p>
+                                        <a href="{{ route('branch-admin.pos.index') }}" class="btn btn-primary rounded-pill px-4">
+                                            <i class="bi bi-cash-coin me-2"></i>Make your first sale
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="text-center mt-3">
-                                <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-outline-primary rounded-pill px-4">
-                                    <i class="bi bi-clock-history me-2"></i>View All Activity
-                                </a>
-                            </div>
-                        @else
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
-                                <p>No recent activity to display.</p>
-                                <a href="{{ route('branch-admin.pos.index') }}" class="btn btn-primary rounded-pill px-4">
-                                    <i class="bi bi-cash-coin me-2"></i>Make your first sale
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
 
-                <!-- Recent Products Added -->
-                <div class="card modern-card">
-                    <div class="card-header bg-white border-0 pt-3 pb-0">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i> Recently Added Products</h5>
-                    </div>
-                    <div class="card-body">
-                        @if(isset($recentProducts) && $recentProducts->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach($recentProducts as $item)
-                                    <div class="activity-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <i class="bi bi-box-seam me-2 text-primary fs-5"></i>
-                                                <strong>{{ $item->product->name }}</strong>
-                                                <br>
-                                                <small class="text-muted">
-                                                    Stock: {{ $item->quantity }} units | 
-                                                    Price: ₱{{ number_format($item->product->price, 2) }}
-                                                </small>
+                            <!-- Tab 2: Recently Added Products -->
+                            <div class="tab-pane fade" id="products" role="tabpanel" aria-labelledby="products-tab">
+                                @php
+                                    /* You will need to ensure $recentProducts in your controller is also set to 5, 
+                                       or you can limit it here if it's a collection */
+                                    $recentProducts = isset($recentProducts) ? $recentProducts->take(5) : collect();
+                                @endphp
+                                @if($recentProducts->count() > 0)
+                                    <div class="list-group list-group-flush">
+                                        @foreach($recentProducts as $item)
+                                            <div class="activity-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi bi-box-seam me-2 text-primary fs-5"></i>
+                                                        <strong>{{ $item->product->name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            Stock: {{ $item->quantity }} units | 
+                                                            Price: ₱{{ number_format($item->product->price, 2) }}
+                                                        </small>
+                                                    </div>
+                                                    <small class="text-muted">{{ $item->updated_at->diffForHumans() }}</small>
+                                                </div>
                                             </div>
-                                            <small class="text-muted">{{ $item->updated_at->diffForHumans() }}</small>
-                                        </div>
+                                        @endforeach
                                     </div>
-                                @endforeach
+                                @else
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                        <p>No products added recently.</p>
+                                        <a href="{{ route('branch-admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
+                                            <i class="bi bi-plus-circle me-2"></i>Add Your First Product
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
-                        @else
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
-                                <p>No products added recently.</p>
-                                <a href="{{ route('branch-admin.products.create') }}" class="btn btn-primary rounded-pill px-4">
-                                    <i class="bi bi-plus-circle me-2"></i>Add Your First Product
-                                </a>
-                            </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
                 @endif

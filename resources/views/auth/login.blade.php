@@ -211,6 +211,30 @@
                     </div>
 
                     <div class="card-body">
+                        <!-- 
+                            ADDED: Success Message for Email Verification 
+                            (Displayed when user clicks verify link in email)
+                        -->
+                        @if(session('success'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        <!-- 
+                            ADDED: Status Message for Password Reset 
+                            (Automatically sent by Laravel's ResetPasswordController)
+                        -->
+                        @if(session('status'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                {{ session('status') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
                         <!-- Error Messages -->
                         @if($errors->any())
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -231,14 +255,6 @@
                             </div>
                         @endif
 
-                        @if(session('status'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                {{ session('status') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-                        
                         <!-- Login Form -->
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
