@@ -1182,7 +1182,7 @@
             <p>Visit any of our 5 branches today and discover your next favorite vape.</p>
             
             @guest
-                <a href="{{ route('login') }}" class="btn">Find Your Nearest Branch</a>
+                <a href="{{ route('login') }}" class="btn">Login to Find Your Nearest Branch</a>
             @else
                 <a href="#branches" class="btn">Find Your Nearest Branch</a>
             @endguest
