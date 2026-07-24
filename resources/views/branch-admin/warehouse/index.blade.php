@@ -120,7 +120,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-0 fw-bold">
-                    <i class="bi bi-building me-2 text-primary"></i>Warehouse Stock Request
+                    <i class="bi bi-house-door me-2 text-primary"></i>Warehouse Stock Request
                 </h1>
                 <p class="text-muted small mb-0">Request additional stock from owner's warehouse</p>
             </div>

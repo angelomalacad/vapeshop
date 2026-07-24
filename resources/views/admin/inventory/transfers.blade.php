@@ -291,7 +291,7 @@
                             <td>
                                 @if(is_null($transfer->from_branch_id))
                                     <span class="fw-semibold text-primary">
-                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                        <i class="bi bi-house-door me-1"></i> Main Warehouse
                                     </span>
                                 @elseif($transfer->fromBranch)
                                     {{ $transfer->fromBranch->name }}
@@ -302,7 +302,7 @@
                             <td>
                                 @if(is_null($transfer->to_branch_id))
                                     <span class="fw-semibold text-primary">
-                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                        <i class="bi bi-house-door me-1"></i> Main Warehouse
                                     </span>
                                 @elseif($transfer->toBranch)
                                     {{ $transfer->toBranch->name }}

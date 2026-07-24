@@ -27,7 +27,7 @@
         <li class="nav-item">
             <a class="nav-link {{ $activeTab == 'warehouse' ? 'active' : '' }}" 
                href="{{ route('branch-admin.inventory.transfers', ['tab' => 'warehouse', 'filter' => 'incoming']) }}">
-                <i class="bi bi-building me-1"></i> Main Warehouse
+                <i class="bi bi-house-door me-1"></i> Main Warehouse
             </a>
         </li>
         <li class="nav-item">
@@ -96,7 +96,7 @@
                             <td>
                                 @if(is_null($transfer->from_branch_id))
                                     <span class="fw-semibold text-primary">
-                                        <i class="bi bi-building me-1"></i> Main Warehouse
+                                        <i class="bi bi-house-door me-1"></i> Main Warehouse
                                     </span>
                                 @elseif($transfer->fromBranch)
                                     <i class="bi bi-shop me-1"></i> {{ $transfer->fromBranch->name }}

@@ -583,7 +583,7 @@
                             <i class="bi bi-arrow-left-right"></i> All Transfers
                         </a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers', ['filter' => 'incoming']) ? 'active' : '' }}"
                             href="{{ route('branch-admin.inventory.transfers', ['filter' => 'incoming']) }}">
                             <i class="bi bi-download"></i> Incoming
@@ -616,7 +616,7 @@
                                 <span class="badge bg-warning pending-badge ms-2">{{ $pendingOutgoing }}</span>
                             @endif
                         </a>
-                    </li>
+                    </li> --}}
 
                     <li class="sidebar-heading">PRODUCTS</li>
                     <li class="nav-item">
@@ -633,13 +633,13 @@
                     </li>
 
                     <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
-                    <li class="sidebar-heading">WAREHOUSE</li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
-                            href="{{ route('branch-admin.warehouse.index') }}">
-                            <i class="bi bi-building"></i> Warehouse Stock
-                        </a>
-                    </li>
+<li class="sidebar-heading">WAREHOUSE</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
+        href="{{ route('branch-admin.warehouse.index') }}">
+        <i class="bi bi-house-door"></i> Warehouse Stock
+    </a>
+</li>
                     <!-- ===== END OF WAREHOUSE SECTION ===== -->
 
                     <li class="sidebar-heading">SALES</li>

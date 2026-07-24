@@ -1075,7 +1075,7 @@
                         @if (Route::has('admin.warehouse.index'))
                             <a href="{{ route('admin.warehouse.index') }}"
                                 class="list-group-item list-group-item-action">
-                                <i class="bi bi-building me-2"></i> Warehouse Stock
+                                <i class="bi bi-house-door me-2"></i> Warehouse Stock
                             </a>
                         @endif
                         <div class="text-muted">DELIVERIES</div>
