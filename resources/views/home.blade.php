@@ -61,6 +61,7 @@
             color: var(--primary-color) !important;
         }
 
+        /* --- Login Button --- */
         .btn-nav-login {
             background-color: #1e293b;
             color: #ffffff !important;
@@ -73,35 +74,42 @@
 
         .btn-nav-login:hover {
             background-color: var(--primary-color);
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- ADDED: Register Button --- */
+        .btn-nav-register {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color) !important;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-nav-register:hover {
+            background-color: var(--primary-color);
+            color: #ffffff !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
         }
 
-        /* --- Hero Section (Guaranteed Placeholder) --- */
-               /* --- Hero Section (Uses Asset Image) --- */
-                /* --- Hero Section (Uses Asset Image) --- */
+        /* --- Hero Section (Uses Asset Image) --- */
         #home {
-            /* Adjusts the padding to make room for the navbar */
             padding-top: 140px;
             padding-bottom: 100px;
             position: relative;
-            
-            /* Ensures the section is at least the height of the screen */
             min-height: 70vh; 
-            
-            /* Fallback color if image doesn't load */
             background-color: #e2e8f0; 
-            
-            /* Your local image path */
             background-image: url('{{ asset('images/geekbar.jpg') }}');
-            
-            /* Ensures the image covers the entire container without distorting */
             background-size: cover;
-            
-            /* Centers the image on the screen */
             background-position: center;
-            
-            /* Prevents the image from tiling */
             background-repeat: no-repeat;
         }
 
@@ -109,7 +117,7 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.6); /* 60% white overlay for readability */
+            background: rgba(255, 255, 255, 0.6);
             z-index: 0;
         }
 
@@ -180,7 +188,7 @@
             background-color: #e2e8f0;
         }
 
-        /* --- Story Section (Picture Format) --- */
+        /* --- Story Section --- */
         #story {
             padding: var(--section-padding);
             background: #ffffff;
@@ -377,7 +385,7 @@
             color: #fff;
         }
 
-        /* --- Delivery Section (Minimalist Badges) --- */
+        /* --- Delivery Section --- */
         #delivery {
             padding: var(--section-padding);
             background-color: #f8fafc;
@@ -426,7 +434,6 @@
             margin-bottom: 2px;
         }
 
-        /* Minimalist Gray Badges */
         .delivery-pill {
             display: inline-block;
             padding: 4px 14px;
@@ -737,7 +744,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <!-- Updated Link to Scroll to #products -->
                     <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                     <li class="nav-item"><a class="nav-link" href="#branches">Branches</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contact-info">Contact</a></li>
@@ -766,7 +772,11 @@
                             </ul>
                         </li>
                     @else
-                        <li class="nav-item ms-lg-3">
+                        <!-- ADDED: Register Button before Login -->
+                        <li class="nav-item ms-lg-2">
+                            <a class="nav-link btn-nav-register" href="{{ route('register') }}">Register</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
                             <a class="nav-link btn-nav-login" href="{{ route('login') }}">Login</a>
                         </li>
                     @endauth
@@ -823,18 +833,18 @@
                             <div class="timeline-date-box">MAY 2024</div>
                             <div class="timeline-content-box">
                                 <h6>The Beginning</h6>
-                                <p>We opened our very first Vape Expo branch, driven by a passion for quality vape products and a desire to create a welcoming community.</p>
+                                <p>We opened our very first Vape Expo Canlubang branch, driven by a passion for quality vape products and a desire to create a welcoming community.</p>
                             </div>
                         </div>
                         <div class="timeline-row">
-                            <div class="timeline-date-box">AUG 2024</div>
+                            <div class="timeline-date-box">APRIL 2025</div>
                             <div class="timeline-content-box">
                                 <h6>Growing Roots</h6>
                                 <p>Due to growing demand, we expanded to open our second branch in Calamba — Asia 1, MCDC, and Majada Out — each staffed with people who share the same passion for service.</p>
                             </div>
                         </div>
                         <div class="timeline-row">
-                            <div class="timeline-date-box">NOV 2024</div>
+                            <div class="timeline-date-box">NOV 2025</div>
                             <div class="timeline-content-box">
                                 <h6>Reaching More</h6>
                                 <p>Paciano and Paciano V2 joined the family, extending Vape Expo's reach across Calamba City and beyond — bringing the brand to more vapers.</p>
@@ -885,7 +895,7 @@
         </div>
     </section>
 
-        <!-- Products Section -->
+    <!-- Products Section -->
     <section id="products">
         <div class="container">
             <div class="text-center mb-5">
@@ -905,10 +915,6 @@
                     <div class="col-6 col-md-3">
                         <div class="product-card">
                             <div class="product-img-wrapper">
-                                <!-- 
-                                    This tries to load your local asset image.
-                                    If it's missing, it falls back to a clean, text-based placeholder.
-                                -->
                                 <img src="{{ asset('images/products/' . $product['img']) }}" 
                                      alt="{{ $product['name'] }}"
                                      style="width: 100%; height: 100%; object-fit: contain;"
@@ -928,7 +934,7 @@
         </div>
     </section>
 
-    <!-- Delivery Section (Redesigned Minimalist Badges) -->
+    <!-- Delivery Section -->
     <section id="delivery">
         <div class="container">
             <div class="text-center mb-5">
@@ -946,7 +952,6 @@
                             </div>
                             <div>
                                 <h4>Calamba City</h4>
-                                <!-- Minimalist Gray Badge -->
                                 <span class="delivery-pill">Free Delivery</span>
                             </div>
                         </div>
@@ -973,7 +978,6 @@
                             </div>
                             <div>
                                 <h4>Outside Calamba</h4>
-                                <!-- Minimalist Gray Badge -->
                                 <span class="delivery-pill">Lalamove Delivery</span>
                             </div>
                         </div>
@@ -1141,11 +1145,11 @@
             <div class="row g-4 mt-2">
                 @php
                     $branch_grid_data = [
-                        ['name' => 'Majada Out Branch', 'address' => 'EFG Building, Majada Out Road', 'manager' => 'Rocky Ace', 'since' => '2024'],
-                        ['name' => 'Asia 1 Branch', 'address' => 'Blk 67 Lot 1, Canlubang, Calamba, Laguna', 'manager' => 'Karl Viscaino', 'since' => '2024-2025'],
-                        ['name' => 'MCDC Branch', 'address' => 'Blk 1 Lot 10, Canlubang, Calamba, Laguna', 'manager' => 'Mhark Apoliga', 'since' => '2024-2025'],
-                        ['name' => 'Paciano Branch', 'address' => '215 National Road, Brgy. Paciano Rizal, Calamba City', 'manager' => 'Jeremy Abustan', 'since' => '2024-2025'],
-                        ['name' => 'Paciano V2 Branch', 'address' => '39 Mayapa, Canlubang Cadre Road, Calamba', 'manager' => 'Rhe Ann Alqueza', 'since' => '2024-2025'],
+                        ['name' => 'Asia 1 Branch', 'address' => 'Blk 67 Lot 1, Canlubang, Calamba, Laguna', 'manager' => 'Karl Viscaino', 'since' => '2024'],
+                        ['name' => 'Majada Out Branch', 'address' => 'EFG Building, Majada Out Road', 'manager' => 'Rocky Ace', 'since' => '2025'],
+                        ['name' => 'MCDC Branch', 'address' => 'Blk 1 Lot 10, Canlubang, Calamba, Laguna', 'manager' => 'Mhark Apoliga', 'since' => '2025'],
+                        ['name' => 'Paciano Branch', 'address' => '215 National Road, Brgy. Paciano Rizal, Calamba City', 'manager' => 'Jeremy Abustan', 'since' => '2025'],
+                        ['name' => 'Paciano V2 Branch', 'address' => '39 Mayapa, Canlubang Cadre Road, Calamba', 'manager' => 'Rhe Ann Alqueza', 'since' => '2025'],
                     ];
                 @endphp
 
@@ -1176,7 +1180,12 @@
         <div class="cta-banner">
             <h3>Ready to explore?</h3>
             <p>Visit any of our 5 branches today and discover your next favorite vape.</p>
-            <a href="#branches" class="btn">Find Your Nearest Branch</a>
+            
+            @guest
+                <a href="{{ route('login') }}" class="btn">Find Your Nearest Branch</a>
+            @else
+                <a href="#branches" class="btn">Find Your Nearest Branch</a>
+            @endguest
         </div>
     </div>
 
