@@ -25,11 +25,13 @@
     </div>
 
     <div class="row">
-        <!-- Product Image Column - NEW -->
+        <!-- Product Image Column -->
         <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Product Image</h5>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom" style="border-radius: 16px 16px 0 0; padding: 0.875rem 1.25rem;">
+                    <h5 class="mb-0" style="font-size: 0.8rem; font-weight: 600; color: #1a1a2e;">
+                        <i class="bi bi-image" style="color: #3b82f6; margin-right: 0.5rem;"></i> Product Image
+                    </h5>
                 </div>
                 <div class="card-body text-center">
                     @php
@@ -69,13 +71,15 @@
             </div>
         </div>
 
-        <!-- Product Details Column - NOTE: Changed from col-md-8 to col-md-8 -->
+        <!-- Product Details Column -->
         <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Product Details</h5>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom" style="border-radius: 16px 16px 0 0; padding: 0.875rem 1.25rem;">
+                    <h5 class="mb-0" style="font-size: 0.8rem; font-weight: 600; color: #1a1a2e;">
+                        <i class="bi bi-info-circle" style="color: #3b82f6; margin-right: 0.5rem;"></i> Product Details
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: 1.25rem;">
                     <div class="row">
                         <div class="col-md-6">
                             <table class="table table-sm">
@@ -145,7 +149,7 @@
                     
                     @if($product->description)
                     <div class="mt-3">
-                        <h6>Description</h6>
+                        <h6 style="font-size: 0.8rem; font-weight: 600; color: #1a1a2e;">Description</h6>
                         <p class="text-muted">{{ $product->description }}</p>
                     </div>
                     @endif
@@ -164,18 +168,20 @@
             </div>
         </div>
 
-        <!-- Flavors Section - NOTE: Changed layout to accommodate image column -->
+        <!-- Flavors Section -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Available Flavors ({{ $product->flavors->count() }})</h5>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom" style="border-radius: 16px 16px 0 0; padding: 0.875rem 1.25rem;">
+                    <h5 class="mb-0" style="font-size: 0.8rem; font-weight: 600; color: #1a1a2e;">
+                        <i class="bi bi-droplet" style="color: #3b82f6; margin-right: 0.5rem;"></i> Available Flavors ({{ $product->flavors->count() }})
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: 1.25rem;">
                     @if($product->flavors->count() > 0)
                         <div class="row">
                             @foreach($product->flavors as $flavor)
                             <div class="col-md-6 mb-2">
-                                <div class="card bg-light">
+                                <div class="card bg-light border-0" style="border-radius: 12px;">
                                     <div class="card-body py-2">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -203,19 +209,21 @@
 
         <!-- Quick Actions -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom" style="border-radius: 16px 16px 0 0; padding: 0.875rem 1.25rem;">
+                    <h5 class="mb-0" style="font-size: 0.8rem; font-weight: 600; color: #1a1a2e;">
+                        <i class="bi bi-lightning" style="color: #3b82f6; margin-right: 0.5rem;"></i> Quick Actions
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: 1.25rem;">
                     <div class="row">
                         <div class="col-md-6 mb-2">
-                            <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary w-100">
+                            <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary w-100" style="border-radius: 12px; font-weight: 500;">
                                 <i class="bi bi-plus-circle"></i> Add to Inventory
                             </a>
                         </div>
                         <div class="col-md-6 mb-2">
-                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-warning w-100">
+                            <a href="{{ route('branch-admin.products.edit', $product) }}" class="btn btn-warning w-100" style="border-radius: 12px; font-weight: 500;">
                                 <i class="bi bi-pencil"></i> Edit Product
                             </a>
                         </div>
@@ -228,7 +236,7 @@
                     @endphp
                     
                     @if($branchInventory)
-                    <div class="alert alert-info mt-3 mb-0">
+                    <div class="alert alert-info alert-minimal mt-3 mb-0">
                         <i class="bi bi-info-circle"></i>
                         <strong>In your branch:</strong> {{ $branchInventory->quantity }} units in stock
                         @if($branchInventory->reserved_quantity > 0)

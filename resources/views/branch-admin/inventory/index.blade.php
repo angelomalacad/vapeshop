@@ -76,6 +76,313 @@
             font-size: 0.65rem;
         }
     }
+
+    /* === ADDED: MODERN MINIMALIST MODAL STYLES (from admin-modal.blade.php) === */
+    .admin-modal-container {
+        padding: 1.5rem;
+        max-height: 85vh;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+
+    .admin-modal-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .admin-modal-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .admin-modal-container::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    /* Modal Header */
+    .modal-header-minimal {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eef2f6;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0;
+    }
+
+    .modal-title i {
+        color: #3b82f6;
+        margin-right: 0.5rem;
+    }
+
+    /* Cards */
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #eef2f6;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .card-header-minimal {
+        padding: 0.875rem 1.25rem;
+        background: white;
+        border-bottom: 1px solid #eef2f6;
+    }
+
+    .card-header-minimal h6 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0;
+    }
+
+    .card-header-minimal h6 i {
+        margin-right: 0.5rem;
+        color: #3b82f6;
+    }
+
+    .card-body-minimal {
+        padding: 1rem 1.25rem;
+    }
+
+    /* Info Rows */
+    .info-row {
+        display: flex;
+        margin-bottom: 0.75rem;
+    }
+
+    .info-label {
+        width: 100px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+    }
+
+    .info-value {
+        flex: 1;
+        font-size: 0.8rem;
+        color: #1a1a2e;
+        font-weight: 500;
+    }
+
+    .info-value .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.65rem;
+    }
+
+    /* Status Badges */
+    .badge-delivered {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .badge-in_transit {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-picked_up {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge-assigned {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    /* Form Styles */
+    .form-label-minimal {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-control-minimal,
+    .form-select-minimal {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .form-control-minimal:focus,
+    .form-select-minimal:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    /* Proof Images */
+    .proof-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .proof-image:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Buttons */
+    .btn-update {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .btn-update:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary-minimal {
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary-minimal:hover {
+        background: #e2e8f0;
+    }
+
+    .btn-download {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 30px;
+    }
+
+    /* Alert Styles */
+    .alert-minimal {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger-minimal {
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        color: #dc2626;
+    }
+
+    .alert-success-minimal {
+        background: #ecfdf5;
+        border: 1px solid #d1fae5;
+        color: #059669;
+    }
+
+    .alert-info-minimal {
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        color: #2563eb;
+    }
+
+    /* Image Preview Modal */
+    .image-preview-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-preview-content {
+        background: white;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        overflow: hidden;
+    }
+
+    .image-preview-header {
+        padding: 1rem 1.25rem;
+        background: white;
+        border-bottom: 1px solid #eef2f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .image-preview-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .image-preview-body img {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
+    }
+
+    .image-preview-footer {
+        padding: 1rem 1.25rem;
+        background: #f8f9fa;
+        border-top: 1px solid #eef2f6;
+        text-align: right;
+    }
+
+    /* Gap utility */
+    .gap-2 {
+        gap: 0.5rem;
+    }
+
+    .gap-3 {
+        gap: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .admin-modal-container {
+            padding: 1rem;
+        }
+
+        .info-label {
+            width: 80px;
+        }
+
+        .card-header-minimal {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-body-minimal {
+            padding: 0.75rem 1rem;
+        }
+    }
 </style>
 @section('content')
     <div class="container-fluid">
@@ -352,24 +659,16 @@
                                                         data-url="{{ route('branch-admin.inventory.edit-modal', $inv) }}">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-primary"
-                                                        title="Transfer Stock" data-bs-toggle="modal"
-                                                        data-bs-target="#dynamicModal"
-                                                        data-url="{{ route('branch-admin.inventory.transfer-modal', ['inventory_id' => $inv->id]) }}">
-                                                        <i class="bi bi-arrow-left-right"></i>
-                                                    </button>
 
                                                     @if ($isArchived)
-                                                        <form
-                                                            action="{{ route('branch-admin.inventory.unarchive', $inv) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-outline-success"
-                                                                title="Restore Item"
-                                                                onclick="return confirm('Restore this item back to inventory?')">
-                                                                <i class="bi bi-arrow-counterclockwise"></i>
-                                                            </button>
-                                                        </form>
+                                                        <button type="button" class="btn btn-outline-success restore-archive-btn"
+                                                            title="Restore Item"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#restoreArchiveModal"
+                                                            data-id="{{ $inv->id }}"
+                                                            data-name="{{ $product->name }}">
+                                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                                        </button>
                                                     @else
                                                         <button type="button"
                                                             class="btn btn-outline-secondary archive-btn"
@@ -740,15 +1039,14 @@
                                                 </td>
                                                 <td>{{ $item->dispose_reason ?? 'No reason provided' }}</td>
                                                 <td>
-                                                    <form
-                                                        action="{{ route('branch-admin.inventory.restore-disposed', $item) }}"
-                                                        method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-sm btn-outline-success"
-                                                            onclick="return confirm('Restore this item back to inventory?')">
-                                                            <i class="bi bi-arrow-counterclockwise"></i> Restore
-                                                        </button>
-                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-outline-success restore-disposed-btn"
+                                                        title="Restore Item"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#restoreDisposedModal"
+                                                        data-id="{{ $item->id }}"
+                                                        data-name="{{ $product->name }}">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                                    </button>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -790,68 +1088,158 @@
         </div>
     </div>
 
-    <!-- Archive Modal -->
+    <!-- Archive Modal (Global UI) -->
     <div class="modal fade" id="archiveModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title">
-                        <i class="bi bi-archive me-2"></i> Archive Item
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="admin-modal-container">
+                    <div class="modal-header-minimal">
+                        <h5 class="modal-title">
+                            <i class="bi bi-archive"></i> Archive Item
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="archiveForm" method="POST" action="#">
+                        @csrf
+                        <div class="modal-body p-0">
+                            <div class="alert alert-warning alert-minimal mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Warning:</strong> This action will archive the item.
+                            </div>
+                            <p>Are you sure you want to archive this item?</p>
+                            <p class="fw-bold" id="archiveItemName"></p>
+                            <p class="text-muted small">Archived items can be viewed by selecting "Archived" in the stock status filter.</p>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem;">
+                                <i class="bi bi-archive me-1"></i> Archive Item
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <form id="archiveForm" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <p>Are you sure you want to archive this item?</p>
-                        <p class="fw-bold" id="archiveItemName"></p>
-                        <p class="text-muted small">Archived items can be viewed by selecting "Archived" in the stock
-                            status filter.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-archive me-1"></i> Archive
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
 
-    <!-- Dispose Modal -->
+    <!-- Dispose Modal (Global UI) -->
     <div class="modal fade" id="disposeModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-trash me-2"></i> Dispose Item
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="disposeForm" method="POST" action="">
-                    @csrf
-                    <div class="modal-body">
-                        <p>Are you sure you want to dispose this item?</p>
-                        <p class="fw-bold" id="disposeItemName"></p>
-                        <div class="mb-3">
-                            <label class="form-label">Reason for Disposal (Optional)</label>
-                            <textarea name="dispose_reason" class="form-control" rows="3"
-                                placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
+                <div class="admin-modal-container">
+                    <div class="modal-header-minimal">
+                        <h5 class="modal-title">
+                            <i class="bi bi-trash"></i> Dispose Item
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="disposeForm" method="POST" action="#">
+                        @csrf
+                        <div class="modal-body p-0">
+                            <div class="alert alert-danger alert-minimal mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Warning:</strong> This action will permanently remove the item from inventory.
+                            </div>
+                            <p>Are you sure you want to dispose this item?</p>
+                            <p class="fw-bold" id="disposeItemName"></p>
+                            <div class="mb-3">
+                                <label class="form-label-minimal">Reason for Disposal (Optional)</label>
+                                <textarea name="dispose_reason" class="form-control-minimal" rows="3"
+                                    placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-trash me-1"></i> Dispose
-                        </button>
-                    </div>
-                </form>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #dc2626;">
+                                <i class="bi bi-trash me-1"></i> Dispose Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Dynamic Modal Container -->
+    <!-- Restore Archive Modal (Global UI) -->
+    <div class="modal fade" id="restoreArchiveModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="admin-modal-container">
+                    <div class="modal-header-minimal">
+                        <h5 class="modal-title">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore Archived Item
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="restoreArchiveForm" method="POST" action="#">
+                        @csrf
+                        <div class="modal-body p-0">
+                            <div class="alert alert-info alert-minimal mb-4">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <strong>Restore Item:</strong> This will bring the item back to active inventory.
+                            </div>
+                            <p>Are you sure you want to restore this archived item?</p>
+                            <p class="fw-bold" id="restoreArchiveItemName"></p>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Disposed Modal (Global UI) -->
+    <div class="modal fade" id="restoreDisposedModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="admin-modal-container">
+                    <div class="modal-header-minimal">
+                        <h5 class="modal-title">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore Disposed Item
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="restoreDisposedForm" method="POST" action="#">
+                        @csrf
+                        <div class="modal-body p-0">
+                            <div class="alert alert-info alert-minimal mb-4">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <strong>Restore Item:</strong> This will bring the item back to active inventory.
+                            </div>
+                            <p>Are you sure you want to restore this disposed item?</p>
+                            <p class="fw-bold" id="restoreDisposedItemName"></p>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Modal (Global UI) - Loaded via AJAX -->
+    <div class="modal fade" id="transferModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Modal Container (for View / Edit) -->
     <div class="modal fade" id="dynamicModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -951,7 +1339,9 @@
                 });
             }
 
-            // Archive modal handling
+            // ============================================================
+            // ARCHIVE MODAL HANDLING
+            // ============================================================
             const archiveModal = document.getElementById('archiveModal');
             if (archiveModal) {
                 archiveModal.addEventListener('show.bs.modal', function(event) {
@@ -960,12 +1350,74 @@
                     const itemName = button.getAttribute('data-name');
 
                     document.getElementById('archiveItemName').textContent = itemName;
-                    const archiveForm = document.getElementById('archiveForm');
-                    archiveForm.action = '/branch-admin/inventory/' + inventoryId + '/archive';
+                    this.setAttribute('data-inventory-id', inventoryId);
                 });
             }
 
-            // Dispose modal handling
+            const archiveForm = document.getElementById('archiveForm');
+            if (archiveForm) {
+                const newForm = archiveForm.cloneNode(true);
+                archiveForm.parentNode.replaceChild(newForm, archiveForm);
+                
+                newForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const modal = document.getElementById('archiveModal');
+                    const inventoryId = modal.getAttribute('data-inventory-id');
+                    
+                    if (!inventoryId) {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Error: Inventory ID not found.', 'error');
+                        }
+                        return;
+                    }
+                    
+                    this.action = '/branch-admin/inventory/' + inventoryId + '/archive';
+                    
+                    const formData = new FormData(this);
+                    
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Archiving item...', 'info');
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Item archived successfully!', 'success');
+                            }
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('archiveModal'));
+                            if (modal) modal.hide();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Failed to archive item.', 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Network error. Please try again.', 'error');
+                        }
+                    });
+                });
+            }
+
+            // ============================================================
+            // DISPOSE MODAL HANDLING
+            // ============================================================
             const disposeModal = document.getElementById('disposeModal');
             if (disposeModal) {
                 disposeModal.addEventListener('show.bs.modal', function(event) {
@@ -974,12 +1426,226 @@
                     const itemName = button.getAttribute('data-name');
 
                     document.getElementById('disposeItemName').textContent = itemName;
-                    const disposeForm = document.getElementById('disposeForm');
-                    disposeForm.action = '/branch-admin/inventory/' + inventoryId + '/dispose';
+                    this.setAttribute('data-inventory-id', inventoryId);
                 });
             }
 
-            // Handle Request Transfer buttons for Other Branches
+            const disposeForm = document.getElementById('disposeForm');
+            if (disposeForm) {
+                const newForm = disposeForm.cloneNode(true);
+                disposeForm.parentNode.replaceChild(newForm, disposeForm);
+                
+                newForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const modal = document.getElementById('disposeModal');
+                    const inventoryId = modal.getAttribute('data-inventory-id');
+                    
+                    if (!inventoryId) {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Error: Inventory ID not found.', 'error');
+                        }
+                        return;
+                    }
+                    
+                    this.action = '/branch-admin/inventory/' + inventoryId + '/dispose';
+                    
+                    const formData = new FormData(this);
+                    
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Disposing item...', 'info');
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Item disposed successfully!', 'success');
+                            }
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('disposeModal'));
+                            if (modal) modal.hide();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Failed to dispose item.', 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Network error. Please try again.', 'error');
+                        }
+                    });
+                });
+            }
+
+            // ============================================================
+            // RESTORE ARCHIVED ITEM MODAL HANDLING
+            // ============================================================
+            const restoreArchiveModal = document.getElementById('restoreArchiveModal');
+            if (restoreArchiveModal) {
+                restoreArchiveModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const inventoryId = button.getAttribute('data-id');
+                    const itemName = button.getAttribute('data-name');
+
+                    document.getElementById('restoreArchiveItemName').textContent = itemName;
+                    this.setAttribute('data-inventory-id', inventoryId);
+                });
+            }
+
+            const restoreArchiveForm = document.getElementById('restoreArchiveForm');
+            if (restoreArchiveForm) {
+                const newForm = restoreArchiveForm.cloneNode(true);
+                restoreArchiveForm.parentNode.replaceChild(newForm, restoreArchiveForm);
+                
+                newForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const modal = document.getElementById('restoreArchiveModal');
+                    const inventoryId = modal.getAttribute('data-inventory-id');
+                    
+                    if (!inventoryId) {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Error: Inventory ID not found.', 'error');
+                        }
+                        return;
+                    }
+                    
+                    this.action = '/branch-admin/inventory/' + inventoryId + '/unarchive';
+                    
+                    const formData = new FormData(this);
+                    
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Restoring archived item...', 'info');
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Item restored successfully!', 'success');
+                            }
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('restoreArchiveModal'));
+                            if (modal) modal.hide();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Failed to restore item.', 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Network error. Please try again.', 'error');
+                        }
+                    });
+                });
+            }
+
+            // ============================================================
+            // RESTORE DISPOSED ITEM MODAL HANDLING
+            // ============================================================
+            const restoreDisposedModal = document.getElementById('restoreDisposedModal');
+            if (restoreDisposedModal) {
+                restoreDisposedModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const inventoryId = button.getAttribute('data-id');
+                    const itemName = button.getAttribute('data-name');
+
+                    document.getElementById('restoreDisposedItemName').textContent = itemName;
+                    this.setAttribute('data-inventory-id', inventoryId);
+                });
+            }
+
+            const restoreDisposedForm = document.getElementById('restoreDisposedForm');
+            if (restoreDisposedForm) {
+                const newForm = restoreDisposedForm.cloneNode(true);
+                restoreDisposedForm.parentNode.replaceChild(newForm, restoreDisposedForm);
+                
+                newForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const modal = document.getElementById('restoreDisposedModal');
+                    const inventoryId = modal.getAttribute('data-inventory-id');
+                    
+                    if (!inventoryId) {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Error: Inventory ID not found.', 'error');
+                        }
+                        return;
+                    }
+                    
+                    this.action = '/branch-admin/inventory/' + inventoryId + '/restore-disposed';
+                    
+                    const formData = new FormData(this);
+                    
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Restoring disposed item...', 'info');
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Item restored successfully!', 'success');
+                            }
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('restoreDisposedModal'));
+                            if (modal) modal.hide();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Failed to restore item.', 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification('Network error. Please try again.', 'error');
+                        }
+                    });
+                });
+            }
+
+            // ============================================================
+            // HANDLE REQUEST TRANSFER BUTTONS (Other Branches Tab)
+            // ============================================================
             const requestTransferBtns = document.querySelectorAll('.request-transfer-btn');
 
             requestTransferBtns.forEach(button => {
@@ -992,8 +1658,8 @@
                     const url = '/branch-admin/inventory/transfer-modal?inventory_id=' +
                         inventoryId + '&from_branch=' + fromBranch;
 
-                    const dynamicModal = document.getElementById('dynamicModal');
-                    const modalContent = dynamicModal.querySelector('.modal-content');
+                    const transferModal = document.getElementById('transferModal');
+                    const modalContent = transferModal.querySelector('.modal-content');
 
                     modalContent.innerHTML = `
                         <div class="text-center p-5">
@@ -1007,8 +1673,63 @@
                         .then(response => response.text())
                         .then(html => {
                             modalContent.innerHTML = html;
-                            const bsModal = new bootstrap.Modal(dynamicModal);
+                            const bsModal = new bootstrap.Modal(transferModal);
                             bsModal.show();
+                            
+                            // After the modal is shown, attach the submit handler
+                            transferModal.addEventListener('shown.bs.modal', function() {
+                                const transferForm = document.getElementById('transferForm');
+                                if (transferForm) {
+                                    // Remove any existing listeners
+                                    const newTransferForm = transferForm.cloneNode(true);
+                                    transferForm.parentNode.replaceChild(newTransferForm, transferForm);
+                                    
+                                    newTransferForm.addEventListener('submit', function(e) {
+                                        e.preventDefault();
+                                        
+                                        const formData = new FormData(this);
+                                        
+                                        if (typeof window.showNotification === 'function') {
+                                            window.showNotification('Submitting transfer request...', 'info');
+                                        }
+                                        
+                                        fetch(this.action, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                                'X-Requested-With': 'XMLHttpRequest',
+                                                'Accept': 'application/json',
+                                            },
+                                            body: formData
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                if (typeof window.showNotification === 'function') {
+                                                    window.showNotification(data.message || 'Transfer request submitted successfully!', 'success');
+                                                }
+                                                // Close modal
+                                                const modal = bootstrap.Modal.getInstance(document.getElementById('transferModal'));
+                                                if (modal) modal.hide();
+                                                // Reload page after 1.5 seconds
+                                                setTimeout(() => {
+                                                    window.location.reload();
+                                                }, 1500);
+                                            } else {
+                                                if (typeof window.showNotification === 'function') {
+                                                    window.showNotification(data.message || 'Failed to submit transfer request.', 'error');
+                                                }
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            if (typeof window.showNotification === 'function') {
+                                                window.showNotification('Network error. Please try again.', 'error');
+                                            }
+                                        });
+                                    });
+                                }
+                            }, { once: true });
                         })
                         .catch(error => {
                             modalContent.innerHTML = `
@@ -1023,13 +1744,15 @@
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </div>
                             `;
-                            const bsModal = new bootstrap.Modal(dynamicModal);
+                            const bsModal = new bootstrap.Modal(transferModal);
                             bsModal.show();
                         });
                 });
             });
 
-            // Dynamic Modal for regular buttons (View, Edit, Transfer from My Branch)
+            // ============================================================
+            // DYNAMIC MODAL FOR VIEW / EDIT
+            // ============================================================
             const dynamicModal = document.getElementById('dynamicModal');
             if (dynamicModal) {
                 dynamicModal.addEventListener('show.bs.modal', function(event) {

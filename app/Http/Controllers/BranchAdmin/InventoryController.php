@@ -12,6 +12,7 @@ use App\Models\StockMovement;
 use App\Models\Branch;
 use App\Models\WarehouseInventory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -745,9 +746,10 @@ public function requestTransfer(Request $request)
 
     // Verify that to_branch_id is the requesting branch (your branch)
     if ($request->to_branch_id != $branchId) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'You can only request stock to your own branch.');
+        return response()->json([
+            'success' => false,
+            'message' => 'You can only request stock to your own branch.'
+        ], 403);
     }
 
     DB::beginTransaction();
@@ -755,7 +757,7 @@ public function requestTransfer(Request $request)
     try {
         // Check if requesting from Main Warehouse (value "0")
         if ($request->from_branch_id == '0') {
-            // Check warehouse inventory - use the same logic as checkWarehouseAvailability
+            // Check warehouse inventory
             $warehouseQuery = WarehouseInventory::where('product_id', $request->product_id);
 
             if ($request->filled('flavor_id')) {
@@ -767,15 +769,17 @@ public function requestTransfer(Request $request)
             $warehouse = $warehouseQuery->first();
 
             if (!$warehouse) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'This product is not available in the warehouse.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This product is not available in the warehouse.'
+                ], 400);
             }
 
             if ($warehouse->quantity < $request->quantity) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', "Insufficient stock at warehouse. Available: {$warehouse->quantity}, Requested: {$request->quantity}");
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient stock at warehouse. Available: {$warehouse->quantity}, Requested: {$request->quantity}"
+                ], 400);
             }
 
             // Create transfer request from warehouse
@@ -794,8 +798,10 @@ public function requestTransfer(Request $request)
 
             DB::commit();
 
-            return redirect()->route('branch-admin.inventory.transfers')
-                ->with('success', 'Stock request sent to owner for approval!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock request sent to owner for approval!'
+            ]);
 
         } else {
             // Check branch inventory
@@ -809,16 +815,18 @@ public function requestTransfer(Request $request)
             $sourceInventory = $query->first();
 
             if (!$sourceInventory) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'This product is not available in the selected source branch.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This product is not available in the selected source branch.'
+                ], 400);
             }
 
             // Check if enough stock is available (available_quantity = quantity - reserved_quantity)
             if ($sourceInventory->available_quantity < $request->quantity) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', "Insufficient stock at source branch. Available: {$sourceInventory->available_quantity}, Requested: {$request->quantity}");
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient stock at source branch. Available: {$sourceInventory->available_quantity}, Requested: {$request->quantity}"
+                ], 400);
             }
 
             // Create transfer request for branch-to-branch
@@ -842,15 +850,18 @@ public function requestTransfer(Request $request)
 
             DB::commit();
 
-            return redirect()->route('branch-admin.inventory.transfers')
-                ->with('success', 'Transfer request submitted successfully. Waiting for source branch approval.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Transfer request submitted successfully. Waiting for source branch approval.'
+            ]);
         }
 
     } catch (\Exception $e) {
         DB::rollBack();
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Error requesting transfer: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error requesting transfer: ' . $e->getMessage()
+        ], 500);
     }
 }
 
@@ -1545,120 +1556,142 @@ public function completeTransfer(StockTransfer $transfer)
     }
 
     /**
-     * Show the form for editing the specified inventory item.
-     */
-    public function edit(BranchInventory $inventory)
-    {
-        if ($inventory->branch_id !== Auth::user()->branch_id) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $inventory->load(['product', 'flavor']);
-
-        return view('branch-admin.inventory.edit', compact('inventory'));
+ * Show the form for editing the specified inventory item.
+ */
+public function edit(BranchInventory $inventory)
+{
+    if ($inventory->branch_id !== Auth::user()->branch_id) {
+        abort(403, 'Unauthorized access.');
     }
 
-    /**
-     * Update the specified inventory item.
-     */
-    public function update(Request $request, BranchInventory $inventory)
-    {
-        if ($inventory->branch_id !== Auth::user()->branch_id) {
-            abort(403, 'Unauthorized access.');
-        }
+    $inventory->load(['product', 'flavor']);
 
-        $request->validate([
-            'quantity' => 'nullable|integer|min:0',
-            'reserved_quantity' => 'nullable|integer|min:0',
-            'low_stock_threshold' => 'required|integer|min:1',
-            'reorder_point' => 'required|integer|min:1',
-            'optimal_stock' => 'required|integer|min:1',
-            'last_purchase_price' => 'nullable|numeric|min:0',
-            'last_restocked_at' => 'nullable|date',
+    return view('branch-admin.inventory.edit', compact('inventory'));
+}
+
+ /**
+ * Update the specified inventory item.
+ */
+public function update(Request $request, BranchInventory $inventory)
+{
+    if ($inventory->branch_id !== Auth::user()->branch_id) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access.'
+        ], 403);
+    }
+
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'quantity' => 'nullable|integer|min:0',
+        'low_stock_threshold' => 'required|integer|min:1',
+        'optimal_stock' => 'required|integer|min:1',
+        'last_purchase_price' => 'nullable|numeric|min:0',
+        'last_restocked_at' => 'nullable|date',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $oldQuantity = $inventory->quantity;
+        $newQuantity = $request->quantity ?? $inventory->quantity;
+
+        $inventory->update([
+            'quantity' => $newQuantity,
+            'low_stock_threshold' => $request->low_stock_threshold,
+            'optimal_stock' => $request->optimal_stock,
+            'last_purchase_price' => $request->last_purchase_price,
+            'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
         ]);
 
-        DB::beginTransaction();
-
-        try {
-            $oldQuantity = $inventory->quantity;
-            $newQuantity = $request->quantity ?? $inventory->quantity;
-
-            $inventory->update([
-                'quantity' => $newQuantity,
-                'reserved_quantity' => $request->reserved_quantity ?? $inventory->reserved_quantity,
-                'low_stock_threshold' => $request->low_stock_threshold,
-                'reorder_point' => $request->reorder_point,
-                'optimal_stock' => $request->optimal_stock,
-                'last_purchase_price' => $request->last_purchase_price,
-                'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
+        if ($oldQuantity != $newQuantity) {
+            StockMovement::create([
+                'branch_id' => $inventory->branch_id,
+                'product_id' => $inventory->product_id,
+                'flavor_id' => $inventory->flavor_id,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $newQuantity,
+                'quantity_change' => $newQuantity - $oldQuantity,
+                'movement_type' => 'adjustment',
+                'notes' => 'Manual adjustment via edit form',
+                'created_by' => Auth::id(),
             ]);
-
-            if ($oldQuantity != $newQuantity) {
-                StockMovement::create([
-                    'branch_id' => $inventory->branch_id,
-                    'product_id' => $inventory->product_id,
-                    'flavor_id' => $inventory->flavor_id,
-                    'previous_quantity' => $oldQuantity,
-                    'new_quantity' => $newQuantity,
-                    'quantity_change' => $newQuantity - $oldQuantity,
-                    'movement_type' => 'adjustment',
-                    'notes' => 'Manual adjustment via edit form',
-                    'created_by' => Auth::id(),
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('branch-admin.inventory.show', $inventory)
-                ->with('success', 'Inventory updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating inventory: ' . $e->getMessage());
         }
-    }
 
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inventory updated successfully!',
+            'inventory' => $inventory->fresh()
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error updating inventory: ' . $e->getMessage()
+        ], 500);
+    }
+}
     /**
      * Archive an inventory item (soft hide from active lists)
      */
     public function archive(BranchInventory $inventory)
-    {
-        // Ensure inventory belongs to user's branch
-        if ($inventory->branch_id !== Auth::user()->branch_id) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $inventory->update(['is_archived' => true]);
-        return redirect()->back()->with('success', 'Inventory item archived successfully.');
+{
+    if ($inventory->branch_id !== Auth::user()->branch_id) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access.'
+        ], 403);
     }
 
-    /**
+    $inventory->update(['is_archived' => true]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Item archived successfully.'
+    ]);
+}
+
+     /**
      * Restore an archived inventory item
      */
     public function unarchive(BranchInventory $inventory)
     {
-        // Ensure inventory belongs to user's branch
         if ($inventory->branch_id !== Auth::user()->branch_id) {
-            abort(403, 'Unauthorized access.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access.'
+            ], 403);
         }
 
         $inventory->update(['is_archived' => false]);
-        return redirect()->back()->with('success', 'Inventory item restored from archive.');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item restored from archive.'
+        ]);
     }
+
  /**
  * Dispose an inventory item (permanently remove to disposed items)
  */
 public function dispose(Request $request, BranchInventory $inventory)
 {
-    // Ensure inventory belongs to user's branch
     if ($inventory->branch_id !== Auth::user()->branch_id) {
-        abort(403, 'Unauthorized access.');
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access.'
+        ], 403);
     }
-
-    // Debug logging to check if method is called
-    \Log::info('Dispose method called for inventory ID: ' . $inventory->id);
-    \Log::info('Dispose reason: ' . $request->dispose_reason);
 
     try {
         $inventory->update([
@@ -1667,39 +1700,50 @@ public function dispose(Request $request, BranchInventory $inventory)
             'disposed_at' => now()
         ]);
 
-        \Log::info('Item disposed successfully. is_disposed = ' . $inventory->fresh()->is_disposed);
-
-        // Redirect back to inventory index with success message and hash to disposed tab
-        return redirect()->route('branch-admin.inventory.index', ['tab' => 'disposed', '#disposed'])
-            ->with('success', 'Item disposed successfully.');
-    } catch (\Exception $e) {
-        \Log::error('Error disposing item: ' . $e->getMessage());
-        return redirect()->back()->with('error', 'Error disposing item: ' . $e->getMessage());
-    }
-}
-
-/**
- * Restore a disposed inventory item
- */
-public function restoreDisposed(BranchInventory $inventory)
-{
-    // Ensure inventory belongs to user's branch
-    if ($inventory->branch_id !== Auth::user()->branch_id) {
-        abort(403, 'Unauthorized access.');
-    }
-
-    try {
-        $inventory->update([
-            'is_disposed' => false,
-            'dispose_reason' => null,
-            'disposed_at' => null
+        return response()->json([
+            'success' => true,
+            'message' => 'Item disposed successfully.'
         ]);
 
-        return redirect()->route('branch-admin.inventory.index')
-            ->with('success', 'Item restored from disposed items.');
     } catch (\Exception $e) {
-        \Log::error('Error restoring item: ' . $e->getMessage());
-        return redirect()->back()->with('error', 'Error restoring item: ' . $e->getMessage());
+        \Log::error('Error disposing item: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error disposing item: ' . $e->getMessage()
+        ], 500);
     }
 }
+
+ /**
+     * Restore a disposed inventory item
+     */
+    public function restoreDisposed(BranchInventory $inventory)
+    {
+        if ($inventory->branch_id !== Auth::user()->branch_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access.'
+            ], 403);
+        }
+
+        try {
+            $inventory->update([
+                'is_disposed' => false,
+                'dispose_reason' => null,
+                'disposed_at' => null
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item restored from disposed items.'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error restoring item: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error restoring item: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

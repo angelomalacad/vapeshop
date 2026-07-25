@@ -13,7 +13,7 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('branch-admin.warehouse.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-building"></i> Warehouse Requests
+                <i class="bi bi-house-door"></i> Warehouse Requests
             </a>
             <a href="{{ url()->previous() }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back

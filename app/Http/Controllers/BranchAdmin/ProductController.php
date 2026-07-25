@@ -8,20 +8,31 @@ use App\Models\ProductFlavor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\GoogleDriveHelper;
 
 class ProductController extends Controller
 {
-    public function index()
+    // ✅ FIXED: Single index() method with search support
+    public function index(Request $request)
     {
         $branchId = Auth::user()->branch_id;
         
-        $products = Product::where('is_active', true)
+        $query = Product::where('is_active', true)
             ->with(['flavors', 'branchInventories' => function($query) use ($branchId) {
                 $query->where('branch_id', $branchId);
-            }])
-            ->orderBy('name')
-            ->paginate(20);
+            }]);
+
+        // 🔍 Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('brand', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->orderBy('name')->paginate(20);
         
         return view('branch-admin.products.index', compact('products'));
     }
@@ -86,7 +97,7 @@ class ProductController extends Controller
             'is_active' => true,
         ]);
 
-        // ✅ FIX: Handle Google Drive (clear local image)
+        // Handle Google Drive (clear local image)
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
@@ -95,7 +106,7 @@ class ProductController extends Controller
             ]);
         }
 
-        // ✅ FIX: Handle upload (clear GDrive)
+        // Handle upload (clear GDrive)
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
             $product->update([
@@ -165,6 +176,7 @@ class ProductController extends Controller
         return view('branch-admin.products.edit', compact('product'));
     }
 
+    // ✅ FIXED: update() with JSON support for AJAX and redirect for normal submits
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -213,7 +225,7 @@ class ProductController extends Controller
             'smart_display' => $request->has('smart_display'),
         ]);
 
-        // ✅ FIX: Google Drive replaces upload
+        // Google Drive replaces upload
         if ($request->filled('image_url')) {
             $product->update([
                 'image_url' => $request->image_url,
@@ -222,7 +234,7 @@ class ProductController extends Controller
             ]);
         }
 
-        // ✅ FIX: Upload replaces Google Drive
+        // Upload replaces Google Drive
         if ($request->hasFile('image')) {
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
@@ -237,6 +249,15 @@ class ProductController extends Controller
             ]);
         }
 
+        // ✅ JSON response for AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Product updated successfully!'
+            ]);
+        }
+
+        // ✅ Redirect for normal form submissions
         return redirect()->route('branch-admin.products.index')
             ->with('success', 'Product updated successfully!');
     }

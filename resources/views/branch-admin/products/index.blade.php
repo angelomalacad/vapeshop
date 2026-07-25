@@ -15,23 +15,47 @@
                 </p>
             </div>
             <div>
-                {{-- <a href="{{ route('branch-admin.inventory.add-product') }}" class="btn btn-primary me-2">
-                <i class="bi bi-plus-circle"></i> Add to Inventory
-            </a> --}}
                 <a href="{{ route('branch-admin.products.create') }}" class="btn btn-success">
                     <i class="bi bi-plus-circle"></i> Create New Product
                 </a>
             </div>
         </div>
 
-        <!-- Products Grid -->
+        <!-- Search Bar -->
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 16px;">
+            <div class="card-body p-3">
+                <form method="GET" action="{{ route('branch-admin.products.index') }}" class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control border-start-0"
+                                placeholder="Search by product name or brand..."
+                                value="{{ request('search') }}"
+                                style="border-radius: 0 12px 12px 0;">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 12px;">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
+                        <a href="{{ route('branch-admin.products.index') }}" class="btn btn-outline-secondary w-100 mt-1" style="border-radius: 12px;">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Grid (4 columns = col-md-3) -->
         <div class="row">
             @forelse($products as $product)
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
                         <!-- Product Image -->
                         <div class="card-img-top text-center p-3 bg-light"
-                            style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                            style="height: 200px; border-radius: 16px 16px 0 0; display: flex; align-items: center; justify-content: center;">
                             @if ($product->image_url)
                                 <img src="{{ GoogleDriveHelper::getThumbnailUrl($product->image_url, 300) }}"
                                     alt="{{ $product->name }}"
@@ -51,7 +75,7 @@
 
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">{{ $product->name }}</h5>
+                                <h5 class="card-title mb-0" style="font-size: 1rem;">{{ $product->name }}</h5>
                                 @if ($product->brand)
                                     <span class="badge bg-primary">{{ $product->brand }}</span>
                                 @endif
@@ -61,7 +85,7 @@
                                 <i class="bi bi-grid"></i> {{ $product->category }}
                             </p>
 
-                            <p class="card-text small">{{ Str::limit($product->description, 100) }}</p>
+                            <p class="card-text small">{{ Str::limit($product->description, 80) }}</p>
 
                             <div class="mb-2">
                                 <strong>Price:</strong> ₱{{ number_format($product->price, 2) }}
@@ -94,7 +118,6 @@
                                         <div class="mb-1">
                                             <span class="badge bg-secondary">Not in inventory</span>
                                         </div>
-                                        <!-- REMOVED: Add to Inventory button -->
                                     @endif
                                 </div>
                                 <div>
@@ -120,7 +143,7 @@
 
             @empty
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
                         <div class="card-body text-center py-5">
                             <i class="bi bi-box-seam display-1 text-muted"></i>
                             <h4 class="mt-3">No Products Found</h4>

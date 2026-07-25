@@ -21,50 +21,53 @@ class PosController extends Controller
      * Display POS interface
      */
     public function index(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+{
+    $branchId = Auth::user()->branch_id;
 
-        // Get all products with stock for this branch
-        $products = BranchInventory::with(['product', 'flavor'])
-            ->where('branch_id', $branchId)
-            ->where('quantity', '>', 0)
-            ->orderBy('product_id')
-            ->get()
-            ->groupBy(function($item) {
-                return $item->product->category;
-            });
+    // Get all products with stock for this branch
+    // ✅ ADDED: ->where('is_archived', false)->where('is_disposed', false)
+    $products = BranchInventory::with(['product', 'flavor'])
+        ->where('branch_id', $branchId)
+        ->where('quantity', '>', 0)
+        ->where('is_archived', false)
+        ->where('is_disposed', false)
+        ->orderBy('product_id')
+        ->get()
+        ->groupBy(function($item) {
+            return $item->product->category;
+        });
 
-        // Get cart from session
-        $cart = session()->get('pos_cart', []);
+    // Get cart from session
+    $cart = session()->get('pos_cart', []);
+    
+    // Debug: Log cart contents
+    \Log::info('Cart contents in index:', $cart);
+
+    // Calculate cart totals - NO TAX
+    $subtotal = 0;
+    foreach ($cart as $item) {
+        // Ensure we have valid numeric values
+        $price = floatval($item['price'] ?? 0);
+        $quantity = intval($item['quantity'] ?? 0);
+        $subtotal += $price * $quantity;
         
-        // Debug: Log cart contents
-        \Log::info('Cart contents in index:', $cart);
-
-        // Calculate cart totals - NO TAX
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            // Ensure we have valid numeric values
-            $price = floatval($item['price'] ?? 0);
-            $quantity = intval($item['quantity'] ?? 0);
-            $subtotal += $price * $quantity;
-            
-            // Update subtotal in cart item if needed
-            if (isset($cart[$item['inventory_id']])) {
-                $cart[$item['inventory_id']]['subtotal'] = $price * $quantity;
-            }
+        // Update subtotal in cart item if needed
+        if (isset($cart[$item['inventory_id']])) {
+            $cart[$item['inventory_id']]['subtotal'] = $price * $quantity;
         }
-        
-        $tax = 0; // REMOVED TAX
-        $total = $subtotal; // NO TAX ADDED
-
-        // Debug: Log calculated values
-        \Log::info('Calculated totals - Subtotal: ' . $subtotal . ', Total: ' . $total);
-
-        // Update session with corrected subtotals
-        session()->put('pos_cart', $cart);
-
-        return view('branch-admin.pos.index', compact('products', 'cart', 'subtotal', 'tax', 'total'));
     }
+    
+    $tax = 0; // REMOVED TAX
+    $total = $subtotal; // NO TAX ADDED
+
+    // Debug: Log calculated values
+    \Log::info('Calculated totals - Subtotal: ' . $subtotal . ', Total: ' . $total);
+
+    // Update session with corrected subtotals
+    session()->put('pos_cart', $cart);
+
+    return view('branch-admin.pos.index', compact('products', 'cart', 'subtotal', 'tax', 'total'));
+}
 
     /**
      * Add product to cart

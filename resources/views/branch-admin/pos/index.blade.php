@@ -750,60 +750,65 @@
                     </div>
                     <div class="card-body">
                         @foreach ($products as $category => $categoryProducts)
-                            <div class="mb-4">
-                                <h6 class="fw-semibold mb-3">
-                                    <span class="category-badge">
-                                        <i class="bi bi-tag me-1"></i>{{ $category }}
-                                    </span>
-                                </h6>
-                                <div class="row g-3">
-                                    @foreach ($categoryProducts as $item)
-                                        @php
-                                            $product = $item->product;
-                                            $available = $item->available_quantity;
-                                            $imageUrl = $product->image_url ?? $product->image ?? '';
-                                        @endphp
-                                        <div class="col-md-3 col-sm-4 col-6">
-                                            <div class="card pos-product-card h-100" 
-                                                data-inventory-id="{{ $item->id }}"
-                                                data-product-id="{{ $product->id }}"
-                                                data-product-name="{{ $product->name }}"
-                                                data-product-price="{{ $product->price }}"
-                                                data-flavor-name="{{ $item->flavor->name ?? '' }}"
-                                                data-flavor-id="{{ $item->flavor_id }}"
-                                                data-available="{{ $available }}"
-                                                data-image="{{ $imageUrl }}">
-                                                <div class="card-body text-center p-3">
-                                                    <div class="product-image mb-2" style="height: 80px; display: flex; align-items: center; justify-content: center;">
-                                                        @if ($imageUrl)
-                                                            <img src="{{ $imageUrl }}"
-                                                                alt="{{ $product->name }}" 
-                                                                style="max-height: 70px; max-width: 100%; object-fit: contain;"
-                                                                onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-box-seam text-muted\' style=\'font-size: 2rem;\'></i>'">
-                                                        @else
-                                                            <i class="bi bi-box-seam text-muted" style="font-size: 2rem;"></i>
-                                                        @endif
-                                                    </div>
-                                                    <h6 class="mb-0 small fw-semibold">{{ Str::limit($product->name, 25) }}
-                                                    </h6>
-                                                    @if ($item->flavor)
-                                                        <small class="text-muted">{{ $item->flavor->name }}</small>
-                                                    @endif
-                                                    <div class="mt-2">
-                                                        <span
-                                                            class="fw-bold text-primary">₱{{ number_format($product->price, 2) }}</span>
-                                                        @if ($available <= 5)
-                                                            <span class="badge bg-warning ms-1">Low Stock</span>
-                                                        @endif
-                                                    </div>
-                                                    <small class="text-muted">Stock: {{ $available }}</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
+    <div class="mb-4">
+        <h6 class="fw-semibold mb-3">
+            <span class="category-badge">
+                <i class="bi bi-tag me-1"></i>{{ $category }}
+            </span>
+        </h6>
+        <div class="row g-3">
+            @foreach ($categoryProducts as $item)
+                @php
+                    // ✅ SKIP if item is archived or disposed
+                    if ($item->is_archived || $item->is_disposed) {
+                        continue;
+                    }
+                    
+                    $product = $item->product;
+                    $available = $item->available_quantity;
+                    $imageUrl = $product->image_url ?? $product->image ?? '';
+                @endphp
+                <div class="col-md-3 col-sm-4 col-6">
+                    <div class="card pos-product-card h-100" 
+                        data-inventory-id="{{ $item->id }}"
+                        data-product-id="{{ $product->id }}"
+                        data-product-name="{{ $product->name }}"
+                        data-product-price="{{ $product->price }}"
+                        data-flavor-name="{{ $item->flavor->name ?? '' }}"
+                        data-flavor-id="{{ $item->flavor_id }}"
+                        data-available="{{ $available }}"
+                        data-image="{{ $imageUrl }}">
+                        <div class="card-body text-center p-3">
+                            <div class="product-image mb-2" style="height: 80px; display: flex; align-items: center; justify-content: center;">
+                                @if ($imageUrl)
+                                    <img src="{{ $imageUrl }}"
+                                        alt="{{ $product->name }}" 
+                                        style="max-height: 70px; max-width: 100%; object-fit: contain;"
+                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-box-seam text-muted\' style=\'font-size: 2rem;\'></i>'">
+                                @else
+                                    <i class="bi bi-box-seam text-muted" style="font-size: 2rem;"></i>
+                                @endif
                             </div>
-                        @endforeach
+                            <h6 class="mb-0 small fw-semibold">{{ Str::limit($product->name, 25) }}
+                            </h6>
+                            @if ($item->flavor)
+                                <small class="text-muted">{{ $item->flavor->name }}</small>
+                            @endif
+                            <div class="mt-2">
+                                <span
+                                    class="fw-bold text-primary">₱{{ number_format($product->price, 2) }}</span>
+                                @if ($available <= 5)
+                                    <span class="badge bg-warning ms-1">Low Stock</span>
+                                @endif
+                            </div>
+                            <small class="text-muted">Stock: {{ $available }}</small>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endforeach
 
                         @if ($products->isEmpty())
                             <div class="text-center py-5">

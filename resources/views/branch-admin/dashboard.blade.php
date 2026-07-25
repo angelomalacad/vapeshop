@@ -296,7 +296,7 @@
 <body>
     <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-glass">
-    <div class="container-fluid px-4">
+    <div class="container">
         <a class="navbar-brand text-white fw-bold fs-4" href="{{ route('home') }}">
             <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="35" class="d-inline-block align-text-top me-2">
             <span style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape Expo</span>
@@ -439,7 +439,6 @@
                             <div class="col-md-6">
                                 <p class="branch-info-text"><i class="bi bi-telephone-fill text-primary me-2 fs-5"></i> <span class="branch-info-label">Contact:</span><br>{{ $branch->phone ?? '0960 328 0432' }}</p>
                                 <p class="branch-info-text"><i class="bi bi-person-badge-fill text-success me-2 fs-5"></i> <span class="branch-info-label">Staff:</span><br>{{ Auth::user()->name }}</p>
-                                <p class="branch-info-text"><i class="bi bi-calendar-event me-2 fs-5"></i> <span class="branch-info-label">Opened:</span><br>{{ $branch->opening_date ?? '2024' }}</p>
                             </div>
                         </div>
                     </div>

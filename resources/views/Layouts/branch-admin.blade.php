@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Branch Staff - Vape Expo')</title>
 
     <!-- Bootstrap 5 CSS -->
@@ -177,7 +178,6 @@
             font-size: 1.2rem;
             font-weight: 700;
         }
-
 
         /* Container inside main content */
         .main-content .container-fluid {
@@ -501,36 +501,36 @@
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-glass">
-        <div class="container-fluid px-4">
+<nav class="navbar navbar-expand-lg navbar-glass">
+    <div class="container-fluid px-4">
+        <!-- Left Side: Menu Button & Logo -->
+        <div class="d-flex align-items-center">
             <button type="button" id="sidebarCollapse" class="btn btn-light me-3">
                 <i class="bi bi-list"></i> Menu
             </button>
-            <a class="navbar-brand text-white fw-bold fs-4" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30"
-                    class="d-inline-block align-text-top me-2">
-                <span
-                    style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape
-                    Expo</span>
-                <small class="text-white-50 fs-6 ms-2">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
+            <a class="navbar-brand text-white fw-bold fs-4 d-flex align-items-center" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30" class="d-inline-block me-2">
+                <span style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape Expo</span>
+                <small class="text-white-50 fs-6 ms-2 fw-normal">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
             </a>
-
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text text-white me-3">
-                    <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} (Staff)
-                </span>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill"
-                        style="border-color: rgba(255,255,255,0.3);">
-                        <i class="bi bi-box-arrow-right me-1"></i> Logout
-                    </button>
-                </form>
-            </div>
         </div>
-    </nav>
 
-    <div class="wrapper">
+        <!-- Right Side: User Info & Logout (Properly Aligned) -->
+        <div class="d-flex align-items-center ms-auto">
+            <span class="navbar-text text-white me-3 d-flex align-items-center">
+                <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} <span class="badge bg-light text-dark ms-2 rounded-pill px-3 py-1 fw-normal" style="background: rgba(255,255,255,0.15) !important; color: white !important;">Staff</span>
+            </span>
+            <form method="POST" action="{{ route('logout') }}" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.3);">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="wrapper">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-sticky">
@@ -556,12 +556,6 @@
                             <i class="bi bi-box-seam"></i> Inventory
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('branch-admin.inventory.add-product') ? 'active' : '' }}"
-                           href="{{ route('branch-admin.inventory.add-product') }}">
-                            <i class="bi bi-plus-circle"></i> Add Stock
-                        </a>
-                    </li> --}}
 
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.stock-history') ? 'active' : '' }}"
@@ -583,40 +577,6 @@
                             <i class="bi bi-arrow-left-right"></i> All Transfers
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers', ['filter' => 'incoming']) ? 'active' : '' }}"
-                            href="{{ route('branch-admin.inventory.transfers', ['filter' => 'incoming']) }}">
-                            <i class="bi bi-download"></i> Incoming
-                            @php
-                                $pendingIncoming = \App\Models\StockTransfer::where(
-                                    'to_branch_id',
-                                    Auth::user()->branch_id,
-                                )
-                                    ->where('status', 'pending')
-                                    ->count();
-                            @endphp
-                            @if ($pendingIncoming > 0)
-                                <span class="badge bg-warning pending-badge ms-2">{{ $pendingIncoming }}</span>
-                            @endif
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers', ['filter' => 'outgoing']) ? 'active' : '' }}"
-                            href="{{ route('branch-admin.inventory.transfers', ['filter' => 'outgoing']) }}">
-                            <i class="bi bi-upload"></i> Outgoing
-                            @php
-                                $pendingOutgoing = \App\Models\StockTransfer::where(
-                                    'from_branch_id',
-                                    Auth::user()->branch_id,
-                                )
-                                    ->where('status', 'pending')
-                                    ->count();
-                            @endphp
-                            @if ($pendingOutgoing > 0)
-                                <span class="badge bg-warning pending-badge ms-2">{{ $pendingOutgoing }}</span>
-                            @endif
-                        </a>
-                    </li> --}}
 
                     <li class="sidebar-heading">PRODUCTS</li>
                     <li class="nav-item">
@@ -633,13 +593,13 @@
                     </li>
 
                     <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
-<li class="sidebar-heading">WAREHOUSE</li>
-<li class="nav-item">
-    <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
-        href="{{ route('branch-admin.warehouse.index') }}">
-        <i class="bi bi-house-door"></i> Warehouse Stock
-    </a>
-</li>
+                    <li class="sidebar-heading">WAREHOUSE</li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
+                            href="{{ route('branch-admin.warehouse.index') }}">
+                            <i class="bi bi-house-door"></i> Warehouse Stock
+                        </a>
+                    </li>
                     <!-- ===== END OF WAREHOUSE SECTION ===== -->
 
                     <li class="sidebar-heading">SALES</li>
@@ -773,70 +733,385 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- ============================================================ -->
+    <!-- NOTIFICATION SYSTEM - EMBEDDED DIRECTLY (Fixes routing issue) -->
+    <!-- ============================================================ -->
     <script>
-        // Sidebar toggle functionality
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const sidebarCollapse = document.getElementById('sidebarCollapse');
+    (function () {
+        // Add CSS only once
+        if (!document.querySelector('#admin-notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'admin-notification-styles';
+            style.textContent = `
+                .admin-notification-container {
+                    position: fixed;
+                    top: 24px;
+                    right: 24px;
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    pointer-events: none;
+                }
+                .admin-notification {
+                    pointer-events: auto;
+                    position: relative;
+                    width: 380px;
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                    overflow: hidden;
+                    animation: notificationSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+                .admin-notification-hide {
+                    animation: notificationSlideOut 0.3s ease forwards;
+                }
+                @keyframes notificationSlideIn {
+                    0% { transform: translateX(100%) scale(0.8); opacity: 0; }
+                    100% { transform: translateX(0) scale(1); opacity: 1; }
+                }
+                @keyframes notificationSlideOut {
+                    0% { transform: translateX(0) scale(1); opacity: 1; }
+                    100% { transform: translateX(100%) scale(0.8); opacity: 0; }
+                }
+                @keyframes progressShrink {
+                    from { width: 100%; }
+                    to { width: 0%; }
+                }
+                .admin-notification-inner {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    padding: 16px 18px;
+                }
+                .admin-notification-icon-wrapper {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                .admin-notification-icon-wrapper i { font-size: 1.4rem; }
+                .admin-notification-icon-wrapper.success { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+                .admin-notification-icon-wrapper.success i { color: #059669; }
+                .admin-notification-icon-wrapper.error { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
+                .admin-notification-icon-wrapper.error i { color: #dc2626; }
+                .admin-notification-icon-wrapper.warning { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); }
+                .admin-notification-icon-wrapper.warning i { color: #ea580c; }
+                .admin-notification-icon-wrapper.info { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+                .admin-notification-icon-wrapper.info i { color: #2563eb; }
+                .admin-notification-content { flex: 1; }
+                .admin-notification-title { font-size: 0.875rem; font-weight: 700; margin-bottom: 4px; }
+                .admin-notification.success .admin-notification-title { color: #059669; }
+                .admin-notification.error .admin-notification-title { color: #dc2626; }
+                .admin-notification.warning .admin-notification-title { color: #ea580c; }
+                .admin-notification.info .admin-notification-title { color: #2563eb; }
+                .admin-notification-message { font-size: 0.8rem; color: #475569; line-height: 1.4; }
+                .admin-notification-close {
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 8px;
+                    color: #94a3b8;
+                    flex-shrink: 0;
+                }
+                .admin-notification-close:hover { background: #f1f5f9; color: #475569; }
+                .admin-notification-close i { font-size: 0.9rem; }
+                .admin-notification-progress { height: 3px; width: 100%; animation: progressShrink 4s linear forwards; }
+                .admin-notification-progress.success { background: linear-gradient(90deg, #10b981, #34d399); }
+                .admin-notification-progress.error { background: linear-gradient(90deg, #ef4444, #f87171); }
+                .admin-notification-progress.warning { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+                .admin-notification-progress.info { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+                .is-invalid { border-color: #dc2626 !important; }
+                .invalid-feedback { display: block; width: 100%; margin-top: 0.25rem; font-size: 0.75rem; color: #dc2626; }
+                @media (max-width: 480px) {
+                    .admin-notification-container { top: 16px; right: 16px; left: 16px; }
+                    .admin-notification { width: auto; }
+                    .admin-notification-inner { padding: 12px 14px; gap: 10px; }
+                    .admin-notification-icon-wrapper { width: 34px; height: 34px; }
+                    .admin-notification-icon-wrapper i { font-size: 1.1rem; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            const icon = toggleBtn.querySelector('i');
-            if (sidebar.classList.contains('active')) {
-                icon.classList.remove('bi-chevron-left');
-                icon.classList.add('bi-chevron-right');
-            } else {
-                icon.classList.remove('bi-chevron-right');
-                icon.classList.add('bi-chevron-left');
+        // Global showNotification function
+        window.showNotification = function (message, type = 'success') {
+            let container = document.querySelector('.admin-notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'admin-notification-container';
+                document.body.appendChild(container);
             }
-        }
 
-        if (sidebarCollapse) {
-            sidebarCollapse.addEventListener('click', toggleSidebar);
-        }
+            const notification = document.createElement('div');
+            notification.className = `admin-notification admin-notification-${type}`;
 
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', toggleSidebar);
-        }
+            let icon = '';
+            let title = '';
 
-        // Store sidebar state in localStorage
-        const sidebarState = localStorage.getItem('sidebarState');
-        if (sidebarState === 'collapsed') {
-            sidebar.classList.add('active');
-            if (toggleBtn) {
-                const icon = toggleBtn.querySelector('i');
-                icon.classList.remove('bi-chevron-left');
-                icon.classList.add('bi-chevron-right');
+            switch (type) {
+                case 'success':
+                    icon = 'bi-check-circle-fill';
+                    title = 'Success';
+                    break;
+                case 'error':
+                    icon = 'bi-x-circle-fill';
+                    title = 'Error';
+                    break;
+                case 'warning':
+                    icon = 'bi-exclamation-triangle-fill';
+                    title = 'Warning';
+                    break;
+                case 'info':
+                    icon = 'bi-info-circle-fill';
+                    title = 'Info';
+                    break;
+                default:
+                    icon = 'bi-info-circle-fill';
+                    title = 'Notice';
+                    type = 'info';
             }
+
+            notification.innerHTML = `
+                <div class="admin-notification-inner">
+                    <div class="admin-notification-icon-wrapper ${type}">
+                        <i class="bi ${icon}"></i>
+                    </div>
+                    <div class="admin-notification-content">
+                        <div class="admin-notification-title">${title}</div>
+                        <div class="admin-notification-message">${message}</div>
+                    </div>
+                    <button class="admin-notification-close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="admin-notification-progress ${type}"></div>
+            `;
+
+            container.appendChild(notification);
+
+            const progressBar = notification.querySelector('.admin-notification-progress');
+            if (progressBar) {
+                progressBar.style.animation = 'progressShrink 4s linear forwards';
+            }
+
+            const dismissNotification = (notif) => {
+                notif.classList.add('admin-notification-hide');
+                setTimeout(() => {
+                    if (notif && notif.parentElement) {
+                        notif.remove();
+                    }
+                }, 300);
+            };
+
+            const timeoutId = setTimeout(() => {
+                dismissNotification(notification);
+            }, 4000);
+
+            const closeBtn = notification.querySelector('.admin-notification-close');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearTimeout(timeoutId);
+                dismissNotification(notification);
+            });
+
+            notification.addEventListener('click', (e) => {
+                if (e.target === notification || e.target.closest('.admin-notification-content')) {
+                    clearTimeout(timeoutId);
+                    dismissNotification(notification);
+                }
+            });
+
+            notification.addEventListener('mouseenter', () => {
+                if (progressBar) {
+                    progressBar.style.animationPlayState = 'paused';
+                }
+                clearTimeout(timeoutId);
+            });
+
+            notification.addEventListener('mouseleave', () => {
+                if (progressBar) {
+                    progressBar.style.animationPlayState = 'running';
+                }
+                const newTimeoutId = setTimeout(() => {
+                    dismissNotification(notification);
+                }, 2000);
+                notification._timeoutId = newTimeoutId;
+            });
+        };
+
+        console.log('✅ Admin Notification System embedded successfully!');
+    })();
+    </script>
+    <!-- ============================================================ -->
+    <!-- END OF NOTIFICATION SYSTEM EMBED                                 -->
+    <!-- ============================================================ -->
+
+    <!-- Global Functions for Modals -->
+    <script>
+    // Global function for edit modal submission
+    window.submitEditForm = function(id) {
+        console.log('submitEditForm called with id:', id);
+        const form = document.getElementById('editForm' + id);
+        if (!form) {
+            console.error('Form not found with id: editForm' + id);
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Form not found. Please refresh and try again.', 'error');
+            } else {
+                alert('Form not found. Please refresh and try again.');
+            }
+            return;
         }
 
-        // Save state when toggling
-        sidebar.addEventListener('transitionend', function() {
-            if (sidebar.classList.contains('active')) {
-                localStorage.setItem('sidebarState', 'collapsed');
+        // Disable button to prevent double submission
+        const submitBtn = form.querySelector('.btn-update');
+        if (!submitBtn) {
+            console.error('Submit button not found in form');
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Submit button not found.', 'error');
             } else {
-                localStorage.setItem('sidebarState', 'expanded');
+                alert('Submit button not found.');
+            }
+            return;
+        }
+        
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+        // Show processing notification
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Updating inventory settings...', 'info');
+        }
+
+        const formData = new FormData(form);
+        formData.append('_method', 'PUT');
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => {
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned non-JSON response. Please check your controller.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            if (data.success) {
+                // Show success notification
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(
+                        data.message || 'Inventory updated successfully!', 
+                        'success'
+                    );
+                } else {
+                    alert('Success: ' + (data.message || 'Inventory updated successfully!'));
+                }
+                
+                // Close modal
+                const modalElement = document.querySelector('.modal.show');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) modal.hide();
+                }
+                // Remove backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+                document.body.classList.remove('modal-open');
+
+                // RELOAD THE PAGE AFTER 1.5 SECONDS to show updated data
+                console.log('Reloading page in 1.5 seconds...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // Handle validation errors
+                if (data.errors) {
+                    // Clear previous errors
+                    document.querySelectorAll('.is-invalid').forEach(el => {
+                        el.classList.remove('is-invalid');
+                    });
+                    document.querySelectorAll('.invalid-feedback').forEach(el => {
+                        el.remove();
+                    });
+                    
+                    // Show new errors
+                    let errorMsg = '';
+                    for (const [field, errors] of Object.entries(data.errors)) {
+                        errorMsg += errors[0] + '\n';
+                        const input = document.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const feedback = document.createElement('div');
+                            feedback.className = 'invalid-feedback';
+                            feedback.innerText = errors[0];
+                            input.parentNode.insertBefore(feedback, input.nextSibling);
+                        }
+                    }
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(errorMsg || data.message || 'Validation failed', 'error');
+                    } else {
+                        alert('Validation Error: ' + errorMsg);
+                    }
+                } else {
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(data.message || 'Update failed', 'error');
+                    } else {
+                        alert('Error: ' + (data.message || 'Update failed'));
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            if (typeof window.showNotification === 'function') {
+                // Show a user-friendly error message
+                let errorMessage = 'Network error. Please try again.';
+                if (error.message.includes('non-JSON')) {
+                    errorMessage = 'Server error. Please check your controller.';
+                }
+                window.showNotification(errorMessage, 'error');
+            } else {
+                alert('Error: ' + error.message);
             }
         });
+    };
 
-        // Auto-collapse on mobile
-        if (window.innerWidth <= 768) {
-            sidebar.classList.add('active');
-            if (toggleBtn) {
-                const icon = toggleBtn.querySelector('i');
-                icon.classList.remove('bi-chevron-left');
-                icon.classList.add('bi-chevron-right');
+    // SIMPLE EVENT DELEGATION - Click handler at document level
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element or its parent has the .btn-update class and data-inventory-id attribute
+        const btn = e.target.closest('.btn-update[data-inventory-id]');
+        if (btn) {
+            e.preventDefault();
+            const id = btn.getAttribute('data-inventory-id');
+            console.log('Update button clicked for inventory ID:', id);
+            if (typeof window.submitEditForm === 'function') {
+                window.submitEditForm(id);
             }
         }
+    });
 
-        // Update low stock badge
-        document.addEventListener('DOMContentLoaded', function() {
-            const lowStockCount = {{ $lowStockCount ?? 0 }};
-            const badge = document.getElementById('lowStockBadge');
-            if (badge) {
-                badge.textContent = lowStockCount;
-            }
-        });
+    // Log to confirm script loaded
+    console.log('Modal edit script loaded successfully');
+    console.log('submitEditForm available:', typeof window.submitEditForm === 'function');
     </script>
 
     @stack('scripts')

@@ -1,151 +1,153 @@
 <!-- Modal content only - no layout -->
-<div class="modal-content">
-    <div class="modal-header bg-primary text-white">
+<div class="admin-modal-container">
+    <!-- Modal Header (Global UI) -->
+    <div class="modal-header-minimal">
         <h5 class="modal-title">
-            <i class="bi bi-arrow-left-right me-2"></i>Request Stock Transfer
+            <i class="bi bi-arrow-left-right"></i> Request Stock Transfer
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-body">
-        <form method="POST" action="{{ route('branch-admin.inventory.transfer.request') }}" id="transferForm">
-            @csrf
 
-            <div class="alert alert-info mb-4">
-                <i class="bi bi-info-circle me-2"></i>
-                You are requesting stock FROM 
-                <strong>
-                    @if(isset($preSelectedFromBranch) && $preSelectedFromBranch == '0')
-                        Main Warehouse
-                    @elseif(isset($preSelectedFromBranch) && $preSelectedFromBranch != '0')
-                        @php
-                            $sourceBranch = \App\Models\Branch::find($preSelectedFromBranch);
-                            echo $sourceBranch ? $sourceBranch->name : 'Another Branch';
-                        @endphp
-                    @elseif(isset($selectedProduct) && $selectedProduct && isset($selectedProduct->branch))
-                        {{ $selectedProduct->branch->name ?? 'Another Branch' }}
-                    @else
-                        Another branch
-                    @endif
-                </strong>
-                TO <strong>{{ $currentBranch->name ?? Auth::user()->branch->name }}</strong> (your branch)
-            </div>
+    <form method="POST" action="{{ route('branch-admin.inventory.transfer.request') }}" id="transferForm">
+        @csrf
 
-            <!-- Hidden fields for pre-selected data -->
-            @if(isset($preSelectedFromBranch))
-                <input type="hidden" name="from_branch_id" value="{{ $preSelectedFromBranch }}">
-            @endif
-
-            @if (isset($selectedProduct) && $selectedProduct)
-                <input type="hidden" name="product_id" value="{{ $selectedProduct->id }}">
-                @if (isset($selectedFlavor) && $selectedFlavor)
-                    <input type="hidden" name="flavor_id" value="{{ $selectedFlavor->id }}">
+        <div class="alert alert-info alert-minimal mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            You are requesting stock FROM 
+            <strong>
+                @if(isset($preSelectedFromBranch) && $preSelectedFromBranch == '0')
+                    Main Warehouse
+                @elseif(isset($preSelectedFromBranch) && $preSelectedFromBranch != '0')
+                    @php
+                        $sourceBranch = \App\Models\Branch::find($preSelectedFromBranch);
+                        echo $sourceBranch ? $sourceBranch->name : 'Another Branch';
+                    @endphp
+                @elseif(isset($selectedProduct) && $selectedProduct && isset($selectedProduct->branch))
+                    {{ $selectedProduct->branch->name ?? 'Another Branch' }}
+                @else
+                    Another branch
                 @endif
+            </strong>
+            TO <strong>{{ $currentBranch->name ?? Auth::user()->branch->name }}</strong> (your branch)
+        </div>
+
+        <!-- Hidden fields for pre-selected data -->
+        @if(isset($preSelectedFromBranch))
+            <input type="hidden" name="from_branch_id" value="{{ $preSelectedFromBranch }}">
+        @endif
+
+        @if (isset($selectedProduct) && $selectedProduct)
+            <input type="hidden" name="product_id" value="{{ $selectedProduct->id }}">
+            @if (isset($selectedFlavor) && $selectedFlavor)
+                <input type="hidden" name="flavor_id" value="{{ $selectedFlavor->id }}">
             @endif
+        @endif
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">From Branch (Source) <span class="text-danger">*</span></label>
-                    @if(isset($preSelectedFromBranch))
-                        @php
-                            $sourceBranchName = 'Main Warehouse';
-                            if($preSelectedFromBranch != '0') {
-                                $sourceBranch = \App\Models\Branch::find($preSelectedFromBranch);
-                                $sourceBranchName = $sourceBranch ? $sourceBranch->name : 'Branch';
-                            }
-                        @endphp
-                        <input type="text" class="form-control bg-light" value="{{ $sourceBranchName }}" readonly>
-                        <small class="text-muted">Source branch is pre-selected</small>
-                    @else
-                        <select name="from_branch_id" id="fromBranchSelect" class="form-select" required>
-                            <option value="">Select source branch...</option>
-                            <option value="0" {{ old('from_branch_id') == '0' ? 'selected' : '' }}>Main Warehouse</option>
-                            @foreach ($sourceBranches as $branch)
-                                <option value="{{ $branch->id }}"
-                                    {{ old('from_branch_id') == $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Select Main Warehouse or a branch that has the stock you need</small>
-                    @endif
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">To Branch (Destination) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control bg-light" 
-                           value="{{ Auth::user()->branch->name }} (Your Branch)" readonly>
-                    <input type="hidden" name="to_branch_id" value="{{ Auth::user()->branch_id }}">
-                    <small class="text-muted">Stock will be transferred to your branch</small>
-                </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label-minimal">From Branch (Source) <span class="text-danger">*</span></label>
+                @if(isset($preSelectedFromBranch))
+                    @php
+                        $sourceBranchName = 'Main Warehouse';
+                        if($preSelectedFromBranch != '0') {
+                            $sourceBranch = \App\Models\Branch::find($preSelectedFromBranch);
+                            $sourceBranchName = $sourceBranch ? $sourceBranch->name : 'Branch';
+                        }
+                    @endphp
+                    <input type="text" class="form-control-minimal bg-light" value="{{ $sourceBranchName }}" readonly>
+                    <small class="text-muted">Source branch is pre-selected</small>
+                @else
+                    <select name="from_branch_id" id="fromBranchSelect" class="form-select-minimal" required>
+                        <option value="">Select source branch...</option>
+                        <option value="0" {{ old('from_branch_id') == '0' ? 'selected' : '' }}>Main Warehouse</option>
+                        @foreach ($sourceBranches as $branch)
+                            <option value="{{ $branch->id }}"
+                                {{ old('from_branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Select Main Warehouse or a branch that has the stock you need</small>
+                @endif
             </div>
 
-            <!-- Product selection - hidden if pre-selected, otherwise show dropdown -->
-            @if (!isset($selectedProduct) || !$selectedProduct)
-                <div class="mb-3">
-                    <label class="form-label">Product <span class="text-danger">*</span></label>
-                    <select name="product_id" id="productSelect" class="form-select" required>
-                        <option value="">Select product...</option>
-                    </select>
-                </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label-minimal">To Branch (Destination) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control-minimal bg-light" 
+                       value="{{ Auth::user()->branch->name }} (Your Branch)" readonly>
+                <input type="hidden" name="to_branch_id" value="{{ Auth::user()->branch_id }}">
+                <small class="text-muted">Stock will be transferred to your branch</small>
+            </div>
+        </div>
 
+        <!-- Product selection - hidden if pre-selected, otherwise show dropdown -->
+        @if (!isset($selectedProduct) || !$selectedProduct)
+            <div class="mb-3">
+                <label class="form-label-minimal">Product <span class="text-danger">*</span></label>
+                <select name="product_id" id="productSelect" class="form-select-minimal" required>
+                    <option value="">Select product...</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="flavorContainer">
+                <label class="form-label-minimal">Variant <span class="text-danger" id="flavorRequired">*</span></label>
+                <select name="flavor_id" id="flavorSelect" class="form-select-minimal">
+                    <option value="">-- Select variant --</option>
+                </select>
+                <small class="text-muted" id="flavorHelp">Select a specific variant for this product</small>
+            </div>
+        @else
+            <div class="mb-3">
+                <label class="form-label-minimal">Product</label>
+                <input type="text" class="form-control-minimal bg-light" value="{{ $selectedProduct->name }}" readonly>
+            </div>
+            @if (isset($selectedFlavor) && $selectedFlavor)
+                <div class="mb-3">
+                    <label class="form-label-minimal">Variant</label>
+                    <input type="text" class="form-control-minimal bg-light" value="{{ $selectedFlavor->name }}" readonly>
+                </div>
+            @else
                 <div class="mb-3" id="flavorContainer">
-                    <label class="form-label">Variant <span class="text-danger" id="flavorRequired">*</span></label>
-                    <select name="flavor_id" id="flavorSelect" class="form-select">
+                    <label class="form-label-minimal">Variant <span class="text-danger" id="flavorRequired">*</span></label>
+                    <select name="flavor_id" id="flavorSelect" class="form-select-minimal">
                         <option value="">-- Select variant --</option>
                     </select>
                     <small class="text-muted" id="flavorHelp">Select a specific variant for this product</small>
                 </div>
-            @else
-                <div class="mb-3">
-                    <label class="form-label">Product</label>
-                    <input type="text" class="form-control bg-light" value="{{ $selectedProduct->name }}" readonly>
-                </div>
-                @if (isset($selectedFlavor) && $selectedFlavor)
-                    <div class="mb-3">
-                        <label class="form-label">Variant</label>
-                        <input type="text" class="form-control bg-light" value="{{ $selectedFlavor->name }}" readonly>
-                    </div>
-                @else
-                    <div class="mb-3" id="flavorContainer">
-                        <label class="form-label">Variant <span class="text-danger" id="flavorRequired">*</span></label>
-                        <select name="flavor_id" id="flavorSelect" class="form-select">
-                            <option value="">-- Select variant --</option>
-                        </select>
-                        <small class="text-muted" id="flavorHelp">Select a specific variant for this product</small>
-                    </div>
-                @endif
             @endif
+        @endif
 
-            <div class="mb-3">
-                <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                <input type="number" name="quantity" id="quantity" class="form-control" min="1"
-                    value="{{ isset($maxQuantity) && $maxQuantity > 0 ? 1 : 1 }}" required>
-                <small class="text-muted" id="availableStock">
-                    @if (isset($selectedProduct) && $selectedProduct && isset($maxQuantity))
-                        Max available: <strong class="text-primary">{{ $maxQuantity }}</strong> units
-                    @else
-                        Select source and product to check availability
-                    @endif
-                </small>
-            </div>
+        <div class="mb-3">
+            <label class="form-label-minimal">Quantity <span class="text-danger">*</span></label>
+            <input type="number" name="quantity" id="quantity" class="form-control-minimal" min="1"
+                value="{{ isset($maxQuantity) && $maxQuantity > 0 ? 1 : 1 }}" required>
+            <small class="text-muted" id="availableStock">
+                @if (isset($selectedProduct) && $selectedProduct && isset($maxQuantity))
+                    Max available: <strong class="text-primary">{{ $maxQuantity }}</strong> units
+                @else
+                    Select source and product to check availability
+                @endif
+            </small>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label">Notes (Optional)</label>
-                <textarea name="notes" class="form-control" rows="2" placeholder="Reason for transfer..."></textarea>
-            </div>
+        <div class="mb-3">
+            <label class="form-label-minimal">Notes (Optional)</label>
+            <textarea name="notes" class="form-control-minimal" rows="2" placeholder="Reason for transfer..."></textarea>
+        </div>
 
-            <div id="formError" class="alert alert-danger mt-3" style="display: none;">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <span id="errorMessage"></span>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" form="transferForm" class="btn btn-primary" id="submitBtn">
-            <i class="bi bi-send"></i> Submit Request
-        </button>
-    </div>
+        <div id="formError" class="alert alert-danger alert-minimal mt-3" style="display: none;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span id="errorMessage"></span>
+        </div>
+
+        <!-- Footer (Global UI, no modal-footer) -->
+        <div class="d-flex gap-2 mt-3">
+            <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" form="transferForm" class="btn-update" id="submitBtn" style="width: auto; padding: 0.5rem 1.25rem;">
+                <i class="bi bi-send"></i> Submit Request
+            </button>
+        </div>
+    </form>
 </div>
 
 <script>
@@ -505,14 +507,72 @@
             }
         }
 
-        // Form submit event
+        // ============================================================
+        // ADDED: GLOBAL NOTIFICATION FORM SUBMISSION (AJAX)
+        // ============================================================
+
+        // Form submit event with AJAX + Global Notification
         if (form) {
-            form.addEventListener('submit', function(e) {
+            // Clone form to prevent duplicate listeners
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+
+            newForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Validate first
                 if (!validateForm()) {
-                    e.preventDefault();
                     return false;
                 }
-                return true;
+
+                const formData = new FormData(this);
+
+                // Show processing notification
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Submitting transfer request...', 'info');
+                }
+
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification(data.message || 'Transfer request submitted successfully!', 'success');
+                        }
+                        // Close modal
+                        const modalElement = document.querySelector('.modal.show');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) modal.hide();
+                        }
+                        // Remove backdrop
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) backdrop.remove();
+                        document.body.classList.remove('modal-open');
+                        // Reload page after 1.5 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification(data.message || 'Failed to submit transfer request.', 'error');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('Network error. Please try again.', 'error');
+                    }
+                });
             });
         }
 

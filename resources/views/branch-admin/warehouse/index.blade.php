@@ -120,7 +120,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-0 fw-bold">
-                    <i class="bi bi-house-door me-2 text-primary"></i>Warehouse Stock Request
+                    <i class="bi bi-house-door me-2 text-primary"></i>Warehouse Stock
                 </h1>
                 <p class="text-muted small mb-0">Request additional stock from owner's warehouse</p>
             </div>
@@ -128,10 +128,10 @@
                 <a href="{{ route('branch-admin.inventory.stock-history') }}" class="btn btn-info rounded-pill px-4">
                     <i class="bi bi-clock-history me-2"></i>View Stock History
                 </a>
-                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
+                {{-- <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
                     data-bs-target="#requestModal">
                     <i class="bi bi-cart-plus me-2"></i>Request Stock
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -213,7 +213,7 @@
                                 <th class="ps-4">Product</th>
                                 <th>Flavor</th>
                                 <th>Expiration Date</th>
-                                <th class="pe-4 text-center">Action</th>
+                                {{-- <th class="pe-4 text-center">Action</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -236,13 +236,13 @@
                                             <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
-                                    <td class="pe-4 text-center">
+                                    {{-- <td class="pe-4 text-center">
                                         <button type="button" class="btn btn-sm btn-outline-primary rounded-pill"
                                             data-bs-toggle="modal"
                                             data-bs-target="#requestProductModal{{ $item->id }}">
                                             <i class="bi bi-cart-plus me-1"></i>Request
                                         </button>
-                                    </td>
+                                    </td> --}}
                                 </tr>
 
                                 <!-- Request Modal -->
