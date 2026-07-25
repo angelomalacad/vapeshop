@@ -74,8 +74,32 @@
 
         <!-- Products Grid - Shows ALL products from all branches -->
         <h4 class="mb-3 fw-bold"><i class="bi bi-grid-3x3-gap-fill"></i> All Products</h4>
+
         <div class="row g-4" id="productGrid">
+            @php
+                $currentCategory = '';
+            @endphp
+
             @forelse($groupedProducts as $productName => $variants)
+                
+                @php
+                    // Get the category of this product safely
+                    $firstVariant = $variants->first();
+                    $productCategory = $firstVariant['category'] ?? 'Other';
+                @endphp
+
+                <!-- ✅ Print Category Header only when category changes -->
+                @if($productCategory !== $currentCategory)
+                    @php $currentCategory = $productCategory; @endphp
+                    <div class="col-12 mb-2 mt-2">
+                        <h5 class="fw-semibold mb-3">
+                            <span class="category-badge bg-light px-3 py-2 rounded-pill">
+                                <i class="bi bi-tag me-1"></i> {{ $productCategory }}
+                            </span>
+                        </h5>
+                    </div>
+                @endif
+
                 <div class="col-lg-3 col-md-4 col-6 product-item" data-name="{{ strtolower($productName) }}">
                     <div class="card product-card h-100">
                         <div class="position-relative">
@@ -159,6 +183,13 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .category-badge {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
 @endsection
 
 @push('scripts')

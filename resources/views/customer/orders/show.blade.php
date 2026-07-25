@@ -341,22 +341,27 @@
                 </div>
 
                 <!-- Need Help Card -->
-                <div class="card shadow-sm border-0 mt-4">
-                    <div class="card-header bg-white fw-semibold">
-                        <i class="bi bi-question-circle me-2"></i> Need Help?
-                    </div>
-                    <div class="card-body text-center">
-                        <i class="bi bi-headset display-4 text-primary mb-3 d-block"></i>
-                        <p>Have questions about your order?</p>
-                        <button class="btn btn-outline-primary rounded-pill"
-                            onclick="location.href='mailto:support@vapeexpo.com'">
-                            <i class="bi bi-envelope me-1"></i> Contact Support
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-question-circle me-2"></i> Need Help?
     </div>
+    <div class="card-body text-center">
+        <i class="bi bi-headset display-4 text-primary mb-3 d-block"></i>
+        <p>Have questions about your order?</p>
+        <button class="btn btn-outline-primary rounded-pill" onclick="openGmail()">
+            <i class="bi bi-envelope me-1"></i> Contact Support
+        </button>
+    </div>
+</div>
+
+<script>
+    function openGmail() {
+        const email = 'vapeexpo2024@gmail.com';
+        const subject = encodeURIComponent('Customer Support Inquiry');
+        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}`;
+        window.open(url, '_blank');
+    }
+</script>
 
     <!-- Image Preview Modal -->
     <div id="imagePreviewModal"

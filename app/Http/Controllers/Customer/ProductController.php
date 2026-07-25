@@ -41,6 +41,7 @@ class ProductController extends Controller
                 'price' => $inv->product->price,
                 'available_quantity' => $inv->available_quantity,
                 'image' => $inv->product->image ?? null,
+                'category' => $inv->product->category,  // ✅ ADD THIS LINE
             ]);
         }
 
