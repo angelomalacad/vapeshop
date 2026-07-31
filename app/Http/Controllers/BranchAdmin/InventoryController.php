@@ -392,106 +392,113 @@ public function warehouseStock(Request $request)
     /**
      * Receive stock from warehouse (after owner approval)
      */
-    public function receiveWarehouseStock(StockTransfer $transfer)
-    {
-        $branchId = Auth::user()->branch_id;
+    public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
+{
+    $branchId = Auth::user()->branch_id;
 
-        // Verify this transfer belongs to this branch
-        if ($transfer->to_branch_id !== $branchId) {
-            abort(403, 'Unauthorized access.');
+    // Verify this transfer belongs to this branch
+    if ($transfer->to_branch_id !== $branchId) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+    }
+
+    if ($transfer->status !== 'approved') {
+        return response()->json(['success' => false, 'message' => 'Only approved transfers can be received.'], 400);
+    }
+
+    if ($transfer->transfer_type !== 'warehouse_to_branch') {
+        return response()->json(['success' => false, 'message' => 'Invalid transfer type.'], 400);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Update warehouse inventory (deduct stock)
+        $query = WarehouseInventory::where('product_id', $transfer->product_id);
+
+        if ($transfer->flavor_id) {
+            $query->where('flavor_id', $transfer->flavor_id);
+        } else {
+            $query->whereNull('flavor_id');
         }
 
-        if ($transfer->status !== 'approved') {
-            return redirect()->back()->with('error', 'Only approved transfers can be received.');
+        $warehouseItem = $query->first();
+
+        if ($warehouseItem) {
+            $warehouseItem->update([
+                'quantity' => $warehouseItem->quantity - $transfer->quantity
+            ]);
         }
 
-        if ($transfer->transfer_type !== 'warehouse_to_branch') {
-            return redirect()->back()->with('error', 'Invalid transfer type.');
-        }
+        // Add to branch inventory
+        $branchInventory = BranchInventory::where('branch_id', $branchId)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
 
-        DB::beginTransaction();
+        if ($branchInventory) {
+            $oldQuantity = $branchInventory->quantity;
+            $newQuantity = $oldQuantity + $transfer->quantity;
 
-        try {
-            // Update warehouse inventory (deduct stock)
-            $query = WarehouseInventory::where('product_id', $transfer->product_id);
-
-            if ($transfer->flavor_id) {
-                $query->where('flavor_id', $transfer->flavor_id);
-            } else {
-                $query->whereNull('flavor_id');
-            }
-
-            $warehouseItem = $query->first();
-
-            if ($warehouseItem) {
-                $warehouseItem->update([
-                    'quantity' => $warehouseItem->quantity - $transfer->quantity
-                ]);
-            }
-
-            // Add to branch inventory
-            $branchInventory = BranchInventory::where('branch_id', $branchId)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($branchInventory) {
-                $oldQuantity = $branchInventory->quantity;
-                $newQuantity = $oldQuantity + $transfer->quantity;
-
-                $branchInventory->update([
-                    'quantity' => $newQuantity,
-                    'last_restocked_at' => now(),
-                ]);
-            } else {
-                // Create new branch inventory if it doesn't exist
-                $branchInventory = BranchInventory::create([
-                    'branch_id' => $branchId,
-                    'product_id' => $transfer->product_id,
-                    'flavor_id' => $transfer->flavor_id,
-                    'quantity' => $transfer->quantity,
-                    'reserved_quantity' => 0,
-                    'low_stock_threshold' => 10,
-                    'reorder_point' => 20,
-                    'optimal_stock' => 50,
-                    'last_restocked_at' => now(),
-                ]);
-                $oldQuantity = 0;
-                $newQuantity = $transfer->quantity;
-            }
-
-            // Log stock movement for branch
-            StockMovement::create([
+            $branchInventory->update([
+                'quantity' => $newQuantity,
+                'last_restocked_at' => now(),
+            ]);
+        } else {
+            $branchInventory = BranchInventory::create([
                 'branch_id' => $branchId,
                 'product_id' => $transfer->product_id,
                 'flavor_id' => $transfer->flavor_id,
-                'previous_quantity' => $oldQuantity,
-                'new_quantity' => $newQuantity,
-                'quantity_change' => $transfer->quantity,
-                'movement_type' => 'warehouse_transfer_in',
-                'reference_type' => 'transfer',
-                'reference_id' => $transfer->id,
-                'notes' => 'Stock received from warehouse. Transfer #: ' . $transfer->transfer_number,
-                'created_by' => Auth::id(),
+                'quantity' => $transfer->quantity,
+                'reserved_quantity' => 0,
+                'low_stock_threshold' => 10,
+                'reorder_point' => 20,
+                'optimal_stock' => 50,
+                'last_restocked_at' => now(),
             ]);
-
-            // Update transfer status
-            $transfer->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('branch-admin.warehouse.index')
-                ->with('success', 'Stock received successfully and added to your inventory.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error receiving stock: ' . $e->getMessage());
+            $oldQuantity = 0;
+            $newQuantity = $transfer->quantity;
         }
+
+        // Log stock movement for branch
+        StockMovement::create([
+            'branch_id' => $branchId,
+            'product_id' => $transfer->product_id,
+            'flavor_id' => $transfer->flavor_id,
+            'previous_quantity' => $oldQuantity,
+            'new_quantity' => $newQuantity,
+            'quantity_change' => $transfer->quantity,
+            'movement_type' => 'warehouse_transfer_in',
+            'reference_type' => 'transfer',
+            'reference_id' => $transfer->id,
+            'notes' => 'Stock received from warehouse. Transfer #: ' . $transfer->transfer_number,
+            'created_by' => Auth::id(),
+        ]);
+
+        // Update transfer status
+        $transfer->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        DB::commit();
+
+        // ✅ ALWAYS RETURN JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock received successfully and added to your inventory.'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error receiving stock: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error receiving stock: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Show form to add product to inventory (for a specific product from catalog)
@@ -873,6 +880,9 @@ public function transfers(Request $request)
     $branchId = Auth::user()->branch_id;
     $activeTab = $request->get('tab', 'all');
     $filter = $request->get('filter', 'all');
+    $statusFilter = $request->get('status', ''); 
+    $dateFrom = $request->get('date_from', '');   // ✅ NEW: Date From
+    $dateTo = $request->get('date_to', '');       // ✅ NEW: Date To
 
     $query = StockTransfer::with([
             'fromBranch',
@@ -883,14 +893,11 @@ public function transfers(Request $request)
             'approvedBy'
         ]);
 
+    // 1. Apply Tab Filter (All / Warehouse / Branch) - UNTOUCHED
     if ($activeTab == 'warehouse') {
-        // MAIN WAREHOUSE TAB - ONLY transfers FROM warehouse TO this branch
-        // from_branch_id is NULL AND to_branch_id is current branch
         $query->whereNull('from_branch_id')
               ->where('to_branch_id', $branchId);
-
     } elseif ($activeTab == 'branch') {
-        // BRANCH TO BRANCH TAB - EXCLUDE warehouse transfers
         $query->whereNotNull('from_branch_id')
               ->where('transfer_type', 'branch_to_branch');
 
@@ -905,17 +912,32 @@ public function transfers(Request $request)
             });
         }
     } else {
-        // ALL TRANSFERS TAB - Show everything related to this branch
+        // All Transfers Tab - Show everything related to this branch
         $query->where(function($q) use ($branchId) {
-            // Incoming: to_branch_id is current branch
             $q->where('to_branch_id', $branchId)
-              // Outgoing: from_branch_id is current branch
               ->orWhere('from_branch_id', $branchId);
         });
     }
 
+    // ✅ NEW: Apply Status Filter (if provided)
+    if (!empty($statusFilter) && in_array($statusFilter, ['pending', 'approved', 'completed', 'cancelled'])) {
+        $query->where('status', $statusFilter);
+    }
+
+    // ✅ NEW: Apply Date Range Filters
+    if (!empty($dateFrom)) {
+        $query->whereDate('created_at', '>=', $dateFrom);
+    }
+
+    if (!empty($dateTo)) {
+        $query->whereDate('created_at', '<=', $dateTo);
+    }
+
     // Debug: Log the SQL query (remove after testing)
     \Log::info('Active Tab: ' . $activeTab);
+    \Log::info('Status Filter: ' . $statusFilter);
+    \Log::info('Date From: ' . $dateFrom);
+    \Log::info('Date To: ' . $dateTo);
     \Log::info('SQL: ' . $query->toSql());
     \Log::info('Bindings: ', $query->getBindings());
 
@@ -1230,79 +1252,105 @@ public function getWarehouseProducts(Request $request)
      * Approve a transfer (for SOURCE branch - the one sending stock)
      */
     public function approveTransfer(StockTransfer $transfer)
-    {
-        $branchId = Auth::user()->branch_id;
+{
+    $branchId = Auth::user()->branch_id;
 
-        if ($transfer->from_branch_id !== $branchId) {
-            abort(403, 'Unauthorized access. Only the source branch can approve transfers.');
-        }
-
-        if ($transfer->status !== 'pending') {
-            return redirect()->back()->with('error', 'Only pending transfers can be approved.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $transfer->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer approved successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error approving transfer: ' . $e->getMessage());
-        }
+    if ($transfer->from_branch_id !== $branchId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access. Only the source branch can approve transfers.'
+        ], 403);
     }
+
+    if ($transfer->status !== 'pending') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Only pending transfers can be approved.'
+        ], 400);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $transfer->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer approved successfully.'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error approving transfer: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Reject a transfer (for SOURCE branch - the one sending stock)
      */
     public function rejectTransfer(StockTransfer $transfer)
-    {
-        $branchId = Auth::user()->branch_id;
+{
+    $branchId = Auth::user()->branch_id;
 
-        if ($transfer->from_branch_id !== $branchId) {
-            abort(403, 'Unauthorized access. Only the source branch can reject transfers.');
-        }
-
-        if ($transfer->status !== 'pending') {
-            return redirect()->back()->with('error', 'Only pending transfers can be rejected.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($sourceInventory) {
-                $sourceInventory->update([
-                    'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
-                ]);
-            }
-
-            $transfer->update([
-                'status' => 'cancelled',
-                'notes' => $transfer->notes . ' | Rejected by source branch'
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer rejected successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error rejecting transfer: ' . $e->getMessage());
-        }
+    if ($transfer->from_branch_id !== $branchId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access. Only the source branch can reject transfers.'
+        ], 403);
     }
+
+    if ($transfer->status !== 'pending') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Only pending transfers can be rejected.'
+        ], 400);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($sourceInventory) {
+            $sourceInventory->update([
+                'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
+            ]);
+        }
+
+        $transfer->update([
+            'status' => 'cancelled',
+            'notes' => $transfer->notes . ' | Rejected by source branch'
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer rejected successfully.'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error rejecting transfer: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
    /**
  * Complete a transfer (for DESTINATION branch - the one receiving stock)
@@ -1312,17 +1360,22 @@ public function completeTransfer(StockTransfer $transfer)
     $branchId = Auth::user()->branch_id;
 
     if ($transfer->to_branch_id !== $branchId) {
-        abort(403, 'Unauthorized access. Only the destination branch can complete transfers.');
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access. Only the destination branch can complete transfers.'
+        ], 403);
     }
 
     if ($transfer->status !== 'approved') {
-        return redirect()->back()->with('error', 'Only approved transfers can be completed.');
+        return response()->json([
+            'success' => false,
+            'message' => 'Only approved transfers can be completed.'
+        ], 400);
     }
 
     DB::beginTransaction();
 
     try {
-        // Handle source inventory (only for branch-to-branch transfers)
         $sourceInventory = null;
         if ($transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
@@ -1340,7 +1393,6 @@ public function completeTransfer(StockTransfer $transfer)
             }
         }
 
-        // Handle destination inventory
         $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
             ->where('product_id', $transfer->product_id)
             ->when($transfer->flavor_id, function($query) use ($transfer) {
@@ -1370,9 +1422,7 @@ public function completeTransfer(StockTransfer $transfer)
             ]);
         }
 
-        // Record stock movement for source (only if from_branch exists and not warehouse)
         if ($sourceInventory && $transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
-            $fromBranchName = $transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown Branch';
             StockMovement::create([
                 'branch_id' => $transfer->from_branch_id,
                 'product_id' => $transfer->product_id,
@@ -1388,8 +1438,6 @@ public function completeTransfer(StockTransfer $transfer)
             ]);
         }
 
-        // Record stock movement for destination - SAFE with null checks
-        $toBranchName = $transfer->toBranch ? $transfer->toBranch->name : 'Your Branch';
         $fromSourceName = ($transfer->transfer_type == 'warehouse_to_branch') ? 'Main Warehouse' : ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown');
 
         StockMovement::create([
@@ -1415,59 +1463,77 @@ public function completeTransfer(StockTransfer $transfer)
 
         DB::commit();
 
-        return redirect()->back()->with('success', 'Transfer completed successfully. Stock has been added to your inventory.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer completed successfully. Stock has been added to your inventory.'
+        ]);
+
     } catch (\Exception $e) {
         DB::rollBack();
         \Log::error('Error completing transfer: ' . $e->getMessage());
-        \Log::error('Transfer ID: ' . $transfer->id);
-        return redirect()->back()->with('error', 'Error completing transfer: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error completing transfer: ' . $e->getMessage()
+        ], 500);
     }
 }
     /**
      * Cancel transfer (for the requester)
      */
     public function cancelTransfer(StockTransfer $transfer)
-    {
-        $branchId = Auth::user()->branch_id;
+{
+    $branchId = Auth::user()->branch_id;
 
-        $isRequester = ($transfer->requested_by == Auth::user()->id);
-        $isSourceBranch = ($transfer->from_branch_id == $branchId);
+    $isRequester = ($transfer->requested_by == Auth::user()->id);
+    $isSourceBranch = ($transfer->from_branch_id == $branchId);
 
-        if (!$isRequester && !$isSourceBranch) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        if ($transfer->status !== 'pending') {
-            return redirect()->back()->with('error', 'Only pending transfers can be cancelled.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $inventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($inventory) {
-                $inventory->update([
-                    'reserved_quantity' => $inventory->reserved_quantity - $transfer->quantity
-                ]);
-            }
-
-            $transfer->update(['status' => 'cancelled']);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer cancelled successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error cancelling transfer: ' . $e->getMessage());
-        }
+    if (!$isRequester && !$isSourceBranch) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized access.'
+        ], 403);
     }
 
+    if ($transfer->status !== 'pending') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Only pending transfers can be cancelled.'
+        ], 400);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $inventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($inventory) {
+            $inventory->update([
+                'reserved_quantity' => $inventory->reserved_quantity - $transfer->quantity
+            ]);
+        }
+
+        $transfer->update(['status' => 'cancelled']);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transfer cancelled successfully.'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Error cancelling transfer: ' . $e->getMessage()
+        ], 500);
+    }
+}
     /**
      * Remove the specified inventory item.
      */

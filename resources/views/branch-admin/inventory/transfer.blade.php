@@ -20,7 +20,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('branch-admin.inventory.transfer.request') }}">
+                <form method="POST" action="{{ route('branch-admin.inventory.transfer.request') }}" id="transferForm">
                     @csrf
 
                     <div class="alert alert-info mb-4">
@@ -90,7 +90,7 @@
                         <a href="{{ route('branch-admin.inventory.index') }}" class="btn btn-secondary">
                             <i class="bi bi-x-circle"></i> Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="bi bi-send"></i> Submit Request
                         </button>
                     </div>
@@ -314,6 +314,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 productSelect.dispatchEvent(new Event('change'));
             }, 500);
         }
+    }
+
+    // ============================================================
+    // ADDED: AJAX FORM SUBMISSION WITH GLOBAL NOTIFICATION
+    // ============================================================
+
+    const transferForm = document.getElementById('transferForm');
+    if (transferForm) {
+        transferForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get the submit button
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Disable button to prevent double submission
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+
+            // Collect form data
+            const formData = new FormData(this);
+
+            // Show processing notification
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Submitting transfer request...', 'info');
+            }
+
+            // Send AJAX request
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+
+                if (data.success) {
+                    // Show success notification
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(data.message || 'Transfer request submitted successfully!', 'success');
+                    }
+
+                    // Redirect to transfers page after 1.5 seconds
+                    setTimeout(() => {
+                        window.location.href = "{{ route('branch-admin.inventory.transfers') }}";
+                    }, 1500);
+                } else {
+                    // Show error notification
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(data.message || 'Failed to submit transfer request.', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Network error. Please try again.', 'error');
+                }
+            });
+        });
     }
 });
 </script>
