@@ -141,6 +141,7 @@
                             <td><code>{{ $transfer->transfer_number }}</code></td>
                             <td>{{ $transfer->created_at->format('M d, Y') }}</td>
                             
+                            <!-- FROM Column -->
                             <td>
                                 @if(is_null($transfer->from_branch_id))
                                     <span class="fw-semibold text-primary">
@@ -156,6 +157,7 @@
                                 @endif
                             </td>
                             
+                            <!-- TO Column -->
                             <td>
                                 @if($transfer->toBranch)
                                     <i class="bi bi-shop me-1"></i> {{ $transfer->toBranch->name }}
@@ -171,6 +173,7 @@
                             <td>{{ $transfer->flavor->name ?? 'N/A' }}</td>
                             <td><strong>{{ number_format($transfer->quantity) }}</strong></td>
                             
+                            <!-- Status Badge -->
                             <td>
                                 @php
                                     $statusColors = [
@@ -200,12 +203,13 @@
                                 @endif
                             </td>
 
+                            <!-- Actions -->
                             <td>
                                 <div class="btn-group btn-group-sm">
+                                    <!-- Warehouse Transfer Actions (only incoming) -->
                                     @if(is_null($transfer->from_branch_id))
                                         @if($transfer->to_branch_id == Auth::user()->branch_id)
                                             @if($transfer->status == 'approved')
-                                                <!-- ✅ FIXED: Points to InventoryController via correct route -->
                                                 <form action="{{ route('branch-admin.inventory.transfers.complete', $transfer) }}" method="POST" class="d-inline transfer-action-form">
                                                     @csrf
                                                     <button type="submit" class="btn btn-success btn-sm" title="Receive Stock">
@@ -217,6 +221,7 @@
                                             @endif
                                         @endif
                                     @else
+                                        <!-- Branch to Branch Transfer Actions -->
                                         @if($transfer->from_branch_id == Auth::user()->branch_id)
                                             @if($transfer->status == 'pending')
                                                 <form action="{{ route('branch-admin.inventory.transfers.approve', $transfer) }}" method="POST" class="d-inline transfer-action-form">
@@ -248,6 +253,7 @@
                                         @endif
                                     @endif
                                     
+                                    <!-- Cancel for own requests -->
                                     @if($transfer->requested_by == Auth::user()->id && $transfer->status == 'pending')
                                         <form action="{{ route('branch-admin.inventory.transfers.cancel', $transfer) }}" method="POST" class="d-inline transfer-action-form">
                                             @csrf
@@ -283,6 +289,7 @@
                 </table>
             </div>
             
+            <!-- Pagination -->
             @if(method_exists($transfers, 'hasPages') && $transfers->hasPages())
                 <div class="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
                     <div class="text-muted small">
@@ -328,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(this);
 
-            // ✅ Force X-Requested-With to ensure Laravel knows it's AJAX
             fetch(this.action, {
                 method: 'POST',
                 headers: {
@@ -341,10 +347,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => {
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    // If server returned HTML, reload the current page
+                    // Server returned HTML — show a friendly error notification
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
-                    window.location.reload();
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification('The server encountered an error. Please refresh and try again.', 'error');
+                    }
                     return;
                 }
                 return response.json();
@@ -359,10 +367,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (typeof window.showNotification === 'function') {
                         window.showNotification(data.message || 'Action completed successfully!', 'success');
                     }
-                    
-                    // ✅ FORCE REDIRECT TO TRANSFERS LIST PAGE
                     setTimeout(() => {
-                        window.location.href = "{{ route('branch-admin.inventory.transfers') }}";
+                        window.location.reload();
                     }, 1500);
                 } else {
                     if (typeof window.showNotification === 'function') {
