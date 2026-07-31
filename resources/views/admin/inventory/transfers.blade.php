@@ -798,5 +798,106 @@
             }
         });
     });
+
+    // ============ GLOBAL NOTIFICATIONS FOR APPROVE/REJECT/COMPLETE/CANCEL/DELETE ============
+    document.addEventListener('DOMContentLoaded', function() {
+        // Approve Form
+        document.getElementById('approveForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleModalAction(this, 'approve');
+        });
+
+        // Reject Form
+        document.getElementById('rejectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleModalAction(this, 'reject');
+        });
+
+        // Complete Form
+        document.getElementById('completeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleModalAction(this, 'complete');
+        });
+
+        // Cancel Form
+        document.getElementById('cancelForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleModalAction(this, 'cancel');
+        });
+
+        // Delete Form
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleModalAction(this, 'delete');
+        });
+    });
+
+    function handleModalAction(form, actionName) {
+        // Show processing notification
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Processing ' + actionName + ' request...', 'info');
+        }
+
+        // Get the submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.innerHTML : 'Submit';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+        }
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Re-enable button
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+
+            // Close the modal
+            const modalElement = form.closest('.modal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+
+            if (data.success) {
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(data.message || actionName.charAt(0).toUpperCase() + actionName.slice(1) + ' completed successfully!', 'success');
+                }
+                
+                // Reload the page with filters preserved
+                setTimeout(() => {
+                    const currentUrl = new URL(window.location.href);
+                    window.location.href = currentUrl.toString();
+                }, 1500);
+            } else {
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification(data.message || actionName.charAt(0).toUpperCase() + actionName.slice(1) + ' failed.', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Network error. Please try again.', 'error');
+            }
+        });
+    }
 </script>
 @endsection

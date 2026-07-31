@@ -785,43 +785,207 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
     /**
      * Approve a transfer
      */
-    public function approveTransfer(StockTransfer $transfer)
-    {
-        if ($transfer->status !== 'pending') {
-            return redirect()->back()->with('error', 'Only pending transfers can be approved.');
+    public function approveTransfer(Request $request, StockTransfer $transfer)
+{
+    if ($transfer->status !== 'pending') {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only pending transfers can be approved.'], 400);
         }
-
-        DB::beginTransaction();
-
-        try {
-            $transfer->update([
-                'status' => 'approved',
-                'approved_by' => Auth::id(),
-                'approved_at' => now(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer approved successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error approving transfer: ' . $e->getMessage());
-        }
+        return redirect()->back()->with('error', 'Only pending transfers can be approved.');
     }
+
+    DB::beginTransaction();
+
+    try {
+        $transfer->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_at' => now(),
+        ]);
+
+        DB::commit();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Transfer approved successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Transfer approved successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Error approving transfer: ' . $e->getMessage()], 500);
+        }
+        return redirect()->back()->with('error', 'Error approving transfer: ' . $e->getMessage());
+    }
+}
 
     /**
      * Reject a transfer
      */
-    public function rejectTransfer(StockTransfer $transfer)
-    {
-        if ($transfer->status !== 'pending') {
-            return redirect()->back()->with('error', 'Only pending transfers can be rejected.');
+    public function rejectTransfer(Request $request, StockTransfer $transfer)
+{
+    if ($transfer->status !== 'pending') {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only pending transfers can be rejected.'], 400);
+        }
+        return redirect()->back()->with('error', 'Only pending transfers can be rejected.');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($sourceInventory) {
+            $sourceInventory->update([
+                'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
+            ]);
         }
 
-        DB::beginTransaction();
+        $transfer->update([
+            'status' => 'cancelled',
+            'notes' => $transfer->notes . ' | Rejected by super admin'
+        ]);
 
-        try {
-            // Release reserved stock at source branch
+        DB::commit();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Transfer rejected successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Transfer rejected successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Error rejecting transfer: ' . $e->getMessage()], 500);
+        }
+        return redirect()->back()->with('error', 'Error rejecting transfer: ' . $e->getMessage());
+    }
+}
+    /**
+     * Complete a transfer
+     */
+    public function completeTransfer(Request $request, StockTransfer $transfer)
+{
+    if ($transfer->status !== 'approved') {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only approved transfers can be completed.'], 400);
+        }
+        return redirect()->back()->with('error', 'Only approved transfers can be completed.');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($sourceInventory) {
+            $sourceInventory->update([
+                'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity,
+                'quantity' => $sourceInventory->quantity - $transfer->quantity,
+            ]);
+        }
+
+        $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
+            ->where('product_id', $transfer->product_id)
+            ->when($transfer->flavor_id, function($query) use ($transfer) {
+                return $query->where('flavor_id', $transfer->flavor_id);
+            })
+            ->first();
+
+        if ($destInventory) {
+            $destInventory->update([
+                'quantity' => $destInventory->quantity + $transfer->quantity,
+                'last_restocked_at' => now(),
+            ]);
+        } else {
+            $destInventory = BranchInventory::create([
+                'branch_id' => $transfer->to_branch_id,
+                'product_id' => $transfer->product_id,
+                'flavor_id' => $transfer->flavor_id,
+                'quantity' => $transfer->quantity,
+                'reserved_quantity' => 0,
+                'low_stock_threshold' => 10,
+                'reorder_point' => 20,
+                'optimal_stock' => 50,
+                'last_restocked_at' => now(),
+            ]);
+        }
+
+        StockMovement::create([
+            'branch_id' => $transfer->from_branch_id,
+            'product_id' => $transfer->product_id,
+            'flavor_id' => $transfer->flavor_id,
+            'previous_quantity' => $sourceInventory ? $sourceInventory->quantity + $transfer->quantity : 0,
+            'new_quantity' => $sourceInventory ? $sourceInventory->quantity : 0,
+            'quantity_change' => -$transfer->quantity,
+            'movement_type' => 'transfer_out',
+            'reference_type' => 'transfer',
+            'reference_id' => $transfer->id,
+            'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Unknown Branch'),
+            'created_by' => Auth::id(),
+        ]);
+
+        StockMovement::create([
+            'branch_id' => $transfer->to_branch_id,
+            'product_id' => $transfer->product_id,
+            'flavor_id' => $transfer->flavor_id,
+            'previous_quantity' => $destInventory->quantity - $transfer->quantity,
+            'new_quantity' => $destInventory->quantity,
+            'quantity_change' => $transfer->quantity,
+            'movement_type' => 'transfer_in',
+            'reference_type' => 'transfer',
+            'reference_id' => $transfer->id,
+            'notes' => 'Transfer from ' . ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown Branch'),
+            'created_by' => Auth::id(),
+        ]);
+
+        $transfer->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        DB::commit();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Transfer completed successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Transfer completed successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Error completing transfer: ' . $e->getMessage()], 500);
+        }
+        return redirect()->back()->with('error', 'Error completing transfer: ' . $e->getMessage());
+    }
+}
+    /**
+     * Cancel a transfer
+     */
+    public function cancelTransfer(Request $request, StockTransfer $transfer)
+{
+    if (!in_array($transfer->status, ['pending', 'approved'])) {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only pending or approved transfers can be cancelled.'], 400);
+        }
+        return redirect()->back()->with('error', 'Only pending or approved transfers can be cancelled.');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        if (in_array($transfer->status, ['pending', 'approved'])) {
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
                 ->where('product_id', $transfer->product_id)
                 ->when($transfer->flavor_id, function($query) use ($transfer) {
@@ -829,181 +993,54 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
                 })
                 ->first();
 
-            if ($sourceInventory) {
+            if ($sourceInventory && $sourceInventory->reserved_quantity >= $transfer->quantity) {
                 $sourceInventory->update([
                     'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
                 ]);
             }
-
-            $transfer->update([
-                'status' => 'cancelled',
-                'notes' => $transfer->notes . ' | Rejected by super admin'
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer rejected successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error rejecting transfer: ' . $e->getMessage());
         }
+
+        $transfer->update([
+            'status' => 'cancelled',
+            'notes' => $transfer->notes . ' | Cancelled by super admin'
+        ]);
+
+        DB::commit();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Transfer cancelled successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Transfer cancelled successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Error cancelling transfer: ' . $e->getMessage()], 500);
+        }
+        return redirect()->back()->with('error', 'Error cancelling transfer: ' . $e->getMessage());
     }
-
-    /**
-     * Complete a transfer
-     */
-    public function completeTransfer(StockTransfer $transfer)
-    {
-        if ($transfer->status !== 'approved') {
-            return redirect()->back()->with('error', 'Only approved transfers can be completed.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Remove from source branch reserved stock and actual stock
-            $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($sourceInventory) {
-                $sourceInventory->update([
-                    'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity,
-                    'quantity' => $sourceInventory->quantity - $transfer->quantity,
-                ]);
-            }
-
-            // Add to destination branch
-            $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
-                ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
-                    return $query->where('flavor_id', $transfer->flavor_id);
-                })
-                ->first();
-
-            if ($destInventory) {
-                $destInventory->update([
-                    'quantity' => $destInventory->quantity + $transfer->quantity,
-                    'last_restocked_at' => now(),
-                ]);
-            } else {
-                // Create new inventory record if it doesn't exist
-                $destInventory = BranchInventory::create([
-                    'branch_id' => $transfer->to_branch_id,
-                    'product_id' => $transfer->product_id,
-                    'flavor_id' => $transfer->flavor_id,
-                    'quantity' => $transfer->quantity,
-                    'reserved_quantity' => 0,
-                    'low_stock_threshold' => 10,
-                    'reorder_point' => 20,
-                    'optimal_stock' => 50,
-                    'last_restocked_at' => now(),
-                ]);
-            }
-
-            // Log movements
-            StockMovement::create([
-                'branch_id' => $transfer->from_branch_id,
-                'product_id' => $transfer->product_id,
-                'flavor_id' => $transfer->flavor_id,
-                'previous_quantity' => $sourceInventory ? $sourceInventory->quantity + $transfer->quantity : 0,
-                'new_quantity' => $sourceInventory ? $sourceInventory->quantity : 0,
-                'quantity_change' => -$transfer->quantity,
-                'movement_type' => 'transfer_out',
-                'reference_type' => 'transfer',
-                'reference_id' => $transfer->id,
-                'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Unknown Branch'),
-                'created_by' => Auth::id(),
-            ]);
-
-            StockMovement::create([
-                'branch_id' => $transfer->to_branch_id,
-                'product_id' => $transfer->product_id,
-                'flavor_id' => $transfer->flavor_id,
-                'previous_quantity' => $destInventory->quantity - $transfer->quantity,
-                'new_quantity' => $destInventory->quantity,
-                'quantity_change' => $transfer->quantity,
-                'movement_type' => 'transfer_in',
-                'reference_type' => 'transfer',
-                'reference_id' => $transfer->id,
-                'notes' => 'Transfer from ' . ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown Branch'),
-                'created_by' => Auth::id(),
-            ]);
-
-            $transfer->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer completed successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error completing transfer: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Cancel a transfer
-     */
-    public function cancelTransfer(StockTransfer $transfer)
-    {
-        if (!in_array($transfer->status, ['pending', 'approved'])) {
-            return redirect()->back()->with('error', 'Only pending or approved transfers can be cancelled.');
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Release reserved stock if still pending/approved
-            if (in_array($transfer->status, ['pending', 'approved'])) {
-                $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
-                    ->where('product_id', $transfer->product_id)
-                    ->when($transfer->flavor_id, function($query) use ($transfer) {
-                        return $query->where('flavor_id', $transfer->flavor_id);
-                    })
-                    ->first();
-
-                if ($sourceInventory && $sourceInventory->reserved_quantity >= $transfer->quantity) {
-                    $sourceInventory->update([
-                        'reserved_quantity' => $sourceInventory->reserved_quantity - $transfer->quantity
-                    ]);
-                }
-            }
-
-            $transfer->update([
-                'status' => 'cancelled',
-                'notes' => $transfer->notes . ' | Cancelled by super admin'
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Transfer cancelled successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Error cancelling transfer: ' . $e->getMessage());
-        }
-    }
-
+}
     /**
      * Delete a transfer
      */
-    public function destroyTransfer(StockTransfer $transfer)
-    {
-        if ($transfer->status !== 'cancelled' && $transfer->status !== 'completed') {
-            return redirect()->back()
-                ->with('error', 'Only cancelled or completed transfers can be deleted.');
+    public function destroyTransfer(Request $request, StockTransfer $transfer)
+{
+    if ($transfer->status !== 'cancelled' && $transfer->status !== 'completed') {
+        if ($request->ajax()) {
+            return response()->json(['success' => false, 'message' => 'Only cancelled or completed transfers can be deleted.'], 400);
         }
-
-        $transfer->delete();
-
-        return redirect()->route('admin.inventory.transfers')
-            ->with('success', 'Transfer deleted successfully.');
+        return redirect()->back()->with('error', 'Only cancelled or completed transfers can be deleted.');
     }
+
+    $transfer->delete();
+
+    if ($request->ajax()) {
+        return response()->json(['success' => true, 'message' => 'Transfer deleted successfully.']);
+    }
+
+    return redirect()->route('admin.inventory.transfers')
+        ->with('success', 'Transfer deleted successfully.');
+}
 
     /**
      * Get inventory summary for dashboard
