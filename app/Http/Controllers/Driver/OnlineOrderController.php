@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
 
 class OnlineOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $todayShift = DriverShift::where('shift_date', today())
             ->where('status', 'active')
@@ -28,10 +28,26 @@ class OnlineOrderController extends Controller
         }
 
         $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
-            ->whereNotIn('order_status', ['cancelled'])
-            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
+            ->whereNotIn('order_status', ['cancelled']);
+
+        // ✅ NEW: Status filter
+        if ($request->filled('status')) {
+            $orders->where('order_status', $request->status);
+        }
+
+        // ✅ NEW: Date From filter
+        if ($request->filled('date_from')) {
+            $orders->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        // ✅ NEW: Date To filter
+        if ($request->filled('date_to')) {
+            $orders->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $orders = $orders->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(5);
 
         $counts = [
             'pending' => Order::where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
@@ -152,6 +168,9 @@ class OnlineOrderController extends Controller
                     ]);
                 }
             }
+
+            // Record the time when the driver started the delivery
+            $order->delivered_at = now();
 
             $order->update(['order_status' => 'out_for_delivery']);
 

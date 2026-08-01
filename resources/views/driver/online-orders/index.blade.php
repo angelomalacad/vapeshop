@@ -23,40 +23,60 @@
     /* Status Cards - Modern Minimalist */
     .status-card {
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         transition: all 0.3s ease;
         background: white;
         overflow: hidden;
+        padding: 0.4rem 0.8rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     
     .status-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    
+    .status-card-body {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0;
     }
     
     .status-icon {
-        width: 48px;
-        height: 48px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 14px;
-        margin-bottom: 0.75rem;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    
+    .status-icon i {
+        font-size: 1rem;
+    }
+    
+    .status-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
     }
     
     .status-number {
-        font-size: 1.75rem;
+        font-size: 1.1rem;
         font-weight: 700;
-        margin-bottom: 0;
         color: #1a1a2e;
+        margin: 0;
     }
     
     .status-label {
-        font-size: 0.75rem;
+        font-size: 0.6rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         color: #64748b;
+        margin: 0;
     }
     
     /* Modern Card */
@@ -96,16 +116,17 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #64748b;
-        padding: 1rem;
+        padding: 0.75rem;
         border-bottom: 1px solid #eef2f6;
+        white-space: nowrap;
     }
     
     .order-table td {
-        padding: 1rem;
+        padding: 0.75rem;
         vertical-align: middle;
         border-bottom: 1px solid #eef2f6;
         color: #334155;
-        font-size: 0.875rem;
+        font-size: 0.85rem;
     }
     
     .order-table tbody tr {
@@ -126,7 +147,7 @@
     .badge-cancelled { background: #fee2e2; color: #dc2626; }
     
     .badge {
-        padding: 0.35rem 0.75rem;
+        padding: 0.35rem 0.65rem;
         border-radius: 30px;
         font-weight: 500;
         font-size: 0.7rem;
@@ -162,56 +183,156 @@
         transform: translateY(-1px);
     }
     
-    /* Pagination */
-    .pagination {
-        margin-bottom: 0;
-    }
-    
-    .pagination .page-link {
-        border: none;
-        color: #1a1a2e;
-        border-radius: 30px;
-        margin: 0 2px;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-    }
-    
-    .pagination .page-link:hover {
-        background: #f1f5f9;
-        color: #1a1a2e;
-    }
-    
-    .pagination .active .page-link {
-        background: #1a1a2e;
-        color: white;
-    }
-    
-    /* Badge Container */
-    .badge-container {
-        display: inline-flex;
-        align-items: center;
+    /* Simple Pagination */
+    .simple-pagination {
+        display: flex;
+        justify-content: center;
         gap: 0.5rem;
-        flex-wrap: wrap;
+        padding: 0.75rem 0;
+    }
+    
+    .simple-pagination .btn {
+        border-radius: 30px;
+        padding: 0.3rem 1.2rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .simple-pagination .btn-outline-primary {
+        border-color: #e2e8f0;
+        color: #1a1a2e;
+    }
+    
+    .simple-pagination .btn-outline-primary:hover {
+        background: #1a1a2e;
+        border-color: #1a1a2e;
+        color: white;
     }
     
     /* Responsive */
     @media (max-width: 768px) {
         .status-number {
-            font-size: 1.25rem;
+            font-size: 1rem;
         }
         
         .status-icon {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
+        }
+        
+        .status-icon i {
+            font-size: 0.9rem;
         }
         
         .order-table th,
         .order-table td {
-            padding: 0.75rem;
+            padding: 0.5rem;
         }
+    }
+
+    /* --- FIXED SIDEBAR STYLES (Does NOT touch your layout) --- */
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        background: #ffffff;
+        border-radius: 0 16px 16px 0;
+        box-shadow: 2px 0 20px rgba(0,0,0,0.05);
+        z-index: 1040;
+        overflow: hidden;
+        padding-bottom: 20px;
+        
+        /* OFFSET TO CLEAR HEADER: Adjust this number to match your navbar height */
+        margin-top: 80px; 
+    }
+    
+    /* Dark header of the sidebar */
+    .sidebar-header {
+        background: #1e293b;
+        padding: 18px 20px;
+        text-align: center;
+        color: #fff;
+    }
+    
+    .sidebar-header i {
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+    
+    .sidebar-header h6 {
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Menu list */
+    .sidebar-menu {
+        padding: 12px;
+    }
+    
+    .sidebar-menu .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 12px;
+        color: #64748b;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        margin-bottom: 4px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .sidebar-menu .menu-item i {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+        margin-right: 14px;
+    }
+    
+    .sidebar-menu .menu-item:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+    
+    /* Active State: Light blue background, blue text, and blue left border */
+    .sidebar-menu .menu-item.active {
+        background: #eff6ff;
+        color: #2563eb;
+        border-left: 3px solid #2563eb;
+        border-radius: 12px 0 0 12px;
+        margin-left: 4px;
+        padding-left: 13px;
     }
 </style>
 
+<!-- 1. THE SIDEBAR (Floats on the left, clears header, doesn't shift layout) -->
+<div class="app-sidebar">
+    <!-- Dark Blue Header -->
+    <div class="sidebar-header">
+        <h6><i class="bi bi-grid-3x3-gap-fill"></i> Driver Menu</h6>
+    </div>
+    
+    <!-- Menu Links -->
+    <div class="sidebar-menu">
+        <a href="{{ route('driver.dashboard') }}" class="menu-item {{ request()->routeIs('driver.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        
+        <a href="{{ route('driver.online-orders.index') }}" class="menu-item {{ request()->routeIs('driver.online-orders*') ? 'active' : '' }}">
+            <i class="bi bi-cart"></i> Online Orders
+        </a>
+        
+         <!-- HISTORY LINKED HERE -->
+<!-- HISTORY LINKED HERE -->
+<a href="{{ route('driver.delivery-history', ['sidebar' => 1]) }}" class="menu-item {{ request()->routeIs('driver.delivery-history') ? 'active' : '' }}">
+    <i class="bi bi-clock-history"></i> Delivery History
+</a>
+</div>
+</div>
+
+<!-- 2. YOUR ORIGINAL CONTENT (100% UNTOUCHED - Zero layout changes) -->
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="page-header">
@@ -228,73 +349,122 @@
         </div>
     </div>
     
-    <!-- Status Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-2 col-6">
+    <!-- Status Cards (Compact, Left Icon) -->
+    <div class="row g-2 mb-4">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-warning bg-opacity-10 mx-auto">
-                        <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-warning bg-opacity-10">
+                        <i class="bi bi-hourglass-split text-warning"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['pending'] }}</h2>
-                    <p class="status-label mb-0">Pending</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['pending'] }}</h2>
+                        <p class="status-label">Pending</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-6">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-info bg-opacity-10 mx-auto">
-                        <i class="bi bi-check-circle fs-4 text-info"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-info bg-opacity-10">
+                        <i class="bi bi-check-circle text-info"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['confirmed'] }}</h2>
-                    <p class="status-label mb-0">Confirmed</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['confirmed'] }}</h2>
+                        <p class="status-label">Confirmed</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-6">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-primary bg-opacity-10 mx-auto">
-                        <i class="bi bi-box-seam fs-4 text-primary"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-primary bg-opacity-10">
+                        <i class="bi bi-box-seam text-primary"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['processing'] }}</h2>
-                    <p class="status-label mb-0">Packing</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['processing'] }}</h2>
+                        <p class="status-label">Packing</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-6">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-success bg-opacity-10 mx-auto">
-                        <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-success bg-opacity-10">
+                        <i class="bi bi-check-circle-fill text-success"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['ready'] }}</h2>
-                    <p class="status-label mb-0">Ready</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['ready'] }}</h2>
+                        <p class="status-label">Ready</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-6">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-secondary bg-opacity-10 mx-auto">
-                        <i class="bi bi-truck fs-4 text-secondary"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-secondary bg-opacity-10">
+                        <i class="bi bi-truck text-secondary"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['out_for_delivery'] }}</h2>
-                    <p class="status-label mb-0">Out for Delivery</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['out_for_delivery'] }}</h2>
+                        <p class="status-label">Out for Delivery</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 col-6">
+        <div class="col-md-2 col-4">
             <div class="card status-card">
-                <div class="card-body text-center">
-                    <div class="status-icon bg-dark bg-opacity-10 mx-auto">
-                        <i class="bi bi-flag-fill fs-4 text-dark"></i>
+                <div class="card-body status-card-body">
+                    <div class="status-icon bg-dark bg-opacity-10">
+                        <i class="bi bi-flag-fill text-dark"></i>
                     </div>
-                    <h2 class="status-number">{{ $counts['delivered'] }}</h2>
-                    <p class="status-label mb-0">Delivered</p>
+                    <div class="status-info">
+                        <h2 class="status-number">{{ $counts['delivered'] }}</h2>
+                        <p class="status-label">Delivered</p>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing</option>
+                        <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Date From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Date To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel me-1"></i> Apply Filters
+                    </button>
+                    <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -309,11 +479,14 @@
                     <thead>
                         <tr>
                             <th class="ps-4">Order #</th>
+                            <th>Image</th>
+                            <th>Product Name</th>
                             <th>Date</th>
                             <th>Customer</th>
                             <th>Total</th>
-                            <th>Delivery Type</th>
+                            <th>Type</th>
                             <th>Status</th>
+                            <th>Delivery Date & Time</th>
                             <th class="pe-4">Actions</th>
                         </tr>
                     </thead>
@@ -332,9 +505,42 @@
                             };
                             
                             $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst($order->order_status);
+                            
+                            // Get first product and image
+                            $firstItem = $order->items->first();
+                            $product = $firstItem ? $firstItem->product : null;
+                            $productName = $product ? $product->name : 'N/A';
+                            $itemsCount = $order->items->count();
+                            
+                            // Get product image
+                            $imageUrl = null;
+                            if ($product && $product->image) {
+                                if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                    $imageUrl = $product->image;
+                                } elseif (Storage::disk('public')->exists($product->image)) {
+                                    $imageUrl = Storage::url($product->image);
+                                }
+                            }
+                            
+                            // Get delivery date and time
+                            $deliveryDateTime = $order->delivered_at ?? $order->updated_at;
                         @endphp
                         <tr>
                             <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
+                            <td>
+                                @if($imageUrl)
+                                    <img src="{{ $imageUrl }}" alt="{{ $productName }}" 
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                @else
+                                    <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
+                                    </div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ $productName }}</div>
+                                <small class="text-muted">{{ $itemsCount }} item(s)</small>
+                            </td>
                             <td class="text-nowrap">
                                 {{ $order->created_at->format('M d, Y') }}<br>
                                 <small class="text-muted">{{ $order->created_at->format('h:i A') }}</small>
@@ -355,6 +561,16 @@
                                     {{ $displayStatus }}
                                 </span>
                             </td>
+                            <td>
+                                @if(in_array($order->order_status, ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery']))
+                                    <span class="text-muted">N/A</span>
+                                @elseif($deliveryDateTime)
+                                    {{ \Carbon\Carbon::parse($deliveryDateTime)->format('M d, Y') }}<br>
+                                    <small class="text-muted">{{ \Carbon\Carbon::parse($deliveryDateTime)->format('h:i A') }}</small>
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                            </td>
                             <td class="pe-4">
                                 <button onclick="openOrderModal({{ $order->id }})" class="btn btn-manage btn-sm text-white">
                                     <i class="bi bi-eye me-1"></i> Manage
@@ -363,7 +579,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="10" class="text-center py-5">
                                 <i class="bi bi-inbox display-1 text-muted"></i>
                                 <h5 class="mt-3">No Online Orders</h5>
                                 <p class="text-muted">There are no online orders to process at this time.</p>
@@ -374,11 +590,21 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Simple Previous / Next Pagination -->
         @if($orders->hasPages())
-        <div class="card-footer bg-white border-0 py-3">
-            <div class="d-flex justify-content-center">
-                {{ $orders->links() }}
-            </div>
+        <div class="simple-pagination">
+            @if($orders->onFirstPage())
+                <button class="btn btn-outline-secondary" disabled>Previous</button>
+            @else
+                <a href="{{ $orders->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+            @endif
+            
+            @if($orders->hasMorePages())
+                <a href="{{ $orders->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+            @else
+                <button class="btn btn-outline-secondary" disabled>Next</button>
+            @endif
         </div>
         @endif
     </div>

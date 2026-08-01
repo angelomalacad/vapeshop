@@ -148,27 +148,27 @@
     }
     
     .btn-view {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: auto !important;
-    background: #eff6ff;
-    color: #3b82f6;
-    border: 1px solid #dbeafe;
-    border-radius: 12px;
-    padding: 0.4rem 1rem;
-    font-size: 0.7rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: auto !important;
+        background: #eff6ff;
+        color: #3b82f6;
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        padding: 0.4rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
 
-.btn-view:hover {
-    background: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-    transform: translateY(-1px);
-}
+    .btn-view:hover {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+        transform: translateY(-1px);
+    }
     
     /* Pagination */
     .pagination {
@@ -239,7 +239,8 @@
         }
     }
 
-    /* --- DRIVER MENU SIDEBAR STYLES (Added without touching your layout) --- */
+    /* --- SIDEBAR STYLES (Only applied if sidebar is active) --- */
+    @if(request()->get('sidebar') == 1)
     .app-sidebar {
         position: fixed;
         top: 0;
@@ -251,7 +252,7 @@
         z-index: 1040;
         overflow: hidden;
         padding-bottom: 20px;
-        margin-top: 80px; /* Adjust this if your navbar is taller/shorter */
+        margin-top: 80px;
     }
     
     .sidebar-header {
@@ -309,9 +310,11 @@
         margin-left: 4px;
         padding-left: 13px;
     }
+    @endif
 </style>
 
-<!-- 1. THE DRIVER MENU SIDEBAR (Floats on the left, clears header) -->
+<!-- 1. THE SIDEBAR (Wrapped in a check - Only shows if sidebar=1) -->
+@if(request()->get('sidebar') == 1)
 <div class="app-sidebar">
     <!-- Dark Blue Header -->
     <div class="sidebar-header">
@@ -328,14 +331,16 @@
             <i class="bi bi-cart"></i> Online Orders
         </a>
         
-        <a href="{{ route('driver.delivery-history') }}" class="menu-item {{ request()->routeIs('driver.delivery-history') ? 'active' : '' }}">
-            <i class="bi bi-clock-history"></i>Delivery History
+        <!-- History link is active now -->
+        <a href="{{ route('driver.delivery-history', ['sidebar' => 1]) }}" class="menu-item active">
+            <i class="bi bi-clock-history"></i> Delivery History
         </a>
     </div>
 </div>
+@endif
 
-<!-- 2. YOUR ORIGINAL CONTENT (100% UNTOUCHED - Layout, paddings, margins, and containers are EXACTLY as you wrote them) -->
-<div class="container">
+<!-- 2. YOUR ORIGINAL CONTENT -->
+<div class="container-fluid">
     <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
@@ -441,10 +446,10 @@
             </table>
         </div>
         
-        <!-- Pagination for Active Deliveries -->
+        <!-- ✅ Pagination for Active Deliveries (5 per page) -->
         @if($activeDeliveries->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $activeDeliveries->links() }}
+            {{ $activeDeliveries->appends(['completed_page' => request('completed_page')])->links('pagination::bootstrap-5') }}
         </div>
         @endif
     </div>
@@ -542,10 +547,10 @@
             </table>
         </div>
         
-        <!-- Pagination for Completed Deliveries -->
+        <!-- ✅ Pagination for Completed Deliveries (5 per page) -->
         @if($completedDeliveries->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $completedDeliveries->links() }}
+            {{ $completedDeliveries->appends(['active_page' => request('active_page')])->links('pagination::bootstrap-5') }}
         </div>
         @endif
     </div>

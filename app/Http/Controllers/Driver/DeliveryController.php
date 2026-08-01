@@ -280,5 +280,44 @@ public function index(Request $request)
             'recentOnlineOrders'
         ));
     }
- 
+     /**
+     * Display the driver's delivery history (Active & Completed)
+     */
+    public function deliveryHistory(Request $request)
+    {
+        $driverId = Auth::id();
+
+        // Fetch Active Deliveries
+        $activeDeliveries = Delivery::where('driver_id', $driverId)
+            ->whereNotIn('status', ['delivered', 'failed'])
+            ->with(['order.items.product', 'order.branch'])
+            ->orderBy('assigned_at', 'desc')
+            ->paginate(5, ['*'], 'active_page');
+
+        // Fetch Completed Deliveries
+        $completedDeliveries = Delivery::where('driver_id', $driverId)
+            ->whereIn('status', ['delivered', 'failed'])
+            ->with(['order.items.product', 'order.branch'])
+            ->orderBy('delivered_at', 'desc')
+            ->paginate(5, ['*'], 'completed_page');
+
+        // Counts for the header stats
+        $activeCount = Delivery::where('driver_id', $driverId)
+            ->whereNotIn('status', ['delivered', 'failed'])
+            ->count();
+
+        $completedCount = Delivery::where('driver_id', $driverId)
+            ->whereIn('status', ['delivered', 'failed'])
+            ->count();
+
+        $totalDeliveries = $activeCount + $completedCount;
+
+        return view('driver.deliveries.delivery-history', compact(
+        'activeDeliveries', 
+        'completedDeliveries', 
+        'activeCount', 
+        'completedCount', 
+        'totalDeliveries'
+    ));
+    }
 }

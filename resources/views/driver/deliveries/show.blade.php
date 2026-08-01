@@ -294,6 +294,76 @@
     <div class="row g-3">
         <!-- LEFT COLUMN -->
         <div class="col-md-6">
+            <!-- ✅ MOVED TO TOP: Order Items Card -->
+            <div class="info-card">
+                <div class="card-header-minimal">
+                    <h6><i class="bi bi-box-seam"></i> Order Items</h6>
+                </div>
+                <div class="card-body-minimal p-0">
+                    @if($delivery->order && $delivery->order->items->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Price</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($delivery->order->items as $item)
+                                    @php
+                                        $product = $item->product;
+                                        $imageUrl = null;
+                                        if ($product && $product->image) {
+                                            if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                                $imageUrl = $product->image;
+                                            } elseif (Storage::disk('public')->exists($product->image)) {
+                                                $imageUrl = Storage::url($product->image);
+                                            }
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            @if($imageUrl)
+                                                <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'N/A' }}" 
+                                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                            @else
+                                                <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            {{ $item->product->name ?? 'N/A' }}
+                                            @if($item->flavor)
+                                                <br><small class="text-muted">{{ $item->flavor->name }}</small>
+                                            @endif
+                                        </td>
+                                        <td>{{ $item->quantity }}</td>
+                                        <td>₱{{ number_format($item->price, 2) }}</td>
+                                        <td>₱{{ number_format($item->subtotal, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="bg-light">
+                                    <tr>
+                                        <th colspan="4" class="text-end">Total</th>
+                                        <th class="text-success">₱{{ number_format($delivery->order->total_amount, 2) }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-3">
+                            <p class="text-muted small mb-0">No items found</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <!-- Delivery Information Card -->
             <div class="info-card">
                 <div class="card-header-minimal">

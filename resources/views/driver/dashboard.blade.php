@@ -100,163 +100,171 @@
         <div class="row g-4 mb-4">
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm action-card">
-                    <div class="card-body py-5 text-center">
-                        <div class="action-icon-wrapper mb-3">
-                            <i class="bi bi-cart display-3 text-primary"></i>
+                    <div class="card-body py-3 text-center">
+                        <div class="action-icon-wrapper mb-2">
+                            <i class="bi bi-cart display-5 text-primary"></i>
                         </div>
-                        <h4 class="mb-2 fw-semibold">Online Orders</h4>
-                        <p class="text-muted mb-4">View and process customer orders</p>
-                        <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-primary rounded-pill px-4 py-2">
-                            Manage Orders <i class="bi bi-arrow-right ms-2"></i>
+                        <h5 class="mb-1 fw-semibold">Online Orders</h5>
+                        <p class="text-muted mb-3 small">View and process customer orders</p>
+                        <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-1 btn-sm">
+                            Manage Orders <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm action-card">
-                    <div class="card-body py-5 text-center">
-                        <div class="action-icon-wrapper mb-3">
-                            <i class="bi bi-truck display-3 text-success"></i>
+                    <div class="card-body py-3 text-center">
+                        <div class="action-icon-wrapper mb-2">
+                            <i class="bi bi-truck display-5 text-success"></i>
                         </div>
-                        <h4 class="mb-2 fw-semibold">My Deliveries</h4>
-                        <p class="text-muted mb-4">Track and update your deliveries</p>
-                        <a href="{{ route('driver.deliveries') }}" class="btn btn-outline-success rounded-pill px-4 py-2">
-                            View Deliveries <i class="bi bi-arrow-right ms-2"></i>
+                        <h5 class="mb-1 fw-semibold">My Delivery History</h5>
+                        <p class="text-muted mb-3 small">Track delivered Items</p>
+                        <!-- ✅ This link points to driver.delivery-history -->
+                        <a href="{{ route('driver.delivery-history') }}" class="btn btn-outline-success rounded-pill px-3 py-1 btn-sm">
+                            View History <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Online Orders Section -->
-        <div class="card border-0 shadow-sm modern-card mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
-                <h5 class="mb-0 fw-semibold">
-                    <i class="bi bi-cart me-2 text-primary"></i> Recent Online Orders
-                </h5>
-                <a href="{{ route('driver.online-orders.index') }}" class="btn btn-sm btn-outline-primary rounded-pill">
-                    View All <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4">Order #</th>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th>Total</th>
-                                <th>Delivery Type</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentOnlineOrders ?? [] as $order)
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'warning',
-                                        'confirmed' => 'info',
-                                        'processing' => 'primary',
-                                        'ready' => 'success',
-                                        'out_for_delivery' => 'secondary',
-                                        'delivered' => 'dark',
-                                        'cancelled' => 'danger',
-                                    ];
-                                    $badgeColor = $statusColors[$order->order_status] ?? 'secondary';
-                                @endphp
-                                <tr>
-                                    <td class="ps-4"><code>{{ $order->order_number }}</code></td>
-                                    <td class="text-nowrap">{{ $order->created_at->format('M d, Y h:i A') }}</td>
-                                    <td>
-                                        <div class="fw-semibold">{{ $order->customer_name }}</div>
-                                        <small class="text-muted">{{ $order->customer_phone }}</small>
-                                    </td>
-                                    <td><strong>₱{{ number_format($order->total_amount, 2) }}</strong></td>
-                                    <td>
-                                        <span class="badge bg-{{ $order->delivery_type == 'delivery' ? 'info' : 'success' }} bg-opacity-10 text-dark">
-                                            <i class="bi bi-{{ $order->delivery_type == 'delivery' ? 'truck' : 'building' }} me-1"></i>
-                                            {{ ucfirst($order->delivery_type) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ $badgeColor }}">
-                                            {{ ucfirst($order->order_status) }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-5">
-                                        <i class="bi bi-inbox display-1 text-muted"></i>
-                                        <h5 class="mt-3">No Recent Orders</h5>
-                                        <p class="text-muted">No online orders have been placed recently.</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @if (isset($recentOnlineOrders) && $recentOnlineOrders->count() > 0)
-                <div class="card-footer bg-white text-center py-2 border-0">
-                    <small class="text-muted">Showing last {{ $recentOnlineOrders->count() }} orders</small>
-                </div>
-            @endif
-        </div>
-
-        <!-- Recent Deliveries -->
+        <!-- ✅ NEW: Recent Activity with Tabs -->
         <div class="card border-0 shadow-sm modern-card">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+            <div class="card-header bg-white py-3 border-0">
                 <h5 class="mb-0 fw-semibold">
-                    <i class="bi bi-clock-history me-2 text-primary"></i> Recent Deliveries
+                    <i class="bi bi-clock-history me-2 text-primary"></i> Recent Activity
                 </h5>
-                <a href="{{ route('driver.deliveries') }}" class="btn btn-sm btn-outline-primary rounded-pill">
-                    View All <i class="bi bi-arrow-right ms-1"></i>
-                </a>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4">Tracking #</th>
-                                <th>Order #</th>
-                                <th>Customer</th>
-                                <th>Status</th>
-                                <th>Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentDeliveries ?? [] as $delivery)
-                                <tr>
-                                    <td class="ps-4"><code>{{ $delivery->tracking_number }}</code></td>
-                                    <td class="text-nowrap">{{ $delivery->order->order_number ?? 'N/A' }}</td>
-                                    <td>{{ $delivery->recipient_name }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ $delivery->status == 'delivered' ? 'success' : ($delivery->status == 'in_transit' ? 'warning' : 'info') }}">
-                                            {{ ucfirst($delivery->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="text-nowrap">{{ $delivery->updated_at->diffForHumans() }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-5">
-                                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
-                                        <p class="text-muted mb-0">No recent deliveries</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs px-3 pt-3 border-0" id="recentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">
+                            <i class="bi bi-cart me-1"></i> Recent Online Orders
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="deliveries-tab" data-bs-toggle="tab" data-bs-target="#deliveries" type="button" role="tab" aria-controls="deliveries" aria-selected="false">
+                            <i class="bi bi-truck me-1"></i> Recent Deliveries
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tabs Content -->
+                <div class="tab-content" id="recentTabsContent">
+                    <!-- Recent Online Orders Tab -->
+                    <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Order #</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Delivery Type</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($recentOnlineOrders ?? [] as $order)
+                                        @php
+                                            $statusColors = [
+                                                'pending' => 'warning',
+                                                'confirmed' => 'info',
+                                                'processing' => 'primary',
+                                                'ready' => 'success',
+                                                'out_for_delivery' => 'secondary',
+                                                'delivered' => 'dark',
+                                                'cancelled' => 'danger',
+                                            ];
+                                            $badgeColor = $statusColors[$order->order_status] ?? 'secondary';
+                                        @endphp
+                                        <tr>
+                                            <td class="ps-4"><code>{{ $order->order_number }}</code></td>
+                                            <td class="text-nowrap">{{ $order->created_at->format('M d, Y h:i A') }}</td>
+                                            <td>
+                                                <div class="fw-semibold">{{ $order->customer_name }}</div>
+                                                <small class="text-muted">{{ $order->customer_phone }}</small>
+                                            </td>
+                                            <td><strong>₱{{ number_format($order->total_amount, 2) }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ $order->delivery_type == 'delivery' ? 'info' : 'success' }} bg-opacity-10 text-dark">
+                                                    <i class="bi bi-{{ $order->delivery_type == 'delivery' ? 'truck' : 'building' }} me-1"></i>
+                                                    {{ ucfirst($order->delivery_type) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ $badgeColor }}">
+                                                    {{ ucfirst($order->order_status) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <i class="bi bi-inbox display-1 text-muted"></i>
+                                                <h5 class="mt-3">No Recent Orders</h5>
+                                                <p class="text-muted">No online orders have been placed recently.</p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        @if (isset($recentOnlineOrders) && $recentOnlineOrders->count() > 0)
+                            <div class="bg-white text-center py-2 border-top">
+                                <small class="text-muted">Showing last {{ $recentOnlineOrders->count() }} orders</small>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Recent Deliveries Tab -->
+                    <div class="tab-pane fade" id="deliveries" role="tabpanel" aria-labelledby="deliveries-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Tracking #</th>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($recentDeliveries ?? [] as $delivery)
+                                        <tr>
+                                            <td class="ps-4"><code>{{ $delivery->tracking_number }}</code></td>
+                                            <td class="text-nowrap">{{ $delivery->order->order_number ?? 'N/A' }}</td>
+                                            <td>{{ $delivery->recipient_name }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ $delivery->status == 'delivered' ? 'success' : ($delivery->status == 'in_transit' ? 'warning' : 'info') }}">
+                                                    {{ ucfirst($delivery->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-nowrap">{{ $delivery->updated_at->diffForHumans() }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5">
+                                                <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                                                <p class="text-muted mb-0">No recent deliveries</p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        @if (isset($recentDeliveries) && $recentDeliveries->count() > 0)
+                            <div class="bg-white text-center py-2 border-top">
+                                <small class="text-muted">Showing last {{ $recentDeliveries->count() }} deliveries</small>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
-            @if (isset($recentDeliveries) && $recentDeliveries->count() > 0)
-                <div class="card-footer bg-white text-center py-2 border-0">
-                    <small class="text-muted">Showing last {{ $recentDeliveries->count() }} deliveries</small>
-                </div>
-            @endif
         </div>
     </div>
 

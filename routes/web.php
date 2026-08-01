@@ -534,7 +534,8 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
 Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('driver.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Driver\DeliveryController::class, 'dashboard'])->name('dashboard');
-
+    // ✅ ADD THIS LINE RIGHT HERE (Pointing to DeliveryController):
+    Route::get('/delivery-history', [App\Http\Controllers\Driver\DeliveryController::class, 'deliveryHistory'])->name('delivery-history');
     // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\Driver\OnlineOrderController::class, 'index'])->name('index');
