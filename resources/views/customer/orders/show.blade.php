@@ -31,10 +31,31 @@
                                     @foreach ($order->items as $item)
                                         <tr>
                                             <td>
-                                                {{ $item->product->name }}
-                                                @if ($item->flavor)
-                                                    <br><small class="text-muted">Flavor: {{ $item->flavor->name }}</small>
-                                                @endif
+                                                <div class="d-flex align-items-center">
+                                                    @php
+                                                        $inventory = \App\Models\BranchInventory::with('product')->find($item->inventory_id);
+                                                        $imageUrl = null;
+                                                        if ($inventory && $inventory->product && $inventory->product->image) {
+                                                            $imageUrl = \Storage::url($inventory->product->image);
+                                                        }
+                                                    @endphp
+                                                    
+                                                    @if($imageUrl)
+                                                        <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" 
+                                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
+                                                    @else
+                                                        <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd; margin-right: 15px;">
+                                                            <i class="bi bi-image"></i>
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    <div>
+                                                        <strong>{{ $item->product->name }}</strong>
+                                                        @if ($item->flavor)
+                                                            <br><small class="text-muted">Flavor: {{ $item->flavor->name }}</small>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="text-center">{{ $item->quantity }}</td>
                                             <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
@@ -47,10 +68,7 @@
                                         <td colspan="3" class="text-end fw-bold">Subtotal:</td>
                                         <td class="text-end fw-bold">₱{{ number_format($order->subtotal, 2) }}</td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-end fw-bold">Tax (12%):</td>
-                                        <td class="text-end fw-bold">₱{{ number_format($order->tax, 2) }}</td>
-                                    </tr>
+                                    {{-- Tax Row Removed as requested --}}
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
                                         <td class="text-end fw-bold fs-5 text-danger">
@@ -104,7 +122,7 @@
                                     <div class="status-icon">
                                         <i class="bi bi-box-seam"></i>
                                     </div>
-                                    <div class="status-label">Packing</div>
+                                    <div class="status-label">Processing</div>
                                     @if ($statusTimestamps['packing'])
                                         <div class="status-date">{{ $statusTimestamps['packing']->format('M d, Y') }}</div>
                                         <div class="status-time">{{ $statusTimestamps['packing']->format('h:i A') }}</div>
@@ -341,310 +359,310 @@
                 </div>
 
                 <!-- Need Help Card -->
-<div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-white fw-semibold">
-        <i class="bi bi-question-circle me-2"></i> Need Help?
-    </div>
-    <div class="card-body text-center">
-        <i class="bi bi-headset display-4 text-primary mb-3 d-block"></i>
-        <p>Have questions about your order?</p>
-        <button class="btn btn-outline-primary rounded-pill" onclick="openGmail()">
-            <i class="bi bi-envelope me-1"></i> Contact Support
-        </button>
-    </div>
-</div>
+                <div class="card shadow-sm border-0 mt-4">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="bi bi-question-circle me-2"></i> Need Help?
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="bi bi-headset display-4 text-primary mb-3 d-block"></i>
+                        <p>Have questions about your order?</p>
+                        <button class="btn btn-outline-primary rounded-pill" onclick="openGmail()">
+                            <i class="bi bi-envelope me-1"></i> Contact Support
+                        </button>
+                    </div>
+                </div>
 
-<script>
-    function openGmail() {
-        const email = 'vapeexpo2024@gmail.com';
-        const subject = encodeURIComponent('Customer Support Inquiry');
-        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}`;
-        window.open(url, '_blank');
-    }
-</script>
+                <script>
+                    function openGmail() {
+                        const email = 'vapeexpo2024@gmail.com';
+                        const subject = encodeURIComponent('Customer Support Inquiry');
+                        const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}`;
+                        window.open(url, '_blank');
+                    }
+                </script>
 
-    <!-- Image Preview Modal -->
-    <div id="imagePreviewModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; overflow: hidden;">
-            <div
-                style="padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
-                <h6 class="mb-0" id="previewTitle">Image Preview</h6>
-                <button type="button" class="btn-close" onclick="closeImagePreview()"></button>
-            </div>
-            <div style="padding: 20px; text-align: center;">
-                <img id="previewImage" src="" style="max-width: 100%; max-height: 400px; border-radius: 5px;">
-            </div>
-            <div style="padding: 10px 15px; background: #f8f9fa; border-top: 1px solid #ddd; text-align: right;">
-                <button type="button" class="btn btn-sm btn-secondary" onclick="closeImagePreview()">Close</button>
-                <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
-            </div>
-        </div>
-    </div>
+                <!-- Image Preview Modal -->
+                <div id="imagePreviewModal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+                    <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; overflow: hidden;">
+                        <div
+                            style="padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                            <h6 class="mb-0" id="previewTitle">Image Preview</h6>
+                            <button type="button" class="btn-close" onclick="closeImagePreview()"></button>
+                        </div>
+                        <div style="padding: 20px; text-align: center;">
+                            <img id="previewImage" src="" style="max-width: 100%; max-height: 400px; border-radius: 5px;">
+                        </div>
+                        <div style="padding: 10px 15px; background: #f8f9fa; border-top: 1px solid #ddd; text-align: right;">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="closeImagePreview()">Close</button>
+                            <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
+                        </div>
+                    </div>
+                </div>
 
-    <style>
-        .status-timeline {
-            padding: 10px 0;
-        }
+                <style>
+                    .status-timeline {
+                        padding: 10px 0;
+                    }
 
-        .status-steps {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+                    .status-steps {
+                        display: flex;
+                        justify-content: space-between;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                    }
 
-        .status-step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-            min-width: 100px;
-        }
+                    .status-step {
+                        flex: 1;
+                        text-align: center;
+                        position: relative;
+                        min-width: 100px;
+                    }
 
-        .status-step:not(:last-child):before {
-            content: '';
-            position: absolute;
-            top: 25px;
-            right: -50%;
-            width: 100%;
-            height: 3px;
-            background: #e9ecef;
-            z-index: 0;
-        }
+                    .status-step:not(:last-child):before {
+                        content: '';
+                        position: absolute;
+                        top: 25px;
+                        right: -50%;
+                        width: 100%;
+                        height: 3px;
+                        background: #e9ecef;
+                        z-index: 0;
+                    }
 
-        .status-step.completed:not(:last-child):before {
-            background: #28a745;
-        }
+                    .status-step.completed:not(:last-child):before {
+                        background: #28a745;
+                    }
 
-        .status-step.active:not(:last-child):before {
-            background: #28a745;
-        }
+                    .status-step.active:not(:last-child):before {
+                        background: #28a745;
+                    }
 
-        .status-icon {
-            width: 55px;
-            height: 55px;
-            margin: 0 auto 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: #e9ecef;
-            color: #6c757d;
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
+                    .status-icon {
+                        width: 55px;
+                        height: 55px;
+                        margin: 0 auto 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        background: #e9ecef;
+                        color: #6c757d;
+                        position: relative;
+                        z-index: 1;
+                        transition: all 0.3s ease;
+                    }
 
-        .status-step.completed .status-icon {
-            background: #28a745;
-            color: white;
-        }
+                    .status-step.completed .status-icon {
+                        background: #28a745;
+                        color: white;
+                    }
 
-        .status-step.active .status-icon {
-            background: #28a745;
-            color: white;
-            box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
-        }
+                    .status-step.active .status-icon {
+                        background: #28a745;
+                        color: white;
+                        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
+                    }
 
-        .status-label {
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #6c757d;
-        }
+                    .status-label {
+                        font-weight: 600;
+                        font-size: 13px;
+                        margin-bottom: 5px;
+                        color: #6c757d;
+                    }
 
-        .status-step.completed .status-label,
-        .status-step.active .status-label {
-            color: #28a745;
-        }
+                    .status-step.completed .status-label,
+                    .status-step.active .status-label {
+                        color: #28a745;
+                    }
 
-        .status-date,
-        .status-time {
-            font-size: 11px;
-            color: #adb5bd;
-        }
+                    .status-date,
+                    .status-time {
+                        font-size: 11px;
+                        color: #adb5bd;
+                    }
 
-        .status-step.completed .status-date,
-        .status-step.completed .status-time,
-        .status-step.active .status-date,
-        .status-step.active .status-time {
-            color: #6c757d;
-        }
+                    .status-step.completed .status-date,
+                    .status-step.completed .status-time,
+                    .status-step.active .status-date,
+                    .status-step.active .status-time {
+                        color: #6c757d;
+                    }
 
-        .delivery-logs {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-        }
+                    .delivery-logs {
+                        background: #f8f9fa;
+                        border-radius: 12px;
+                        padding: 15px;
+                    }
 
-        .delivery-timeline {
-            position: relative;
-        }
+                    .delivery-timeline {
+                        position: relative;
+                    }
 
-        .delivery-log-item {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            position: relative;
-        }
+                    .delivery-log-item {
+                        display: flex;
+                        gap: 15px;
+                        margin-bottom: 20px;
+                        position: relative;
+                    }
 
-        .delivery-log-item:not(:last-child):before {
-            content: '';
-            position: absolute;
-            left: 22px;
-            top: 40px;
-            bottom: -20px;
-            width: 2px;
-            background: #dee2e6;
-        }
+                    .delivery-log-item:not(:last-child):before {
+                        content: '';
+                        position: absolute;
+                        left: 22px;
+                        top: 40px;
+                        bottom: -20px;
+                        width: 2px;
+                        background: #dee2e6;
+                    }
 
-        .delivery-log-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            z-index: 1;
-            background: white;
-            border: 2px solid;
-        }
+                    .delivery-log-icon {
+                        width: 45px;
+                        height: 45px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        z-index: 1;
+                        background: white;
+                        border: 2px solid;
+                    }
 
-        .delivery-log-icon.assigned {
-            border-color: #0d6efd;
-            color: #0d6efd;
-        }
+                    .delivery-log-icon.assigned {
+                        border-color: #0d6efd;
+                        color: #0d6efd;
+                    }
 
-        .delivery-log-icon.picked {
-            border-color: #6f42c1;
-            color: #6f42c1;
-        }
+                    .delivery-log-icon.picked {
+                        border-color: #6f42c1;
+                        color: #6f42c1;
+                    }
 
-        .delivery-log-icon.transit {
-            border-color: #fd7e14;
-            color: #fd7e14;
-        }
+                    .delivery-log-icon.transit {
+                        border-color: #fd7e14;
+                        color: #fd7e14;
+                    }
 
-        .delivery-log-icon.delivered {
-            border-color: #28a745;
-            color: #28a745;
-        }
+                    .delivery-log-icon.delivered {
+                        border-color: #28a745;
+                        color: #28a745;
+                    }
 
-        .delivery-log-content {
-            flex: 1;
-        }
+                    .delivery-log-content {
+                        flex: 1;
+                    }
 
-        .delivery-log-title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 3px;
-            color: #212529;
-        }
+                    .delivery-log-title {
+                        font-weight: 600;
+                        font-size: 14px;
+                        margin-bottom: 3px;
+                        color: #212529;
+                    }
 
-        .delivery-log-date,
-        .delivery-log-time {
-            font-size: 11px;
-            color: #6c757d;
-            display: inline-block;
-        }
+                    .delivery-log-date,
+                    .delivery-log-time {
+                        font-size: 11px;
+                        color: #6c757d;
+                        display: inline-block;
+                    }
 
-        .delivery-log-time:before {
-            content: '•';
-            margin: 0 5px;
-        }
+                    .delivery-log-time:before {
+                        content: '•';
+                        margin: 0 5px;
+                    }
 
-        .delivery-log-note {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 3px;
-        }
+                    .delivery-log-note {
+                        font-size: 12px;
+                        color: #6c757d;
+                        margin-top: 3px;
+                    }
 
-        .driver-info {
-            border-left: 3px solid #0d6efd;
-        }
+                    .driver-info {
+                        border-left: 3px solid #0d6efd;
+                    }
 
-        .proof-thumbnail {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+                    .proof-thumbnail {
+                        transition: transform 0.2s, box-shadow 0.2s;
+                    }
 
-        .proof-thumbnail:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
+                    .proof-thumbnail:hover {
+                        transform: scale(1.02);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    }
 
-        @media (max-width: 768px) {
-            .status-steps {
-                flex-direction: column;
-                gap: 20px;
-            }
+                    @media (max-width: 768px) {
+                        .status-steps {
+                            flex-direction: column;
+                            gap: 20px;
+                        }
 
-            .status-step:not(:last-child):before {
-                display: none;
-            }
+                        .status-step:not(:last-child):before {
+                            display: none;
+                        }
 
-            .status-step {
-                display: flex;
-                align-items: center;
-                text-align: left;
-                gap: 15px;
-            }
+                        .status-step {
+                            display: flex;
+                            align-items: center;
+                            text-align: left;
+                            gap: 15px;
+                        }
 
-            .status-icon {
-                margin: 0;
-            }
+                        .status-icon {
+                            margin: 0;
+                        }
 
-            .status-label,
-            .status-date,
-            .status-time {
-                text-align: left;
-            }
-        }
-    </style>
+                        .status-label,
+                        .status-date,
+                        .status-time {
+                            text-align: left;
+                        }
+                    }
+                </style>
 
-    @php
-        $statusColors = [
-            'pending' => 'warning',
-            'confirmed' => 'info',
-            'processing' => 'primary',
-            'ready' => 'success',
-            'out_for_delivery' => 'secondary',
-            'delivered' => 'dark',
-            'cancelled' => 'danger',
-        ];
+                @php
+                    $statusColors = [
+                        'pending' => 'warning',
+                        'confirmed' => 'info',
+                        'processing' => 'primary',
+                        'ready' => 'success',
+                        'out_for_delivery' => 'secondary',
+                        'delivered' => 'dark',
+                        'cancelled' => 'danger',
+                    ];
 
-        $statusIcons = [
-            'pending' => 'bi-clock-history',
-            'confirmed' => 'bi-check-circle',
-            'processing' => 'bi-box-seam',
-            'ready' => 'bi-check-circle-fill',
-            'out_for_delivery' => 'bi-truck',
-            'delivered' => 'bi-flag-fill',
-            'cancelled' => 'bi-x-circle',
-        ];
-    @endphp
+                    $statusIcons = [
+                        'pending' => 'bi-clock-history',
+                        'confirmed' => 'bi-check-circle',
+                        'processing' => 'bi-box-seam',
+                        'ready' => 'bi-check-circle-fill',
+                        'out_for_delivery' => 'bi-truck',
+                        'delivered' => 'bi-flag-fill',
+                        'cancelled' => 'bi-x-circle',
+                    ];
+                @endphp
 
-    <script>
-        function showImagePreview(imageUrl, title) {
-            const modal = document.getElementById('imagePreviewModal');
-            const previewImage = document.getElementById('previewImage');
-            const previewTitle = document.getElementById('previewTitle');
-            const downloadLink = document.getElementById('downloadLink');
+                <script>
+                    function showImagePreview(imageUrl, title) {
+                        const modal = document.getElementById('imagePreviewModal');
+                        const previewImage = document.getElementById('previewImage');
+                        const previewTitle = document.getElementById('previewTitle');
+                        const downloadLink = document.getElementById('downloadLink');
 
-            previewImage.src = imageUrl;
-            previewTitle.textContent = title;
-            downloadLink.href = imageUrl;
-            modal.style.display = 'flex';
-        }
+                        previewImage.src = imageUrl;
+                        previewTitle.textContent = title;
+                        downloadLink.href = imageUrl;
+                        modal.style.display = 'flex';
+                    }
 
-        function closeImagePreview() {
-            document.getElementById('imagePreviewModal').style.display = 'none';
-        }
+                    function closeImagePreview() {
+                        document.getElementById('imagePreviewModal').style.display = 'none';
+                    }
 
-        document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeImagePreview();
-            }
-        });
-    </script>
+                    document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeImagePreview();
+                        }
+                    });
+                </script>
 @endsection

@@ -320,15 +320,32 @@
                                 @enderror
                             </div>
 
-                            <!-- Barangay Field -->
+                            <!-- Barangay Field (MODIFIED TO DROPDOWN) -->
                             <div class="mb-3">
                                 <label for="barangay" class="form-label">
                                     <i class="bi bi-building me-2 text-primary-custom"></i>Barangay *
                                 </label>
-                                <input type="text" class="form-control @error('barangay') is-invalid @enderror" 
-                                       id="barangay" name="barangay" value="{{ old('barangay') }}" 
-                                       placeholder="Enter your barangay" required>
-                                <div class="form-text">Your barangay/village/subdivision</div>
+                                <select class="form-control @error('barangay') is-invalid @enderror" 
+                                        id="barangay" name="barangay" required>
+                                    <option value="">Select your Barangay</option>
+                                    @foreach([
+                                        'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
+                                        'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
+                                        'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
+                                        'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
+                                        'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
+                                        'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
+                                        'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
+                                        'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
+                                        'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
+                                        'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
+                                    ] as $barangayOption)
+                                        <option value="{{ $barangayOption }}" {{ old('barangay') == $barangayOption ? 'selected' : '' }}>
+                                            {{ $barangayOption }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Select your barangay for delivery assignment</div>
                                 @error('barangay')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

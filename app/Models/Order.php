@@ -75,6 +75,7 @@ class Order extends Model
             'out_for_delivery' => 'Out for Delivery',
             'delivered' => 'Delivered',
             'cancelled' => 'Cancelled',
+            'lalamove_pending' => 'bg-dark text-white',
         ];
         return $labels[$this->order_status] ?? ucfirst($this->order_status);
     }
@@ -90,6 +91,7 @@ class Order extends Model
             'out_for_delivery' => 'bg-secondary',
             'delivered' => 'bg-dark',
             'cancelled' => 'bg-danger',
+            'lalamove_pending' => 'bg-dark text-white',
         ];
         return $classes[$this->order_status] ?? 'bg-secondary';
     }

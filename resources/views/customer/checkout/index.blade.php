@@ -99,23 +99,48 @@
                                     <input type="text" name="new_delivery_address" class="form-control"
                                         placeholder="House/Unit #, Street, Subdivision">
                                 </div>
+                                
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label>Province *</label>
-                                        <input type="text" name="new_province" class="form-control"
-                                            placeholder="e.g., Laguna">
+                                        <label>Province</label>
+                                        <!-- Displayed as static text, not editable -->
+                                        <div class="form-control bg-light text-muted" style="cursor: default;">Laguna</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label>City/Municipality *</label>
-                                        <input type="text" name="new_city" class="form-control"
-                                            placeholder="e.g., Calamba City">
+                                        <select class="form-select" name="new_city" id="new_city" required>
+                                            <option value="">Select City</option>
+                                            <option value="Calamba City">Calamba City</option>
+                                            <option value="Los Baños">Los Baños</option>
+                                            <option value="Cabuyao">Cabuyao</option>
+                                            <option value="Santa Rosa">Santa Rosa</option>
+                                            <option value="Biñan">Biñan</option>
+                                            <option value="San Pedro">San Pedro</option>
+                                            <option value="Other">Other</option>
+                                        </select>
                                     </div>
                                 </div>
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label>Barangay *</label>
-                                        <input type="text" name="new_barangay" class="form-control"
-                                            placeholder="e.g., Looc">
+                                        <select class="form-select" name="new_barangay" required>
+                                            <option value="">Select Barangay</option>
+                                            @foreach([
+                                                'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
+                                                'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
+                                                'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
+                                                'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
+                                                'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
+                                                'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
+                                                'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
+                                                'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
+                                                'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
+                                                'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
+                                            ] as $barangayOption)
+                                                <option value="{{ $barangayOption }}">{{ $barangayOption }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label>ZIP Code *</label>
@@ -123,11 +148,19 @@
                                             placeholder="e.g., 4027">
                                     </div>
                                 </div>
+
                                 <div class="mb-3">
                                     <label>Landmark (optional)</label>
                                     <input type="text" name="new_landmark" class="form-control"
                                         placeholder="Near 7-Eleven, Church, etc.">
                                 </div>
+                            </div>
+
+                            <!-- Dynamic Delivery Information Alert -->
+                            <div id="deliveryAlert" class="alert mb-3" style="display: none;">
+                                <i class="bi bi-truck me-2" id="deliveryAlertIcon"></i>
+                                <strong id="deliveryAlertTitle">Delivery Method:</strong><br>
+                                <span id="deliveryAlertText">Loading delivery details...</span>
                             </div>
 
                             <!-- Hidden branch selection (system will assign nearest branch) -->
@@ -165,42 +198,50 @@
                 </div>
             </div>
 
+            <!-- ORDER SUMMARY WITH IMAGES -->
             <div class="col-lg-4" style="align-self: flex-start;">
                 <div class="card shadow-sm border-0" style="position: sticky; top: 0; z-index: 1;">
                     <div class="card-header bg-white fw-bold">
                         <i class="bi bi-receipt"></i> Order Summary
                     </div>
                     <div class="card-body">
+                        <!-- List of Cart Items with Images -->
+                        <div class="mb-3">
+                            @foreach($cartItems as $item)
+                                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                    <div class="flex-shrink-0 me-3">
+                                        @if($item['image_url'])
+                                            <img src="{{ $item['image_url'] }}" alt="{{ $item['product_name'] }}" 
+                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                        @else
+                                            <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
+                                                <i class="bi bi-image"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold small">{{ $item['product_name'] }}</div>
+                                        <div class="small text-muted">Qty: {{ $item['quantity'] }}</div>
+                                    </div>
+                                    <div class="fw-bold small text-danger">
+                                        ₱{{ number_format($item['price'] * $item['quantity'], 2) }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal</span>
                             <span>₱{{ number_format($subtotal, 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Delivery Fee</span>
-                            <span>₱0.00</span>
+                            <span id="deliveryFeeDisplay">₱0.00</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between fw-bold fs-5">
                             <span>Total Amount</span>
                             <span class="text-danger">₱{{ number_format($total, 2) }}</span>
-                        </div>
-
-                        <div class="alert alert-secondary mt-3 mb-0">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Prices are final. No additional taxes or fees will be charged.
-                            </small>
-                        </div>
-
-                        <div class="mt-3 p-3 bg-light rounded">
-                            <small class="text-muted d-block mb-2">
-                                <i class="bi bi-truck"></i> <strong>Delivery Information:</strong>
-                            </small>
-                            <small class="text-muted">
-                                • Delivery hours: 9:00 AM - 8:00 PM daily<br>
-                                • Our rider will contact you before delivery<br>
-                                • Please prepare exact change for COD payments
-                            </small>
                         </div>
                     </div>
                 </div>
@@ -227,29 +268,41 @@
         const savedSection = document.getElementById('savedAddressSection');
         const newSection = document.getElementById('newAddressSection');
 
+        // Dynamic Delivery Alert Elements
+        const deliveryAlert = document.getElementById('deliveryAlert');
+        const deliveryAlertTitle = document.getElementById('deliveryAlertTitle');
+        const deliveryAlertText = document.getElementById('deliveryAlertText');
+        const deliveryAlertIcon = document.getElementById('deliveryAlertIcon');
+        const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+
         function toggleAddressSections() {
             if (savedOption.checked) {
                 savedSection.style.display = 'block';
                 newSection.style.display = 'none';
                 // Disable new address inputs
-                document.querySelectorAll('#newAddressSection input').forEach(input => {
+                document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
                     input.disabled = true;
                 });
                 // Enable saved address hidden inputs
                 document.querySelectorAll('#savedAddressSection input').forEach(input => {
                     input.disabled = false;
                 });
+                // Check City from Saved Address
+                checkCityForDelivery('{{ Auth::user()->city ?? "" }}');
             } else {
                 savedSection.style.display = 'none';
                 newSection.style.display = 'block';
                 // Enable new address inputs
-                document.querySelectorAll('#newAddressSection input').forEach(input => {
+                document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
                     input.disabled = false;
                 });
                 // Disable saved address hidden inputs
                 document.querySelectorAll('#savedAddressSection input').forEach(input => {
                     input.disabled = true;
                 });
+                // Check City from New Address input
+                const newCityInput = document.getElementById('new_city');
+                checkCityForDelivery(newCityInput.value);
             }
         }
 
@@ -274,14 +327,46 @@
         paymentMethod.addEventListener('change', toggleGcashField);
         toggleGcashField();
 
+        // UPDATED: Unified Logic for Delivery Method (Branch Admin vs Lalamove)
+        function checkCityForDelivery(city) {
+            const trimmedCity = city.trim().toLowerCase();
+            
+            if (trimmedCity === 'calamba city' || trimmedCity === 'calamba') {
+                // Branch Admin / Driver (Inside Calamba)
+                deliveryAlert.className = 'alert alert-success mb-3';
+                deliveryAlertIcon.className = 'bi bi-bicycle me-2';
+                deliveryAlertTitle.innerText = 'Handled by our Branch Admin/Driver:';
+                deliveryAlertText.innerHTML = 'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
+                deliveryAlert.style.display = 'block';
+                deliveryFeeDisplay.innerHTML = '₱0.00';
+            } else if (trimmedCity !== '') {
+                // Lalamove (Outside Calamba)
+                deliveryAlert.className = 'alert alert-primary mb-3';
+                deliveryAlertIcon.className = 'bi bi-truck me-2';
+                deliveryAlertTitle.innerText = 'Handled by Lalamove:';
+                deliveryAlertText.innerHTML = 'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link via SMS/Email<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
+                deliveryAlert.style.display = 'block';
+                deliveryFeeDisplay.innerHTML = 'Calculated by Lalamove';
+            } else {
+                deliveryAlert.style.display = 'none';
+                deliveryFeeDisplay.innerHTML = '₱0.00';
+            }
+        }
+
+        // Listener for New City Input
+        document.getElementById('new_city').addEventListener('change', function() {
+            if (newOption.checked) {
+                checkCityForDelivery(this.value);
+            }
+        });
+
         // Form submission - prepare address data based on selection
         document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             if (newOption.checked) {
                 // Map new address fields to the expected field names
                 const newAddress = document.querySelector('input[name="new_delivery_address"]');
-                const newCity = document.querySelector('input[name="new_city"]');
-                const newBarangay = document.querySelector('input[name="new_barangay"]');
-                const newProvince = document.querySelector('input[name="new_province"]');
+                const newCity = document.querySelector('select[name="new_city"]');
+                const newBarangay = document.querySelector('select[name="new_barangay"]');
                 const newZipCode = document.querySelector('input[name="new_zip_code"]');
                 const newLandmark = document.querySelector('input[name="new_landmark"]');
 
@@ -301,11 +386,6 @@
                 barangayInput.name = 'barangay';
                 barangayInput.value = newBarangay.value;
 
-                const provinceInput = document.createElement('input');
-                provinceInput.type = 'hidden';
-                provinceInput.name = 'province';
-                provinceInput.value = newProvince.value;
-
                 const zipCodeInput = document.createElement('input');
                 zipCodeInput.type = 'hidden';
                 zipCodeInput.name = 'zip_code';
@@ -319,9 +399,15 @@
                 this.appendChild(deliveryAddressInput);
                 this.appendChild(cityInput);
                 this.appendChild(barangayInput);
-                this.appendChild(provinceInput);
                 this.appendChild(zipCodeInput);
                 this.appendChild(landmarkInput);
+                
+                // Hardcode province to Laguna
+                const provinceInput = document.createElement('input');
+                provinceInput.type = 'hidden';
+                provinceInput.name = 'province';
+                provinceInput.value = 'Laguna';
+                this.appendChild(provinceInput);
             }
         });
     </script>

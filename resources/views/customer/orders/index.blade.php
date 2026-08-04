@@ -23,14 +23,20 @@
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Status</small>
-                        <div><span class="badge {{ $order->order_status_badge_class }}">{{ $order->order_status_label }}</span></div>
+                        <div>
+                            <span class="badge {{ $order->order_status_badge_class }}">
+                                {{ $order->order_status_label }}
+                            </span>
+                        </div>
                     </div>
                     <div class="col-md-3 text-md-end">
                         <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-outline-primary rounded-pill">View Details</a>
-                        @if($order->order_status == 'pending')
+                        
+                        {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
+                        @if($order->order_status === 'pending')
                         <form action="{{ route('customer.orders.cancel', $order) }}" method="POST" class="d-inline">
                             @csrf
-                            <button class="btn btn-outline-danger rounded-pill ms-2" onclick="return confirm('Cancel this order?')">Cancel</button>
+                            <button class="btn btn-outline-danger rounded-pill ms-2" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</button>
                         </form>
                         @endif
                     </div>

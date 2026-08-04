@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\CartHelper;
 use App\Models\Branch;
 use App\Models\Order;
+use App\Models\Delivery;
 use App\Models\BranchInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,39 +15,52 @@ use Illuminate\Support\Facades\Auth;
 class CheckoutController extends Controller
 {
     public function index()
-{
-    // Check if this is a selected items checkout
-    if (session()->has('selected_checkout')) {
-        $cart = session()->get('selected_cart', []);
-        session()->forget('selected_checkout');
-        session()->forget('selected_cart');
-    } else {
-        $cart = CartHelper::getCart();
-    }
-
-    if (empty($cart)) {
-        return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
-    }
-
-    // Ensure all items belong to same branch
-    $branchId = null;
-    foreach ($cart as $item) {
-        if (!$branchId) $branchId = $item['branch_id'];
-        elseif ($branchId != $item['branch_id']) {
-            return redirect()->route('customer.cart.index')->with('error', 'Cart contains products from different branches. Please clear and select one branch.');
+    {
+        // Check if this is a selected items checkout
+        if (session()->has('selected_checkout')) {
+            $cart = session()->get('selected_cart', []);
+            session()->forget('selected_checkout');
+            session()->forget('selected_cart');
+        } else {
+            $cart = CartHelper::getCart();
         }
-    }
 
-    $branch = Branch::find($branchId);
-    $subtotal = 0;
-    foreach ($cart as $item) {
-        $subtotal += $item['price'] * $item['quantity'];
-    }
-    $tax = $subtotal * 0.12;
-    $total = $subtotal + $tax;
+        if (empty($cart)) {
+            return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
+        }
 
-    return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total'));
-}
+        // --- PREPARE CART ITEMS FOR ORDER SUMMARY IMAGES ---
+        $cartItems = [];
+        $subtotal = 0;
+
+        foreach ($cart as $inventoryId => $item) {
+            // Fetch the inventory and product to get the image
+            $inventory = \App\Models\BranchInventory::with('product')->find($inventoryId);
+            
+            $imageUrl = null;
+            if ($inventory && $inventory->product && $inventory->product->image) {
+                $imageUrl = \Storage::url($inventory->product->image);
+            }
+
+            $cartItems[] = [
+                'inventory_id' => $inventoryId,
+                'product_name' => $item['product_name'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'image_url' => $imageUrl,
+            ];
+
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+
+        $firstBranchId = collect($cart)->first()['branch_id'] ?? null;
+        $branch = $firstBranchId ? Branch::find($firstBranchId) : null;
+
+        $tax = $subtotal * 0.12;
+        $total = $subtotal + $tax;
+
+        return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total', 'cartItems'));
+    }
 
     public function store(Request $request)
     {
@@ -54,22 +69,21 @@ class CheckoutController extends Controller
             return redirect()->route('customer.cart.index')->with('error', 'Cart is empty.');
         }
 
-        $branchId = null;
-        foreach ($cart as $key => $item) {
-            if (!$branchId) $branchId = $item['branch_id'];
-            elseif ($branchId != $item['branch_id']) {
-                return back()->with('error', 'Products from multiple branches. Please clear cart and re-add.');
-            }
-        }
-
+        // --- VALIDATION TO HANDLE NEW ADDRESS DROPDOWNS ---
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
             'delivery_type' => 'required|in:pickup,delivery',
-            'delivery_address' => 'required_if:delivery_type,delivery|nullable|string',
-            'city' => 'nullable|string|max:100',
-            'barangay' => 'nullable|string|max:100',
+            
+            'delivery_address' => 'required_if:address_option,saved|nullable|string',
+            'new_delivery_address' => 'required_if:address_option,new|nullable|string',
+            
+            'new_city' => 'required_if:address_option,new|nullable|string|max:100',
+            'new_barangay' => 'required_if:address_option,new|nullable|string|max:100',
+            'new_province' => 'required_if:address_option,new|nullable|string|max:100',
+            'new_zip_code' => 'nullable|string|max:20',
+            
             'landmark' => 'nullable|string|max:255',
             'payment_method' => 'required|in:cod,gcash',
             'gcash_reference' => 'required_if:payment_method,gcash|nullable|string',
@@ -78,7 +92,7 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Check stock and reserve
+            // 1. Check stock and reserve (Iterates through ALL branches in the cart)
             foreach ($cart as $inventoryId => $item) {
                 $inventory = BranchInventory::lockForUpdate()->find($inventoryId);
                 if (!$inventory || $inventory->available_quantity < $item['quantity']) {
@@ -87,16 +101,49 @@ class CheckoutController extends Controller
                 $inventory->reserve($item['quantity']);
             }
 
-            // 2. Create order
+            // --- MAP ADDRESS DATA BASED ON SELECTION ---
+            $addressOption = $request->input('address_option', 'saved');
+            $deliveryAddress = $request->delivery_address;
+            $city = $request->city;
+            $barangay = $request->barangay;
+            $province = $request->province;
+            $zipCode = $request->zip_code;
+            $landmark = $request->landmark;
+
+            if ($addressOption === 'new') {
+                $deliveryAddress = $request->new_delivery_address;
+                $city = $request->new_city;
+                $barangay = $request->new_barangay;
+                $province = $request->new_province;
+                $zipCode = $request->new_zip_code;
+                $landmark = $request->new_landmark ?? $request->landmark;
+            }
+
+            // 2. Calculate Totals
+            $subtotal = 0;
+            foreach ($cart as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
+            $tax = $subtotal * 0.12;
+            $total = $subtotal + $tax;
+
+            // 3. Determine if the cart has mixed branches
+            $branchIds = collect($cart)->pluck('branch_id')->unique();
+            $isMixedCart = $branchIds->count() > 1;
+            
+            // If it's a single branch order, use that ID. If mixed, set to null
+            $singleBranchId = $isMixedCart ? null : $branchIds->first();
+
+            // 4. Create order
             $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(uniqid());
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
-                'branch_id' => $branchId,
-                'subtotal' => CartHelper::getTotal(),
-                'tax' => CartHelper::getTotal() * 0.12,
+                'branch_id' => $singleBranchId, // Will be NULL if cart is mixed
+                'subtotal' => $subtotal,
+                'tax' => $tax,
                 'delivery_fee' => 0,
-                'total_amount' => CartHelper::getTotal() * 1.12,
+                'total_amount' => $total,
                 'status' => 'pending',
                 'order_status' => 'pending',
                 'payment_status' => 'pending',
@@ -105,18 +152,20 @@ class CheckoutController extends Controller
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
                 'customer_email' => $request->customer_email,
-                'delivery_address' => $request->delivery_address,
-                'city' => $request->city,
-                'barangay' => $request->barangay,
-                'landmark' => $request->landmark,
+                'delivery_address' => $deliveryAddress,
+                'city' => $city,
+                'barangay' => $barangay,
+                'province' => $province,
+                'zip_code' => $zipCode,
+                'landmark' => $landmark,
                 'gcash_reference' => $request->gcash_reference,
                 'notes' => $request->notes,
             ]);
 
-            // 3. Create order items - FIXED: use $inventoryId as the key
+            // 5. Create order items 
             foreach ($cart as $inventoryId => $item) {
                 $order->items()->create([
-                    'inventory_id' => $inventoryId,  // This is the correct key!
+                    'inventory_id' => $inventoryId, 
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
@@ -124,12 +173,41 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // 4. Clear cart
+            // --- LALAMOVE / BRANCH DRIVER LOGIC ---
+            $isInsideCalamba = false;
+            if ($city) {
+                $cityLower = strtolower(trim($city));
+                if ($cityLower === 'calamba city' || $cityLower === 'calamba') {
+                    $isInsideCalamba = true;
+                }
+            }
+
+            $deliveryStatus = $isInsideCalamba ? 'pending' : 'lalamove_pending';
+
+            Delivery::create([
+                'order_id' => $order->id,
+                'driver_id' => null,
+                'driver_shift_id' => null,
+                'status' => $deliveryStatus,
+                'delivery_address' => $deliveryAddress,
+                'recipient_name' => $request->customer_name,
+                'recipient_phone' => $request->customer_phone,
+                'tracking_number' => null, // CHANGED: Must be null, NOT empty string ''
+                'notes' => $request->notes . ($isInsideCalamba ? '' : ' [LALAMOVE REQUIRED]'),
+            ]);
+
+            // 6. Clear cart
             CartHelper::clearCart();
 
             DB::commit();
 
-            return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Awaiting confirmation.');
+            // --- SUCCESS MESSAGES ---
+            if ($isInsideCalamba) {
+                return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Our rider will contact you soon.');
+            } else {
+                return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! We are processing your Lalamove booking. A tracking link will be sent to your phone.');
+            }
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
