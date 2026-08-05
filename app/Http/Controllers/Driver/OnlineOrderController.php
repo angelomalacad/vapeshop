@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
 
 class OnlineOrderController extends Controller
 {
-    public function index(Request $request)
+        public function index(Request $request)
     {
         $todayShift = DriverShift::where('shift_date', today())
             ->where('status', 'active')
@@ -27,25 +27,31 @@ class OnlineOrderController extends Controller
                 ->with('error', 'You are not assigned for today. Please contact the owner.');
         }
 
+        // Build the base query
         $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->whereNotIn('order_status', ['cancelled']);
 
-        // ✅ NEW: Status filter
+        // ✅ Status filter
         if ($request->filled('status')) {
             $orders->where('order_status', $request->status);
         }
 
-        // ✅ NEW: Date From filter
+        // ✅ Date From filter
         if ($request->filled('date_from')) {
             $orders->whereDate('created_at', '>=', $request->date_from);
         }
 
-        // ✅ NEW: Date To filter
+        // ✅ Date To filter
         if ($request->filled('date_to')) {
             $orders->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $orders = $orders->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
+        // ✅ THE FIX: Pre-load the relationships needed for the table
+        $orders = $orders->with([
+                'items.product',             // For Product Name & Image
+                'items.inventory.branch'     // For "Fulfilled By" column (Pickup Branch)
+            ])
+            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 

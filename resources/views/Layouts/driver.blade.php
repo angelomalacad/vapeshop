@@ -41,6 +41,59 @@
             color: #fff;
             border-color: rgba(255,255,255,0.4);
         }
+
+        /* ================================================================ */
+        /* RESPONSIVE SIDEBAR FIX (Preserves your design)                   */
+        /* ================================================================ */
+
+        /* 1. Mobile Overlay (Only shows when sidebar is open on mobile) */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 9998; /* Behind sidebar, above content */
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* 2. Apply responsiveness to your existing .app-sidebar class */
+        .app-sidebar {
+            transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+        }
+
+        /* 3. Mobile Behavior: Hide the sidebar off-screen */
+        @media (max-width: 991px) {
+            .app-sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                transform: translateX(-100%);
+                z-index: 9999; /* On top of everything */
+            }
+
+            /* JavaScript will add this class to slide it in */
+            .app-sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        /* 4. Ensure the main content fits screen on mobile */
+        @media (max-width: 991px) {
+            .container.mt-4 {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+            }
+        }
+        /* ================================================================ */
     </style>
 </head>
 
@@ -74,6 +127,9 @@
             </div>
         </div>
     </nav>
+
+    <!-- Added: The Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="container mt-4">
         @if (session('success'))
@@ -193,6 +249,34 @@
         document.getElementById('customModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
+            }
+        });
+
+        // ==========================================================
+        // SIDEBAR TOGGLE FUNCTION (For Mobile Only)
+        // ==========================================================
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.app-sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                if (overlay) {
+                    overlay.classList.toggle('active');
+                }
+            }
+        }
+
+        // Close sidebar when clicking outside (The Overlay)
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            toggleSidebar();
+        });
+
+        // Close sidebar if the screen is resized back to Desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 991) {
+                document.querySelector('.app-sidebar')?.classList.remove('open');
+                document.getElementById('sidebarOverlay')?.classList.remove('active');
             }
         });
     </script>

@@ -2,11 +2,19 @@
 
 @section('content')
     <div class="container">
+        <!-- ADDED: Back Button Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4><i class="bi bi-credit-card"></i> Delivery & Payment</h4>
+            <a href="{{ route('customer.cart.index') }}" class="btn btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+
         <div class="row g-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <h4 class="mb-4"><i class="bi bi-credit-card"></i> Delivery & Payment Method</h4>
+                        {{-- <h4 class="mb-4"><i class="bi bi-credit-card"></i> Delivery & Payment Method</h4> --}}
 
                         <!-- Address Selection Toggle -->
                         <div class="mb-4">

@@ -17,7 +17,10 @@ class OrderItem extends Model
         'price',
         'subtotal'
     ];
-    
+    public function inventory()
+    {
+        return $this->belongsTo(BranchInventory::class, 'inventory_id');
+    }
     public function order()
     {
         return $this->belongsTo(Order::class);

@@ -95,6 +95,24 @@
         font-size: 0.7rem;
         color: #64748b;
     }
+
+    /* Branch Fulfillment Badge Styling */
+    .fulfillment-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 500;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        white-space: nowrap;
+    }
+    .fulfillment-badge.assigned {
+        background: #ecfdf5;
+        color: #065f46;
+    }
+    .fulfillment-badge.backup {
+        background: #eff6ff;
+        color: #1e40af;
+    }
     
     /* Customer Info */
     .info-label {
@@ -196,38 +214,11 @@
         color: #e74c3c;
     }
     
-    /* Modal Body Scroll */
+    /* Modal Body Scroll - REMOVED SCROLLBAR */
     .modal-body-custom {
         max-height: 85vh;
-        overflow-y: auto;
+        overflow: hidden; /* Hides the scrollbar completely */
         padding: 0;
-    }
-    
-    .modal-body-custom::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .modal-body-custom::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    .modal-body-custom::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .product-image {
-            width: 40px;
-            height: 40px;
-        }
-        
-        .order-items-table th,
-        .order-items-table td {
-            padding: 0.5rem;
-        }
     }
 </style>
 
@@ -260,10 +251,25 @@
                                     <th class="text-center" style="width: 60px">Qty</th>
                                     <th class="text-end" style="width: 90px">Price</th>
                                     <th class="text-end" style="width: 90px">Total</th>
+                                    <th class="text-center" style="width: 120px">Fulfilled By</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($order->items as $item)
+                                @php
+                                    // Determine which branch fulfilled this specific item
+                                    $fulfilledBranchName = 'N/A';
+                                    $isAssignedBranch = false;
+                                    
+                                    if ($item->inventory && $item->inventory->branch) {
+                                        $fulfilledBranchName = $item->inventory->branch->name;
+                                        
+                                        // Check if this is the primary branch for the driver
+                                        if (Auth::user()->branch && Auth::user()->branch->id == $item->inventory->branch_id) {
+                                            $isAssignedBranch = true;
+                                        }
+                                    }
+                                @endphp
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
@@ -296,6 +302,15 @@
                                     <td class="text-center">{{ $item->quantity }}</td>
                                     <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
                                     <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                    <td class="text-center">
+                                        @if($fulfilledBranchName !== 'N/A')
+                                            <span class="fulfillment-badge {{ $isAssignedBranch ? 'assigned' : 'backup' }}">
+                                                {{ $fulfilledBranchName }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted" style="font-size: 0.7rem;">N/A</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>

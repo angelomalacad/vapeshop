@@ -192,7 +192,7 @@ class CheckoutController extends Controller
                 'delivery_address' => $deliveryAddress,
                 'recipient_name' => $request->customer_name,
                 'recipient_phone' => $request->customer_phone,
-                'tracking_number' => null, // CHANGED: Must be null, NOT empty string ''
+                'tracking_number' => null,
                 'notes' => $request->notes . ($isInsideCalamba ? '' : ' [LALAMOVE REQUIRED]'),
             ]);
 
@@ -201,11 +201,11 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // --- SUCCESS MESSAGES ---
+            // --- SUCCESS MESSAGES REDIRECTING TO MY ORDERS ---
             if ($isInsideCalamba) {
-                return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! Our rider will contact you soon.');
+                return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully! Our rider will contact you soon.');
             } else {
-                return redirect()->route('customer.orders.show', $order)->with('success', 'Order placed successfully! We are processing your Lalamove booking. A tracking link will be sent to your phone.');
+                return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully! We are processing your Lalamove booking. A tracking link will be sent to your phone.');
             }
 
         } catch (\Exception $e) {

@@ -2,7 +2,13 @@
 
 @section('content')
     <div class="container">
-        <h2 class="mb-4"><i class="bi bi-cart"></i> Shopping Cart</h2>
+        <!-- ADDED: Header with Title and Continue Shopping Button (Just like Back button) -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-cart"></i> Shopping Cart</h2>
+            <a href="{{ route('customer.products.index') }}" class="btn btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left"></i> Continue Shopping
+            </a>
+        </div>
 
         @if (count($items) > 0)
             <div class="card shadow-sm border-0">
@@ -90,23 +96,28 @@
                 </div>
                 <div class="card-footer bg-white border-0 py-3">
                     <div class="row align-items-center">
+                        <!-- Left Side: Empty (Button moved to Header) -->
                         <div class="col-md-6">
-                            <a href="{{ route('customer.products.index') }}"
-                                class="btn btn-outline-secondary rounded-pill">
-                                <i class="bi bi-arrow-left"></i> Continue Shopping
-                            </a>
+                            <!-- Empty -->
                         </div>
+                        
+                        <!-- Right Side: Action Buttons -->
                         <div class="col-md-6 text-md-end">
                             <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3">
                                 <h4 class="mb-0">Selected Total: <span id="selectedTotal" class="text-danger">₱0.00</span>
                                 </h4>
+                                
+                                <!-- Checkout Selected -->
                                 <button type="submit" form="checkoutSelectedForm" id="checkoutSelectedBtn"
-                                    class="btn btn-primary rounded-pill px-5" style="display: none;">
+                                    class="btn btn-primary rounded-pill px-4" style="display: none;">
                                     Checkout Selected <i class="bi bi-arrow-right"></i>
                                 </button>
+
+                                <!-- Checkout All -->
                                 <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill px-4">
                                     Checkout All <i class="bi bi-cart-check"></i>
                                 </a>
+                                
                                 <button type="button" id="clearCartBtn" class="btn btn-outline-danger rounded-pill"
                                     onclick="confirmClearCart()">
                                     <i class="bi bi-trash3"></i> Clear Cart

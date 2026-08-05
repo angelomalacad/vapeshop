@@ -12,6 +12,35 @@
                     <div class="col-md-3">
                         <small class="text-muted">Order #</small>
                         <div><strong>{{ $order->order_number }}</strong></div>
+                        
+                        {{-- Product Image & Name --}}
+                        @php
+                            $firstItem = $order->items->first();
+                            $imageUrl = null;
+                            if ($firstItem) {
+                                $inventory = \App\Models\BranchInventory::with('product')->find($firstItem->inventory_id);
+                                if ($inventory && $inventory->product && $inventory->product->image) {
+                                    $imageUrl = \Storage::url($inventory->product->image);
+                                }
+                            }
+                        @endphp
+                        
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}" alt="Product" 
+                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+                            @else
+                                <div style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
+                                    <i class="bi bi-image" style="font-size: 1.5rem;"></i>
+                                </div>
+                            @endif
+                            <div>
+                                <strong>{{ $firstItem->product->name ?? 'Order Items' }}</strong>
+                                @if($order->items->count() > 1)
+                                    <br><small class="text-muted">+ {{ $order->items->count() - 1 }} more item(s)</small>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Date</small>

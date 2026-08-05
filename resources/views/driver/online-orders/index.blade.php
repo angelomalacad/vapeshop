@@ -305,6 +305,96 @@
         margin-left: 4px;
         padding-left: 13px;
     }
+            /* ============================================================ */
+        /* RESPONSIVE CONTENT FIX (Container, Cards, Table)             */
+        /* ============================================================ */
+        
+        /* 1. Ensure the main container doesn't overflow or collapse */
+        .container-fluid {
+            padding: 20px;
+            overflow-x: hidden; /* Prevents horizontal scrollbar */
+        }
+        
+        /* 2. Make sure the Page Header wraps nicely on mobile */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+            .page-header .badge {
+                align-self: flex-start;
+            }
+        }
+
+        /* 3. Table Responsiveness (Makes it scroll horizontally if needed) */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        /* 4. Fix Status Cards on Mobile (2 per row) */
+        @media (max-width: 768px) {
+            .row.g-2 {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .row.g-2 > .col-4 {
+                flex: 0 0 50%; /* Force 2 cards per row */
+                max-width: 50%;
+            }
+            .status-number {
+                font-size: 1rem;
+            }
+            .status-icon {
+                width: 28px;
+                height: 28px;
+            }
+            .status-icon i {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* 5. Fix Table Columns on Mobile (Prevents squishing) */
+        @media (max-width: 768px) {
+            .order-table th,
+            .order-table td {
+                padding: 0.5rem;
+                font-size: 0.75rem; /* Slightly smaller text */
+                white-space: nowrap;
+            }
+            .order-table td .fw-semibold {
+                font-size: 0.8rem;
+            }
+            .order-table img {
+                width: 40px !important;
+                height: 40px !important;
+            }
+        }
+
+        /* 6. Stack Filter Form on Mobile */
+        @media (max-width: 576px) {
+            .card-body .row.g-3 {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .card-body .row.g-3 .col-md-4 {
+                width: 100%;
+            }
+            .card-body .row.g-3 .col-12 {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .card-body .row.g-3 .col-12 .btn {
+                width: 100%;
+            }
+            .card-body .row.g-3 .col-12 .btn-outline-secondary.ms-2 {
+                margin-left: 0 !important;
+                margin-top: 5px;
+            }
+        }
 </style>
 
 <!-- 1. THE SIDEBAR (Floats on the left, clears header, doesn't shift layout) -->
