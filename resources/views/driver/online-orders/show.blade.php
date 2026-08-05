@@ -214,11 +214,20 @@
         color: #e74c3c;
     }
     
-    /* Modal Body Scroll - REMOVED SCROLLBAR */
+    /* Modal Body Scroll - FIXED */
     .modal-body-custom {
         max-height: 85vh;
-        overflow: hidden; /* Hides the scrollbar completely */
+        overflow-y: auto; /* Allows vertical scrolling without a visible bar */
         padding: 0;
+    }
+
+    /* Hides the table horizontal scrollbar */
+    .table-responsive::-webkit-scrollbar {
+        display: none;
+    }
+    .table-responsive {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
     }
 </style>
 
