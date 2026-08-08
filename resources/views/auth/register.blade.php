@@ -68,6 +68,10 @@
             color: #adb5bd;
             opacity: 1;
         }
+        /* FIX: Add padding to clear the arrow */
+        .form-select {
+            padding-right: 2.5rem; /* Pushes text away from the dropdown arrow */
+        }
         .form-text {
             color: #6c757d;
             font-size: 0.8rem;
@@ -291,9 +295,9 @@
                                 </div>
                             </div>
 
-                            <!-- Gender Field -->
+                            <!-- Gender Field - UPDATED TO col-md-6 -->
                             <div class="row">
-                                <div class="col-md-12 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="gender" class="form-label">
                                         <i class="bi bi-gender-ambiguous me-2 text-primary-custom"></i>Gender
                                     </label>
@@ -308,6 +312,81 @@
                             <!-- Address Information -->
                             <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
                             
+                            <!-- 1. Province (Readonly / Not editable) -->
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="province" class="form-label">Province</label>
+                                    <input type="text" class="form-control" id="province" name="province" 
+                                           value="Laguna" readonly style="background-color: #e9ecef; cursor: default;">
+                                </div>
+                                
+                                <!-- 2. City (Laguna Cities Only - NO OTHER OPTION) -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <select class="form-select" id="city" name="city">
+                                        <option value="">Select City</option>
+                                        <option value="Calamba" {{ old('city') == 'Calamba' ? 'selected' : '' }}>Calamba</option>
+                                        <option value="Los Baños" {{ old('city') == 'Los Baños' ? 'selected' : '' }}>Los Baños</option>
+                                        <option value="Cabuyao" {{ old('city') == 'Cabuyao' ? 'selected' : '' }}>Cabuyao</option>
+                                        <option value="Santa Rosa" {{ old('city') == 'Santa Rosa' ? 'selected' : '' }}>Santa Rosa</option>
+                                        <option value="Biñan" {{ old('city') == 'Biñan' ? 'selected' : '' }}>Biñan</option>
+                                        <option value="San Pedro" {{ old('city') == 'San Pedro' ? 'selected' : '' }}>San Pedro</option>
+                                    </select>
+                                </div>
+
+                                <!-- 3. Zip Code -->
+                                <div class="col-md-4 mb-3">
+                                    <label for="zip_code" class="form-label">Zip Code</label>
+                                    <input type="text" class="form-control" id="zip_code" name="zip_code" 
+                                           value="{{ old('zip_code') }}" placeholder="e.g., 4027">
+                                </div>
+                            </div>
+
+                            <!-- 4. Barangay (With "Other" support) -->
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="barangay" class="form-label">Barangay *</label>
+                                    <select class="form-select @error('barangay') is-invalid @enderror" 
+                                            id="barangay" name="barangay" required>
+                                        <option value="">Select Barangay</option>
+                                        @foreach([
+                                            'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
+                                            'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
+                                            'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
+                                            'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
+                                            'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
+                                            'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
+                                            'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
+                                            'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
+                                            'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
+                                            'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
+                                        ] as $barangayOption)
+                                            <option value="{{ $barangayOption }}" {{ old('barangay') == $barangayOption ? 'selected' : '' }}>
+                                                {{ $barangayOption }}
+                                            </option>
+                                        @endforeach
+                                        <option value="Other" {{ old('barangay') == 'Other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                    <div class="form-text">Select your barangay. If not listed, choose "Other".</div>
+                                    @error('barangay')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <!-- Hidden "Other" Barangay Input Field -->
+                                <div class="col-md-4 mb-3" id="otherBarangayContainer" style="display: none;">
+                                    <label for="other_barangay" class="form-label">Specify Barangay</label>
+                                    <input type="text" class="form-control @error('other_barangay') is-invalid @enderror" 
+                                           id="other_barangay" name="other_barangay" 
+                                           value="{{ old('other_barangay') }}" 
+                                           placeholder="Enter your barangay name">
+                                    @error('other_barangay')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- 5. Complete Address -->
                             <div class="mb-3">
                                 <label for="address" class="form-label">
                                     <i class="bi bi-house-fill me-2 text-primary-custom"></i>Complete Address *
@@ -320,38 +399,7 @@
                                 @enderror
                             </div>
 
-                            <!-- Barangay Field (MODIFIED TO DROPDOWN) -->
-                            <div class="mb-3">
-                                <label for="barangay" class="form-label">
-                                    <i class="bi bi-building me-2 text-primary-custom"></i>Barangay *
-                                </label>
-                                <select class="form-control @error('barangay') is-invalid @enderror" 
-                                        id="barangay" name="barangay" required>
-                                    <option value="">Select your Barangay</option>
-                                    @foreach([
-                                        'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
-                                        'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
-                                        'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
-                                        'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
-                                        'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
-                                        'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
-                                        'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
-                                        'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
-                                        'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
-                                        'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
-                                    ] as $barangayOption)
-                                        <option value="{{ $barangayOption }}" {{ old('barangay') == $barangayOption ? 'selected' : '' }}>
-                                            {{ $barangayOption }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text">Select your barangay for delivery assignment</div>
-                                @error('barangay')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Landmark Field -->
+                            <!-- 6. Landmark -->
                             <div class="mb-3">
                                 <label for="landmark" class="form-label">
                                     <i class="bi bi-pin-map-fill me-2 text-primary-custom"></i>Landmark (Optional)
@@ -360,33 +408,6 @@
                                        value="{{ old('landmark') }}" 
                                        placeholder="e.g., Near 7-Eleven, Beside Jollibee">
                                 <div class="form-text">Help our riders find your location easily</div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="city" class="form-label">City</label>
-                                    <select class="form-select" id="city" name="city">
-                                        <option value="Calamba" selected>Calamba</option>
-                                        <option value="Los Baños">Los Baños</option>
-                                        <option value="Cabuyao">Cabuyao</option>
-                                        <option value="Santa Rosa">Santa Rosa</option>
-                                        <option value="Biñan">Biñan</option>
-                                        <option value="San Pedro">San Pedro</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="col-md-4 mb-3">
-                                    <label for="province" class="form-label">Province</label>
-                                    <input type="text" class="form-control" id="province" name="province" 
-                                           value="Laguna" readonly>
-                                </div>
-                                
-                                <div class="col-md-4 mb-3">
-                                    <label for="zip_code" class="form-label">Zip Code</label>
-                                    <input type="text" class="form-control" id="zip_code" name="zip_code" 
-                                           value="{{ old('zip_code') }}" placeholder="e.g., 4027">
-                                </div>
                             </div>
 
                             <!-- Security Information -->
@@ -603,6 +624,32 @@
                     document.getElementById('terms').checked = true;
                 });
             });
+        });
+    </script>
+
+    <!-- NEW: Script to Show/Hide "Other" Barangay Input -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const barangaySelect = document.getElementById('barangay');
+            const otherContainer = document.getElementById('otherBarangayContainer');
+            const otherInput = document.getElementById('other_barangay');
+
+            function toggleOtherBarangay() {
+                if (barangaySelect.value === 'Other') {
+                    otherContainer.style.display = 'block';
+                    otherInput.setAttribute('required', 'required');
+                } else {
+                    otherContainer.style.display = 'none';
+                    otherInput.removeAttribute('required');
+                    otherInput.value = ''; // Clear the input when hidden
+                }
+            }
+
+            // Run on page load in case of validation errors (old value is 'Other')
+            toggleOtherBarangay();
+
+            // Listen for changes
+            barangaySelect.addEventListener('change', toggleOtherBarangay);
         });
     </script>
     

@@ -23,7 +23,7 @@
                                             <input type="checkbox" id="selectAll" class="form-check-input">
                                         </th>
                                         <th>Product</th>
-                                        <th>Flavor</th>
+                                        <th>Variant</th>
                                         <th>Price</th>
                                         <th>Quantity</th>
                                         <th>Total</th>

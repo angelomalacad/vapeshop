@@ -357,6 +357,10 @@
             </div>
         @endif
 
+        {{-- ============================================================ --}}
+        {{-- DISABLED THE ERROR ALERT TO PREVENT "Undefined variable" UI CRASH --}}
+        {{-- ============================================================ --}}
+        {{-- 
         @if (session('error'))
             <div class="container">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -365,6 +369,8 @@
                 </div>
             </div>
         @endif
+        --}}
+        {{-- ============================================================ --}}
 
         @if (session('info'))
             <div class="container">

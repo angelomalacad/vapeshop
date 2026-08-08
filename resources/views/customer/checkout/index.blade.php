@@ -1,6 +1,8 @@
+
 @extends('layouts.customer')
 
 @section('content')
+
     <div class="container">
         <!-- ADDED: Back Button Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -14,19 +16,17 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        {{-- <h4 class="mb-4"><i class="bi bi-credit-card"></i> Delivery & Payment Method</h4> --}}
-
                         <!-- Address Selection Toggle -->
                         <div class="mb-4">
                             <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="address_option" id="savedAddressOption"
-                                    value="saved" checked autocomplete="off">
+                                    value="saved" checked>
                                 <label class="btn btn-outline-primary rounded-start-pill" for="savedAddressOption">
                                     <i class="bi bi-person"></i> Use My Saved Address
                                 </label>
 
                                 <input type="radio" class="btn-check" name="address_option" id="newAddressOption"
-                                    value="new" autocomplete="off">
+                                    value="new">
                                 <label class="btn btn-outline-primary rounded-end-pill" for="newAddressOption">
                                     <i class="bi bi-plus-circle"></i> Use Different Address
                                 </label>
@@ -68,9 +68,16 @@
                                     <i class="bi bi-house-heart me-2"></i>
                                     <strong>Your Saved Address:</strong><br>
                                     {{ Auth::user()->address ?? 'No address saved in profile' }}
+                                    
                                     @if (Auth::user()->barangay)
-                                        <br><strong>Barangay:</strong> {{ Auth::user()->barangay }}
+                                        <br><strong>Barangay:</strong> 
+                                        @if(Auth::user()->barangay === 'Other' && Auth::user()->other_barangay)
+                                            {{ Auth::user()->other_barangay }}
+                                        @else
+                                            {{ Auth::user()->barangay }}
+                                        @endif
                                     @endif
+
                                     @if (Auth::user()->city || Auth::user()->province)
                                         <br>{{ Auth::user()->city ?? '' }}, {{ Auth::user()->province ?? '' }}
                                     @endif
@@ -86,6 +93,8 @@
                                 <input type="hidden" name="city" id="saved_city" value="{{ Auth::user()->city }}">
                                 <input type="hidden" name="barangay" id="saved_barangay"
                                     value="{{ Auth::user()->barangay ?? '' }}">
+                                <input type="hidden" name="other_barangay" id="saved_other_barangay"
+                                    value="{{ Auth::user()->other_barangay ?? '' }}">
                                 <input type="hidden" name="province" id="saved_province"
                                     value="{{ Auth::user()->province }}">
                                 <input type="hidden" name="zip_code" id="saved_zip_code"
@@ -116,7 +125,7 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label>City/Municipality *</label>
-                                        <select class="form-select" name="new_city" id="new_city" required>
+                                        <select class="form-select" name="new_city" id="new_city">
                                             <option value="">Select City</option>
                                             <option value="Calamba City">Calamba City</option>
                                             <option value="Los Baños">Los Baños</option>
@@ -124,7 +133,6 @@
                                             <option value="Santa Rosa">Santa Rosa</option>
                                             <option value="Biñan">Biñan</option>
                                             <option value="San Pedro">San Pedro</option>
-                                            <option value="Other">Other</option>
                                         </select>
                                     </div>
                                 </div>
@@ -132,7 +140,7 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label>Barangay *</label>
-                                        <select class="form-select" name="new_barangay" required>
+                                        <select class="form-select" name="new_barangay" id="new_barangay">
                                             <option value="">Select Barangay</option>
                                             @foreach([
                                                 'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
@@ -148,8 +156,17 @@
                                             ] as $barangayOption)
                                                 <option value="{{ $barangayOption }}">{{ $barangayOption }}</option>
                                             @endforeach
+                                            <option value="Other">Other</option>
                                         </select>
                                     </div>
+
+                                    <!-- ADDED: "Other" Barangay Input -->
+                                    <div class="col-md-6 mb-3" id="otherBarangayContainer" style="display: none;">
+                                        <label for="other_barangay" class="form-label">Specify Barangay</label>
+                                        <input type="text" class="form-control" id="other_barangay" name="other_barangay" 
+                                               placeholder="Enter your barangay name">
+                                    </div>
+
                                     <div class="col-md-6 mb-3">
                                         <label>ZIP Code *</label>
                                         <input type="text" name="new_zip_code" class="form-control"
@@ -229,6 +246,15 @@
                                     </div>
                                     <div class="flex-grow-1">
                                         <div class="fw-semibold small">{{ $item['product_name'] }}</div>
+                                        
+                                        {{-- ================================================ --}}
+                                        {{-- ADDED: Variant display correctly placed below the name --}}
+                                        {{-- ================================================ --}}
+                                        @if(isset($item['flavor_name']) && $item['flavor_name'])
+                                            <div class="small text-muted">Variant: {{ $item['flavor_name'] }}</div>
+                                        @endif
+                                        {{-- ================================================ --}}
+
                                         <div class="small text-muted">Qty: {{ $item['quantity'] }}</div>
                                     </div>
                                     <div class="fw-bold small text-danger">
@@ -270,152 +296,192 @@
     </style>
 
     <script>
-        // Toggle between saved and new address
-        const savedOption = document.getElementById('savedAddressOption');
-        const newOption = document.getElementById('newAddressOption');
-        const savedSection = document.getElementById('savedAddressSection');
-        const newSection = document.getElementById('newAddressSection');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const savedOption = document.getElementById('savedAddressOption');
+            const newOption = document.getElementById('newAddressOption');
+            const savedSection = document.getElementById('savedAddressSection');
+            const newSection = document.getElementById('newAddressSection');
+            const deliveryAlert = document.getElementById('deliveryAlert');
+            const deliveryAlertTitle = document.getElementById('deliveryAlertTitle');
+            const deliveryAlertText = document.getElementById('deliveryAlertText');
+            const deliveryAlertIcon = document.getElementById('deliveryAlertIcon');
+            const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+            const paymentMethod = document.getElementById('paymentMethod');
+            const gcashField = document.getElementById('gcashField');
+            const newCityInput = document.getElementById('new_city');
+            const barangaySelect = document.getElementById('new_barangay');
+            const otherBarangayContainer = document.getElementById('otherBarangayContainer');
+            const otherBarangayInput = document.getElementById('other_barangay');
+            const checkoutForm = document.getElementById('checkoutForm');
 
-        // Dynamic Delivery Alert Elements
-        const deliveryAlert = document.getElementById('deliveryAlert');
-        const deliveryAlertTitle = document.getElementById('deliveryAlertTitle');
-        const deliveryAlertText = document.getElementById('deliveryAlertText');
-        const deliveryAlertIcon = document.getElementById('deliveryAlertIcon');
-        const deliveryFeeDisplay = document.getElementById('deliveryFeeDisplay');
+            // 1. Toggle Address Sections
+            function toggleAddressSections() {
+                let savedCity = '';
+                @if(Auth::check() && Auth::user()->city)
+                    savedCity = '{{ Auth::user()->city }}';
+                @endif
 
-        function toggleAddressSections() {
-            if (savedOption.checked) {
-                savedSection.style.display = 'block';
-                newSection.style.display = 'none';
-                // Disable new address inputs
-                document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
-                    input.disabled = true;
-                });
-                // Enable saved address hidden inputs
-                document.querySelectorAll('#savedAddressSection input').forEach(input => {
-                    input.disabled = false;
-                });
-                // Check City from Saved Address
-                checkCityForDelivery('{{ Auth::user()->city ?? "" }}');
-            } else {
-                savedSection.style.display = 'none';
-                newSection.style.display = 'block';
-                // Enable new address inputs
-                document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
-                    input.disabled = false;
-                });
-                // Disable saved address hidden inputs
-                document.querySelectorAll('#savedAddressSection input').forEach(input => {
-                    input.disabled = true;
-                });
-                // Check City from New Address input
-                const newCityInput = document.getElementById('new_city');
-                checkCityForDelivery(newCityInput.value);
+                if (savedOption.checked) {
+                    savedSection.style.display = 'block';
+                    newSection.style.display = 'none';
+                    
+                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
+                        input.disabled = true;
+                        input.removeAttribute('required');
+                    });
+                    
+                    document.querySelectorAll('#savedAddressSection input').forEach(input => {
+                        input.disabled = false;
+                    });
+                    
+                    checkCityForDelivery(savedCity);
+                } else {
+                    savedSection.style.display = 'none';
+                    newSection.style.display = 'block';
+                    
+                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
+                        input.disabled = false;
+                        input.setAttribute('required', 'required');
+                    });
+                    
+                    document.querySelectorAll('#savedAddressSection input').forEach(input => {
+                        input.disabled = true;
+                    });
+                    
+                    checkCityForDelivery(newCityInput.value);
+                }
             }
-        }
 
-        savedOption.addEventListener('change', toggleAddressSections);
-        newOption.addEventListener('change', toggleAddressSections);
+            savedOption.addEventListener('change', toggleAddressSections);
+            newOption.addEventListener('change', toggleAddressSections);
+            toggleAddressSections();
 
-        // Initialize
-        toggleAddressSections();
-
-        // Toggle GCash field
-        const paymentMethod = document.getElementById('paymentMethod');
-        const gcashField = document.getElementById('gcashField');
-
-        function toggleGcashField() {
-            if (paymentMethod.value === 'gcash') {
-                gcashField.style.display = 'block';
-            } else {
-                gcashField.style.display = 'none';
+            // 2. Toggle GCash Field
+            function toggleGcashField() {
+                gcashField.style.display = paymentMethod.value === 'gcash' ? 'block' : 'none';
             }
-        }
+            paymentMethod.addEventListener('change', toggleGcashField);
+            toggleGcashField();
 
-        paymentMethod.addEventListener('change', toggleGcashField);
-        toggleGcashField();
-
-        // UPDATED: Unified Logic for Delivery Method (Branch Admin vs Lalamove)
-        function checkCityForDelivery(city) {
-            const trimmedCity = city.trim().toLowerCase();
-            
-            if (trimmedCity === 'calamba city' || trimmedCity === 'calamba') {
-                // Branch Admin / Driver (Inside Calamba)
-                deliveryAlert.className = 'alert alert-success mb-3';
-                deliveryAlertIcon.className = 'bi bi-bicycle me-2';
-                deliveryAlertTitle.innerText = 'Handled by our Branch Admin/Driver:';
-                deliveryAlertText.innerHTML = 'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
-                deliveryAlert.style.display = 'block';
-                deliveryFeeDisplay.innerHTML = '₱0.00';
-            } else if (trimmedCity !== '') {
-                // Lalamove (Outside Calamba)
-                deliveryAlert.className = 'alert alert-primary mb-3';
-                deliveryAlertIcon.className = 'bi bi-truck me-2';
-                deliveryAlertTitle.innerText = 'Handled by Lalamove:';
-                deliveryAlertText.innerHTML = 'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link via SMS/Email<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
-                deliveryAlert.style.display = 'block';
-                deliveryFeeDisplay.innerHTML = 'Calculated by Lalamove';
-            } else {
-                deliveryAlert.style.display = 'none';
-                deliveryFeeDisplay.innerHTML = '₱0.00';
+            // 3. Delivery Method Alert
+            function checkCityForDelivery(city) {
+                const trimmedCity = city.trim().toLowerCase();
+                if (trimmedCity === 'calamba city' || trimmedCity === 'calamba') {
+                    deliveryAlert.className = 'alert alert-success mb-3';
+                    deliveryAlertIcon.className = 'bi bi-bicycle me-2';
+                    deliveryAlertTitle.innerText = 'Handled by our Branch Admin/Driver:';
+                    deliveryAlertText.innerHTML = 'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
+                    deliveryAlert.style.display = 'block';
+                    deliveryFeeDisplay.innerHTML = '₱0.00';
+                } else if (trimmedCity !== '') {
+                    deliveryAlert.className = 'alert alert-primary mb-3';
+                    deliveryAlertIcon.className = 'bi bi-truck me-2';
+                    deliveryAlertTitle.innerText = 'Handled by Lalamove:';
+                    deliveryAlertText.innerHTML = 'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link by via clicking view details in my orders information<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
+                    deliveryAlert.style.display = 'block';
+                    deliveryFeeDisplay.innerHTML = 'Calculated by Lalamove';
+                } else {
+                    deliveryAlert.style.display = 'none';
+                    deliveryFeeDisplay.innerHTML = '₱0.00';
+                }
             }
-        }
 
-        // Listener for New City Input
-        document.getElementById('new_city').addEventListener('change', function() {
-            if (newOption.checked) {
-                checkCityForDelivery(this.value);
+            newCityInput.addEventListener('change', function() {
+                if (newOption.checked) checkCityForDelivery(this.value);
+            });
+
+            // 4. Toggle "Other" Barangay
+            function toggleOtherBarangay() {
+                if (barangaySelect.value === 'Other') {
+                    otherBarangayContainer.style.display = 'block';
+                    otherBarangayInput.setAttribute('required', 'required');
+                } else {
+                    otherBarangayContainer.style.display = 'none';
+                    otherBarangayInput.removeAttribute('required');
+                    otherBarangayInput.value = '';
+                }
             }
-        });
+            if (barangaySelect) {
+                toggleOtherBarangay();
+                barangaySelect.addEventListener('change', toggleOtherBarangay);
+            }
 
-        // Form submission - prepare address data based on selection
-        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-            if (newOption.checked) {
-                // Map new address fields to the expected field names
-                const newAddress = document.querySelector('input[name="new_delivery_address"]');
-                const newCity = document.querySelector('select[name="new_city"]');
-                const newBarangay = document.querySelector('select[name="new_barangay"]');
-                const newZipCode = document.querySelector('input[name="new_zip_code"]');
-                const newLandmark = document.querySelector('input[name="new_landmark"]');
+            // 5. FORM SUBMISSION
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    // Force the radio button value into the form
+                    const selectedRadio = document.querySelector('input[name="address_option"]:checked');
+                    if (selectedRadio) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'address_option';
+                        hiddenInput.value = selectedRadio.value;
+                        this.appendChild(hiddenInput);
+                    }
 
-                // Create hidden inputs for the form data
-                const deliveryAddressInput = document.createElement('input');
-                deliveryAddressInput.type = 'hidden';
-                deliveryAddressInput.name = 'delivery_address';
-                deliveryAddressInput.value = newAddress.value;
+                    // If "New Address" is selected, map the inputs
+                    if (newOption.checked) {
+                        let finalBarangay = '';
+                        let finalOtherBarangay = '';
+                        
+                        if (barangaySelect.value === 'Other') {
+                            finalBarangay = 'Other';
+                            finalOtherBarangay = otherBarangayInput.value;
+                        } else {
+                            finalBarangay = barangaySelect.value;
+                            finalOtherBarangay = '';
+                        }
 
-                const cityInput = document.createElement('input');
-                cityInput.type = 'hidden';
-                cityInput.name = 'city';
-                cityInput.value = newCity.value;
+                        const newAddress = document.querySelector('input[name="new_delivery_address"]');
+                        const newCity = document.querySelector('select[name="new_city"]');
+                        const newZipCode = document.querySelector('input[name="new_zip_code"]');
+                        const newLandmark = document.querySelector('input[name="new_landmark"]');
 
-                const barangayInput = document.createElement('input');
-                barangayInput.type = 'hidden';
-                barangayInput.name = 'barangay';
-                barangayInput.value = newBarangay.value;
+                        const deliveryAddressInput = document.createElement('input');
+                        deliveryAddressInput.type = 'hidden';
+                        deliveryAddressInput.name = 'delivery_address';
+                        deliveryAddressInput.value = newAddress ? newAddress.value : '';
 
-                const zipCodeInput = document.createElement('input');
-                zipCodeInput.type = 'hidden';
-                zipCodeInput.name = 'zip_code';
-                zipCodeInput.value = newZipCode.value;
+                        const cityInput = document.createElement('input');
+                        cityInput.type = 'hidden';
+                        cityInput.name = 'city';
+                        cityInput.value = newCity ? newCity.value : '';
 
-                const landmarkInput = document.createElement('input');
-                landmarkInput.type = 'hidden';
-                landmarkInput.name = 'landmark';
-                landmarkInput.value = newLandmark.value;
+                        const barangayInput = document.createElement('input');
+                        barangayInput.type = 'hidden';
+                        barangayInput.name = 'barangay';
+                        barangayInput.value = finalBarangay;
 
-                this.appendChild(deliveryAddressInput);
-                this.appendChild(cityInput);
-                this.appendChild(barangayInput);
-                this.appendChild(zipCodeInput);
-                this.appendChild(landmarkInput);
-                
-                // Hardcode province to Laguna
-                const provinceInput = document.createElement('input');
-                provinceInput.type = 'hidden';
-                provinceInput.name = 'province';
-                provinceInput.value = 'Laguna';
-                this.appendChild(provinceInput);
+                        const otherBarangayInputHidden = document.createElement('input');
+                        otherBarangayInputHidden.type = 'hidden';
+                        otherBarangayInputHidden.name = 'other_barangay';
+                        otherBarangayInputHidden.value = finalOtherBarangay;
+
+                        const zipCodeInput = document.createElement('input');
+                        zipCodeInput.type = 'hidden';
+                        zipCodeInput.name = 'zip_code';
+                        zipCodeInput.value = newZipCode ? newZipCode.value : '';
+
+                        const landmarkInput = document.createElement('input');
+                        landmarkInput.type = 'hidden';
+                        landmarkInput.name = 'landmark';
+                        landmarkInput.value = newLandmark ? newLandmark.value : '';
+
+                        this.appendChild(deliveryAddressInput);
+                        this.appendChild(cityInput);
+                        this.appendChild(barangayInput);
+                        this.appendChild(otherBarangayInputHidden);
+                        this.appendChild(zipCodeInput);
+                        this.appendChild(landmarkInput);
+                        
+                        const provinceInput = document.createElement('input');
+                        provinceInput.type = 'hidden';
+                        provinceInput.name = 'province';
+                        provinceInput.value = 'Laguna';
+                        this.appendChild(provinceInput);
+                    }
+                });
             }
         });
     </script>

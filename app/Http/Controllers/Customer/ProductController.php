@@ -37,6 +37,7 @@ class ProductController extends Controller
                 'branch_id' => $inv->branch_id,
                 'branch_name' => $inv->branch->name,
                 'flavor' => $inv->flavor->name ?? null,
+                'flavor_id' => $inv->flavor->id ?? null, // <--- ADDED THIS LINE
                 'price' => $inv->product->price,
                 'available_quantity' => $inv->available_quantity,
                 'image' => $inv->product->image ?? null,

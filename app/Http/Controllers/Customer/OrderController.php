@@ -14,6 +14,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::where('user_id', Auth::id())
+            ->with(['items.product', 'items.flavor']) 
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         return view('customer.orders.index', compact('orders'));
@@ -22,7 +23,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         if ($order->user_id != Auth::id()) abort(403);
-        $order->load('items.product', 'branch', 'delivery.driver');
+        $order->load('items.product', 'items.flavor', 'branch', 'delivery.driver');
 
         // Get timestamps for each status
         $statusTimestamps = $this->getStatusTimestamps($order);
@@ -40,15 +41,21 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order) {
-            // Release reserved stock
+            // Release reserved stock safely
             foreach ($order->items as $item) {
-                $inventory = BranchInventory::where('branch_id', $order->branch_id)
-                    ->where('product_id', $item->product_id)
-                    ->first();
+                // 1. Find the inventory specifically tied to this order item
+                $inventory = BranchInventory::where('id', $item->inventory_id)->first();
+                
                 if ($inventory) {
-                    $inventory->releaseReservation($item->quantity);
+                    // 2. ONLY release if there is actually a reserved quantity
+                    if ($inventory->reserved_quantity > 0) {
+                        // Determine how much to release (don't exceed what's reserved)
+                        $quantityToRelease = min($item->quantity, $inventory->reserved_quantity);
+                        $inventory->decrement('reserved_quantity', $quantityToRelease);
+                    }
                 }
             }
+            
             $order->update(['order_status' => 'cancelled']);
         });
 

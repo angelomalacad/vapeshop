@@ -65,7 +65,7 @@ class CartController extends Controller
         return view('customer.cart.index', compact('items', 'subtotal'));
     }
 
-    public function add(Request $request)
+        public function add(Request $request)
     {
         $request->validate([
             'inventory_id' => 'required|exists:branch_inventories,id',
@@ -85,7 +85,8 @@ class CartController extends Controller
             $inventory->product->name,
             $inventory->product->price,
             $inventory->flavor->name ?? null,
-            $inventory->product_id
+            $inventory->product_id,
+            $inventory->flavor->id ?? null // <--- ADDED THIS 8TH PARAMETER
         );
 
         return redirect()->route('customer.cart.index')->with('success', 'Product added to cart.');

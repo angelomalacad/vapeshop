@@ -11,7 +11,7 @@
 
         <div class="row g-4">
             <div class="col-lg-8">
-                <!-- Order Items Card -->
+                                <!-- Order Items Card -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white fw-semibold">
                         <i class="bi bi-receipt me-2"></i> Order Items
@@ -40,20 +40,27 @@
                                                         }
                                                     @endphp
                                                     
-                                                    @if($imageUrl)
-                                                        <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" 
-                                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;">
-                                                    @else
-                                                        <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd; margin-right: 15px;">
-                                                            <i class="bi bi-image"></i>
-                                                        </div>
-                                                    @endif
+                                                    <div class="flex-shrink-0 me-3">
+                                                        @if($imageUrl)
+                                                            <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" 
+                                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                                        @else
+                                                            <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
+                                                                <i class="bi bi-image"></i>
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                     
                                                     <div>
-                                                        <strong>{{ $item->product->name }}</strong>
+                                                        <div class="fw-semibold">{{ $item->product->name }}</div>
+                                                        
+                                                        {{-- ================================================ --}}
+                                                        {{-- ADDED: Variant below the name (clean alignment) --}}
+                                                        {{-- ================================================ --}}
                                                         @if ($item->flavor)
-                                                            <br><small class="text-muted">Flavor: {{ $item->flavor->name }}</small>
+                                                            <div class="small text-muted">Variant: {{ $item->flavor->name }}</div>
                                                         @endif
+                                                        {{-- ================================================ --}}
                                                     </div>
                                                 </div>
                                             </td>
@@ -268,14 +275,18 @@
                 </div>
 
                 <!-- Delivery Details Card with Proof Images -->
-                @if ($order->delivery_type == 'delivery' && $order->delivery)
+                                @if ($order->delivery_type == 'delivery' && $order->delivery)
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white fw-semibold">
                             <i class="bi bi-geo-alt me-2"></i> Delivery Address
                         </div>
                         <div class="card-body">
                             <p class="mb-1">{{ $order->delivery_address }}</p>
-                            <p class="mb-1">{{ $order->barangay }}, {{ $order->city }}</p>
+                            <p class="mb-1">
+                                {{-- If barangay is 'Other', show other_barangay instead. Else show normal barangay. --}}
+                                {{ ($order->barangay === 'Other' && $order->other_barangay) ? $order->other_barangay : $order->barangay }}, 
+                                {{ $order->city }}
+                            </p>
                             @if ($order->landmark)
                                 <p class="mb-0 text-muted"><small>Landmark: {{ $order->landmark }}</small></p>
                             @endif
@@ -357,6 +368,28 @@
                         @endif
                     </div>
                 </div>
+
+                {{-- ================================================ --}}
+                {{-- ADDED: Lalamove Tracking Link Card (Driver will add later) --}}
+                {{-- ================================================ --}}
+                <div class="card shadow-sm border-0 mt-4" id="lalamoveTrackingCard">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="bi bi-truck me-2 text-primary"></i> Lalamove Tracking
+                    </div>
+                    <div class="card-body text-center">
+                        @if($order->delivery && $order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
+                            <i class="bi bi-box-arrow-up-right display-4 text-success mb-3 d-block"></i>
+                            <p class="mb-2">Your package is on its way!</p>
+                            <a href="{{ $order->delivery->tracking_number }}" target="_blank" class="btn btn-primary rounded-pill w-100">
+                                <i class="bi bi-eye me-1"></i> Track Package
+                            </a>
+                        @else
+                            <i class="bi bi-clock-history display-4 text-secondary mb-3 d-block"></i>
+                            <p class="mb-0 text-muted">Tracking link will be available once your order is out for delivery.</p>
+                        @endif
+                    </div>
+                </div>
+                {{-- ================================================ --}}
 
                 <!-- Need Help Card -->
                 <div class="card shadow-sm border-0 mt-4">

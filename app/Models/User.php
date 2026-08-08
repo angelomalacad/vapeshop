@@ -26,6 +26,9 @@ class User extends Authenticatable implements MustVerifyEmail
     'branch_id',
     'phone',
     'address',
+    'barangay', 
+    'other_barangay', 
+    'gender',
     'city',
     'barangay',      // Added
     'landmark',      // Added

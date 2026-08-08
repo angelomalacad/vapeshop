@@ -50,6 +50,8 @@ class RegisterController extends Controller
             'zip_code' => ['nullable', 'string', 'max:10'],
             'birthdate' => ['nullable', 'date', 'before:'.now()->subYears(18)->format('Y-m-d')],
             'terms' => ['required', 'accepted'],
+            'gender' => ['nullable', 'string', 'in:male,female'],
+            'barangay' => ['required', 'string', 'max:255'],
         ], [
             'phone.regex' => 'Please enter a valid Philippine mobile number (e.g., 09123456789)',
             'birthdate.before' => 'You must be at least 18 years old to register',
@@ -72,6 +74,9 @@ class RegisterController extends Controller
             'role' => 'customer',
             'phone' => $data['phone'],
             'address' => $data['address'],
+            'gender' => $data['gender'], 
+            'barangay' => $data['barangay'],            // ADDED THIS
+            'other_barangay' => $data['other_barangay'], // ADDED THIS
             'city' => $data['city'] ?? 'Calamba',
             'province' => $data['province'] ?? 'Laguna',
             'zip_code' => $data['zip_code'] ?? null,

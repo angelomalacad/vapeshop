@@ -36,11 +36,23 @@
                             @endif
                             <div>
                                 <strong>{{ $firstItem->product->name ?? 'Order Items' }}</strong>
+                                
+                                {{-- ================================================ --}}
+                                {{-- ADDED: Display the Flavor/Variant below the name --}}
+                                {{-- ================================================ --}}
+                                @if($firstItem && $firstItem->flavor)
+                                    <br><small class="text-muted">Variant: {{ $firstItem->flavor->name }}</small>
+                                @endif
+                                {{-- ================================================ --}}
+
                                 @if($order->items->count() > 1)
                                     <br><small class="text-muted">+ {{ $order->items->count() - 1 }} more item(s)</small>
                                 @endif
                             </div>
                         </div>
+
+                       
+
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Date</small>

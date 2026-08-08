@@ -13,6 +13,7 @@ class OrderItem extends Model
         'order_id',
         'inventory_id',  // ADD THIS
         'product_id',
+        'flavor_id',
         'quantity',
         'price',
         'subtotal'
@@ -29,5 +30,9 @@ class OrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+      public function flavor()
+    {
+        return $this->belongsTo(ProductFlavor::class, 'flavor_id');
     }
 }

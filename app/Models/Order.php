@@ -31,6 +31,7 @@ class Order extends Model
         'customer_email',
         'city',
         'barangay',
+        'other_barangay',
         'landmark',
         'gcash_reference',
         'order_status',      // new status column for online flow

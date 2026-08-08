@@ -296,7 +296,6 @@
         color: #1e293b;
     }
     
-    /* Active State: Light blue background, blue text, and blue left border */
     .sidebar-menu .menu-item.active {
         background: #eff6ff;
         color: #2563eb;
@@ -536,6 +535,9 @@
                         <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
                         <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
                         <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        
+                        {{-- ADDED: Lalamove Filter --}}
+                        <option value="lalamove_pending" {{ request('status') == 'lalamove_pending' ? 'selected' : '' }}>Lalamove</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -577,6 +579,7 @@
                             <th>Type</th>
                             <th>Status</th>
                             <th>Delivery Date & Time</th>
+                            <th>Lalamove Info</th>
                             <th class="pe-4">Actions</th>
                         </tr>
                     </thead>
@@ -591,10 +594,11 @@
                                 'out_for_delivery' => 'badge-out_for_delivery',
                                 'delivered' => 'badge-delivered',
                                 'cancelled' => 'badge-cancelled',
+                                'lalamove_pending' => 'badge-secondary',
                                 default => 'badge-secondary'
                             };
                             
-                            $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst($order->order_status);
+                            $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst(str_replace('_', ' ', $order->order_status));
                             
                             // Get first product and image
                             $firstItem = $order->items->first();
@@ -614,6 +618,12 @@
                             
                             // Get delivery date and time
                             $deliveryDateTime = $order->delivered_at ?? $order->updated_at;
+
+                            // EXACT LALAMOVE DETECTION LOGIC
+                            $cityLower = strtolower(trim($order->city ?? ''));
+                            $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
+                            $lalamoveCities = ['biñan', 'cabuyao', 'san pablo', 'san pedro', 'santa rosa'];
+                            $isLalamoveEligible = !$isCalambaCity && in_array($cityLower, $lalamoveCities);
                         @endphp
                         <tr>
                             <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
@@ -640,19 +650,30 @@
                                 <small class="text-muted">{{ $order->customer_phone }}</small>
                             </td>
                             <td><strong class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong></td>
+
+                            {{-- UPDATED: Type Column --}}
                             <td>
                                 <span class="delivery-badge">
-                                    <i class="bi bi-{{ $order->delivery_type == 'delivery' ? 'truck' : 'building' }} me-1"></i>
-                                    {{ ucfirst($order->delivery_type) }}
+                                    @if($isLalamoveEligible && ($order->order_status === 'lalamove_pending' || ($order->order_status === 'out_for_delivery' && $order->delivery && $order->delivery->tracking_number)))
+                                        <i class="bi bi-truck me-1 text-primary"></i>
+                                        Lalamove
+                                    @elseif($isCalambaCity)
+                                        <i class="bi bi-bicycle me-1 text-success"></i>
+                                        Staff
+                                    @else
+                                        <i class="bi bi-bicycle me-1 text-success"></i>
+                                        Staff
+                                    @endif
                                 </span>
                             </td>
+
                             <td>
                                 <span class="badge {{ $statusClass }}">
                                     {{ $displayStatus }}
                                 </span>
                             </td>
                             <td>
-                                @if(in_array($order->order_status, ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery']))
+                                @if(in_array($order->order_status, ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'lalamove_pending']))
                                     <span class="text-muted">N/A</span>
                                 @elseif($deliveryDateTime)
                                     {{ \Carbon\Carbon::parse($deliveryDateTime)->format('M d, Y') }}<br>
@@ -661,6 +682,36 @@
                                     <span class="text-muted">N/A</span>
                                 @endif
                             </td>
+                            
+                            {{-- UPDATED: Lalamove Info Column - ONLY OUTSIDE CALAMBA --}}
+                            <td>
+                                @if($isLalamoveEligible && ($order->order_status === 'lalamove_pending' || $order->order_status === 'ready'))
+                                    <form action="{{ route('driver.orders.update-lalamove', $order->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="d-flex flex-column gap-2">
+                                            <input type="url" name="tracking_url" class="form-control form-control-sm" placeholder="Paste Lalamove Link" required>
+                                            <input type="file" name="delivery_proof" class="form-control form-control-sm" accept="image/*">
+                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-check-circle"></i> Submit
+                                            </button>
+                                        </div>
+                                    </form>
+                                @elseif($isLalamoveEligible && $order->order_status === 'out_for_delivery' && $order->delivery && $order->delivery->tracking_number)
+                                    <div class="d-flex flex-column gap-1">
+                                        <a href="{{ $order->delivery->tracking_number }}" target="_blank" class="btn btn-sm btn-primary w-100">
+                                            <i class="bi bi-eye"></i> View Link
+                                        </a>
+                                        @if($order->delivery->delivery_proof)
+                                            <button class="btn btn-sm btn-outline-secondary w-100" onclick="window.open('{{ Storage::url($order->delivery->delivery_proof) }}', '_blank')">
+                                                <i class="bi bi-image"></i> Proof
+                                            </button>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+
                             <td class="pe-4">
                                 <button onclick="openOrderModal({{ $order->id }})" class="btn btn-manage btn-sm text-white">
                                     <i class="bi bi-eye me-1"></i> Manage
@@ -669,7 +720,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center py-5">
+                            <td colspan="11" class="text-center py-5">
                                 <i class="bi bi-inbox display-1 text-muted"></i>
                                 <h5 class="mt-3">No Online Orders</h5>
                                 <p class="text-muted">There are no online orders to process at this time.</p>

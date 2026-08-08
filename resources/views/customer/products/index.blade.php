@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <!-- Branch Filter & Search -->
+        <!-- Branch Filter & Search -->
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -17,7 +17,16 @@
                                 ->first();
                         @endphp
                         <span class="btn btn-sm btn-success rounded-pill">
-                            <i class="bi bi-check-circle"></i> {{ Auth::user()->barangay }}
+                            <i class="bi bi-check-circle"></i> 
+                            {{-- ============================================================ --}}
+                            {{-- FIX: If barangay is 'Other' and other_barangay exists, show that --}}
+                            {{-- ============================================================ --}}
+                            @if(Auth::user()->barangay === 'Other' && Auth::user()->other_barangay)
+                                {{ Auth::user()->other_barangay }}
+                            @else
+                                {{ Auth::user()->barangay }}
+                            @endif
+                            {{-- ============================================================ --}}
                         </span>
                         @if($userBranch)
                             <span class="btn btn-sm btn-outline-info rounded-pill">

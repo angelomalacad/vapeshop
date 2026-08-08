@@ -32,6 +32,7 @@ class CartHelper
                 'product_id' => $inventory->product_id,
                 'product_name' => $inventory->product->name ?? 'Unknown Product',
                 'flavor_name' => $inventory->flavor->name ?? null,
+                'flavor_id' => $inventory->flavor->id ?? null,
                 'price' => $inventory->product->price ?? 0,
                 'quantity' => $cart->quantity,
                 'product_image' => $inventory->product->image ? \Storage::url($inventory->product->image) : null,
@@ -71,7 +72,7 @@ class CartHelper
     /**
      * Add item to cart
      */
-    public static function addItem($inventoryId, $quantity, $branchId, $productName, $price, $flavorName = null, $productId = null)
+    public static function addItem($inventoryId, $quantity, $branchId, $productName, $price, $flavorName = null, $productId = null, $flavorId = null)
     {
         if (!Auth::check()) {
             return false;
@@ -91,6 +92,24 @@ class CartHelper
                 'quantity' => $quantity,
             ]);
         }
+
+        // Update the session array to include flavor_id
+        $cart = session()->get('cart', []);
+        if (isset($cart[$inventoryId])) {
+            $cart[$inventoryId]['quantity'] += $quantity;
+        } else {
+            $cart[$inventoryId] = [
+                'inventory_id' => $inventoryId,
+                'branch_id' => $branchId,
+                'product_id' => $productId,
+                'product_name' => $productName,
+                'flavor_name' => $flavorName,
+                'flavor_id' => $flavorId, // <--- ADDED THIS LINE
+                'price' => $price,
+                'quantity' => $quantity,
+            ];
+        }
+        session()->put('cart', $cart);
 
         return true;
     }

@@ -330,10 +330,7 @@
                             <span class="totals-label">Subtotal</span>
                             <span class="totals-value">₱{{ number_format($order->subtotal, 2) }}</span>
                         </div>
-                        <div class="totals-row">
-                            <span class="totals-label">Tax (12%)</span>
-                            <span class="totals-value">₱{{ number_format($order->tax, 2) }}</span>
-                        </div>
+                        {{-- TAX ROW REMOVED --}}
                         <div class="totals-row totals-total">
                             <span class="totals-label">Total</span>
                             <span class="totals-value">₱{{ number_format($order->total_amount, 2) }}</span>
