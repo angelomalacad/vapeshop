@@ -12,10 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage; // <--- ADDED FOR IMAGE UPLOADS
 
 class OnlineOrderController extends Controller
 {
-        public function index(Request $request)
+    public function index(Request $request)
     {
         $todayShift = DriverShift::where('shift_date', today())
             ->where('status', 'active')
@@ -29,7 +30,7 @@ class OnlineOrderController extends Controller
 
         // Build the base query
         $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
-            ->whereNotIn('order_status', ['cancelled']);
+            ->whereNotIn('order_status', ['cancelled', 'delivered']);
 
         // ✅ Status filter
         if ($request->filled('status')) {
@@ -46,7 +47,7 @@ class OnlineOrderController extends Controller
             $orders->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // ✅ THE FIX: Pre-load the relationships needed for the table
+        // ✅ Load the relationships needed for the table
         $orders = $orders->with([
                 'items.product',             // For Product Name & Image
                 'items.inventory.branch'     // For "Fulfilled By" column (Pickup Branch)
@@ -54,6 +55,15 @@ class OnlineOrderController extends Controller
             ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')")
             ->orderBy('created_at', 'desc')
             ->paginate(5);
+
+        // ✅ ADD THIS BLOCK: Add a custom attribute for "Staff" vs "Lalamove"
+        $orders->getCollection()->transform(function ($order) {
+            $cityLower = strtolower(trim($order->city ?? ''));
+            $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
+            $order->is_lalamove = !$isCalambaCity;
+            return $order;
+        });
+        // ================================================================
 
         $counts = [
             'pending' => Order::where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
@@ -194,5 +204,46 @@ class OnlineOrderController extends Controller
             'message' => 'Order is ready for pickup.',
             'new_status' => 'ready'
         ]);
+    }
+
+    // =============================================================
+    // ✅ FIXED: Lalamove Tracking & Proof Upload Method
+    // =============================================================
+    public function updateLalamove(Request $request, $orderId)
+    {
+        $order = Order::findOrFail($orderId);
+
+        $request->validate([
+            'tracking_url' => 'required|url',
+            'delivery_proof' => 'nullable|image|max:5120', // 5MB max
+        ]);
+
+        // 🔥 FIX 1: Use updateOrCreate so it attaches to the order properly
+        $delivery = $order->delivery()->updateOrCreate(
+            ['order_id' => $order->id],
+            [
+                'tracking_number' => $request->tracking_url,
+                'status' => 'in_transit',
+                'assigned_at' => now(),
+            ]
+        );
+
+        // 🔥 FIX 2: Handle the proof image
+        if ($request->hasFile('delivery_proof')) {
+            // Delete old proof if it exists
+            if ($delivery->delivery_proof && Storage::disk('public')->exists($delivery->delivery_proof)) {
+                Storage::disk('public')->delete($delivery->delivery_proof);
+            }
+            $path = $request->file('delivery_proof')->store('delivery_proofs', 'public');
+            $delivery->delivery_proof = $path;
+            $delivery->save();
+        }
+
+        // 🔥 FIX 3: Update Order Status to out_for_delivery
+        $order->update([
+            'order_status' => 'out_for_delivery'
+        ]);
+
+        return back()->with('success', 'Lalamove tracking link submitted! Customer can now track their package.');
     }
 }

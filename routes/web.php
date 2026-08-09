@@ -545,6 +545,7 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
         Route::post('/{order}/processing', [App\Http\Controllers\Driver\OnlineOrderController::class, 'markProcessing'])->name('processing');
         Route::post('/{order}/ready', [App\Http\Controllers\Driver\OnlineOrderController::class, 'markReady'])->name('ready');
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
+        Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
     });
 
     // Delivery Management - Driver sees ALL deliveries assigned to them

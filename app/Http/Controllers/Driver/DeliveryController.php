@@ -12,64 +12,70 @@ use Carbon\Carbon;
 
 class DeliveryController extends Controller
 {
- /**
- * Display all deliveries assigned to this driver (across all branches)
- * Separated into Active and Completed sections
- */
-public function index(Request $request)
-{
-    $driverId = Auth::id();
+    /**
+     * Display all deliveries assigned to this driver (across all branches)
+     * Separated into Active and Completed sections
+     */
+    public function index(Request $request)
+    {
+        $driverId = Auth::id();
 
-    // Active deliveries (not yet delivered or failed) - with pagination
-    $activeDeliveries = Delivery::where('driver_id', $driverId)
-        ->whereNotIn('status', ['delivered', 'failed'])
-        ->with(['order', 'order.branch'])
-        ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+        // Active deliveries (not yet delivered or failed) - with pagination
+        $activeDeliveries = Delivery::where('driver_id', $driverId)
+            ->whereNotIn('status', ['delivered', 'failed'])
+            ->with(['order', 'order.branch'])
+            ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-    // Ensure order relationship is loaded for active deliveries
-    $activeDeliveries->load('order');
+        // Ensure order relationship is loaded for active deliveries
+        $activeDeliveries->load('order');
 
-    // Completed deliveries (delivered or failed) - with pagination
-    $completedDeliveries = Delivery::where('driver_id', $driverId)
-        ->whereIn('status', ['delivered', 'failed'])
-        ->with(['order', 'order.branch'])
-        ->orderBy('updated_at', 'desc')
-        ->paginate(10);
+        // Completed deliveries (delivered or failed) - with pagination
+        $completedDeliveries = Delivery::where('driver_id', $driverId)
+            ->whereIn('status', ['delivered', 'failed'])
+            ->with(['order', 'order.branch'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(10);
 
-    // Ensure order relationship is loaded for completed deliveries
-    $completedDeliveries->load('order');
+        // Ensure order relationship is loaded for completed deliveries
+        $completedDeliveries->load('order');
 
-    // Calculate total deliveries count
-    $totalDeliveries = Delivery::where('driver_id', $driverId)->count();
+        // Calculate total deliveries count
+        $totalDeliveries = Delivery::where('driver_id', $driverId)->count();
 
-    // Calculate counts for stats
-    $stats = [
-        'total' => $totalDeliveries,
-        'pending' => Delivery::where('driver_id', $driverId)->where('status', 'pending')->count(),
-        'assigned' => Delivery::where('driver_id', $driverId)->where('status', 'assigned')->count(),
-        'picked_up' => Delivery::where('driver_id', $driverId)->where('status', 'picked_up')->count(),
-        'in_transit' => Delivery::where('driver_id', $driverId)->where('status', 'in_transit')->count(),
-        'delivered' => Delivery::where('driver_id', $driverId)->where('status', 'delivered')->count(),
-        'failed' => Delivery::where('driver_id', $driverId)->where('status', 'failed')->count(),
-    ];
+        // Calculate counts for stats
+        $stats = [
+            'total' => $totalDeliveries,
+            'pending' => Delivery::where('driver_id', $driverId)->where('status', 'pending')->count(),
+            'assigned' => Delivery::where('driver_id', $driverId)->where('status', 'assigned')->count(),
+            'picked_up' => Delivery::where('driver_id', $driverId)->where('status', 'picked_up')->count(),
+            'in_transit' => Delivery::where('driver_id', $driverId)->where('status', 'in_transit')->count(),
+            'delivered' => Delivery::where('driver_id', $driverId)->where('status', 'delivered')->count(),
+            'failed' => Delivery::where('driver_id', $driverId)->where('status', 'failed')->count(),
+        ];
 
-    // Calculate active and completed counts for the header badges
-    $activeCount = Delivery::where('driver_id', $driverId)->whereNotIn('status', ['delivered', 'failed'])->count();
-    $completedCount = Delivery::where('driver_id', $driverId)->whereIn('status', ['delivered', 'failed'])->count();
+        // Calculate active and completed counts for the header badges
+        $activeCount = Delivery::where('driver_id', $driverId)->whereNotIn('status', ['delivered', 'failed'])->count();
+        $completedCount = Delivery::where('driver_id', $driverId)->whereIn('status', ['delivered', 'failed'])->count();
 
-    return view('driver.deliveries.index', compact('activeDeliveries', 'completedDeliveries', 'totalDeliveries', 'stats', 'activeCount', 'completedCount'));
-}
+        return view('driver.deliveries.index', compact('activeDeliveries', 'completedDeliveries', 'totalDeliveries', 'stats', 'activeCount', 'completedCount'));
+    }
+
     /**
      * Show a specific delivery
      */
     public function show(Delivery $delivery)
     {
-        // Verify this delivery belongs to the logged-in driver
-        if ($delivery->driver_id !== Auth::id()) {
+        // ================================================================
+        // FIX: Allow Lalamove orders (driver_id = null) to be viewed
+        // ================================================================
+        // If the driver is assigned, verify it matches Auth::id()
+        if ($delivery->driver_id !== null && $delivery->driver_id !== Auth::id()) {
             abort(403, 'This delivery is not assigned to you.');
         }
+        // If driver_id is null, we allow access (Lalamove bypass)
+        // ================================================================
 
         $delivery->load(['order', 'order.items.product', 'order.branch']);
         return view('driver.deliveries.show', compact('delivery'));
@@ -80,13 +86,16 @@ public function index(Request $request)
      */
     public function updateStatus(Request $request, Delivery $delivery)
     {
-        // Verify this delivery belongs to the logged-in driver
-        if ($delivery->driver_id !== Auth::id()) {
+        // ================================================================
+        // FIX: Allow Lalamove orders (driver_id = null) to be updated
+        // ================================================================
+        if ($delivery->driver_id !== null && $delivery->driver_id !== Auth::id()) {
             if ($request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized access.']);
             }
             abort(403, 'This delivery is not assigned to you.');
         }
+        // ================================================================
 
         // Log the request for debugging
         \Log::info('Update Status Request', [
@@ -280,7 +289,8 @@ public function index(Request $request)
             'recentOnlineOrders'
         ));
     }
-     /**
+
+    /**
      * Display the driver's delivery history (Active & Completed)
      */
     public function deliveryHistory(Request $request)
@@ -313,11 +323,11 @@ public function index(Request $request)
         $totalDeliveries = $activeCount + $completedCount;
 
         return view('driver.deliveries.delivery-history', compact(
-        'activeDeliveries', 
-        'completedDeliveries', 
-        'activeCount', 
-        'completedCount', 
-        'totalDeliveries'
-    ));
+            'activeDeliveries',
+            'completedDeliveries',
+            'activeCount',
+            'completedCount',
+            'totalDeliveries'
+        ));
     }
 }

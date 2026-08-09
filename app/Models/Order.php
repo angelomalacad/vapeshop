@@ -96,5 +96,6 @@ class Order extends Model
         ];
         return $classes[$this->order_status] ?? 'bg-secondary';
     }
+    
 
 }
