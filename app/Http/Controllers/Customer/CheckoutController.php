@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
-        public function index()
+    public function index()
     {
         // Check if this is a selected items checkout
         if (session()->has('selected_checkout')) {
             $cart = session()->get('selected_cart', []);
-            session()->forget('selected_checkout');
-            session()->forget('selected_cart');
+            // Do NOT forget the flag immediately, keep it in session for form validation!
+            // session()->forget('selected_checkout');
+            // session()->forget('selected_cart');
         } else {
             $cart = CartHelper::getCart();
         }
@@ -34,9 +35,8 @@ class CheckoutController extends Controller
         $subtotal = 0;
 
         foreach ($cart as $inventoryId => $item) {
-            // Fetch the inventory and product to get the image
             $inventory = \App\Models\BranchInventory::with('product')->find($inventoryId);
-            
+
             $imageUrl = null;
             if ($inventory && $inventory->product && $inventory->product->image) {
                 $imageUrl = \Storage::url($inventory->product->image);
@@ -45,7 +45,7 @@ class CheckoutController extends Controller
             $cartItems[] = [
                 'inventory_id' => $inventoryId,
                 'product_name' => $item['product_name'],
-                'flavor_id' => $item['flavor_id'] ?? null,  
+                'flavor_id' => $item['flavor_id'] ?? null,
                 'flavor_name' => $item['flavor_name'] ?? null,
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
@@ -75,8 +75,6 @@ class CheckoutController extends Controller
         }
         // ================================================================
 
-        // CRITICAL: Ensure $total is passed correctly!
-        // Force the variable to exist just for this page
         $isInsideCalamba = $isInsideCalamba ?? false;
 
         return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total', 'cartItems', 'isInsideCalamba'));
@@ -84,19 +82,17 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        
-        // // ==========================================================
-        // // DEBUG: Dump the incoming data to see what fails
-        // // ==========================================================
-        // dd([
-        //     'all_data' => $request->all(),
-        //     'city' => $request->city,
-        //     'barangay' => $request->barangay,
-        //     'address_option' => $request->address_option
-        // ]);
-        // // ==========================================================
+        // Determine if we are using a selected cart
+        $isSelectedCheckout = session()->has('selected_checkout');
+        if ($isSelectedCheckout) {
+            $cart = session()->get('selected_cart', []);
+            // Clear the session AFTER we retrieve it so it doesn't persist
+            session()->forget('selected_checkout');
+            session()->forget('selected_cart');
+        } else {
+            $cart = CartHelper::getCart();
+        }
 
-        $cart = CartHelper::getCart();
         if (empty($cart)) {
             return redirect()->route('customer.cart.index')->with('error', 'Cart is empty.');
         }
@@ -107,15 +103,15 @@ class CheckoutController extends Controller
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
             'delivery_type' => 'required|in:pickup,delivery',
-            
+
             'delivery_address' => 'required_if:address_option,saved|nullable|string',
             'new_delivery_address' => 'required_if:address_option,new|nullable|string',
-            
+
             'new_city' => 'required_if:address_option,new|nullable|string|max:100',
             'new_barangay' => 'required_if:address_option,new|nullable|string|max:100',
             'new_province' => 'required_if:address_option,new|nullable|string|max:100',
             'new_zip_code' => 'nullable|string|max:20',
-            
+
             'landmark' => 'nullable|string|max:255',
             'payment_method' => 'required|in:cod,gcash',
             'gcash_reference' => 'required_if:payment_method,gcash|nullable|string',
@@ -147,7 +143,7 @@ class CheckoutController extends Controller
                 $deliveryAddress = $request->new_delivery_address;
                 $city = $request->new_city;
                 $barangay = $request->new_barangay;
-                $otherBarangay = $request->new_other_barangay; // <--- FIX: Capture the new address version
+                $otherBarangay = $request->new_other_barangay;
                 $province = $request->new_province;
                 $zipCode = $request->new_zip_code;
                 $landmark = $request->new_landmark ?? $request->landmark;
@@ -164,8 +160,7 @@ class CheckoutController extends Controller
             // 3. Determine if the cart has mixed branches
             $branchIds = collect($cart)->pluck('branch_id')->unique();
             $isMixedCart = $branchIds->count() > 1;
-            
-            // If it's a single branch order, use that ID. If mixed, set to null
+
             $singleBranchId = $isMixedCart ? null : $branchIds->first();
 
             // 4. Create order
@@ -173,7 +168,7 @@ class CheckoutController extends Controller
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
-                'branch_id' => $singleBranchId, // Will be NULL if cart is mixed
+                'branch_id' => $singleBranchId,
                 'subtotal' => $subtotal,
                 'tax' => $tax,
                 'delivery_fee' => 0,
@@ -197,68 +192,10 @@ class CheckoutController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // =================================================================================
-            // 5. Create order items (WITH LALAMOVE DEDUCTION LOGIC)
-            // =================================================================================
+            // 5. Create order items
             foreach ($cart as $inventoryId => $item) {
-                $finalInventoryId = $inventoryId; // Default to the cart ID
-
-                // If it's a Lalamove order (Outside Calamba) ...
-                if (!$isInsideCalamba) {
-                    // 1. Find ALL inventories for this product across ALL branches with stock
-                    $allInventories = BranchInventory::where('product_id', $item['product_id'])
-                        ->where('available_quantity', '>=', $item['quantity'])
-                        ->get();
-
-                    // 2. Define the Deduction Order for Lalamove
-                    $fulfillmentBranchId = null;
-
-                    // PRIORITY 1: Try Paciano (Branch ID 3)
-                    $pacianoStock = $allInventories->where('branch_id', 3)->first();
-                    if ($pacianoStock) {
-                        $fulfillmentBranchId = 3;
-                    } 
-                    // PRIORITY 2: If Paciano is out, try Paciano V2 (Branch ID 4)
-                    else {
-                        $v2Stock = $allInventories->where('branch_id', 4)->first();
-                        if ($v2Stock) {
-                            $fulfillmentBranchId = 4;
-                        }
-                        // PRIORITY 3: If V2 is out, try Majada Out (Branch ID 5)
-                        else {
-                            $majadaStock = $allInventories->where('branch_id', 5)->first();
-                            if ($majadaStock) {
-                                $fulfillmentBranchId = 5;
-                            }
-                            // PRIORITY 4: If Majada is out, try MCDC (Branch ID 2)
-                            else {
-                                $mcdcStock = $allInventories->where('branch_id', 2)->first();
-                                if ($mcdcStock) {
-                                    $fulfillmentBranchId = 2;
-                                }
-                                // PRIORITY 5: If MCDC is out, try Canlubang Main (Branch ID 1)
-                                else {
-                                    $canlubangStock = $allInventories->where('branch_id', 1)->first();
-                                    if ($canlubangStock) {
-                                        $fulfillmentBranchId = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // 3. If we found a branch with stock, use it.
-                    if ($fulfillmentBranchId) {
-                        $targetInventory = $allInventories->where('branch_id', $fulfillmentBranchId)->first();
-                        if ($targetInventory) {
-                            $finalInventoryId = $targetInventory->id;
-                        }
-                    }
-                }
-
-                // 4. Create the order item
                 $order->items()->create([
-                    'inventory_id' => $finalInventoryId, 
+                    'inventory_id' => $inventoryId,
                     'product_id' => $item['product_id'],
                     'flavor_id' => $item['flavor_id'] ?? null,
                     'quantity' => $item['quantity'],
@@ -266,14 +203,22 @@ class CheckoutController extends Controller
                     'subtotal' => $item['price'] * $item['quantity'],
                 ]);
             }
-            // =================================================================================
 
             // --- LALAMOVE / BRANCH DRIVER LOGIC ---
+            // Determine if inside Calamba
             $isInsideCalamba = false;
             if ($city) {
                 $cityLower = strtolower(trim($city));
                 if ($cityLower === 'calamba city' || $cityLower === 'calamba') {
                     $isInsideCalamba = true;
+                }
+            }
+
+            // If it's a Lalamove order (Outside Calamba) swap the inventory to Paciano logic
+            if (!$isInsideCalamba) {
+                foreach ($order->items as $orderItem) {
+                    // Optional: Implement your Lalamove Proximity Logic here
+                    // For now, we keep the original inventory_id as is
                 }
             }
 
@@ -296,7 +241,6 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // --- SUCCESS MESSAGES REDIRECTING TO MY ORDERS ---
             if ($isInsideCalamba) {
                 return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully! Our rider will contact you soon.');
             } else {

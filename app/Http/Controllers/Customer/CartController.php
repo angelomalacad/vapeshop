@@ -65,7 +65,7 @@ class CartController extends Controller
         return view('customer.cart.index', compact('items', 'subtotal'));
     }
 
-        public function add(Request $request)
+    public function add(Request $request)
     {
         $request->validate([
             'inventory_id' => 'required|exists:branch_inventories,id',
@@ -86,47 +86,45 @@ class CartController extends Controller
             $inventory->product->price,
             $inventory->flavor->name ?? null,
             $inventory->product_id,
-            $inventory->flavor->id ?? null // <--- ADDED THIS 8TH PARAMETER
+            $inventory->flavor->id ?? null
         );
 
         return redirect()->route('customer.cart.index')->with('success', 'Product added to cart.');
     }
 
-   public function update(Request $request, $inventoryId)
-{
-    $request->validate(['quantity' => 'required|integer|min:1']);
+    public function update(Request $request, $inventoryId)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
 
-    // Check stock availability
-    $cart = CartHelper::getCart();
-    if (isset($cart[$inventoryId])) {
-        $inventory = BranchInventory::find($inventoryId);
-        if ($inventory && $inventory->available_quantity < $request->quantity) {
-            return response()->json(['success' => false, 'message' => 'Insufficient stock available.']);
+        $cart = CartHelper::getCart();
+        if (isset($cart[$inventoryId])) {
+            $inventory = BranchInventory::find($inventoryId);
+            if ($inventory && $inventory->available_quantity < $request->quantity) {
+                return response()->json(['success' => false, 'message' => 'Insufficient stock available.']);
+            }
         }
+
+        CartHelper::updateQuantity($inventoryId, $request->quantity);
+        return response()->json(['success' => true, 'message' => 'Cart updated.']);
     }
 
-    CartHelper::updateQuantity($inventoryId, $request->quantity);
-    return response()->json(['success' => true, 'message' => 'Cart updated.']);
-}
+    public function remove($inventoryId)
+    {
+        CartHelper::removeItem($inventoryId);
+        return response()->json(['success' => true, 'message' => 'Item removed.']);
+    }
 
-public function remove($inventoryId)
-{
-    CartHelper::removeItem($inventoryId);
-    return response()->json(['success' => true, 'message' => 'Item removed.']);
-}
+    public function clear()
+    {
+        CartHelper::clearCart();
+        return response()->json(['success' => true, 'message' => 'Cart cleared.']);
+    }
 
-public function clear()
-{
-    CartHelper::clearCart();
-    return response()->json(['success' => true, 'message' => 'Cart cleared.']);
-}
-
-   /**
+    /**
      * Checkout selected items from cart
      */
     public function checkoutSelected(Request $request)
     {
-        // Debug: Log the request
         \Log::info('Checkout selected called', [
             'method' => $request->method(),
             'all_data' => $request->all()
@@ -152,11 +150,10 @@ public function clear()
             return redirect()->route('customer.cart.index')->with('error', 'No items selected for checkout.');
         }
 
-        // Temporarily store selected cart in session for checkout
+        // Store the selected cart AND a flag to verify it is selected
         Session::put('selected_cart', $selectedCart);
         Session::put('selected_checkout', true);
 
-        // Redirect to checkout with selected items
         return redirect()->route('customer.checkout.index');
     }
 }

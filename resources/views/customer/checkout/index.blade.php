@@ -1,4 +1,3 @@
-
 @extends('layouts.customer')
 
 @section('content')
@@ -68,10 +67,10 @@
                                     <i class="bi bi-house-heart me-2"></i>
                                     <strong>Your Saved Address:</strong><br>
                                     {{ Auth::user()->address ?? 'No address saved in profile' }}
-                                    
+
                                     @if (Auth::user()->barangay)
-                                        <br><strong>Barangay:</strong> 
-                                        @if(Auth::user()->barangay === 'Other' && Auth::user()->other_barangay)
+                                        <br><strong>Barangay:</strong>
+                                        @if (Auth::user()->barangay === 'Other' && Auth::user()->other_barangay)
                                             {{ Auth::user()->other_barangay }}
                                         @else
                                             {{ Auth::user()->barangay }}
@@ -116,7 +115,7 @@
                                     <input type="text" name="new_delivery_address" class="form-control"
                                         placeholder="House/Unit #, Street, Subdivision">
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label>Province</label>
@@ -142,18 +141,7 @@
                                         <label>Barangay *</label>
                                         <select class="form-select" name="new_barangay" id="new_barangay">
                                             <option value="">Select Barangay</option>
-                                            @foreach([
-                                                'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
-                                                'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
-                                                'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
-                                                'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
-                                                'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
-                                                'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
-                                                'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
-                                                'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
-                                                'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
-                                                'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
-                                            ] as $barangayOption)
+                                            @foreach (['Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'] as $barangayOption)
                                                 <option value="{{ $barangayOption }}">{{ $barangayOption }}</option>
                                             @endforeach
                                             <option value="Other">Other</option>
@@ -163,8 +151,8 @@
                                     <!-- ADDED: "Other" Barangay Input -->
                                     <div class="col-md-6 mb-3" id="otherBarangayContainer" style="display: none;">
                                         <label for="other_barangay" class="form-label">Specify Barangay</label>
-                                        <input type="text" class="form-control" id="other_barangay" name="other_barangay" 
-                                               placeholder="Enter your barangay name">
+                                        <input type="text" class="form-control" id="other_barangay"
+                                            name="other_barangay" placeholder="Enter your barangay name">
                                     </div>
 
                                     <div class="col-md-6 mb-3">
@@ -232,25 +220,26 @@
                     <div class="card-body">
                         <!-- List of Cart Items with Images -->
                         <div class="mb-3">
-                            @foreach($cartItems as $item)
+                            @foreach ($cartItems as $item)
                                 <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                                     <div class="flex-shrink-0 me-3">
-                                        @if($item['image_url'])
-                                            <img src="{{ $item['image_url'] }}" alt="{{ $item['product_name'] }}" 
-                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                        @if ($item['image_url'])
+                                            <img src="{{ $item['image_url'] }}" alt="{{ $item['product_name'] }}"
+                                                style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                         @else
-                                            <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
+                                            <div
+                                                style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
                                                 <i class="bi bi-image"></i>
                                             </div>
                                         @endif
                                     </div>
                                     <div class="flex-grow-1">
                                         <div class="fw-semibold small">{{ $item['product_name'] }}</div>
-                                        
+
                                         {{-- ================================================ --}}
                                         {{-- ADDED: Variant display correctly placed below the name --}}
                                         {{-- ================================================ --}}
-                                        @if(isset($item['flavor_name']) && $item['flavor_name'])
+                                        @if (isset($item['flavor_name']) && $item['flavor_name'])
                                             <div class="small text-muted">Variant: {{ $item['flavor_name'] }}</div>
                                         @endif
                                         {{-- ================================================ --}}
@@ -318,37 +307,39 @@
             // 1. Toggle Address Sections
             function toggleAddressSections() {
                 let savedCity = '';
-                @if(Auth::check() && Auth::user()->city)
+                @if (Auth::check() && Auth::user()->city)
                     savedCity = '{{ Auth::user()->city }}';
                 @endif
 
                 if (savedOption.checked) {
                     savedSection.style.display = 'block';
                     newSection.style.display = 'none';
-                    
-                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
-                        input.disabled = true;
-                        input.removeAttribute('required');
-                    });
-                    
+
+                    // Disable new address inputs (no 'required' attribute set)
+                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(
+                        input => {
+                            input.disabled = true;
+                        });
+
                     document.querySelectorAll('#savedAddressSection input').forEach(input => {
                         input.disabled = false;
                     });
-                    
+
                     checkCityForDelivery(savedCity);
                 } else {
                     savedSection.style.display = 'none';
                     newSection.style.display = 'block';
-                    
-                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(input => {
-                        input.disabled = false;
-                        input.setAttribute('required', 'required');
-                    });
-                    
+
+                    // Enable new address inputs (NO 'required' attribute is added)
+                    document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(
+                        input => {
+                            input.disabled = false;
+                        });
+
                     document.querySelectorAll('#savedAddressSection input').forEach(input => {
                         input.disabled = true;
                     });
-                    
+
                     checkCityForDelivery(newCityInput.value);
                 }
             }
@@ -371,14 +362,16 @@
                     deliveryAlert.className = 'alert alert-success mb-3';
                     deliveryAlertIcon.className = 'bi bi-bicycle me-2';
                     deliveryAlertTitle.innerText = 'Handled by our Branch Admin/Driver:';
-                    deliveryAlertText.innerHTML = 'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
+                    deliveryAlertText.innerHTML =
+                        'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
                     deliveryAlert.style.display = 'block';
                     deliveryFeeDisplay.innerHTML = '₱0.00';
                 } else if (trimmedCity !== '') {
                     deliveryAlert.className = 'alert alert-primary mb-3';
                     deliveryAlertIcon.className = 'bi bi-truck me-2';
                     deliveryAlertTitle.innerText = 'Handled by Lalamove:';
-                    deliveryAlertText.innerHTML = 'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link by via clicking view details in my orders information<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
+                    deliveryAlertText.innerHTML =
+                        'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link by via clicking view details in my orders information<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
                     deliveryAlert.style.display = 'block';
                     deliveryFeeDisplay.innerHTML = 'Calculated by Lalamove';
                 } else {
@@ -424,7 +417,7 @@
                     if (newOption.checked) {
                         let finalBarangay = '';
                         let finalOtherBarangay = '';
-                        
+
                         if (barangaySelect.value === 'Other') {
                             finalBarangay = 'Other';
                             finalOtherBarangay = otherBarangayInput.value;
@@ -474,7 +467,7 @@
                         this.appendChild(otherBarangayInputHidden);
                         this.appendChild(zipCodeInput);
                         this.appendChild(landmarkInput);
-                        
+
                         const provinceInput = document.createElement('input');
                         provinceInput.type = 'hidden';
                         provinceInput.name = 'province';

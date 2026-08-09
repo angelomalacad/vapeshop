@@ -109,6 +109,7 @@ Route::post('/register', function () {
         'phone' => $validated['phone'],
         'address' => $validated['address'],
         'barangay' => $validated['barangay'] ?? null,
+        'other_barangay' => request('other_barangay') ?? null,
         'landmark' => $validated['landmark'] ?? null,
         'city' => $validated['city'] ?? 'Calamba',
         'province' => $validated['province'] ?? 'Laguna',
@@ -607,10 +608,10 @@ Route::get('/test-archive-route', function () {
 // =============================================
 Route::get('/test-warehouse-query', function() {
     DB::enableQueryLog();
-    
+
     // Test 1: Simple count
     $count = DB::table('warehouse_inventories')->where('quantity', '>', 0)->count();
-    
+
     // Test 2: Get products
     $products = DB::table('warehouse_inventories')
         ->join('products', 'warehouse_inventories.product_id', '=', 'products.id')
@@ -619,19 +620,19 @@ Route::get('/test-warehouse-query', function() {
         ->select('products.id', 'products.name')
         ->distinct()
         ->get();
-    
+
     // Test 3: Raw SQL
     $rawProducts = DB::select("
-        SELECT DISTINCT p.id, p.name 
+        SELECT DISTINCT p.id, p.name
         FROM warehouse_inventories wi
         INNER JOIN products p ON wi.product_id = p.id
-        WHERE wi.quantity > 0 
+        WHERE wi.quantity > 0
         AND p.is_active = 1
     ");
-    
+
     // Test 4: Check if products table has data
     $allProducts = DB::table('products')->where('is_active', 1)->get();
-    
+
     return response()->json([
         'count_with_stock' => $count,
         'products_with_join' => $products,
