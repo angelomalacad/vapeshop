@@ -220,7 +220,7 @@
     <div class="col-md-3">
         <div class="stat-card-modern">
             <div class="stat-icon-wrapper" style="background: #dbeafe; color: #2563eb;">
-                <i class="bi bi-currency-dollar"></i>
+                <i class>₱</i>
             </div>
             <div class="stat-content">
                 <span class="stat-label">Total Sales</span>

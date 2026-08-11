@@ -290,7 +290,7 @@
             <div class="col-md-3 col-6">
                 <div class="stat-card-modern">
                     <div class="stat-icon-wrapper">
-                        <i class="bi bi-currency-dollar"></i>
+                        <i class>₱</i>
                     </div>
                     <div class="stat-content">
                         <span class="stat-label">Total Value</span>
@@ -370,7 +370,7 @@
                                 <th>Product</th>
                                 <th>Flavor</th>
                                 <th>In Stock</th>
-                                <th>Reserved</th>
+                                {{-- <th>Reserved</th> --}}
                                 <th>Available</th>
                                 <th>Status</th>
                                 <th>Threshold</th>
@@ -438,7 +438,7 @@
                                     </td>
                                     <td>{{ $inv->flavor->name ?? 'N/A' }}</td>
                                     <td>{{ $inv->quantity }}</td>
-                                    <td>{{ $inv->reserved_quantity }}</td>
+                                    {{-- <td>{{ $inv->reserved_quantity }}</td> --}}
                                     <td>
                                         <span class="fw-bold text-{{ $statusClass }}">{{ $available }}</span>
                                     </td>

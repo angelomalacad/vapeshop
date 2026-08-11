@@ -1369,7 +1369,7 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                                             </div>
                                             <div class="stat-icon"
                                                 style="background: rgba(13,110,253,0.1); color:#0d6efd;">
-                                                <i class="bi bi-building fs-4"></i>
+                                                <i class="bi bi-house-door fs-4"></i>
                                             </div>
                                         </div>
                                     </div>
