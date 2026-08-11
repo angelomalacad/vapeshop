@@ -71,6 +71,7 @@
         width: 100%;
         margin-bottom: 0;
         border-collapse: collapse;
+        table-layout: fixed; /* Ensures columns stay nicely in the box */
     }
     
     .delivery-table thead {
@@ -170,6 +171,20 @@
         transform: translateY(-1px);
     }
     
+    /* Delivery Type Badge */
+    .delivery-badge {
+        padding: 0.25rem 0.65rem;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .delivery-badge i {
+        font-size: 0.7rem;
+    }
+    
     /* Pagination */
     .pagination {
         margin-bottom: 0;
@@ -221,6 +236,73 @@
         font-size: 0.8rem;
         color: #64748b;
         margin-bottom: 0;
+    }
+
+    /* Filter Form Styles */
+    .filter-container {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #eef2f6;
+    }
+
+    .filter-form .form-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+
+    .filter-form .form-control,
+    .filter-form .form-select {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .filter-form .form-control:focus,
+    .filter-form .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+        outline: none;
+    }
+
+    .filter-form .btn-filter {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .filter-form .btn-filter:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .filter-form .btn-reset {
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .filter-form .btn-reset:hover {
+        background: #e2e8f0;
+        color: #1a1a2e;
     }
     
     /* Responsive */
@@ -339,7 +421,7 @@
 </div>
 @endif
 
-<!-- 2. YOUR ORIGINAL CONTENT -->
+<!-- 2. YOUR MAIN CONTENT -->
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -358,9 +440,64 @@
             </span>
         </div>
     </div>
+
+                <!-- FILTER SECTION -->
+    <div class="filter-container">
+        <form method="GET" action="{{ route('driver.delivery-history', ['sidebar' => request()->get('sidebar')]) }}" class="filter-form row g-3 align-items-end">
+            <!-- Search by Order Number -->
+            <div class="col-md-2">
+                <label class="form-label">Search Order</label>
+                <input type="text" name="search" class="form-control" placeholder="Type Order #..." value="{{ request('search') }}">
+            </div>
+
+            <!-- Filter by Active/Completed -->
+            <div class="col-md-2">
+                <label class="form-label">Show</label>
+                <select name="filter_section" class="form-select">
+                    <option value="all" {{ request('filter_section') == 'all' ? 'selected' : '' }}>All Deliveries</option>
+                    <option value="active" {{ request('filter_section') == 'active' ? 'selected' : '' }}>Active Only</option>
+                    <option value="completed" {{ request('filter_section') == 'completed' ? 'selected' : '' }}>Completed Only</option>
+                </select>
+            </div>
+
+            <!-- Filter by Delivery Type -->
+            <div class="col-md-2">
+                <label class="form-label">Delivery Type</label>
+                <select name="delivery_type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove</option>
+                    <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
+                </select>
+            </div>
+
+            <!-- Date From -->
+            <div class="col-md-2">
+                <label class="form-label">Date From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+            </div>
+
+            <!-- Date To -->
+            <div class="col-md-2">
+                <label class="form-label">Date To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+            </div>
+
+            <!-- Buttons (Now securely inside the border) -->
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-filter">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                    <a href="{{ route('driver.delivery-history', ['sidebar' => request()->get('sidebar')]) }}" class="btn-reset">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
     
     <!-- Active Deliveries Section -->
-    @if($activeDeliveries->count() > 0)
+    @if($activeDeliveries->count() > 0 && (request('filter_section') == 'all' || request('filter_section') == 'active' || empty(request('filter_section'))))
     <div class="mb-5">
         <div class="section-header">
             <h4 class="section-title">
@@ -379,7 +516,7 @@
                         <th>Customer</th>
                         <th>Contact</th>
                         <th>Address</th>
-                        <th>Assigned</th>
+                        <th>Type</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -398,6 +535,11 @@
                                 $imageUrl = Storage::url($product->image);
                             }
                         }
+
+                        // Lalamove Eligibility Check
+                        $cityLower = strtolower(trim($delivery->order->city ?? ''));
+                        $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                        $isLalamoveEligible = !$isCalambaCity;
                     @endphp
                     <tr>
                         <td>
@@ -433,7 +575,15 @@
                             </div>
                             @endif
                         </td>
-                        <td>{{ $delivery->assigned_at ? $delivery->assigned_at->diffForHumans() : 'N/A' }}</td>
+                        <td>
+                            <span class="delivery-badge">
+                                @if($isLalamoveEligible)
+                                    <i class="bi bi-truck me-1 text-primary"></i> Lalamove
+                                @else
+                                    <i class="bi bi-bicycle me-1 text-success"></i> Staff
+                                @endif
+                            </span>
+                        </td>
                         <td>
                             <span class="status-badge status-badge-active">
                                 <i class="bi bi-{{ $delivery->status == 'in_transit' ? 'truck' : ($delivery->status == 'picked_up' ? 'box-seam' : 'clock') }}"></i>
@@ -455,8 +605,8 @@
     </div>
     @endif
 
-       <!-- Completed Deliveries Section -->
-    @if($completedDeliveries->count() > 0)
+     <!-- Completed Deliveries Section -->
+    @if($completedDeliveries->count() > 0 && (request('filter_section') == 'all' || request('filter_section') == 'completed' || empty(request('filter_section'))))
     <div class="mb-4">
         <div class="section-header">
             <h4 class="section-title">
@@ -476,8 +626,10 @@
                         <th>Contact</th>
                         <th>Address</th>
                         <th>Delivered On</th>
+                        <th>Type</th>
                         <th>Status</th>
-                        <th class="text-end">Action</th>
+                        <th>Lalamove Info</th>
+                        <th class="text-end" style="width: 115px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -495,6 +647,11 @@
                                 $imageUrl = Storage::url($product->image);
                             }
                         }
+
+                        // Lalamove Eligibility Check
+                        $cityLower = strtolower(trim($delivery->order->city ?? ''));
+                        $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                        $isLalamoveEligible = !$isCalambaCity;
                     @endphp
                     <tr>
                         <td>
@@ -532,13 +689,34 @@
                         </td>
                         <td>{{ $delivery->delivered_at ? $delivery->delivered_at->format('M d, Y h:i A') : 'N/A' }}</td>
                         <td>
+                            <span class="delivery-badge">
+                                @if($isLalamoveEligible)
+                                    <i class="bi bi-truck me-1 text-primary"></i> Lalamove
+                                @else
+                                    <i class="bi bi-bicycle me-1 text-success"></i> Staff
+                                @endif
+                            </span>
+                        </td>
+                        <td>
                             <span class="status-badge status-badge-completed">
                                 <i class="bi bi-check-circle-fill"></i> Delivered
                             </span>
                         </td>
-                        <td class="text-end">
+                        
+                        {{-- Lalamove Info Column --}}
+                        <td>
+                            @if($isLalamoveEligible && !empty($delivery->tracking_number))
+                                <a href="{{ $delivery->tracking_number }}" target="_blank" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
+                                    <i class="bi bi-eye"></i> Link
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        
+                        <td class="text-end" style="white-space: nowrap;">
                             <button type="button" class="btn-view" onclick="openDeliveryModal({{ $delivery->id }})">
-                                <i class="bi bi-eye me-1"></i> View Proof
+                                <i class="bi bi-eye me-1"></i> Proof
                             </button>
                         </td>
                     </tr>

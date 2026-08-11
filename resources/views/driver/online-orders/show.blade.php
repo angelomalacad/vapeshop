@@ -259,6 +259,48 @@
             scrollbar-width: none;
             /* Firefox */
         }
+                /* Badge Styles */
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-confirmed {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-packing {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .badge-ready {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-out_for_delivery {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-delivered {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge {
+            padding: 0.35rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.7rem;
+        }
     </style>
 
     <div class="modal-body-custom">
@@ -411,39 +453,60 @@
                             @endif
                         </div>
                     </div>
+
+                    <!-- Delivery Information Card -->
+                    <div class="info-card">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-info-circle"></i> Delivery Information</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="info-label">ORDER #</p>
+                                    <p class="info-value text-break">{{ $order->order_number }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="info-label">STATUS</p>
+                                    <p class="info-value">
+                                        @php
+                                            // EXACT SAME STATUS MAPPING AS INDEX.BLADE.PHP
+                                            $statusClass = match ($order->order_status) {
+                                                'pending' => 'badge-pending',
+                                                'confirmed' => 'badge-confirmed',
+                                                'processing' => 'badge-packing',
+                                                'ready' => 'badge-ready',
+                                                'out_for_delivery' => 'badge-out_for_delivery',
+                                                'delivered' => 'badge-delivered',
+                                                'cancelled' => 'badge-cancelled',
+                                                'lalamove_pending' => 'badge-secondary',
+                                                default => 'badge-secondary',
+                                            };
+                                            $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst(str_replace('_', ' ', $order->order_status));
+                                        @endphp
+                                        <span class="badge {{ $statusClass }}">
+                                            {{ $displayStatus }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            {{-- REMOVED Assigned Row (N/A) --}}
+                        </div>
+                    </div>
                 </div>
 
                 <!-- RIGHT COLUMN - Update Order Status -->
                 <div class="col-md-5">
-                    {{-- ================================================================ --}}
-                    {{-- ADDED: LALAMOVE UPDATE CARD (Does not require driver assignment) --}}
-                    {{-- ================================================================ --}}
-                    @if ($order->order_status === 'lalamove_pending' || $order->order_status === 'ready')
-                        <div class="info-card mb-3">
-                            <div class="card-header-custom">
-                                <h6><i class="bi bi-truck text-primary"></i> Lalamove Update</h6>
-                            </div>
-                            <div class="card-body p-3">
-                                <form action="{{ route('driver.online-orders.update-lalamove', $order->id) }}"
-                                    method="POST" enctype="multipart/form-data">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold">Lalamove Tracking Link *</label>
-                                        <input type="url" name="tracking_url" class="form-control"
-                                            placeholder="https://www.lalamove.com/track/..." required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold">Proof of Delivery Screenshot</label>
-                                        <input type="file" name="delivery_proof" class="form-control" accept="image/*">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 rounded-pill">
-                                        <i class="bi bi-check-circle"></i> Submit Tracking
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @endif
-                    {{-- ================================================================ --}}
+                    
+                    @php
+                        // Lalamove Eligibility Check
+                        $cityLower = strtolower(trim($order->city ?? ''));
+                        $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                        $isLalamoveEligible = !$isCalambaCity;
+                        
+                        // Check if tracking number is already saved
+                        $hasTracking = $order->delivery && !empty($order->delivery->tracking_number);
+                    @endphp
+
 
                     <div class="info-card">
                         <div class="card-header-custom">
@@ -467,10 +530,18 @@
                                 </button>
                             @elseif($order->order_status == 'ready')
                                 @if ($order->delivery_type == 'delivery')
-                                    <button class="status-btn btn-delivery"
-                                        onclick="handleStatus('ready', {{ $order->id }})">
-                                        <i class="bi bi-truck me-2"></i> Start Delivery
-                                    </button>
+                                    @if(!$isLalamoveEligible)
+                                        <button class="status-btn btn-delivery"
+                                            onclick="handleStatus('ready', {{ $order->id }})">
+                                            <i class="bi bi-truck me-2"></i> Start Delivery
+                                        </button>
+                                    @else
+                                        <div class="alert-custom alert-info-custom text-center mb-0">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Waiting for Lalamove Link</strong><br>
+                                            <small class="text-muted">Please paste the Lalamove tracking link above.</small>
+                                        </div>
+                                    @endif
                                 @else
                                     <div class="alert-custom alert-success-custom text-center">
                                         <i class="bi bi-check-circle-fill me-2"></i>

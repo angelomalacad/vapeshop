@@ -1,4 +1,4 @@
-=@extends('layouts.driver')
+@extends('layouts.driver')
 
 @section('title', 'Online Orders - Driver')
 
@@ -647,7 +647,7 @@
                                         'out_for_delivery' => 'badge-out_for_delivery',
                                         'delivered' => 'badge-delivered',
                                         'cancelled' => 'badge-cancelled',
-                                        'lalamove_pending' => 'badge-secondary',
+                                        'lalamove_pending' => 'badge-lalamove_pending',
                                         default => 'badge-secondary',
                                     };
 
@@ -746,34 +746,12 @@
                                         @endif
                                     </td>
 
-                                    {{-- FIXED: Lalamove Info Column (Display safety added) --}}
+                                    {{-- FIXED: Lalamove Info Column (View Link only appears if tracking is saved) --}}
                                     <td>
                                         @if ($isLalamoveEligible && ($order->order_status === 'lalamove_pending' || $order->order_status === 'ready'))
-                                            <form action="{{ route('driver.orders.update-lalamove', $order->id) }}"
-                                                method="POST" enctype="multipart/form-data">
-                                                @csrf
-                                                <div class="d-flex flex-column gap-2">
-                                                    <span class="badge bg-light text-dark border mb-2 text-start">
-                                                        <i class="bi bi-geo-alt-fill text-primary"></i>
-                                                        {{ $order->city ?? 'Unknown' }} -
-                                                        @if ($order->barangay === 'Other' && $order->other_barangay)
-                                                            {{ $order->other_barangay }}
-                                                        @else
-                                                            {{ $order->barangay }}
-                                                        @endif
-                                                    </span>
-                                                    <input type="url" name="tracking_url"
-                                                        class="form-control form-control-sm"
-                                                        placeholder="Paste Lalamove Link" required>
-                                                    <input type="file" name="delivery_proof"
-                                                        class="form-control form-control-sm" accept="image/*">
-                                                    <button type="submit" class="btn btn-sm btn-success w-100">
-                                                        <i class="bi bi-check-circle"></i> Submit
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        @elseif($isLalamoveEligible && $order->order_status === 'out_for_delivery' && $order->delivery)
-                                            {{-- Removed `&& $order->delivery->tracking_number` so it shows as soon as delivery record exists --}}
+                                            {{-- No Form here anymore. Driver clicks "Manage" to open the Delivery Modal --}}
+                                            <span class="text-muted fst-italic">Awaiting link</span>
+                                        @elseif($isLalamoveEligible && $order->order_status === 'out_for_delivery' && $order->delivery && !empty($order->delivery->tracking_number))
                                             <div class="d-flex flex-column gap-1">
                                                 <span class="badge bg-light text-dark border mb-2 text-start">
                                                     <i class="bi bi-geo-alt-fill text-primary"></i>
@@ -784,7 +762,7 @@
                                                         {{ $order->barangay }}
                                                     @endif
                                                 </span>
-                                                <a href="{{ $order->delivery->tracking_number ?? '#' }}" target="_blank"
+                                                <a href="{{ $order->delivery->tracking_number }}" target="_blank"
                                                     class="btn btn-sm btn-primary w-100">
                                                     <i class="bi bi-eye"></i> View Link
                                                 </a>
