@@ -390,7 +390,7 @@
                                 <th>Total</th>
                                 <th>Delivery Type</th>
                                 <th>Status</th>
-                                <th>Driver</th>
+                                {{-- <th>Driver</th> --}}
                                 <th class="pe-4">Action</th>
                             </tr>
                         </thead>
@@ -440,9 +440,9 @@
                                             {{ $displayStatus }}
                                         </span>
                                     </td>
-                                    <td>
+                                    {{-- <td>
                                         <small class="text-muted">{{ $driverName }}</small>
-                                    </td>
+                                    </td> --}}
                                     <td class="pe-4">
                                         <button onclick="openOrderModal({{ $order->id }})" class="btn-view btn-sm">
                                             <i class="bi bi-eye me-1"></i> View

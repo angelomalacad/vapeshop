@@ -1079,12 +1079,7 @@
                             </a>
                         @endif
                         <div class="text-muted">DELIVERIES</div>
-                        @if (Route::has('admin.deliveries.index'))
-                            <a href="{{ route('admin.deliveries.index') }}"
-                                class="list-group-item list-group-item-action">
-                                <i class="bi bi-truck me-2 text-primary"></i> All Deliveries
-                            </a>
-                        @endif
+                        
 
                         @if (Route::has('admin.driver-shifts.index'))
                             <a href="{{ route('admin.driver-shifts.index') }}"
@@ -1105,10 +1100,16 @@
                                 <i class="bi bi-cart me-2 text-primary"></i> Online Orders History
                             </a>
                         @endif
+                        @if (Route::has('admin.deliveries.index'))
+                            <a href="{{ route('admin.deliveries.index') }}"
+                                class="list-group-item list-group-item-action">
+                                <i class="bi bi-truck me-2 text-primary"></i> Delivery History 
+                            </a>
+                        @endif
                         <div class="dropdown-divider"></div>
-                        <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
+                        {{-- <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-house me-2"></i> Back to Home
-                        </a>
+                        </a> --}}
                     </div>
                 </div>
             </div>

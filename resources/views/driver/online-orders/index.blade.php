@@ -478,9 +478,9 @@
                     <p class="page-subtitle mb-0">Manage customer orders from confirmation to delivery</p>
                 </div>
                 <div>
-                    <span class="badge bg-primary bg-opacity-10 text-dark px-3 py-2 rounded-pill">
+                    {{-- <span class="badge bg-primary bg-opacity-10 text-dark px-3 py-2 rounded-pill">
                         <i class="bi bi-shop me-1"></i> {{ Auth::user()->branch->name ?? 'No Specific Branch' }}
-                    </span>
+                    </span> --}}
                 </div>
             </div>
         </div>
