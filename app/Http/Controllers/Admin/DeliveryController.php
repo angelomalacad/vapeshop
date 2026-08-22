@@ -15,86 +15,132 @@ use Carbon\Carbon;
 class DeliveryController extends Controller
 {
     /**
- * Display all deliveries across all branches
- */
-public function index(Request $request)
-{
-    // Get all deliveries with relationships
-    $query = Delivery::with(['order', 'order.branch', 'driver'])
-        ->orderBy('created_at', 'desc');
+     * Display all deliveries across all branches
+     */
+    public function index(Request $request)
+    {
+        // ================================================================
+        // 1. BASE QUERY
+        // ================================================================
+        $query = Delivery::with(['order', 'order.branch', 'driver'])
+            ->orderBy('created_at', 'desc');
 
-    // Filter by branch
-    if ($request->filled('branch_id')) {
-        $query->whereHas('order', function($q) use ($request) {
-            $q->where('branch_id', $request->branch_id);
-        });
+        // Filter by branch
+        if ($request->filled('branch_id')) {
+            $query->whereHas('order', function($q) use ($request) {
+                $q->where('branch_id', $request->branch_id);
+            });
+        }
+
+        // Filter by driver
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Filter by Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('order', function($sub) use ($search) {
+                    $sub->where('order_number', 'LIKE', "%{$search}%");
+                })->orWhere('tracking_number', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter by Delivery Type
+        if ($request->filled('delivery_type')) {
+            $type = $request->delivery_type;
+            if ($type === 'lalamove') {
+                $query->whereHas('order', function($q) {
+                    $q->whereNotNull('city')
+                      ->where('city', '!=', 'Calamba')
+                      ->where('city', '!=', 'calamba')
+                      ->where('city', '!=', 'Calamba City')
+                      ->where('city', '!=', 'calamba city');
+                });
+            } elseif ($type === 'staff') {
+                $query->whereHas('order', function($q) {
+                    $q->where(function($sub) {
+                        $sub->where('city', 'Calamba')
+                            ->orWhere('city', 'calamba')
+                            ->orWhere('city', 'Calamba City')
+                            ->orWhere('city', 'calamba city');
+                    });
+                });
+            }
+        }
+
+        // Filter by Active/Completed Section
+        $filterSection = $request->input('filter_section', 'all');
+        if ($filterSection === 'active') {
+            // Active means NOT delivered/cancelled
+            $query->whereHas('order', function($q) {
+                $q->whereNotIn('order_status', ['delivered', 'cancelled']);
+            });
+        } elseif ($filterSection === 'completed') {
+            // Completed means either delivered OR out_for_delivery (for Lalamove status)
+            $query->whereHas('order', function($q) {
+                $q->whereIn('order_status', ['delivered', 'out_for_delivery']);
+            });
+        }
+
+        // ================================================================
+        // 2. PAGINATE THE DATA
+        // ================================================================
+        $deliveries = $query->paginate(20)->appends($request->query());
+
+        // ================================================================
+        // 3. GET ACTIVE TODAY LIST
+        // ================================================================
+        $activeToday = Delivery::with(['order', 'order.branch', 'driver'])
+            ->whereHas('order', function($q) {
+                $q->whereNotIn('order_status', ['delivered', 'cancelled']);
+            })
+            ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
+            ->get();
+
+        // ================================================================
+        // 4. CALCULATE STATS (FIXED: now matches your actual database statuses)
+        // ================================================================
+        $stats = [
+            'total'           => Delivery::count(),
+            'pending'         => Delivery::whereHas('order', fn($q) => $q->where('order_status', 'pending'))->count(),
+            'lalamove_pending'=> Delivery::whereHas('order', fn($q) => $q->where('order_status', 'lalamove_pending'))->count(),
+            'assigned'        => Delivery::where('status', 'assigned')->count(),
+            'picked_up'       => Delivery::where('status', 'picked_up')->count(),
+            'in_transit'      => Delivery::where('status', 'in_transit')->count(),
+            // 🔥 FIX: Count 'out_for_delivery' AND 'delivered' as "Completed"
+            'delivered'       => Delivery::whereHas('order', fn($q) => $q->whereIn('order_status', ['delivered', 'out_for_delivery']))->count(),
+            'failed'          => Delivery::whereHas('order', fn($q) => $q->where('order_status', 'delivery_failed'))->count(),
+            'today'           => Delivery::whereDate('created_at', Carbon::today())->count(),
+            'active_today'    => Delivery::whereHas('order', fn($q) => $q->whereNotIn('order_status', ['delivered', 'cancelled']))->count(),
+        ];
+
+        // ================================================================
+        // 5. SIDEBAR INFO
+        // ================================================================
+        $drivers = User::where('role', 'driver')->orderBy('name')->get();
+        $branches = Branch::where('is_active', true)->get();
+
+        $todayDriver = \App\Models\DriverShift::where('shift_date', Carbon::today())
+            ->where('status', 'active')
+            ->with('driver')
+            ->first();
+        $todayDriverName = $todayDriver ? $todayDriver->driver->name : 'Not assigned';
+
+        // ================================================================
+        // 6. RETURN
+        // ================================================================
+        return view('admin.deliveries.index', compact('deliveries', 'drivers', 'branches', 'stats', 'activeToday', 'todayDriverName'));
     }
-
-    // Filter by driver
-    if ($request->filled('driver_id')) {
-        $query->where('driver_id', $request->driver_id);
-    }
-
-    // Filter by status
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    // Filter by date range
-    if ($request->filled('date_from')) {
-        $query->whereDate('created_at', '>=', $request->date_from);
-    }
-    if ($request->filled('date_to')) {
-        $query->whereDate('created_at', '<=', $request->date_to);
-    }
-
-    $deliveries = $query->paginate(20);
-
-    // Get all drivers
-    $drivers = User::where('role', 'driver')->orderBy('name')->get();
-    
-    // Get all branches
-    $branches = Branch::where('is_active', true)->get();
-
-    // Get active deliveries (those with status assigned, picked_up, or in_transit) - FIXED
-    $activeToday = Delivery::with(['order', 'order.branch', 'driver'])
-        ->whereIn('status', ['assigned', 'picked_up', 'in_transit'])
-        ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
-        ->get();
-
-    // Get today's driver name
-    $todayDriver = \App\Models\DriverShift::where('shift_date', Carbon::today())
-        ->where('status', 'active')
-        ->with('driver')
-        ->first();
-    $todayDriverName = $todayDriver ? $todayDriver->driver->name : 'Not assigned';
-
-    // Calculate statistics
-    $stats = [
-        'total' => Delivery::count(),
-        'pending' => Delivery::where('status', 'pending')->count(),
-        'assigned' => Delivery::where('status', 'assigned')->count(),
-        'picked_up' => Delivery::where('status', 'picked_up')->count(),
-        'in_transit' => Delivery::where('status', 'in_transit')->count(),
-        'delivered' => Delivery::where('status', 'delivered')->count(),
-        'failed' => Delivery::where('status', 'failed')->count(),
-        'today' => Delivery::whereDate('created_at', Carbon::today())->count(),
-        'active_today' => Delivery::whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count(), // FIXED: Count all active deliveries by status
-    ];
-
-    // Calculate total revenue from delivered orders
-    $totalRevenue = Delivery::where('status', 'delivered')
-        ->whereHas('order', function($q) {
-            $q->where('payment_status', 'paid');
-        })
-        ->with('order')
-        ->get()
-        ->sum(function($delivery) {
-            return $delivery->order->total_amount ?? 0;
-        });
-
-    return view('admin.deliveries.index', compact('deliveries', 'drivers', 'branches', 'stats', 'totalRevenue', 'activeToday', 'todayDriverName'));
-}
 
     /**
      * Show delivery details modal

@@ -271,6 +271,47 @@
                                 @endif
                             </div>
                         @endif
+
+                        {{-- ============================================================ --}}
+                        {{-- MINIMIZED LALAMOVE TRACKING BELOW DELIVERY LOGS --}}
+                        {{-- ============================================================ --}}
+                        
+                        @php
+                            // Lalamove Eligibility Check
+                            $cityLower = strtolower(trim($order->city ?? ''));
+                            $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                            $isLalamoveEligible = !$isCalambaCity;
+                        @endphp
+
+                        @if($isLalamoveEligible)
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center justify-content-between bg-white border rounded p-2 shadow-sm">
+                                <div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-truck text-primary me-1" style="font-size: 0.9rem;"></i>
+                                        <span class="fw-semibold small text-primary">Lalamove Tracking</span>
+                                    </div>
+                                    @if($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
+                                        <div class="small text-success mt-1">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Link ready
+                                        </div>
+                                    @else
+                                        <div class="small text-muted mt-1">
+                                            Link available when out for delivery.
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                @if($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
+                                    <a href="{{ $order->delivery->tracking_number }}" target="_blank" class="btn btn-primary btn-sm px-3" style="font-size: 0.85rem;">
+                                        <i class="bi bi-eye me-1"></i> Track
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                        {{-- ============================================================ --}}
+
                     </div>
                 </div>
 
@@ -358,8 +399,6 @@
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
 
-                        <p><strong>Tracking Number:</strong></p>
-                        <p><code>{{ $order->delivery->tracking_number ?? 'N/A' }}</code></p>
 
                         @if ($order->notes)
                             <hr>
@@ -369,27 +408,7 @@
                     </div>
                 </div>
 
-                {{-- ================================================ --}}
-                {{-- ADDED: Lalamove Tracking Link Card (Driver will add later) --}}
-                {{-- ================================================ --}}
-                <div class="card shadow-sm border-0 mt-4" id="lalamoveTrackingCard">
-                    <div class="card-header bg-white fw-semibold">
-                        <i class="bi bi-truck me-2 text-primary"></i> Lalamove Tracking
-                    </div>
-                    <div class="card-body text-center">
-                        @if($order->delivery && $order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
-                            <i class="bi bi-box-arrow-up-right display-4 text-success mb-3 d-block"></i>
-                            <p class="mb-2">Your package is on its way!</p>
-                            <a href="{{ $order->delivery->tracking_number }}" target="_blank" class="btn btn-primary rounded-pill w-100">
-                                <i class="bi bi-eye me-1"></i> Track Package
-                            </a>
-                        @else
-                            <i class="bi bi-clock-history display-4 text-secondary mb-3 d-block"></i>
-                            <p class="mb-0 text-muted">Tracking link will be available once your order is out for delivery.</p>
-                        @endif
-                    </div>
-                </div>
-                {{-- ================================================ --}}
+                {{-- REMOVED: Separate Lalamove Tracking Card from Sidebar --}}
 
                 <!-- Need Help Card -->
                 <div class="card shadow-sm border-0 mt-4">
@@ -434,224 +453,250 @@
                 </div>
 
                 <style>
-                    .status-timeline {
-                        padding: 10px 0;
-                    }
+    .status-timeline {
+        padding: 10px 0;
+    }
 
-                    .status-steps {
-                        display: flex;
-                        justify-content: space-between;
-                        flex-wrap: wrap;
-                        gap: 10px;
-                    }
+    .status-steps {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-                    .status-step {
-                        flex: 1;
-                        text-align: center;
-                        position: relative;
-                        min-width: 100px;
-                    }
+    .status-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        min-width: 100px;
+    }
 
-                    .status-step:not(:last-child):before {
-                        content: '';
-                        position: absolute;
-                        top: 25px;
-                        right: -50%;
-                        width: 100%;
-                        height: 3px;
-                        background: #e9ecef;
-                        z-index: 0;
-                    }
+    .status-step:not(:last-child):before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        right: -50%;
+        width: 100%;
+        height: 3px;
+        background: #e9ecef;
+        z-index: 0;
+    }
 
-                    .status-step.completed:not(:last-child):before {
-                        background: #28a745;
-                    }
+    .status-step.completed:not(:last-child):before {
+        background: #28a745;
+    }
 
-                    .status-step.active:not(:last-child):before {
-                        background: #28a745;
-                    }
+    .status-step.active:not(:last-child):before {
+        background: #28a745;
+    }
 
-                    .status-icon {
-                        width: 55px;
-                        height: 55px;
-                        margin: 0 auto 10px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        border-radius: 50%;
-                        background: #e9ecef;
-                        color: #6c757d;
-                        position: relative;
-                        z-index: 1;
-                        transition: all 0.3s ease;
-                    }
+    .status-icon {
+        width: 55px;
+        height: 55px;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
 
-                    .status-step.completed .status-icon {
-                        background: #28a745;
-                        color: white;
-                    }
+    .status-step.completed .status-icon {
+        background: #28a745;
+        color: white;
+    }
 
-                    .status-step.active .status-icon {
-                        background: #28a745;
-                        color: white;
-                        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
-                    }
+    .status-step.active .status-icon {
+        background: #28a745;
+        color: white;
+        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
+    }
 
-                    .status-label {
-                        font-weight: 600;
-                        font-size: 13px;
-                        margin-bottom: 5px;
-                        color: #6c757d;
-                    }
+    .status-label {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 5px;
+        color: #6c757d;
+    }
 
-                    .status-step.completed .status-label,
-                    .status-step.active .status-label {
-                        color: #28a745;
-                    }
+    .status-step.completed .status-label,
+    .status-step.active .status-label {
+        color: #28a745;
+    }
 
-                    .status-date,
-                    .status-time {
-                        font-size: 11px;
-                        color: #adb5bd;
-                    }
+    .status-date,
+    .status-time {
+        font-size: 11px;
+        color: #adb5bd;
+    }
 
-                    .status-step.completed .status-date,
-                    .status-step.completed .status-time,
-                    .status-step.active .status-date,
-                    .status-step.active .status-time {
-                        color: #6c757d;
-                    }
+    .status-step.completed .status-date,
+    .status-step.completed .status-time,
+    .status-step.active .status-date,
+    .status-step.active .status-time {
+        color: #6c757d;
+    }
 
-                    .delivery-logs {
-                        background: #f8f9fa;
-                        border-radius: 12px;
-                        padding: 15px;
-                    }
+    .delivery-logs {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px;
+    }
 
-                    .delivery-timeline {
-                        position: relative;
-                    }
+    .delivery-timeline {
+        position: relative;
+    }
 
-                    .delivery-log-item {
-                        display: flex;
-                        gap: 15px;
-                        margin-bottom: 20px;
-                        position: relative;
-                    }
+    .delivery-log-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        position: relative;
+    }
 
-                    .delivery-log-item:not(:last-child):before {
-                        content: '';
-                        position: absolute;
-                        left: 22px;
-                        top: 40px;
-                        bottom: -20px;
-                        width: 2px;
-                        background: #dee2e6;
-                    }
+    .delivery-log-item:not(:last-child):before {
+        content: '';
+        position: absolute;
+        left: 22px;
+        top: 40px;
+        bottom: -20px;
+        width: 2px;
+        background: #dee2e6;
+    }
 
-                    .delivery-log-icon {
-                        width: 45px;
-                        height: 45px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        flex-shrink: 0;
-                        z-index: 1;
-                        background: white;
-                        border: 2px solid;
-                    }
+    .delivery-log-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        z-index: 1;
+        background: white;
+        border: 2px solid;
+    }
 
-                    .delivery-log-icon.assigned {
-                        border-color: #0d6efd;
-                        color: #0d6efd;
-                    }
+    .delivery-log-icon.assigned {
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
 
-                    .delivery-log-icon.picked {
-                        border-color: #6f42c1;
-                        color: #6f42c1;
-                    }
+    .delivery-log-icon.picked {
+        border-color: #6f42c1;
+        color: #6f42c1;
+    }
 
-                    .delivery-log-icon.transit {
-                        border-color: #fd7e14;
-                        color: #fd7e14;
-                    }
+    .delivery-log-icon.transit {
+        border-color: #fd7e14;
+        color: #fd7e14;
+    }
 
-                    .delivery-log-icon.delivered {
-                        border-color: #28a745;
-                        color: #28a745;
-                    }
+    .delivery-log-icon.delivered {
+        border-color: #28a745;
+        color: #28a745;
+    }
 
-                    .delivery-log-content {
-                        flex: 1;
-                    }
+    .delivery-log-content {
+        flex: 1;
+    }
 
-                    .delivery-log-title {
-                        font-weight: 600;
-                        font-size: 14px;
-                        margin-bottom: 3px;
-                        color: #212529;
-                    }
+    .delivery-log-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 3px;
+        color: #212529;
+    }
 
-                    .delivery-log-date,
-                    .delivery-log-time {
-                        font-size: 11px;
-                        color: #6c757d;
-                        display: inline-block;
-                    }
+    .delivery-log-date,
+    .delivery-log-time {
+        font-size: 11px;
+        color: #6c757d;
+        display: inline-block;
+    }
 
-                    .delivery-log-time:before {
-                        content: '•';
-                        margin: 0 5px;
-                    }
+    .delivery-log-time:before {
+        content: '•';
+        margin: 0 5px;
+    }
 
-                    .delivery-log-note {
-                        font-size: 12px;
-                        color: #6c757d;
-                        margin-top: 3px;
-                    }
+    .delivery-log-note {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 3px;
+    }
 
-                    .driver-info {
-                        border-left: 3px solid #0d6efd;
-                    }
+    .driver-info {
+        border-left: 3px solid #0d6efd;
+    }
 
-                    .proof-thumbnail {
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    }
+    .proof-thumbnail {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
 
-                    .proof-thumbnail:hover {
-                        transform: scale(1.02);
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    }
+    .proof-thumbnail:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* MINIMIZED LALAMOVE LOG STYLES */
+    .lalamove-log-box {
+        padding: 8px 12px !important;
+        margin-top: 10px !important;
+        border-radius: 8px !important;
+        border: 1px solid #0d6efd !important;
+        background: #ffffff !important;
+    }
+    .lalamove-log-box .lalamove-header {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #0d6efd !important;
+        margin-bottom: 5px !important;
+    }
+    .lalamove-log-box .lalamove-header i {
+        margin-right: 4px !important;
+    }
+    .lalamove-log-box p {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+    }
+    .lalamove-log-box .btn-sm {
+        font-size: 12px !important;
+        padding: 4px 12px !important;
+    }
 
-                    @media (max-width: 768px) {
-                        .status-steps {
-                            flex-direction: column;
-                            gap: 20px;
-                        }
+    @media (max-width: 768px) {
+        .status-steps {
+            flex-direction: column;
+            gap: 20px;
+        }
 
-                        .status-step:not(:last-child):before {
-                            display: none;
-                        }
+        .status-step:not(:last-child):before {
+            display: none;
+        }
 
-                        .status-step {
-                            display: flex;
-                            align-items: center;
-                            text-align: left;
-                            gap: 15px;
-                        }
+        .status-step {
+            display: flex;
+            align-items: center;
+            text-align: left;
+            gap: 15px;
+        }
 
-                        .status-icon {
-                            margin: 0;
-                        }
+        .status-icon {
+            margin: 0;
+        }
 
-                        .status-label,
-                        .status-date,
-                        .status-time {
-                            text-align: left;
-                        }
-                    }
-                </style>
+        .status-label,
+        .status-date,
+        .status-time {
+            text-align: left;
+        }
+    }
+</style>
 
                 @php
                     $statusColors = [

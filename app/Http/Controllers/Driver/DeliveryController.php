@@ -190,6 +190,7 @@ class DeliveryController extends Controller
                 $order = $delivery->order;
                 if ($newStatus == 'picked_up') {
                     $order->order_status = 'out_for_delivery';
+                    $delivery->status = 'picked_up'; // Add this line to sync the delivery table
                     $order->out_for_delivery_at = now();
                 } elseif ($newStatus == 'delivered') {
                     $order->order_status = 'delivered';
@@ -297,28 +298,91 @@ class DeliveryController extends Controller
     {
         $driverId = Auth::id();
 
-        // Fetch Active Deliveries
-        $activeDeliveries = Delivery::where('driver_id', $driverId)
-            ->whereNotIn('status', ['delivered', 'failed'])
-            ->with(['order.items.product', 'order.branch'])
-            ->orderBy('assigned_at', 'desc')
+        // ================================================================
+        // FIXED: Allow Lalamove orders (driver_id = null) to be viewed
+        // ================================================================
+
+        // Active Deliveries: Allows BOTH your Staff deliveries AND Lalamove deliveries
+        $activeQuery = Delivery::whereNotIn('status', ['delivered', 'failed'])
+            ->where(function($query) use ($driverId) {
+                $query->where('driver_id', $driverId)
+                      ->orWhereNull('driver_id');
+            })
+            ->with(['order.items.product', 'order.branch']);
+
+        // Completed Deliveries: Allows BOTH your Staff deliveries AND Lalamove deliveries
+        $completedQuery = Delivery::whereIn('status', ['delivered', 'failed'])
+            ->where(function($query) use ($driverId) {
+                $query->where('driver_id', $driverId)
+                      ->orWhereNull('driver_id');
+            })
+            ->with(['order.items.product', 'order.branch']);
+
+        // --- FILTER: Search by Order Number ---
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $activeQuery->whereHas('order', function($q) use ($search) {
+                $q->where('order_number', 'LIKE', "%{$search}%");
+            });
+            $completedQuery->whereHas('order', function($q) use ($search) {
+                $q->where('order_number', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // --- FILTER: Delivery Type (Lalamove vs Staff) ---
+        if ($request->filled('delivery_type')) {
+            $type = $request->delivery_type;
+            if ($type === 'lalamove') {
+                // Lalamove: City is NOT Calamba
+                $activeQuery->whereHas('order', function($q) {
+                    $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
+                });
+                $completedQuery->whereHas('order', function($q) {
+                    $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
+                });
+            } elseif ($type === 'staff') {
+                // Staff: City IS Calamba
+                $activeQuery->whereHas('order', function($q) {
+                    $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
+                });
+                $completedQuery->whereHas('order', function($q) {
+                    $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
+                });
+            }
+        }
+
+        // --- FILTER: Date Range ---
+        if ($request->filled('date_from')) {
+            $activeQuery->whereDate('created_at', '>=', $request->date_from);
+            $completedQuery->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $activeQuery->whereDate('created_at', '<=', $request->date_to);
+            $completedQuery->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // ================================================================
+        // Fetch Active Deliveries (with filters applied)
+        // ================================================================
+        $activeDeliveries = $activeQuery->orderBy('assigned_at', 'desc')
             ->paginate(5, ['*'], 'active_page');
 
-        // Fetch Completed Deliveries
-        $completedDeliveries = Delivery::where('driver_id', $driverId)
-            ->whereIn('status', ['delivered', 'failed'])
-            ->with(['order.items.product', 'order.branch'])
-            ->orderBy('delivered_at', 'desc')
+        // Fetch Completed Deliveries (with filters applied)
+        $completedDeliveries = $completedQuery->orderBy('delivered_at', 'desc')
             ->paginate(5, ['*'], 'completed_page');
 
-        // Counts for the header stats
-        $activeCount = Delivery::where('driver_id', $driverId)
-            ->whereNotIn('status', ['delivered', 'failed'])
-            ->count();
+        // FIXED: Counts for the header stats (Includes Lalamove)
+        $activeCount = Delivery::whereNotIn('status', ['delivered', 'failed'])
+            ->where(function($query) use ($driverId) {
+                $query->where('driver_id', $driverId)
+                      ->orWhereNull('driver_id');
+            })->count();
 
-        $completedCount = Delivery::where('driver_id', $driverId)
-            ->whereIn('status', ['delivered', 'failed'])
-            ->count();
+        $completedCount = Delivery::whereIn('status', ['delivered', 'failed'])
+            ->where(function($query) use ($driverId) {
+                $query->where('driver_id', $driverId)
+                      ->orWhereNull('driver_id');
+            })->count();
 
         $totalDeliveries = $activeCount + $completedCount;
 

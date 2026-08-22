@@ -73,17 +73,49 @@
                     <div class="col-md-3 text-md-end">
                         <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-outline-primary rounded-pill">View Details</a>
                         
-                        {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
+                         {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
                         @if($order->order_status === 'pending')
-                        <form action="{{ route('customer.orders.cancel', $order) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button class="btn btn-outline-danger rounded-pill ms-2" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</button>
-                        </form>
+                        <button type="button" class="btn btn-outline-danger rounded-pill ms-2" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ $order->id }}">
+                            Cancel
+                        </button>
                         @endif
                     </div>
                 </div>
             </div>
         </div>
+        {{-- ============================================================ --}}
+        {{-- ADD THE CANCEL MODAL HERE (Inside the Loop, right after the card) --}}
+        {{-- ============================================================ --}}
+        @if($order->order_status === 'pending')
+        <div class="modal fade" id="cancelOrderModal{{ $order->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div class="modal-header" style="border-bottom: 1px solid #eef2f6; padding: 1.25rem 1.5rem;">
+                        <h5 class="modal-title fw-bold" style="color: #dc3545;">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Order
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="padding: 1.5rem;">
+                        <p class="mb-0">Are you sure you want to cancel <strong>Order #{{ $order->order_number }}</strong>?</p>
+                        <p class="text-muted small mt-2">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                        
+                        {{-- ✅ THE ACTUAL CANCEL FORM INSIDE THE MODAL --}}
+                        <form action="{{ route('customer.orders.cancel', $order) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">
+                                <i class="bi bi-check-circle me-1"></i> Yes, Cancel Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        {{-- ============================================================ --}}
         @endforeach
         {{ $orders->links() }}
     @else

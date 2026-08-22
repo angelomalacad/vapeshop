@@ -438,10 +438,10 @@
                             </span>
                         </div>
                     </div>
-                    <div class="info-row">
+                    {{-- <div class="info-row">
                         <div class="info-label">Assigned</div>
                         <div class="info-value">{{ $delivery->assigned_at ? $delivery->assigned_at->format('M d, Y h:i A') : 'N/A' }}</div>
-                    </div>
+                    </div> --}}
                     @if($delivery->picked_up_at)
                     <div class="info-row">
                         <div class="info-label">Picked Up</div>

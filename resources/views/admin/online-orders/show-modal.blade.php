@@ -548,7 +548,7 @@
                             <div class="timeline-content">
                                 <div class="timeline-title">Confirmed</div>
                                 @if ($order->confirmed_at)
-                                    <div class="timeline-date">{{ $order->confirmed_at->format('F d, Y h:i A') }}
+                                    <div class="timeline-date">{{ \Carbon\Carbon::parse($order->confirmed_at)->format('F d, Y h:i A') }}
                                     </div>
                                 @else
                                     <div class="timeline-date text-muted">Pending confirmation</div>
@@ -566,7 +566,7 @@
                             <div class="timeline-content">
                                 <div class="timeline-title">Packing</div>
                                 @if ($order->processing_at)
-                                    <div class="timeline-date">{{ $order->processing_at->format('F d, Y h:i A') }}
+                                    <div class="timeline-date">{{ \Carbon\Carbon::parse($order->processing_at)->format('F d, Y h:i A') }}
                                     </div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet started</div>
@@ -584,7 +584,7 @@
                             <div class="timeline-content">
                                 <div class="timeline-title">Ready</div>
                                 @if ($order->ready_at)
-                                    <div class="timeline-date">{{ $order->ready_at->format('F d, Y h:i A') }}</div>
+                                    <div class="timeline-date">{{ \Carbon\Carbon::parse($order->ready_at)->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet ready</div>
                                 @endif
@@ -602,7 +602,7 @@
                                 <div class="timeline-title">Out for Delivery</div>
                                 @if ($order->out_for_delivery_at)
                                     <div class="timeline-date">
-                                        {{ $order->out_for_delivery_at->format('F d, Y h:i A') }}</div>
+                                        {{ \Carbon\Carbon::parse($order->out_for_delivery_at)->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet dispatched</div>
                                 @endif
@@ -619,7 +619,8 @@
                             <div class="timeline-content">
                                 <div class="timeline-title">Delivered</div>
                                 @if ($order->delivered_at)
-                                    <div class="timeline-date">{{ $order->delivered_at->format('F d, Y h:i A') }}
+                                    {{-- ✅ FIX: Wrapped in parse() to prevent String to Method error --}}
+                                    <div class="timeline-date">{{ \Carbon\Carbon::parse($order->delivered_at)->format('F d, Y h:i A') }}
                                     </div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet delivered</div>
