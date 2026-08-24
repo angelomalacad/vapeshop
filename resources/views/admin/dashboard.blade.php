@@ -12,6 +12,19 @@
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* ========== ENSURE TAB CONTENT IS VISIBLE ========== */
+.tab-pane {
+    display: none !important;
+}
+
+.tab-pane.show.active {
+    display: block !important;
+}
+
+#overview.show.active,
+#analytics.show.active {
+    display: block !important;
+}
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -75,13 +88,11 @@
         }
 
         @keyframes pulseGlow {
-
             0%,
             100% {
                 box-shadow: 0 0 20px rgba(13, 110, 253, 0.15);
                 transform: scale(1);
             }
-
             50% {
                 box-shadow: 0 0 40px rgba(13, 110, 253, 0.3);
                 transform: scale(1.03);
@@ -94,7 +105,6 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -106,7 +116,6 @@
                 opacity: 0;
                 transform: translateX(-20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -118,7 +127,6 @@
                 opacity: 0;
                 transform: translateX(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -130,7 +138,6 @@
                 opacity: 0;
                 transform: scale(0.95);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -138,12 +145,10 @@
         }
 
         @keyframes gentlePulse {
-
             0%,
             100% {
                 transform: scale(1);
             }
-
             50% {
                 transform: scale(1.02);
             }
@@ -153,11 +158,9 @@
             0% {
                 transform: translateY(0px);
             }
-
             50% {
                 transform: translateY(-5px);
             }
-
             100% {
                 transform: translateY(0px);
             }
@@ -186,102 +189,50 @@
         .delay-1 {
             animation-delay: 0.05s;
         }
-
         .delay-2 {
             animation-delay: 0.1s;
         }
-
         .delay-3 {
             animation-delay: 0.15s;
         }
-
         .delay-4 {
             animation-delay: 0.2s;
         }
-
         .delay-5 {
             animation-delay: 0.25s;
         }
-
         .delay-6 {
             animation-delay: 0.3s;
         }
-
         .delay-7 {
             animation-delay: 0.35s;
         }
-
         .delay-8 {
             animation-delay: 0.4s;
         }
-
         .delay-9 {
             animation-delay: 0.45s;
         }
-
         .delay-10 {
             animation-delay: 0.5s;
         }
-
         .delay-11 {
             animation-delay: 0.55s;
         }
-
         .delay-12 {
             animation-delay: 0.6s;
         }
-
         .delay-13 {
             animation-delay: 0.65s;
         }
-
         .delay-14 {
             animation-delay: 0.7s;
         }
-
         .delay-15 {
             animation-delay: 0.75s;
         }
-
         .delay-16 {
             animation-delay: 0.8s;
-        }
-
-        /* ========== TAB ANIMATION FIX ========== */
-        .tab-pane {
-            transition: opacity 0.2s ease-in-out;
-        }
-
-        .tab-pane.fade {
-            opacity: 0;
-        }
-
-        .tab-pane.fade.show {
-            opacity: 1;
-        }
-
-        .tab-pane.show .animate-scale,
-        .tab-pane.show .animate-fade-up,
-        .tab-pane.show .animate-fade-left,
-        .tab-pane.show .animate-fade-right {
-            animation: none;
-            opacity: 1;
-        }
-
-        .tab-pane.show .animate-scale {
-            animation: scaleIn 0.4s ease forwards;
-        }
-
-        .tab-pane.show .animate-fade-up {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
-        .tab-pane.show .animate-fade-left {
-            animation: fadeInLeft 0.5s ease forwards;
-        }
-
-        .tab-pane.show .animate-fade-right {
-            animation: fadeInRight 0.5s ease forwards;
         }
 
         /* Sidebar */
@@ -616,6 +567,12 @@
             margin: 0 auto;
         }
 
+        .chart-container-large {
+            max-width: 100%;
+            height: 300px;
+            margin: 0 auto;
+        }
+
         .chart-wrapper {
             position: relative;
             width: 100%;
@@ -657,12 +614,14 @@
 
         .table-responsive {
             border-radius: 12px;
+            overflow: hidden;
         }
 
         .table th,
         .table td {
-            padding: 0.75rem;
+            padding: 0.5rem 0.75rem;
             vertical-align: middle;
+            font-size: 0.85rem;
         }
 
         .table tbody tr {
@@ -671,7 +630,6 @@
 
         .table tbody tr:hover {
             background-color: rgba(13, 110, 253, 0.03);
-            transform: scale(1.01);
         }
 
         .progress {
@@ -713,6 +671,56 @@
             font-size: 0.75rem;
             color: #6c757d;
             margin-bottom: 0;
+        }
+
+        /* Filter controls */
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .filter-controls select:focus,
+        .filter-controls input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+            outline: none;
+        }
+
+        .filter-controls label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0;
+        }
+
+        /* Auto-refresh indicator */
+        .auto-refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: #6c757d;
+            padding: 0.2rem 0.6rem;
+            background: rgba(13, 110, 253, 0.05);
+            border-radius: 20px;
+        }
+
+        .auto-refresh-indicator .spinner-grow {
+            width: 10px;
+            height: 10px;
         }
 
         /* ========== RESPONSIVE ========== */
@@ -837,6 +845,10 @@
             .chart-container-small {
                 height: 180px;
             }
+            
+            .chart-container-large {
+                height: 220px;
+            }
 
             .table-responsive {
                 overflow-x: auto;
@@ -845,19 +857,147 @@
 
             .table th,
             .table td {
-                padding: 0.5rem;
-                font-size: 0.75rem;
+                padding: 0.4rem;
+                font-size: 0.7rem;
                 white-space: nowrap;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-controls select,
+            .filter-controls input {
+                width: 100%;
+            }
+
+            .auto-refresh-indicator {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.5rem;
+            }
+
+            .card-header .d-flex {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 0.5rem;
+            }
+            
+            /* ===== FIX FOR MOBILE OVERVIEW TAB ===== */
+            .tab-pane {
+                display: none !important;
+            }
+            
+            .tab-pane.show.active {
+                display: block !important;
+            }
+            
+            #overview.show.active {
+                display: block !important;
+            }
+            
+            #analytics.show.active {
+                display: block !important;
+            }
+            
+            /* Stat cards mobile */
+            .stat-card .card-body {
+                padding: 0.75rem !important;
+            }
+            
+            .stat-card h2 {
+                font-size: 1.2rem !important;
+            }
+            
+            .stat-card h5 {
+                font-size: 0.55rem !important;
+            }
+            
+            .stat-icon {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+            .stat-icon i {
+                font-size: 0.9rem !important;
+            }
+            
+            /* Fix grid spacing for overview */
+            .tab-pane#overview .row.g-4 {
+                margin-left: -0.25rem !important;
+                margin-right: -0.25rem !important;
+            }
+            
+            .tab-pane#overview .row.g-4>[class*="col-"] {
+                padding-left: 0.25rem !important;
+                padding-right: 0.25rem !important;
+            }
+            
+            .tab-pane#overview .row.g-4.mb-5 {
+                margin-bottom: 1.5rem !important;
+            }
+            
+            .tab-pane#overview .row.g-4.mb-4 {
+                margin-bottom: 1rem !important;
+            }
+            
+            /* Today's activity mobile fix */
+            .tab-pane#overview .d-flex.justify-content-between.gap-2 {
+                gap: 0.25rem !important;
+            }
+            
+            .tab-pane#overview .fw-bold.fs-3 {
+                font-size: 1.2rem !important;
+            }
+            
+            .tab-pane#overview .bi.fs-5 {
+                font-size: 1rem !important;
+            }
+            
+            .tab-pane#overview small.text-muted {
+                font-size: 0.55rem !important;
+            }
+            
+            /* Business overview mobile */
+            .tab-pane#overview .card-body ul {
+                padding-left: 1.2rem !important;
+            }
+            
+            .tab-pane#overview .card-body ul li {
+                font-size: 0.75rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            /* Section headers mobile */
+            .section-header h5 {
+                font-size: 0.85rem !important;
+            }
+            
+            .section-header p {
+                font-size: 0.65rem !important;
             }
         }
 
         @media (max-width: 480px) {
             .stat-card .card-body {
-                padding: 0.75rem;
+                padding: 0.5rem !important;
             }
 
             .stat-card h2 {
-                font-size: 1rem;
+                font-size: 0.9rem !important;
+            }
+            
+            .stat-card h5 {
+                font-size: 0.45rem !important;
+            }
+            
+            .stat-icon {
+                width: 26px !important;
+                height: 26px !important;
+            }
+            
+            .stat-icon i {
+                font-size: 0.7rem !important;
             }
 
             .welcome-banner .bg-white.bg-opacity-10 {
@@ -867,6 +1007,22 @@
 
             h1.h3 {
                 font-size: 1.25rem;
+            }
+
+            .tab-pane#overview .fw-bold.fs-3 {
+                font-size: 1rem !important;
+            }
+            
+            .tab-pane#overview .bi.fs-5 {
+                font-size: 0.8rem !important;
+            }
+            
+            .tab-pane#overview small.text-muted {
+                font-size: 0.45rem !important;
+            }
+            
+            .tab-pane#overview .card-body ul li {
+                font-size: 0.65rem !important;
             }
         }
 
@@ -885,7 +1041,6 @@
         }
 
         @media (max-width: 768px) {
-
             .list-group-item,
             .nav-link,
             .btn,
@@ -931,6 +1086,159 @@
                 white-space: normal;
             }
         }
+
+        /* Fix table truncation */
+        .table-container {
+            max-height: 400px;
+            overflow: hidden;
+        }
+
+        .table-container table {
+            margin-bottom: 0;
+        }
+
+        .card-body.p-0 .table-responsive {
+            border-radius: 0 0 12px 12px;
+        }
+        /* ========== FIX FOR OVERVIEW TAB CONTENT ON MOBILE ========== */
+@media (max-width: 768px) {
+    /* Force all stat cards to be visible */
+    .tab-pane#overview .stat-card {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .tab-pane#overview .stat-card .card-body {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0.75rem !important;
+    }
+    
+    .tab-pane#overview .stat-card .card-body > div {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+    
+    .tab-pane#overview .stat-card h5 {
+        display: block !important;
+        font-size: 0.55rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .tab-pane#overview .stat-card h2 {
+        display: block !important;
+        font-size: 1.2rem !important;
+        margin-bottom: 0.1rem !important;
+    }
+    
+    .tab-pane#overview .stat-card .small {
+        display: block !important;
+        font-size: 0.5rem !important;
+    }
+    
+    .tab-pane#overview .stat-card .stat-icon {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .tab-pane#overview .stat-card .stat-icon i {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Fix section headers */
+    .tab-pane#overview .section-header {
+        display: block !important;
+    }
+    
+    .tab-pane#overview .section-header h5 {
+        display: block !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .tab-pane#overview .section-header p {
+        display: block !important;
+        font-size: 0.65rem !important;
+    }
+    
+    /* Fix Today's Activity */
+    .tab-pane#overview .stat-card.h-100 {
+        display: flex !important;
+    }
+    
+    .tab-pane#overview .d-flex.justify-content-between.gap-2 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem !important;
+    }
+    
+    .tab-pane#overview .d-flex.justify-content-between.gap-2 .text-center {
+        display: block !important;
+        flex: 1 !important;
+        min-width: 40px !important;
+    }
+    
+    .tab-pane#overview .fw-bold.fs-3 {
+        display: block !important;
+        font-size: 1.2rem !important;
+    }
+    
+    .tab-pane#overview .bi.fs-5 {
+        display: inline-block !important;
+        font-size: 1rem !important;
+    }
+    
+    .tab-pane#overview small.text-muted {
+        display: block !important;
+        font-size: 0.55rem !important;
+    }
+    
+    /* Fix Business Overview */
+    .tab-pane#overview .card-body {
+        display: block !important;
+    }
+    
+    .tab-pane#overview .card-body p {
+        display: block !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .tab-pane#overview .card-body ul {
+        display: block !important;
+        padding-left: 1.2rem !important;
+    }
+    
+    .tab-pane#overview .card-body ul li {
+        display: block !important;
+        font-size: 0.75rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    /* Fix row and column display */
+    .tab-pane#overview .row.g-4 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        margin-left: -0.25rem !important;
+        margin-right: -0.25rem !important;
+    }
+    
+    .tab-pane#overview .row.g-4 > [class*="col-"] {
+        display: flex !important;
+        flex-direction: column !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .tab-pane#overview .col-md-3.col-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+}
     </style>
 </head>
 
@@ -1107,16 +1415,22 @@
                             </a>
                         @endif
                         <div class="dropdown-divider"></div>
-                        {{-- <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-house me-2"></i> Back to Home
-                        </a> --}}
                     </div>
                 </div>
             </div>
 
             <!-- Main Content -->
             <div class="col-md-9">
-                <h1 class="h3 mb-4 fw-semibold animate-fade-right delay-1">Owner Dashboard</h1>
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+                    <h1 class="h3 fw-semibold animate-fade-right delay-1">Owner Dashboard</h1>
+                    <div class="auto-refresh-indicator animate-fade-right delay-2">
+                        <span class="spinner-grow spinner-grow-sm text-primary" role="status"></span>
+                        <span>Auto-refresh: <span id="refreshCountdown">5</span>s</span>
+                        <button id="toggleAutoRefresh" class="btn btn-sm btn-outline-secondary ms-1" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">
+                            <i class="bi bi-pause-circle"></i>
+                        </button>
+                    </div>
+                </div>
 
                 @php
                     // ========== EXISTING VARIABLES ==========
@@ -1241,71 +1555,71 @@
                     }
 
                     // ========== TODAY'S ACTIVITY ==========
-$ordersToday = 0;
-$posToday = 0;
-$onlineToday = 0;
+                    $ordersToday = 0;
+                    $posToday = 0;
+                    $onlineToday = 0;
 
-if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
-    $ordersToday = \App\Models\Order::whereDate('created_at', today())->count();
-    $posToday = \App\Models\Order::where('order_number', 'LIKE', 'POS-%')
-        ->whereDate('created_at', today())
-        ->count();
-    $onlineToday = \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')
-        ->whereDate('created_at', today())
-        ->count();
-}
+                    if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
+                        $ordersToday = \App\Models\Order::whereDate('created_at', today())->count();
+                        $posToday = \App\Models\Order::where('order_number', 'LIKE', 'POS-%')
+                            ->whereDate('created_at', today())
+                            ->count();
+                        $onlineToday = \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')
+                            ->whereDate('created_at', today())
+                            ->count();
+                    }
 
-$totalAllOrders = $totalPosOrders + $totalOnlineOrders;
+                    $totalAllOrders = $totalPosOrders + $totalOnlineOrders;
 
-// ========== ACTIVE DRIVERS LIST ==========
-$activeDriversList = [];
-if (class_exists('\App\Models\DriverShift') && \App\Models\DriverShift::count() > 0) {
-    $activeDriversList = \App\Models\DriverShift::with('driver')
-        ->where('status', 'active')
-        ->whereDate('shift_date', today())
-        ->get()
-        ->map(function ($shift) {
-            return $shift->driver->name ?? 'Unknown Driver';
-        })
-        ->toArray();
-}
+                    // ========== ACTIVE DRIVERS LIST ==========
+                    $activeDriversList = [];
+                    if (class_exists('\App\Models\DriverShift') && \App\Models\DriverShift::count() > 0) {
+                        $activeDriversList = \App\Models\DriverShift::with('driver')
+                            ->where('status', 'active')
+                            ->whereDate('shift_date', today())
+                            ->get()
+                            ->map(function ($shift) {
+                                return $shift->driver->name ?? 'Unknown Driver';
+                            })
+                            ->toArray();
+                    }
 
-// ========== ONLINE ORDER STATUS FOR CHART ==========
-$onlineOrderStatus = [];
-if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
-    $statusCounts = \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')
-        ->select('order_status', \DB::raw('count(*) as count'))
-        ->groupBy('order_status')
-        ->get();
+                    // ========== ONLINE ORDER STATUS FOR CHART ==========
+                    $onlineOrderStatus = [];
+                    if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
+                        $statusCounts = \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')
+                            ->select('order_status', \DB::raw('count(*) as count'))
+                            ->groupBy('order_status')
+                            ->get();
 
-    foreach ($statusCounts as $statusCount) {
-        if ($statusCount->order_status) {
-            $onlineOrderStatus[$statusCount->order_status] = $statusCount->count;
-        }
-    }
-}
+                        foreach ($statusCounts as $statusCount) {
+                            if ($statusCount->order_status) {
+                                $onlineOrderStatus[$statusCount->order_status] = $statusCount->count;
+                            }
+                        }
+                    }
 
-// ========== DELIVERY VS POS SALES ==========
-$deliveryVsPickup = [
-    'delivery_sales' => 0,
-    'pickup_sales' => 0,
-];
+                    // ========== DELIVERY VS POS SALES ==========
+                    $deliveryVsPickup = [
+                        'delivery_sales' => 0,
+                        'pickup_sales' => 0,
+                    ];
 
-if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
-    $deliveryVsPickup['delivery_sales'] =
-        \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')->sum('total_amount') ?? 0;
-    $deliveryVsPickup['pickup_sales'] =
-        \App\Models\Order::where('order_number', 'LIKE', 'POS-%')->sum('total_amount') ?? 0;
-}
+                    if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
+                        $deliveryVsPickup['delivery_sales'] =
+                            \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')->sum('total_amount') ?? 0;
+                        $deliveryVsPickup['pickup_sales'] =
+                            \App\Models\Order::where('order_number', 'LIKE', 'POS-%')->sum('total_amount') ?? 0;
+                    }
 
-// ========== REPEAT CUSTOMER RATE ==========
-$repeatCustomerRate = 0;
-if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
-    $totalCustomersCount = \App\Models\User::where('role', 'customer')->count();
-    $repeatCustomers = \App\Models\Order::select('user_id')
-        ->whereNotNull('user_id')
-        ->groupBy('user_id')
-        ->havingRaw('COUNT(*) > 1')
+                    // ========== REPEAT CUSTOMER RATE ==========
+                    $repeatCustomerRate = 0;
+                    if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
+                        $totalCustomersCount = \App\Models\User::where('role', 'customer')->count();
+                        $repeatCustomers = \App\Models\Order::select('user_id')
+                            ->whereNotNull('user_id')
+                            ->groupBy('user_id')
+                            ->havingRaw('COUNT(*) > 1')
                             ->count();
 
                         if ($totalCustomersCount > 0) {
@@ -1316,22 +1630,315 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
 
                 <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab"
-                            data-bs-target="#overview" type="button" role="tab">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard Overview
+                        <button class="nav-link active" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics"
+                            type="button" role="tab">
+                            <i class="bi bi-graph-up me-2"></i> Analytics
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics"
+                        <button class="nav-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview"
                             type="button" role="tab">
-                            <i class="bi bi-graph-up me-2"></i> Analytics
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard Overview
                         </button>
                     </li>
                 </ul>
 
                 <div class="tab-content">
-                    <!-- OVERVIEW TAB - GROUPED BY STOCKS, ORDERS, OTHERS -->
-                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <!-- ANALYTICS TAB - NOW FIRST -->
+                    <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics
+                            </h3>
+                        </div>
+
+                        <!-- ========== MONTHLY ORDERS LINE GRAPH ========== -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="card analytics-card animate-fade-up delay-1">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+                                        <div>
+                                            <i class="bi bi-calendar-month me-2 text-primary"></i> Monthly Orders Trend
+                                        </div>
+                                        <div class="filter-controls mb-0">
+                                            <label for="yearSelect" class="me-2">Year:</label>
+                                            <select id="yearSelect" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                                                @php
+                                                    $currentYear = date('Y');
+                                                    $startYear = 2020;
+                                                @endphp
+                                                @for ($y = $currentYear; $y >= $startYear; $y--)
+                                                    <option value="{{ $y }}" {{ $y == $currentYear ? 'selected' : '' }}>
+                                                        {{ $y }}
+                                                    </option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container-large">
+                                            <canvas id="monthlyOrdersChart"></canvas>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <span class="badge bg-primary me-2">POS Orders</span>
+                                            <span class="badge bg-success me-2">Online Orders</span>
+                                            <span class="badge bg-warning text-dark">Total Orders</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========== SALES COMPARISON BAR GRAPH ========== -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="card analytics-card animate-fade-up delay-2">
+                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+                                        <div>
+                                            <i class="bi bi-bar-chart me-2 text-success"></i> Sales Comparison
+                                        </div>
+                                        <div class="filter-controls mb-0">
+                                            <label for="compareType" class="me-2">Compare by:</label>
+                                            <select id="compareType" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                                                <option value="brand">Brand</option>
+                                                <option value="category">Category</option>
+                                                <option value="product">Product</option>
+                                            </select>
+                                            <label for="salesRange" class="ms-2 me-2">Range:</label>
+                                            <select id="salesRange" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                                                <option value="today">Today</option>
+                                                <option value="week" selected>This Week</option>
+                                                <option value="month">This Month</option>
+                                                <option value="last_month">Last Month</option>
+                                                <option value="custom">Custom Range</option>
+                                            </select>
+                                            <div id="customDateRange" style="display: none; gap: 0.5rem; align-items: center;" class="d-inline-flex ms-2">
+                                                <input type="date" id="startDate" class="form-control form-control-sm" style="width: auto; display: inline-block;">
+                                                <span class="text-muted">to</span>
+                                                <input type="date" id="endDate" class="form-control form-control-sm" style="width: auto; display: inline-block;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container-large">
+                                            <canvas id="compareChart"></canvas>
+                                        </div>
+                                        <div class="text-center mt-2 text-muted small">
+                                            <i class="bi bi-info-circle"></i> Comparing sales by <span id="compareTypeLabel">Brand</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expiring Soon -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <div class="card analytics-card animate-fade-up delay-3">
+                                    <div class="card-header bg-white">
+                                        <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next
+                                        30 days)
+                                        @if ($expiringSoon->count() > 0)
+                                            <span class="badge bg-danger float-end">{{ $expiringSoon->count() }}
+                                                items</span>
+                                        @endif
+                                    </div>
+                                    <div class="card-body p-0">
+                                        @if ($expiringSoon->count() > 0)
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mb-0">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>Branch</th>
+                                                            <th>Product</th>
+                                                            <th>Expiration Date</th>
+                                                            <th>Days Left</th>
+                                                            <th>Qty</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($expiringSoon as $item)
+                                                            <tr>
+                                                                <td>{{ $item->branch->name ?? 'N/A' }}</td>
+                                                                <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
+                                                                </td>
+                                                                <td>
+                                                                    @php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
+                                                                    <span
+                                                                        class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">
+                                                                        {{ max(0, $daysLeft) }} days
+                                                                    </span>
+                                                                </td>
+                                                                <td>{{ number_format($item->quantity) }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @else
+                                            <div class="text-center py-4 text-success">
+                                                <i class="bi bi-check-circle fs-2"></i>
+                                                <p class="mb-0">No products expiring soon</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts Row -->
+                        <div class="row g-4 mb-4">
+                            <!-- Online Order Status -->
+                            <div class="col-md-5">
+                                <div class="card analytics-card h-100 animate-fade-up delay-4">
+                                    <div class="card-header bg-white">
+                                        <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
+                                        <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }}
+                                            total</span>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @if (count($onlineOrderStatus) > 0)
+                                            <div class="chart-container-medium">
+                                                <canvas id="orderStatusChart"></canvas>
+                                            </div>
+                                            <div class="row mt-3 text-center small">
+                                                @foreach ($onlineOrderStatus as $status => $count)
+                                                    <div class="col-4 col-md-3 mb-2">
+                                                        @php
+                                                            $badgeClass = match ($status) {
+                                                                'pending' => 'warning',
+                                                                'confirmed' => 'info',
+                                                                'processing' => 'primary',
+                                                                'ready' => 'success',
+                                                                'out_for_delivery' => 'dark',
+                                                                'delivered' => 'secondary',
+                                                                'cancelled' => 'danger',
+                                                                default => 'secondary',
+                                                            };
+                                                        @endphp
+                                                        <span
+                                                            class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
+                                                        <div class="fw-bold mt-1">{{ $count }}</div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="chart-fallback">
+                                                <p class="text-muted">No online orders data yet</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delivery vs POS -->
+                            <div class="col-md-3">
+                                <div class="card analytics-card h-100 animate-fade-up delay-5">
+                                    <div class="card-header bg-white">
+                                        <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
+                                    </div>
+                                    <div class="card-body text-center">
+                                        @php
+                                            $hasSalesData =
+                                                ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 ||
+                                                ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
+                                        @endphp
+                                        @if ($hasSalesData)
+                                            <div class="chart-container-small">
+                                                <canvas id="deliveryVsPickupChart"></canvas>
+                                            </div>
+                                            <div class="row text-center mt-3">
+                                                <div class="col-6">
+                                                    <span class="badge bg-primary status-badge">Delivery</span>
+                                                    <h5 class="mb-0 mt-1">
+                                                        ₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}
+                                                    </h5>
+                                                </div>
+                                                <div class="col-6">
+                                                    <span class="badge bg-success status-badge">POS</span>
+                                                    <h5 class="mb-0 mt-1">
+                                                        ₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}
+                                                    </h5>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="chart-fallback">
+                                                <p class="text-muted">No sales data yet</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Repeat Customer Rate -->
+                            <div class="col-md-4">
+                                <div class="card analytics-card h-100 text-center animate-fade-up delay-6">
+                                    <div class="card-body d-flex flex-column justify-content-center">
+                                        <i class="bi bi-people-fill fs-1 text-primary"></i>
+                                        <h5 class="mt-2">Repeat Customer Rate</h5>
+                                        <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
+                                        <small class="text-muted">of customers ordered more than once</small>
+                                        <div class="progress mt-3" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                style="width: {{ $repeatCustomerRate }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fastest Moving Products -->
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <div class="card analytics-card animate-fade-up delay-7">
+                                    <div class="card-header bg-white">
+                                        <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving
+                                        Products
+                                    </div>
+                                    <div class="card-body p-0">
+                                        @if ($fastMovingProducts->count() > 0)
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mb-0">
+                                                    <thead class="bg-light">
+                                                        <tr>
+                                                            <th>Product</th>
+                                                            <th>Units Sold</th>
+                                                            <th>Revenue</th>
+                                                            <th class="text-end">Rank</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($fastMovingProducts as $index => $product)
+                                                            <tr>
+                                                                <td><strong>{{ $product->name }}</strong></td>
+                                                                <td><span
+                                                                        class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
+                                                                </td>
+                                                                <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
+                                                                </td>
+                                                                <td class="text-end"><span
+                                                                        class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @else
+                                            <div class="text-center py-4 text-muted">
+                                                <i class="bi bi-box-seam fs-2"></i>
+                                                <p>No product sales data yet</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END OF ANALYTICS TAB-PANE -->
+
+                    <!-- OVERVIEW TAB - NOW SECOND -->
+                    <div class="tab-pane fade" id="overview" role="tabpanel">
 
                         <!-- ==================== SECTION 1: STOCKS ==================== -->
                         <div class="section-header">
@@ -1711,216 +2318,7 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                             </div>
                         </div>
                     </div>
-
-                    <!-- ANALYTICS TAB -->
-                    <div class="tab-pane fade" id="analytics" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics
-                            </h3>
-                        </div>
-
-                        <!-- Expiring Soon -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-1">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next
-                                        30 days)
-                                        @if ($expiringSoon->count() > 0)
-                                            <span class="badge bg-danger float-end">{{ $expiringSoon->count() }}
-                                                items</span>
-                                        @endif
-                                    </div>
-                                    <div class="card-body p-0">
-                                        @if ($expiringSoon->count() > 0)
-                                            <table class="table table-hover mb-0 w-100">
-                                                <thead class="bg-light">
-                                                    <tr>
-                                                        <th>Branch</th>
-                                                        <th>Product</th>
-                                                        <th>Expiration Date</th>
-                                                        <th>Days Left</th>
-                                                        <th>Qty</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($expiringSoon as $item)
-                                                        <tr>
-                                                            <td>{{ $item->branch->name ?? 'N/A' }}</td>
-                                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                                            <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
-                                                            </td>
-                                                            <td>
-                                                                @php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
-                                                                <span
-                                                                    class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">
-                                                                    {{ max(0, $daysLeft) }} days
-                                                                </span>
-                                                            </td>
-                                                            <td>{{ number_format($item->quantity) }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        @else
-                                            <div class="text-center py-4 text-success">
-                                                <i class="bi bi-check-circle fs-2"></i>
-                                                <p class="mb-0">No products expiring soon</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Charts Row -->
-                        <div class="row g-4 mb-4">
-                            <!-- Online Order Status -->
-                            <div class="col-md-5">
-                                <div class="card analytics-card h-100 animate-fade-up delay-2">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
-                                        <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }}
-                                            total</span>
-                                    </div>
-                                    <div class="card-body text-center">
-                                        @if (count($onlineOrderStatus) > 0)
-                                            <div class="chart-container-medium">
-                                                <canvas id="orderStatusChart"></canvas>
-                                            </div>
-                                            <div class="row mt-3 text-center small">
-                                                @foreach ($onlineOrderStatus as $status => $count)
-                                                    <div class="col-4 col-md-3 mb-2">
-                                                        @php
-                                                            $badgeClass = match ($status) {
-                                                                'pending' => 'warning',
-                                                                'confirmed' => 'info',
-                                                                'processing' => 'primary',
-                                                                'ready' => 'success',
-                                                                'out_for_delivery' => 'dark',
-                                                                'delivered' => 'secondary',
-                                                                'cancelled' => 'danger',
-                                                                default => 'secondary',
-                                                            };
-                                                        @endphp
-                                                        <span
-                                                            class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
-                                                        <div class="fw-bold mt-1">{{ $count }}</div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <div class="chart-fallback">
-                                                <p class="text-muted">No online orders data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Delivery vs POS -->
-                            <div class="col-md-3">
-                                <div class="card analytics-card h-100 animate-fade-up delay-3">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
-                                    </div>
-                                    <div class="card-body text-center">
-                                        @php
-                                            $hasSalesData =
-                                                ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 ||
-                                                ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
-                                        @endphp
-                                        @if ($hasSalesData)
-                                            <div class="chart-container-small">
-                                                <canvas id="deliveryVsPickupChart"></canvas>
-                                            </div>
-                                            <div class="row text-center mt-3">
-                                                <div class="col-6">
-                                                    <span class="badge bg-primary status-badge">Delivery</span>
-                                                    <h5 class="mb-0 mt-1">
-                                                        ₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}
-                                                    </h5>
-                                                </div>
-                                                <div class="col-6">
-                                                    <span class="badge bg-success status-badge">POS</span>
-                                                    <h5 class="mb-0 mt-1">
-                                                        ₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="chart-fallback">
-                                                <p class="text-muted">No sales data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Repeat Customer Rate -->
-                            <div class="col-md-4">
-                                <div class="card analytics-card h-100 text-center animate-fade-up delay-4">
-                                    <div class="card-body d-flex flex-column justify-content-center">
-                                        <i class="bi bi-people-fill fs-1 text-primary"></i>
-                                        <h5 class="mt-2">Repeat Customer Rate</h5>
-                                        <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
-                                        <small class="text-muted">of customers ordered more than once</small>
-                                        <div class="progress mt-3" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar"
-                                                style="width: {{ $repeatCustomerRate }}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fastest Moving Products -->
-                        <div class="row g-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-5">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving
-                                        Products
-                                    </div>
-                                    <div class="card-body p-0">
-                                        @if ($fastMovingProducts->count() > 0)
-                                            <table class="table table-hover mb-0 w-100">
-                                                <thead class="bg-light">
-                                                    <tr>
-                                                        <th>Product</th>
-                                                        <th>Units Sold</th>
-                                                        <th>Revenue</th>
-                                                        <th class="text-end">Rank</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($fastMovingProducts as $index => $product)
-                                                        <tr>
-                                                            <td><strong>{{ $product->name }}</strong></td>
-                                                            <td><span
-                                                                    class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
-                                                            </td>
-                                                            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
-                                                            </td>
-                                                            <td class="text-end"><span
-                                                                    class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        @else
-                                            <div class="text-center py-4 text-muted">
-                                                <i class="bi bi-box-seam fs-2"></i>
-                                                <p>No product sales data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- END OF ANALYTICS TAB-PANE -->
+                    <!-- END OF OVERVIEW TAB-PANE -->
 
                     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
                     <script>
@@ -2007,6 +2405,469 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
                             }
                         });
 
+                        // ========== CHART VARIABLES ==========
+                        let monthlyOrdersChart = null;
+                        let compareChart = null;
+                        let orderStatusChart = null;
+                        let deliveryVsPickupChart = null;
+
+                        // ========== AUTO-REFRESH CONTROLS ==========
+                        let refreshInterval = null;
+                        let countdownInterval = null;
+                        let countdown = 5;
+                        let isAutoRefreshEnabled = true;
+
+                        function startAutoRefresh() {
+                            if (refreshInterval) {
+                                clearInterval(refreshInterval);
+                            }
+                            if (countdownInterval) {
+                                clearInterval(countdownInterval);
+                            }
+                            
+                            isAutoRefreshEnabled = true;
+                            countdown = 5;
+                            updateCountdownDisplay();
+                            
+                            countdownInterval = setInterval(function() {
+                                countdown--;
+                                if (countdown <= 0) {
+                                    countdown = 5;
+                                    refreshAllCharts();
+                                }
+                                updateCountdownDisplay();
+                            }, 1000);
+                            
+                            const toggleBtn = document.getElementById('toggleAutoRefresh');
+                            if (toggleBtn) {
+                                toggleBtn.innerHTML = '<i class="bi bi-pause-circle"></i>';
+                                toggleBtn.classList.remove('btn-outline-secondary');
+                                toggleBtn.classList.add('btn-outline-danger');
+                            }
+                        }
+
+                        function stopAutoRefresh() {
+                            if (refreshInterval) {
+                                clearInterval(refreshInterval);
+                                refreshInterval = null;
+                            }
+                            if (countdownInterval) {
+                                clearInterval(countdownInterval);
+                                countdownInterval = null;
+                            }
+                            
+                            isAutoRefreshEnabled = false;
+                            
+                            const toggleBtn = document.getElementById('toggleAutoRefresh');
+                            if (toggleBtn) {
+                                toggleBtn.innerHTML = '<i class="bi bi-play-circle"></i>';
+                                toggleBtn.classList.remove('btn-outline-danger');
+                                toggleBtn.classList.add('btn-outline-success');
+                            }
+                            
+                            const countdownEl = document.getElementById('refreshCountdown');
+                            if (countdownEl) {
+                                countdownEl.textContent = '⏸';
+                            }
+                        }
+
+                        function toggleAutoRefresh() {
+                            if (isAutoRefreshEnabled) {
+                                stopAutoRefresh();
+                            } else {
+                                startAutoRefresh();
+                            }
+                        }
+
+                        function updateCountdownDisplay() {
+                            const countdownEl = document.getElementById('refreshCountdown');
+                            if (countdownEl) {
+                                countdownEl.textContent = countdown;
+                            }
+                        }
+
+                        function refreshAllCharts() {
+                            const year = document.getElementById('yearSelect').value;
+                            updateMonthlyChart(year);
+                            updateCompareChart();
+                            updateOrderStatusChart();
+                            updateDeliveryVsPickupChart();
+                        }
+
+                        // ========== MONTHLY ORDERS CHART FUNCTIONS ==========
+                        function fetchMonthlyOrders(year) {
+                            return fetch(`/admin/analytics/monthly-orders?year=${year}`)
+                                .then(response => response.json())
+                                .catch(() => {
+                                    return {
+                                        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                                        pos: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                        online: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                        total: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                    };
+                                });
+                        }
+
+                        function updateMonthlyChart(year) {
+                            const ctx = document.getElementById('monthlyOrdersChart').getContext('2d');
+                            
+                            fetchMonthlyOrders(year).then(data => {
+                                if (monthlyOrdersChart) {
+                                    monthlyOrdersChart.destroy();
+                                }
+
+                                monthlyOrdersChart = new Chart(ctx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: data.months,
+                                        datasets: [
+                                            {
+                                                label: 'POS Orders',
+                                                data: data.pos,
+                                                borderColor: '#0d6efd',
+                                                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                                                tension: 0.4,
+                                                fill: true
+                                            },
+                                            {
+                                                label: 'Online Orders',
+                                                data: data.online,
+                                                borderColor: '#198754',
+                                                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                                                tension: 0.4,
+                                                fill: true
+                                            },
+                                            {
+                                                label: 'Total Orders',
+                                                data: data.total,
+                                                borderColor: '#ffc107',
+                                                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                                                tension: 0.4,
+                                                fill: true,
+                                                borderDash: [5, 5]
+                                            }
+                                        ]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'top',
+                                                labels: {
+                                                    boxWidth: 12,
+                                                    font: { size: 11 }
+                                                }
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function(ctx) {
+                                                        return ctx.dataset.label + ': ' + ctx.raw + ' orders';
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    stepSize: 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        // ========== COMPARISON CHART FUNCTIONS ==========
+                        function fetchComparisonData(type, range, startDate, endDate) {
+                            let url = `/admin/analytics/sales-comparison?type=${type}&range=${range}`;
+                            if (range === 'custom' && startDate && endDate) {
+                                url += `&start=${startDate}&end=${endDate}`;
+                            }
+                            return fetch(url)
+                                .then(response => response.json())
+                                .catch(() => {
+                                    return {
+                                        labels: ['Brand A', 'Brand B', 'Brand C', 'Brand D', 'Brand E'],
+                                        data: [150, 230, 180, 90, 120],
+                                        colors: ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6f42c1']
+                                    };
+                                });
+                        }
+
+                        function updateCompareChart() {
+                            const type = document.getElementById('compareType').value;
+                            const range = document.getElementById('salesRange').value;
+                            const startDate = document.getElementById('startDate').value;
+                            const endDate = document.getElementById('endDate').value;
+                            
+                            document.getElementById('compareTypeLabel').textContent = 
+                                type.charAt(0).toUpperCase() + type.slice(1);
+                            
+                            const customRange = document.getElementById('customDateRange');
+                            if (range === 'custom') {
+                                customRange.style.display = 'inline-flex';
+                            } else {
+                                customRange.style.display = 'none';
+                            }
+
+                            const ctx = document.getElementById('compareChart').getContext('2d');
+                            
+                            fetchComparisonData(type, range, startDate, endDate).then(data => {
+                                if (compareChart) {
+                                    compareChart.destroy();
+                                }
+
+                                compareChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: data.labels,
+                                        datasets: [{
+                                            label: 'Sales (₱)',
+                                            data: data.data,
+                                            backgroundColor: data.colors || [
+                                                '#0d6efd', '#dc3545', '#198754', '#ffc107', '#6f42c1',
+                                                '#fd7e14', '#20c997', '#0dcaf0', '#d63384', '#6610f2'
+                                            ],
+                                            borderRadius: 6,
+                                            borderColor: 'rgba(0,0,0,0.1)',
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function(ctx) {
+                                                        return '₱' + ctx.raw.toFixed(2);
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    callback: function(value) {
+                                                        return '₱' + value.toFixed(0);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        // ========== ORDER STATUS CHART ==========
+                        function updateOrderStatusChart() {
+                            const statusCanvas = document.getElementById('orderStatusChart');
+                            if (!statusCanvas) return;
+                            
+                            fetch('/admin/analytics/order-status')
+                                .then(response => response.json())
+                                .catch(() => {
+                                    return @json($onlineOrderStatus);
+                                })
+                                .then(data => {
+                                    const labels = Object.keys(data);
+                                    const values = Object.values(data);
+                                    const colors = ['#ffc107', '#0dcaf0', '#0d6efd', '#198754', '#6c757d', '#dc3545', '#20c997'];
+                                    
+                                    if (orderStatusChart) {
+                                        orderStatusChart.destroy();
+                                    }
+                                    
+                                    if (values.length > 0) {
+                                        orderStatusChart = new Chart(statusCanvas, {
+                                            type: 'pie',
+                                            data: {
+                                                labels: labels.map(l => l.replace(/_/g, ' ').toUpperCase()),
+                                                datasets: [{
+                                                    data: values,
+                                                    backgroundColor: colors.slice(0, values.length)
+                                                }]
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: true,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'right',
+                                                        labels: {
+                                                            boxWidth: 12,
+                                                            font: { size: 11 }
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: (ctx) => `${ctx.label}: ${ctx.raw} orders`
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                        }
+
+                        // ========== DELIVERY VS PICKUP CHART ==========
+                        function updateDeliveryVsPickupChart() {
+                            const dpCanvas = document.getElementById('deliveryVsPickupChart');
+                            if (!dpCanvas) return;
+                            
+                            fetch('/admin/analytics/delivery-vs-pickup')
+                                .then(response => response.json())
+                                .catch(() => {
+                                    return {
+                                        delivery: {{ $deliveryVsPickup['delivery_sales'] ?? 0 }},
+                                        pickup: {{ $deliveryVsPickup['pickup_sales'] ?? 0 }}
+                                    };
+                                })
+                                .then(data => {
+                                    if (deliveryVsPickupChart) {
+                                        deliveryVsPickupChart.destroy();
+                                    }
+                                    
+                                    if (data.delivery > 0 || data.pickup > 0) {
+                                        deliveryVsPickupChart = new Chart(dpCanvas, {
+                                            type: 'doughnut',
+                                            data: {
+                                                labels: ['Delivery', 'POS (Walk-in)'],
+                                                datasets: [{
+                                                    data: [data.delivery, data.pickup],
+                                                    backgroundColor: ['#0d6efd', '#198754']
+                                                }]
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: true,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'bottom',
+                                                        labels: {
+                                                            boxWidth: 12,
+                                                            font: { size: 11 }
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: (ctx) => `₱${ctx.raw.toFixed(2)}`
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                        }
+
+                        // ========== INITIALIZE ==========
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const currentYear = new Date().getFullYear();
+                            updateMonthlyChart(currentYear);
+                            updateCompareChart();
+                            updateOrderStatusChart();
+                            updateDeliveryVsPickupChart();
+
+                            document.getElementById('yearSelect').addEventListener('change', function() {
+                                updateMonthlyChart(this.value);
+                            });
+
+                            document.getElementById('compareType').addEventListener('change', function() {
+                                updateCompareChart();
+                            });
+
+                            document.getElementById('salesRange').addEventListener('change', function() {
+                                const customRange = document.getElementById('customDateRange');
+                                if (this.value === 'custom') {
+                                    customRange.style.display = 'inline-flex';
+                                } else {
+                                    customRange.style.display = 'none';
+                                    updateCompareChart();
+                                }
+                            });
+
+                            document.getElementById('startDate').addEventListener('change', function() {
+                                if (document.getElementById('salesRange').value === 'custom') {
+                                    updateCompareChart();
+                                }
+                            });
+
+                            document.getElementById('endDate').addEventListener('change', function() {
+                                if (document.getElementById('salesRange').value === 'custom') {
+                                    updateCompareChart();
+                                }
+                            });
+
+                            const today = new Date();
+                            const weekAgo = new Date(today);
+                            weekAgo.setDate(today.getDate() - 7);
+                            document.getElementById('startDate').value = weekAgo.toISOString().split('T')[0];
+                            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+                            document.getElementById('toggleAutoRefresh').addEventListener('click', toggleAutoRefresh);
+                            startAutoRefresh();
+
+                            const progressBars = document.querySelectorAll('.progress-bar');
+                            progressBars.forEach(bar => {
+                                const width = bar.style.width;
+                                bar.style.width = '0%';
+                                setTimeout(() => {
+                                    bar.style.width = width;
+                                }, 300);
+                            });
+
+                            // ========== FIX: Show Overview tab on mobile ==========
+                            // Get all tab panes
+                            var allPanes = document.querySelectorAll('.tab-pane');
+                            var tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
+                            
+                            // Function to switch tabs
+                            function switchTab(targetId) {
+                                // Hide all panes
+                                allPanes.forEach(function(pane) {
+                                    pane.classList.remove('show', 'active');
+                                    pane.style.display = 'none';
+                                });
+                                
+                                // Show target pane
+                                var targetPane = document.querySelector(targetId);
+                                if (targetPane) {
+                                    targetPane.classList.add('show', 'active');
+                                    targetPane.style.display = 'block';
+                                }
+                            }
+                            
+                            // Handle tab clicks
+                            tabButtons.forEach(function(button) {
+                                button.addEventListener('click', function(e) {
+                                    var targetId = this.getAttribute('data-bs-target');
+                                    tabButtons.forEach(function(btn) {
+                                        btn.classList.remove('active');
+                                    });
+                                    this.classList.add('active');
+                                    switchTab(targetId);
+                                });
+                            });
+                            
+                            // Show active tab
+                            var activeTab = document.querySelector('#dashboardTabs .nav-link.active');
+                            if (activeTab) {
+                                var targetId = activeTab.getAttribute('data-bs-target');
+                                setTimeout(function() {
+                                    switchTab(targetId);
+                                }, 50);
+                            }
+                        });
+
                         // Re-trigger animations when switching tabs
                         const tabButtons = document.querySelectorAll('#dashboardTabs .nav-link');
                         tabButtons.forEach(button => {
@@ -2031,119 +2892,22 @@ if (class_exists('\App\Models\Order') && \App\Models\Order::count() > 0) {
 
                                 if (targetId === '#analytics') {
                                     setTimeout(() => {
-                                        const statusCanvas = document.getElementById('orderStatusChart');
-                                        const dpCanvas = document.getElementById('deliveryVsPickupChart');
-                                        if (statusCanvas && window.orderStatusChart) {
-                                            window.orderStatusChart.resize();
-                                        }
-                                        if (dpCanvas && window.deliveryVsPickupChart) {
-                                            window.deliveryVsPickupChart.resize();
-                                        }
+                                        if (monthlyOrdersChart) monthlyOrdersChart.resize();
+                                        if (compareChart) compareChart.resize();
+                                        if (orderStatusChart) orderStatusChart.resize();
+                                        if (deliveryVsPickupChart) deliveryVsPickupChart.resize();
                                     }, 100);
                                 }
                             });
                         });
 
-                        // Charts initialization
-                        document.addEventListener('DOMContentLoaded', function() {
-                            // Online Order Status Pie Chart
-                            const statusCanvas = document.getElementById('orderStatusChart');
-                            if (statusCanvas) {
-                                try {
-                                    const statusLabels = @json(array_keys($onlineOrderStatus));
-                                    const statusData = @json(array_values($onlineOrderStatus));
-
-                                    if (statusData.length > 0) {
-                                        window.orderStatusChart = new Chart(statusCanvas, {
-                                            type: 'pie',
-                                            data: {
-                                                labels: statusLabels.map(l => l.replace(/_/g, ' ').toUpperCase()),
-                                                datasets: [{
-                                                    data: statusData,
-                                                    backgroundColor: ['#ffc107', '#0dcaf0', '#0d6efd', '#198754',
-                                                        '#6c757d', '#dc3545', '#20c997'
-                                                    ]
-                                                }]
-                                            },
-                                            options: {
-                                                responsive: true,
-                                                maintainAspectRatio: true,
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'right',
-                                                        labels: {
-                                                            boxWidth: 12,
-                                                            font: {
-                                                                size: 11
-                                                            }
-                                                        }
-                                                    },
-                                                    tooltip: {
-                                                        callbacks: {
-                                                            label: (ctx) => `${ctx.label}: ${ctx.raw} orders`
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    }
-                                } catch (e) {
-                                    console.warn('Chart error:', e);
-                                }
+                        window.addEventListener('beforeunload', function() {
+                            if (refreshInterval) {
+                                clearInterval(refreshInterval);
                             }
-
-                            // Delivery vs POS Donut Chart
-                            const dpCanvas = document.getElementById('deliveryVsPickupChart');
-                            if (dpCanvas) {
-                                try {
-                                    const deliverySales = {{ $deliveryVsPickup['delivery_sales'] ?? 0 }};
-                                    const pickupSales = {{ $deliveryVsPickup['pickup_sales'] ?? 0 }};
-
-                                    if (deliverySales > 0 || pickupSales > 0) {
-                                        window.deliveryVsPickupChart = new Chart(dpCanvas, {
-                                            type: 'doughnut',
-                                            data: {
-                                                labels: ['Delivery', 'POS (Walk-in)'],
-                                                datasets: [{
-                                                    data: [deliverySales, pickupSales],
-                                                    backgroundColor: ['#0d6efd', '#198754']
-                                                }]
-                                            },
-                                            options: {
-                                                responsive: true,
-                                                maintainAspectRatio: true,
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'bottom',
-                                                        labels: {
-                                                            boxWidth: 12,
-                                                            font: {
-                                                                size: 11
-                                                            }
-                                                        }
-                                                    },
-                                                    tooltip: {
-                                                        callbacks: {
-                                                            label: (ctx) => `₱${ctx.raw.toFixed(2)}`
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    }
-                                } catch (e) {
-                                    console.warn('Chart error:', e);
-                                }
+                            if (countdownInterval) {
+                                clearInterval(countdownInterval);
                             }
-
-                            const progressBars = document.querySelectorAll('.progress-bar');
-                            progressBars.forEach(bar => {
-                                const width = bar.style.width;
-                                bar.style.width = '0%';
-                                setTimeout(() => {
-                                    bar.style.width = width;
-                                }, 300);
-                            });
                         });
                     </script>
 </body>

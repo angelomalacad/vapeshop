@@ -237,4 +237,161 @@ class DashboardController extends Controller
 
         return response()->json($summary);
     }
+
+    // =============================================
+    // 🔥 NEW ANALYTICS METHODS - ADDED BELOW 🔥
+    // =============================================
+
+    /**
+     * Get monthly orders data for the line chart
+     */
+    public function monthlyOrders(Request $request)
+    {
+        $year = $request->get('year', date('Y'));
+
+        // Initialize data arrays
+        $monthlyData = [
+            'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'pos' => array_fill(0, 12, 0),
+            'online' => array_fill(0, 12, 0),
+            'total' => array_fill(0, 12, 0)
+        ];
+
+        // Check if Order model exists and has data
+        if (class_exists('\App\Models\Order')) {
+            // Get POS orders by month
+            $posOrders = Order::where('order_number', 'LIKE', 'POS-%')
+                ->whereYear('created_at', $year)
+                ->select(DB::raw('MONTH(created_at) as month'), DB::raw('COUNT(*) as count'))
+                ->groupBy('month')
+                ->get();
+
+            foreach ($posOrders as $order) {
+                $monthlyData['pos'][$order->month - 1] = $order->count;
+            }
+
+            // Get Online orders by month
+            $onlineOrders = Order::where('order_number', 'LIKE', 'ORD-%')
+                ->whereYear('created_at', $year)
+                ->select(DB::raw('MONTH(created_at) as month'), DB::raw('COUNT(*) as count'))
+                ->groupBy('month')
+                ->get();
+
+            foreach ($onlineOrders as $order) {
+                $monthlyData['online'][$order->month - 1] = $order->count;
+            }
+
+            // Calculate totals
+            for ($i = 0; $i < 12; $i++) {
+                $monthlyData['total'][$i] = $monthlyData['pos'][$i] + $monthlyData['online'][$i];
+            }
+        }
+
+        return response()->json($monthlyData);
+    }
+
+    /**
+     * Get sales comparison data for the bar chart
+     */
+    public function salesComparison(Request $request)
+    {
+        $type = $request->get('type', 'brand');
+        $range = $request->get('range', 'week');
+        $startDate = $request->get('start');
+        $endDate = $request->get('end');
+
+        $query = Order::where('payment_status', 'paid');
+
+        // Apply date range filter
+        switch ($range) {
+            case 'today':
+                $query->whereDate('created_at', today());
+                break;
+            case 'week':
+                $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                break;
+            case 'month':
+                $query->whereMonth('created_at', Carbon::now()->month)
+                      ->whereYear('created_at', Carbon::now()->year);
+                break;
+            case 'last_month':
+                $query->whereMonth('created_at', Carbon::now()->subMonth()->month)
+                      ->whereYear('created_at', Carbon::now()->subMonth()->year);
+                break;
+            case 'custom':
+                if ($startDate && $endDate) {
+                    $query->whereBetween('created_at', [
+                        Carbon::parse($startDate)->startOfDay(),
+                        Carbon::parse($endDate)->endOfDay()
+                    ]);
+                }
+                break;
+        }
+
+        // Get order items with product details
+        $orderItems = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->whereIn('orders.id', $query->pluck('id'))
+            ->select(
+                'products.id',
+                'products.name',
+                'products.brand',
+                'products.category',
+                DB::raw('SUM(order_items.quantity * order_items.price) as total_sales')
+            )
+            ->groupBy('products.id', 'products.name', 'products.brand', 'products.category')
+            ->orderBy('total_sales', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Prepare data based on comparison type
+        $labels = [];
+        $data = [];
+        $colors = ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6f42c1', '#fd7e14', '#20c997', '#0dcaf0', '#d63384', '#6610f2'];
+
+        if ($type === 'brand') {
+            // Group by brand
+            $brandSales = [];
+            foreach ($orderItems as $item) {
+                $brand = $item->brand ?: 'Unbranded';
+                if (!isset($brandSales[$brand])) {
+                    $brandSales[$brand] = 0;
+                }
+                $brandSales[$brand] += $item->total_sales;
+            }
+            arsort($brandSales);
+            $labels = array_keys($brandSales);
+            $data = array_values($brandSales);
+        } elseif ($type === 'category') {
+            // Group by category
+            $categorySales = [];
+            foreach ($orderItems as $item) {
+                $category = $item->category ?: 'Uncategorized';
+                if (!isset($categorySales[$category])) {
+                    $categorySales[$category] = 0;
+                }
+                $categorySales[$category] += $item->total_sales;
+            }
+            arsort($categorySales);
+            $labels = array_keys($categorySales);
+            $data = array_values($categorySales);
+        } else {
+            // Product (default)
+            $labels = $orderItems->pluck('name')->toArray();
+            $data = $orderItems->pluck('total_sales')->toArray();
+        }
+
+        // Limit to top 10
+        if (count($labels) > 10) {
+            $labels = array_slice($labels, 0, 10);
+            $data = array_slice($data, 0, 10);
+        }
+
+        return response()->json([
+            'labels' => $labels,
+            'data' => $data,
+            'colors' => array_slice($colors, 0, count($labels))
+        ]);
+    }
 }

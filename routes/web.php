@@ -204,7 +204,16 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     // ===== DASHBOARD - USING CONTROLLER (FIXED) =====
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-
+ // =============================================
+    // 🔥 ADD THESE ANALYTICS ROUTES RIGHT HERE 🔥
+    // =============================================
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/monthly-orders', [App\Http\Controllers\Admin\DashboardController::class, 'monthlyOrders'])->name('monthly-orders');
+        Route::get('/sales-comparison', [App\Http\Controllers\Admin\DashboardController::class, 'salesComparison'])->name('sales-comparison');
+    });
+    // =============================================
+    // END OF ANALYTICS ROUTES
+    // =============================================
     // ===== EMAIL VERIFICATION ROUTES FOR ADMIN =====
     Route::get('/email/verify', function () {
         return view('auth.verify-email');

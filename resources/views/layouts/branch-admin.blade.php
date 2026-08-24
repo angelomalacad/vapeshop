@@ -47,7 +47,7 @@
             flex-shrink: 0;
             background: linear-gradient(145deg, #f5f7fa 0%, #e9ecef 100%);
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.03);
-            transition: margin-left 0.3s ease;
+            transition: margin-left 0.3s ease, width 0.3s ease;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -165,12 +165,16 @@
             justify-content: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .toggle-btn:hover {
             background: #0b5ed7;
             transform: scale(1.05);
+        }
+
+        .toggle-btn i {
+            transition: transform 0.3s ease;
         }
 
         /* Navbar adjustments */
@@ -415,9 +419,11 @@
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
-                z-index: 1000;
+                z-index: 999;
                 height: 100vh;
                 margin-left: calc(var(--sidebar-width) * -1);
+                width: var(--sidebar-width);
+                transition: margin-left 0.3s ease;
             }
 
             .sidebar.active {
@@ -427,6 +433,7 @@
             .toggle-btn {
                 bottom: 20px;
                 left: 20px;
+                z-index: 1001;
             }
 
             .main-content {
@@ -1113,6 +1120,113 @@
     console.log('Modal edit script loaded successfully');
     console.log('submitEditForm available:', typeof window.submitEditForm === 'function');
     </script>
+
+    <!-- ============================================================ -->
+    <!-- SIDEBAR TOGGLE FUNCTIONALITY - FIXED WITH LEFT/RIGHT ICONS     -->
+    <!-- ============================================================ -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get elements
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const sidebarCollapseBtn = document.getElementById('sidebarCollapse');
+        
+        // Check if elements exist
+        if (!sidebar || !toggleBtn || !sidebarCollapseBtn) {
+            console.error('Required elements not found!');
+            return;
+        }
+
+        // Function to toggle sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            
+            // Update toggle button icon - LEFT/RIGHT arrows
+            const icon = toggleBtn.querySelector('i');
+            if (sidebar.classList.contains('active')) {
+                // Sidebar is hidden - show RIGHT arrow (chevron-right) to open
+                icon.className = 'bi bi-chevron-right';
+            } else {
+                // Sidebar is visible - show LEFT arrow (chevron-left) to close
+                icon.className = 'bi bi-chevron-left';
+            }
+            
+            // Save state to localStorage for persistence
+            const isCollapsed = sidebar.classList.contains('active');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+            
+            console.log('Sidebar toggled. Active:', sidebar.classList.contains('active'));
+        }
+
+        // Event listeners for both toggle buttons
+        toggleBtn.addEventListener('click', toggleSidebar);
+        sidebarCollapseBtn.addEventListener('click', toggleSidebar);
+
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('active');
+            const icon = toggleBtn.querySelector('i');
+            icon.className = 'bi bi-chevron-right';
+        }
+
+        // Handle mobile responsive: auto-close sidebar on mobile when clicking main content
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.addEventListener('click', function(e) {
+                // Only on mobile devices
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.classList.contains('active')) {
+                        // If sidebar is visible, close it
+                        sidebar.classList.add('active');
+                        const icon = toggleBtn.querySelector('i');
+                        icon.className = 'bi bi-chevron-right';
+                        localStorage.setItem('sidebarCollapsed', 'true');
+                    }
+                }
+            });
+        }
+
+        // Handle window resize - adjust behavior for mobile
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                if (window.innerWidth > 768) {
+                    // On desktop, if sidebar is hidden, show it
+                    if (sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                        const icon = toggleBtn.querySelector('i');
+                        icon.className = 'bi bi-chevron-left';
+                        localStorage.setItem('sidebarCollapsed', 'false');
+                    }
+                } else {
+                    // On mobile, if sidebar is visible, add active class to hide it
+                    if (!sidebar.classList.contains('active')) {
+                        sidebar.classList.add('active');
+                        const icon = toggleBtn.querySelector('i');
+                        icon.className = 'bi bi-chevron-right';
+                        localStorage.setItem('sidebarCollapsed', 'true');
+                    }
+                }
+            }, 250);
+        });
+
+        // Initialize on mobile
+        if (window.innerWidth <= 768 && !sidebar.classList.contains('active')) {
+            sidebar.classList.add('active');
+            const icon = toggleBtn.querySelector('i');
+            icon.className = 'bi bi-chevron-right';
+            localStorage.setItem('sidebarCollapsed', 'true');
+        }
+
+        // Log success
+        console.log('✅ Sidebar toggle functionality initialized!');
+    });
+    </script>
+    <!-- ============================================================ -->
+    <!-- END OF SIDEBAR TOGGLE FUNCTIONALITY                              -->
+    <!-- ============================================================ -->
 
     @stack('scripts')
 </body>

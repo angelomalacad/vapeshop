@@ -13,6 +13,7 @@
             display: flex;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 15px;
         }
         .register-card {
             max-width: 650px;
@@ -31,32 +32,39 @@
         }
         .card-header img {
             margin-bottom: 1rem;
+            height: 60px;
+            width: auto;
         }
         .card-header h4 {
             color: #0d6efd;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
         }
         .card-header p {
             color: #6c757d;
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
             margin-bottom: 0;
         }
         .card-body {
             background: #ffffff;
-            padding: 2rem;
+            padding: 1.5rem;
         }
         .form-label {
             color: #495057;
             font-weight: 500;
             margin-bottom: 0.5rem;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
         }
         .form-control, .form-select {
             background-color: #ffffff;
             border: 1px solid #ced4da;
             color: #212529;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 1rem;
             border-radius: 8px;
+            font-size: clamp(0.85rem, 2vw, 1rem);
+            height: auto;
+            min-height: 45px;
         }
         .form-control:focus, .form-select:focus {
             background-color: #ffffff;
@@ -68,13 +76,19 @@
             color: #adb5bd;
             opacity: 1;
         }
-        /* FIX: Add padding to clear the arrow */
         .form-select {
-            padding-right: 2.5rem; /* Pushes text away from the dropdown arrow */
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c757d' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 12px;
         }
         .form-text {
             color: #6c757d;
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
         }
         .btn-register {
             background: #0d6efd;
@@ -85,6 +99,8 @@
             border-radius: 8px;
             transition: all 0.3s;
             margin-top: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            width: 100%;
         }
         .btn-register:hover {
             background: #0b5ed7;
@@ -92,9 +108,15 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
         }
+        .btn-register:active {
+            transform: translateY(0);
+        }
         .btn-outline-secondary {
             border-color: #ced4da;
             color: #6c757d;
+            padding: 0.7rem;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+            width: 100%;
         }
         .btn-outline-secondary:hover {
             background-color: #e9ecef;
@@ -122,7 +144,7 @@
         }
         .divider span {
             padding: 0 10px;
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
         }
         .shop-badge {
             background: rgba(13, 110, 253, 0.1);
@@ -131,10 +153,11 @@
             padding: 0.5rem 1.5rem;
             display: inline-block;
             margin-top: 0.5rem;
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
         }
         .shop-badge span {
             color: #6c757d;
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
         }
         .password-requirements {
             background: #f8f9fa;
@@ -146,7 +169,7 @@
         .password-requirements p {
             color: #6c757d;
             margin-bottom: 0.25rem;
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
         }
         .password-requirements i {
             color: #0d6efd;
@@ -154,6 +177,7 @@
         }
         .invalid-feedback {
             color: #dc3545;
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
         }
         .modal-content {
             background-color: #ffffff;
@@ -161,12 +185,15 @@
         }
         .modal-header {
             border-bottom: 1px solid #dee2e6;
+            padding: 1rem;
         }
         .modal-footer {
             border-top: 1px solid #dee2e6;
+            padding: 1rem;
         }
         .modal-title {
             color: #0d6efd;
+            font-size: clamp(1rem, 3vw, 1.25rem);
         }
         .btn-close {
             filter: none;
@@ -178,10 +205,12 @@
             padding: 1rem;
             background-color: #f8f9fa;
             border-radius: 8px;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
         }
         .policy-content h6 {
             color: #0d6efd;
             margin-top: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
         }
         .policy-content h6:first-child {
             margin-top: 0;
@@ -196,10 +225,15 @@
             background-color: #0d6efd;
             border-color: #0d6efd;
         }
+        .form-check-label {
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            color: #6c757d;
+        }
         .alert-danger {
             background-color: #f8d7da;
             border-color: #f5c2c7;
             color: #842029;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
         }
         .text-muted {
             color: #6c757d !important;
@@ -207,12 +241,105 @@
         h6.text-white {
             color: #212529 !important;
         }
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+            .card-header {
+                padding: 1.5rem 1rem;
+            }
+            .card-header img {
+                height: 50px;
+            }
+            .row {
+                margin-right: 0;
+                margin-left: 0;
+            }
+            .col-md-4, .col-md-6 {
+                padding-right: 5px;
+                padding-left: 5px;
+            }
+            .form-control, .form-select {
+                padding: 0.6rem 0.8rem;
+                min-height: 40px;
+            }
+            .btn-register, .btn-outline-secondary {
+                padding: 0.6rem;
+                font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+            }
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            .modal-body {
+                padding: 0.5rem;
+            }
+            .shop-badge {
+                padding: 0.4rem 1rem;
+            }
+            .password-requirements {
+                padding: 0.8rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .register-card {
+                border-radius: 10px;
+            }
+            .card-header img {
+                height: 45px;
+            }
+            .form-control, .form-select {
+                min-height: 38px;
+                font-size: 16px;
+            }
+            .btn {
+                font-size: 16px;
+            }
+            #otherBarangayContainer {
+                padding-right: 5px;
+                padding-left: 5px;
+            }
+        }
+        @media (max-width: 400px) {
+            .card-header h4 {
+                font-size: 1rem;
+            }
+            .card-header p {
+                font-size: 0.7rem;
+            }
+            .card-header img {
+                height: 40px;
+            }
+            .shop-badge {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.8rem;
+            }
+            .shop-badge span {
+                font-size: 0.65rem;
+            }
+        }
+        .form-check {
+            padding-left: 2rem;
+        }
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-top: 0.15rem;
+        }
+        @media (hover: none) and (pointer: coarse) {
+            .btn, .form-control, .form-select, .form-check-input {
+                cursor: default;
+            }
+            .btn-register:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-10 col-lg-8">
+            <div class="col-12 col-md-10 col-lg-8">
                 <div class="card register-card">
                     <!-- Header with Logo -->
                     <div class="card-header">
@@ -245,8 +372,8 @@
                             <!-- Personal Information -->
                             <h6 class="mb-3" style="color: #212529;"><i class="bi bi-person-fill text-primary-custom me-2"></i>Personal Information</h6>
                             
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="name" class="form-label">
                                         <i class="bi bi-person-circle me-2 text-primary-custom"></i>Full Name *
                                     </label>
@@ -258,7 +385,7 @@
                                     @enderror
                                 </div>
                                 
-                                <div class="col-md-6 mb-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="email" class="form-label">
                                         <i class="bi bi-envelope-fill me-2 text-primary-custom"></i>Email Address *
                                     </label>
@@ -271,8 +398,8 @@
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="phone" class="form-label">
                                         <i class="bi bi-telephone-fill me-2 text-primary-custom"></i>Phone Number *
                                     </label>
@@ -285,7 +412,7 @@
                                     @enderror
                                 </div>
                                 
-                                <div class="col-md-6 mb-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="birthdate" class="form-label">
                                         <i class="bi bi-calendar-date me-2 text-primary-custom"></i>Birthdate
                                     </label>
@@ -295,9 +422,9 @@
                                 </div>
                             </div>
 
-                            <!-- Gender Field - UPDATED TO col-md-6 -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                            <!-- Gender Field -->
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="gender" class="form-label">
                                         <i class="bi bi-gender-ambiguous me-2 text-primary-custom"></i>Gender
                                     </label>
@@ -313,29 +440,30 @@
                             <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-geo-alt-fill text-primary-custom me-2"></i>Address Information</h6>
                             
                             <!-- 1. Province (Readonly / Not editable) -->
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-4 mb-2 mb-md-3">
                                     <label for="province" class="form-label">Province</label>
                                     <input type="text" class="form-control" id="province" name="province" 
                                            value="Laguna" readonly style="background-color: #e9ecef; cursor: default;">
                                 </div>
                                 
-                                <!-- 2. City (Laguna Cities Only - NO OTHER OPTION) -->
-                                <div class="col-md-4 mb-3">
+                                <!-- 2. City (Laguna Cities Only - ALPHABETICAL) -->
+                                <div class="col-12 col-md-4 mb-2 mb-md-3">
                                     <label for="city" class="form-label">City</label>
                                     <select class="form-select" id="city" name="city">
                                         <option value="">Select City</option>
+                                        <!-- Sorted alphabetically -->
+                                        <option value="Biñan" {{ old('city') == 'Biñan' ? 'selected' : '' }}>Biñan</option>
+                                        <option value="Cabuyao" {{ old('city') == 'Cabuyao' ? 'selected' : '' }}>Cabuyao</option>
                                         <option value="Calamba" {{ old('city') == 'Calamba' ? 'selected' : '' }}>Calamba</option>
                                         <option value="Los Baños" {{ old('city') == 'Los Baños' ? 'selected' : '' }}>Los Baños</option>
-                                        <option value="Cabuyao" {{ old('city') == 'Cabuyao' ? 'selected' : '' }}>Cabuyao</option>
-                                        <option value="Santa Rosa" {{ old('city') == 'Santa Rosa' ? 'selected' : '' }}>Santa Rosa</option>
-                                        <option value="Biñan" {{ old('city') == 'Biñan' ? 'selected' : '' }}>Biñan</option>
                                         <option value="San Pedro" {{ old('city') == 'San Pedro' ? 'selected' : '' }}>San Pedro</option>
+                                        <option value="Santa Rosa" {{ old('city') == 'Santa Rosa' ? 'selected' : '' }}>Santa Rosa</option>
                                     </select>
                                 </div>
 
                                 <!-- 3. Zip Code -->
-                                <div class="col-md-4 mb-3">
+                                <div class="col-12 col-md-4 mb-2 mb-md-3">
                                     <label for="zip_code" class="form-label">Zip Code</label>
                                     <input type="text" class="form-control" id="zip_code" name="zip_code" 
                                            value="{{ old('zip_code') }}" placeholder="e.g., 4027">
@@ -343,29 +471,12 @@
                             </div>
 
                             <!-- 4. Barangay (With "Other" support) -->
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="barangay" class="form-label">Barangay *</label>
                                     <select class="form-select @error('barangay') is-invalid @enderror" 
                                             id="barangay" name="barangay" required>
-                                        <option value="">Select Barangay</option>
-                                        @foreach([
-                                            'Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 
-                                            'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 
-                                            'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 
-                                            'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 
-                                            'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 
-                                            'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 
-                                            'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 
-                                            'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 
-                                            'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 
-                                            'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'
-                                        ] as $barangayOption)
-                                            <option value="{{ $barangayOption }}" {{ old('barangay') == $barangayOption ? 'selected' : '' }}>
-                                                {{ $barangayOption }}
-                                            </option>
-                                        @endforeach
-                                        <option value="Other" {{ old('barangay') == 'Other' ? 'selected' : '' }}>Other</option>
+                                        <!-- Options will be injected by JavaScript -->
                                     </select>
                                     <div class="form-text">Select your barangay. If not listed, choose "Other".</div>
                                     @error('barangay')
@@ -373,9 +484,9 @@
                                     @enderror
                                 </div>
 
-                                <!-- Hidden "Other" Barangay Input Field -->
-                                <div class="col-md-4 mb-3" id="otherBarangayContainer" style="display: none;">
-                                    <label for="other_barangay" class="form-label">Specify Barangay</label>
+                                <!-- "Other" Barangay Input Field -->
+                                <div class="col-12 col-md-6 mb-2 mb-md-3" id="otherBarangayContainer" style="display: none;">
+                                    <label for="other_barangay" class="form-label">Specify Barangay *</label>
                                     <input type="text" class="form-control @error('other_barangay') is-invalid @enderror" 
                                            id="other_barangay" name="other_barangay" 
                                            value="{{ old('other_barangay') }}" 
@@ -413,8 +524,8 @@
                             <!-- Security Information -->
                             <h6 class="mt-4 mb-3" style="color: #212529;"><i class="bi bi-shield-lock-fill text-primary-custom me-2"></i>Security</h6>
                             
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="password" class="form-label">
                                         <i class="bi bi-lock-fill me-2 text-primary-custom"></i>Password *
                                     </label>
@@ -426,7 +537,7 @@
                                     @enderror
                                 </div>
                                 
-                                <div class="col-md-6 mb-3">
+                                <div class="col-12 col-md-6 mb-2 mb-md-3">
                                     <label for="password_confirmation" class="form-label">
                                         <i class="bi bi-lock-fill me-2 text-primary-custom"></i>Confirm Password *
                                     </label>
@@ -444,9 +555,9 @@
                             </div>
 
                             <!-- Terms and Conditions with Modals -->
-                            <div class="form-check mb-3">
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                                <label class="form-check-label" style="color: #6c757d; font-size: 0.9rem;" for="terms">
+                                <label class="form-check-label" for="terms">
                                     I agree to the 
                                     <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> and 
                                     <a href="#" class="text-primary-custom" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>. 
@@ -456,13 +567,13 @@
 
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
-                                <label class="form-check-label" style="color: #6c757d; font-size: 0.9rem;" for="newsletter">
+                                <label class="form-check-label" for="newsletter">
                                     I want to receive updates about new products and promotions
                                 </label>
                             </div>
 
                             <!-- Submit Button -->
-                            <button type="submit" class="btn btn-register w-100">
+                            <button type="submit" class="btn btn-register">
                                 <i class="bi bi-person-plus me-2"></i>Create Account
                             </button>
                         </form>
@@ -474,7 +585,7 @@
                         
                         <!-- Login Link -->
                         <div class="text-center mb-3">
-                            <a href="{{ route('login') }}" class="btn btn-outline-secondary w-100">
+                            <a href="{{ route('login') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In Instead
                             </a>
                         </div>
@@ -489,7 +600,7 @@
                         <!-- Owner Information -->
                         <div class="mt-4 pt-3 text-center border-top" style="border-color: #dee2e6 !important;">
                             <p class="text-muted small mb-0">
-                                <i class="bi bi-telephone me-1" style="color: #0d6efd;"></i> 0960 328 0432
+                                <i class="bi bi-telephone me-1" style="color: #0d6efd;"></i> 0993 880 1044
                             </p>
                             <p class="text-muted small mb-0">
                                 <i class="bi bi-clock me-1" style="color: #0d6efd;"></i> Store Hours: 9:00 AM - 10:00 PM Daily
@@ -611,45 +722,86 @@
         </div>
     </div>
 
-    <!-- JavaScript to handle modal agreement -->
-    <script>
-        // Optional: Auto-check terms when user clicks "I Agree" in modal
-        document.addEventListener('DOMContentLoaded', function() {
-            const termsModal = document.getElementById('termsModal');
-            const privacyModal = document.getElementById('privacyModal');
-            
-            // When user clicks "I Agree" in terms modal, check the terms checkbox
-            document.querySelectorAll('[data-bs-dismiss="modal"][onclick*="terms.checked"]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.getElementById('terms').checked = true;
-                });
-            });
-        });
-    </script>
-
-    <!-- NEW: Script to Show/Hide "Other" Barangay Input -->
+    <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const barangaySelect = document.getElementById('barangay');
             const otherContainer = document.getElementById('otherBarangayContainer');
             const otherInput = document.getElementById('other_barangay');
+            const citySelect = document.getElementById('city');
 
-            function toggleOtherBarangay() {
-                if (barangaySelect.value === 'Other') {
+            // Complete list of barangays (sorted alphabetically)
+            const barangayList = [
+                'Bagong Kalsada', 'Banadero', 'Banlic', 'Barandal', 'Barangay 1', 'Barangay 2', 
+                'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Barangay 7', 'Batino', 
+                'Bubuyan', 'Bucal', 'Bunggo', 'Burol', 'Camaligan', 'Canlubang', 'Halang', 
+                'Hornalan', 'Kay-Anlog', 'La Mesa', 'Laguerta', 'Lawa', 'Lecheria', 'Lingga', 
+                'Looc', 'Mabacan', 'Mabato', 'Majada In', 'Majada Labas', 'Majada Out', 'Makiling', 
+                'Masili', 'Maunong', 'Mayapa', 'Milagrosa', 'Paciano Rizal', 'Palingon', 'Palo alto', 
+                'Pansol', 'Parian', 'Pittland', 'Prinza', 'Punta', 'Puting Lupa', 'Real', 'Saimsim', 
+                'Sampiruhan', 'San Cristobal', 'San Jose', 'Sirang Lupa', 'Sucol', 'Turbina', 
+                'Ulango', 'Uwisan'
+            ];
+
+            // Sort alphabetically
+            const sortedBarangays = barangayList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+            function updateBarangayField(city) {
+                // Clear the select
+                barangaySelect.innerHTML = '';
+
+                if (city === 'Calamba') {
+                    // Add "Select Barangay" placeholder first
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select Barangay';
+                    barangaySelect.appendChild(placeholder);
+                    
+                    // Then add all barangay options (sorted alphabetically)
+                    sortedBarangays.forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        barangaySelect.appendChild(opt);
+                    });
+                    
+                    // Hide "Other" input and remove required
+                    otherContainer.style.display = 'none';
+                    otherInput.removeAttribute('required');
+                    otherInput.value = '';
+                    
+                } else if (city && city !== '') {
+                    // For any other city: only show "Other"
+                    const hiddenOpt = document.createElement('option');
+                    hiddenOpt.value = 'Other';
+                    hiddenOpt.textContent = 'Other';
+                    hiddenOpt.selected = true;
+                    barangaySelect.appendChild(hiddenOpt);
+                    
+                    // Show "Other" input and make it required
                     otherContainer.style.display = 'block';
                     otherInput.setAttribute('required', 'required');
                 } else {
+                    // No city selected: show "Select a city first"
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select a city first';
+                    barangaySelect.appendChild(placeholder);
+                    
                     otherContainer.style.display = 'none';
                     otherInput.removeAttribute('required');
-                    otherInput.value = ''; // Clear the input when hidden
+                    otherInput.value = '';
                 }
             }
 
-            // Run on page load in case of validation errors (old value is 'Other')
-            toggleOtherBarangay();
+            // When city changes
+            citySelect.addEventListener('change', function() {
+                updateBarangayField(this.value);
+            });
 
-            // Listen for changes
-            barangaySelect.addEventListener('change', toggleOtherBarangay);
+            // Run on page load
+            const initialCity = citySelect.value;
+            updateBarangayField(initialCity);
         });
     </script>
     
