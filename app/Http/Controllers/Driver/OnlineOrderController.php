@@ -154,7 +154,7 @@ class OnlineOrderController extends Controller
         ]);
     }
 
-     public function markReady(Order $order)
+             public function markReady(Order $order)
     {
         if (!in_array($order->order_status, ['confirmed', 'processing'])) {
             return response()->json(['success' => false, 'message' => 'Order cannot be marked as ready. Current status: ' . $order->order_status]);
@@ -164,7 +164,7 @@ class OnlineOrderController extends Controller
             // Create delivery if not exists
             if (!$order->delivery) {
                 $driverId = Auth::id();
-                
+
                 // 🔥 FIX: Always create the delivery record, whether it's Staff or Lalamove
                 $deliveryData = [
                     'order_id' => $order->id,
@@ -180,23 +180,21 @@ class OnlineOrderController extends Controller
                 $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                 $isLalamoveEligible = !$isCalambaCity;
 
-                // IF STAFF: Assign the driver ID
+                // IF STAFF: Assign the driver ID (ALWAYS)
                 if (!$isLalamoveEligible) {
-                    $activeShift = DriverShift::where('shift_date', today())
-                        ->where('status', 'active')
-                        ->where('driver_id', $driverId)
-                        ->first();
-
-                    if ($activeShift) {
-                        $deliveryData['driver_id'] = $driverId;
-                        $deliveryData['tracking_number'] = 'DLV-' . strtoupper(uniqid());
-                    }
+                    $deliveryData['driver_id'] = $driverId; // 🔥 ALWAYS assign
+                    $deliveryData['tracking_number'] = 'DLV-' . strtoupper(uniqid());
                 } else {
-                    // IF LALAMOVE: Keep driver_id as null, but still create the record!
+                    // IF LALAMOVE: Keep driver_id as null
                     $deliveryData['tracking_number'] = 'LAL-' . strtoupper(uniqid());
+
+                    // ✅ Save Lalamove Driver Name if provided
+                    if (!empty($request->lalamove_driver_name)) {
+                        $deliveryData['notes'] = $request->lalamove_driver_name;
+                    }
                 }
 
-                // 🔥 Create the delivery (This was MISSING for Lalamove before!)
+                // 🔥 Create the delivery
                 Delivery::create($deliveryData);
             }
 
@@ -224,28 +222,34 @@ class OnlineOrderController extends Controller
     // =============================================================
     // FIXED: Lalamove Tracking & Proof Upload Method
     // =============================================================
-    public function updateLalamove(Request $request, $orderId)
+             public function updateLalamove(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
 
         $request->validate([
             'tracking_url' => 'required|url',
-            'delivery_proof' => 'nullable|image|max:5120', // 5MB max
+            'delivery_proof' => 'nullable|image|max:5120',
+            'lalamove_driver_name' => 'nullable|string|max:255',
         ]);
 
-        // FIX 1: Use updateOrCreate so it attaches to the order properly
+        // 🔥 FIX: Shorten the URL if it exceeds 255 characters (column limit)
+        $trackingUrl = $request->tracking_url;
+        if (strlen($trackingUrl) > 255) {
+            $trackingUrl = substr($trackingUrl, 0, 255);
+        }
+
         $delivery = $order->delivery()->updateOrCreate(
             ['order_id' => $order->id],
             [
-                'tracking_number' => $request->tracking_url,
-                'status' => 'picked_up', // CHANGED from 'in_transit' to 'picked_up' to match your dropdown
+                'tracking_number' => $trackingUrl, // ✅ Uses shortened URL
+                'status' => 'picked_up',
                 'assigned_at' => now(),
+                // ✅ Saves the Lalamove Driver Name into notes
+                'notes' => $request->lalamove_driver_name ?? $delivery->notes ?? null,
             ]
         );
 
-        // FIX 2: Handle the proof image
         if ($request->hasFile('delivery_proof')) {
-            // Delete old proof if it exists
             if ($delivery->delivery_proof && Storage::disk('public')->exists($delivery->delivery_proof)) {
                 Storage::disk('public')->delete($delivery->delivery_proof);
             }
@@ -254,7 +258,6 @@ class OnlineOrderController extends Controller
             $delivery->save();
         }
 
-        // FIX 3: Update Order Status to out_for_delivery
         $order->update([
             'order_status' => 'out_for_delivery'
         ]);

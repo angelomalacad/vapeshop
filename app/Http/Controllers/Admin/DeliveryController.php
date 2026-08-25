@@ -182,29 +182,40 @@ class DeliveryController extends Controller
         return view('admin.deliveries.view-proof', compact('url', 'title', 'delivery'));
     }
 
-    /**
+        /**
      * Assign a driver to a delivery
      */
-    public function assignDriver(Request $request, Delivery $delivery)
+        public function assignDriver(Request $request, Delivery $delivery)
     {
         $request->validate([
-            'driver_id' => 'required|exists:users,id',
+            'driver_id' => 'nullable|exists:users,id',
+            'lalamove_driver_name' => 'nullable|string|max:255',
         ]);
 
-        $driver = User::findOrFail($request->driver_id);
-        
-        $delivery->update([
-            'driver_id' => $driver->id,
-            'status' => 'assigned',
-            'assigned_at' => now(),
-        ]);
+        if ($request->filled('driver_id')) {
+            $driver = User::findOrFail($request->driver_id);
+            $delivery->update([
+                'driver_id' => $driver->id,
+                'status' => 'assigned',
+                'assigned_at' => now(),
+            ]);
+            $driverName = $driver->name;
+        } else {
+            // ✅ Lalamove: Store name in notes
+            $driverName = $request->lalamove_driver_name;
+            $delivery->update([
+                'driver_id' => null,
+                'notes' => $driverName,
+                'status' => 'assigned',
+                'assigned_at' => now(),
+            ]);
+        }
 
-        // Update order status if needed
         if ($delivery->order && $delivery->order->order_status == 'ready') {
             $delivery->order->update(['order_status' => 'out_for_delivery']);
         }
 
-        return redirect()->back()->with('success', "Driver {$driver->name} assigned to delivery #{$delivery->tracking_number}");
+        return redirect()->back()->with('success', "Driver {$driverName} assigned to delivery #{$delivery->tracking_number}");
     }
 
     /**
@@ -224,16 +235,16 @@ class DeliveryController extends Controller
         $deliveries = $query->get();
 
         $filename = 'deliveries_report_' . Carbon::now()->format('Y-m-d_H-i-s') . '.csv';
-        
+
         $handle = fopen('php://temp', 'w+');
-        
+
         // Add headers
         fputcsv($handle, [
-            'Tracking #', 'Order #', 'Branch', 'Driver', 'Customer', 
-            'Address', 'Status', 'Assigned At', 'Picked Up', 
+            'Tracking #', 'Order #', 'Branch', 'Driver', 'Customer',
+            'Address', 'Status', 'Assigned At', 'Picked Up',
             'Delivered At', 'Delivery Proof', 'Payment Proof'
         ]);
-        
+
         foreach ($deliveries as $delivery) {
             fputcsv($handle, [
                 $delivery->tracking_number,
@@ -250,11 +261,11 @@ class DeliveryController extends Controller
                 $delivery->payment_proof ? 'Yes' : 'No',
             ]);
         }
-        
+
         rewind($handle);
         $csvContent = stream_get_contents($handle);
         fclose($handle);
-        
+
         return response($csvContent, 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",

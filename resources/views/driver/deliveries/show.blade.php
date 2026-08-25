@@ -180,33 +180,85 @@
     }
 
     /* Badge Styles - From Online Orders */
-    .badge-pending { background: #fef3c7; color: #d97706; }
-    .badge-confirmed { background: #dbeafe; color: #2563eb; }
-    .badge-packing { background: #e0e7ff; color: #4f46e5; }
-    .badge-ready { background: #d1fae5; color: #059669; }
-    .badge-out_for_delivery { background: #fef3c7; color: #d97706; }
-    .badge-delivered { background: #d1fae5; color: #059669; }
-    .badge-cancelled { background: #fee2e2; color: #dc2626; }
+    .badge-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-confirmed {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge-packing {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .badge-ready {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .badge-out_for_delivery {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-delivered {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .badge-cancelled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
     /* ADDED: Blue Lalamove Pending */
-    .badge-lalamove_pending { background: #dbeafe; color: #2563eb; }
-    .badge { padding: 0.35rem 0.65rem; border-radius: 30px; font-weight: 500; font-size: 0.7rem; }
+    .badge-lalamove_pending {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge {
+        padding: 0.35rem 0.65rem;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.7rem;
+    }
 
     /* Form Elements */
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
         border-radius: 10px;
         border: 1px solid #e2e8f0;
         padding: 0.5rem 0.75rem;
         font-size: 0.8rem;
     }
-    .form-control:focus, .form-select:focus {
+
+    .form-control:focus,
+    .form-select:focus {
         border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         outline: none;
     }
 
     /* Buttons */
-    .btn-manage { background: #1a1a2e; border: none; border-radius: 30px; padding: 0.35rem 1rem; font-size: 0.75rem; font-weight: 500; transition: all 0.3s ease; }
-    .btn-manage:hover { background: #16213e; transform: translateY(-1px); }
+    .btn-manage {
+        background: #1a1a2e;
+        border: none;
+        border-radius: 30px;
+        padding: 0.35rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-manage:hover {
+        background: #16213e;
+        transform: translateY(-1px);
+    }
 
     .btn-update-status {
         background: #3b82f6;
@@ -219,7 +271,11 @@
         width: 100%;
         transition: all 0.3s ease;
     }
-    .btn-update-status:hover { background: #2563eb; transform: translateY(-1px); }
+
+    .btn-update-status:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
 
     .btn-save-lalamove {
         background: #10b981;
@@ -232,7 +288,11 @@
         width: 100%;
         transition: all 0.3s ease;
     }
-    .btn-save-lalamove:hover { background: #059669; transform: translateY(-1px); }
+
+    .btn-save-lalamove:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
 
     /* Proof Images */
     .proof-image {
@@ -243,9 +303,10 @@
         cursor: pointer;
         transition: all 0.2s;
     }
+
     .proof-image:hover {
         transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     /* Image Preview Modal */
@@ -256,11 +317,12 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0, 0, 0, 0.8);
         z-index: 10000;
         justify-content: center;
         align-items: center;
     }
+
     .image-preview-content {
         background: white;
         border-radius: 16px;
@@ -268,6 +330,7 @@
         max-width: 600px;
         overflow: hidden;
     }
+
     .image-preview-header {
         padding: 1rem 1.25rem;
         background: white;
@@ -276,15 +339,18 @@
         justify-content: space-between;
         align-items: center;
     }
+
     .image-preview-body {
         padding: 1.5rem;
         text-align: center;
     }
+
     .image-preview-body img {
         max-width: 100%;
         max-height: 400px;
         border-radius: 12px;
     }
+
     .image-preview-footer {
         padding: 1rem 1.25rem;
         background: #f8f9fa;
@@ -293,16 +359,48 @@
     }
 
     @media (max-width: 768px) {
-        .order-table th, .order-table td { padding: 0.5rem; }
-        .order-table img { width: 40px !important; height: 40px !important; }
+
+        .order-table th,
+        .order-table td {
+            padding: 0.5rem;
+        }
+
+        .order-table img {
+            width: 40px !important;
+            height: 40px !important;
+        }
     }
-            /* Delivery Status Badge Overrides */
-        .badge-secondary { background: #6c757d; color: white; }
-        .badge-info { background: #17a2b8; color: white; }
-        .badge-primary { background: #0d6efd; color: white; }
-        .badge-warning { background: #ffc107; color: #212529; }
-        .badge-success { background: #198754; color: white; }
-        .badge-danger { background: #dc3545; color: white; }
+
+    /* Delivery Status Badge Overrides */
+    .badge-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .badge-info {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .badge-primary {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .badge-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .badge-success {
+        background: #198754;
+        color: white;
+    }
+
+    .badge-danger {
+        background: #dc3545;
+        color: white;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -327,7 +425,7 @@
                         <h6><i class="bi bi-box-seam"></i> Order Items</h6>
                     </div>
                     <div class="card-body p-0">
-                        @if($delivery->order && $delivery->order->items->count() > 0)
+                        @if ($delivery->order && $delivery->order->items->count() > 0)
                             <div class="table-responsive">
                                 <table class="table order-items-table">
                                     <thead>
@@ -340,38 +438,42 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($delivery->order->items as $item)
-                                        @php
-                                            $product = $item->product;
-                                            $imageUrl = null;
-                                            if ($product && $product->image) {
-                                                if (filter_var($product->image, FILTER_VALIDATE_URL)) {
-                                                    $imageUrl = $product->image;
-                                                } elseif (Storage::disk('public')->exists($product->image)) {
-                                                    $imageUrl = Storage::url($product->image);
+                                        @foreach ($delivery->order->items as $item)
+                                            @php
+                                                $product = $item->product;
+                                                $imageUrl = null;
+                                                if ($product && $product->image) {
+                                                    if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                                        $imageUrl = $product->image;
+                                                    } elseif (Storage::disk('public')->exists($product->image)) {
+                                                        $imageUrl = Storage::url($product->image);
+                                                    }
                                                 }
-                                            }
-                                        @endphp
-                                        <tr>
-                                            <td>
-                                                @if($imageUrl)
-                                                    <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'N/A' }}" class="product-image">
-                                                @else
-                                                    <div class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                        <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
-                                                @if($item->flavor)
-                                                    <div class="product-flavor">Flavor: {{ $item->flavor->name }}</div>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                            <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
-                                        </tr>
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    @if ($imageUrl)
+                                                        <img src="{{ $imageUrl }}"
+                                                            alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                                    @else
+                                                        <div
+                                                            class="product-image bg-light d-flex align-items-center justify-content-center">
+                                                            <i class="bi bi-image text-muted"
+                                                                style="font-size: 1.2rem;"></i>
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
+                                                    @if ($item->flavor)
+                                                        <div class="product-flavor">Flavor: {{ $item->flavor->name }}
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">{{ $item->quantity }}</td>
+                                                <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
+                                                <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -379,7 +481,8 @@
                             <div class="p-3 bg-light">
                                 <div class="totals-row totals-total">
                                     <span class="totals-label">Total</span>
-                                    <span class="totals-value text-success">₱{{ number_format($delivery->order->total_amount, 2) }}</span>
+                                    <span
+                                        class="totals-value text-success">₱{{ number_format($delivery->order->total_amount, 2) }}</span>
                                 </div>
                             </div>
                         @else
@@ -390,7 +493,7 @@
                     </div>
                 </div>
 
-                                <!-- Delivery Information Card -->
+                <!-- Delivery Information Card -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-info-circle"></i> Delivery Information</h6>
@@ -398,7 +501,7 @@
                     <div class="card-body p-3">
                         <p class="info-label">Order #</p>
                         <p class="info-value text-break">{{ $delivery->order->order_number ?? 'N/A' }}</p>
-                        
+
                         <p class="info-label">Status</p>
                         <p class="info-value">
                             @php
@@ -418,14 +521,14 @@
                                 {{ $displayDeliveryStatus }}
                             </span>
                         </p>
-                        
-                        @if($delivery->picked_up_at)
-                        <p class="info-label">Picked Up</p>
-                        <p class="info-value">{{ $delivery->picked_up_at->format('M d, Y h:i A') }}</p>
+
+                        @if ($delivery->picked_up_at)
+                            <p class="info-label">Picked Up</p>
+                            <p class="info-value">{{ $delivery->picked_up_at->format('M d, Y h:i A') }}</p>
                         @endif
-                        @if($delivery->delivered_at)
-                        <p class="info-label">Delivered</p>
-                        <p class="info-value">{{ $delivery->delivered_at->format('M d, Y h:i A') }}</p>
+                        @if ($delivery->delivered_at)
+                            <p class="info-label">Delivered</p>
+                            <p class="info-value">{{ $delivery->delivered_at->format('M d, Y h:i A') }}</p>
                         @endif
                     </div>
                 </div>
@@ -438,20 +541,21 @@
                     <div class="card-body p-3">
                         <p class="info-label">Name</p>
                         <p class="info-value">{{ $delivery->recipient_name }}</p>
-                        
+
                         <p class="info-label">Phone</p>
                         <p class="info-value">{{ $delivery->recipient_phone }}</p>
-                        
+
                         <p class="info-label">Address</p>
                         <p class="info-value">{{ $delivery->delivery_address }}</p>
-                        
-                        @if($delivery->order)
-                        <p class="info-label">City/Barangay</p>
-                        <p class="info-value">{{ $delivery->order->city ?? 'N/A' }}, {{ $delivery->order->barangay ?? 'N/A' }}</p>
-                        @if($delivery->order->landmark)
-                        <p class="info-label">Landmark</p>
-                        <p class="info-value">{{ $delivery->order->landmark }}</p>
-                        @endif
+
+                        @if ($delivery->order)
+                            <p class="info-label">City/Barangay</p>
+                            <p class="info-value">{{ $delivery->order->city ?? 'N/A' }},
+                                {{ $delivery->order->barangay ?? 'N/A' }}</p>
+                            @if ($delivery->order->landmark)
+                                <p class="info-label">Landmark</p>
+                                <p class="info-value">{{ $delivery->order->landmark }}</p>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -459,46 +563,59 @@
 
             <!-- RIGHT COLUMN -->
             <div class="col-md-5">
-                
+
                 @php
                     // Lalamove Eligibility Check
                     $cityLower = strtolower(trim($delivery->order->city ?? ''));
                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                     $isLalamoveEligible = !$isCalambaCity;
-                    
+
                     // Check if tracking number is already saved
                     $hasTracking = $delivery && !empty($delivery->tracking_number);
                 @endphp
 
-                                {{-- LALAMOVE TRACKING CARD --}}
-                @if ($isLalamoveEligible && ($delivery->order->order_status === 'out_for_delivery' || $delivery->order->order_status === 'lalamove_pending' || $delivery->order->order_status === 'ready'))
+                {{-- LALAMOVE TRACKING CARD --}}
+                @if (
+                    $isLalamoveEligible &&
+                        ($delivery->order->order_status === 'out_for_delivery' ||
+                            $delivery->order->order_status === 'lalamove_pending' ||
+                            $delivery->order->order_status === 'ready'))
                     <div class="info-card" style="border: 1px solid #0d6efd;">
                         <div class="card-header-custom bg-primary bg-opacity-10">
                             <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Tracking</h6>
                         </div>
                         <div class="card-body p-3">
-                            <form action="{{ url('/driver/online-orders/update-lalamove/' . $delivery->order->id) }}" method="POST" enctype="multipart/form-data">
+                            <form action="{{ url('/driver/online-orders/update-lalamove/' . $delivery->order->id) }}"
+                                method="POST" enctype="multipart/form-data">
                                 @csrf
-                                
+
                                 <div class="mb-3">
                                     <p class="info-label">Lalamove Tracking Link *</p>
-                                    <input type="url" name="tracking_url" class="form-control" 
-                                           placeholder="Paste Lalamove Link here..." 
-                                           value="{{ $delivery->tracking_number ?? '' }}" 
-                                           required>
+                                    <input type="url" name="tracking_url" class="form-control"
+                                        placeholder="Paste Lalamove Link here..."
+                                        value="{{ $delivery->tracking_number ?? '' }}" required>
                                 </div>
-                                
+
+                                {{-- ✅ ADDED: Lalamove Driver Name Input --}}
+                                <div class="mb-3">
+                                    <p class="info-label">Lalamove Driver Name</p>
+                                    <input type="text" name="lalamove_driver_name" class="form-control"
+                                        placeholder="Enter Lalamove driver name..."
+                                        value="{{ $delivery->notes ?? '' }}">
+                                </div>
+
                                 <div class="d-flex align-items-center gap-2">
                                     <button type="submit" class="btn-save-lalamove">
-                                        <i class="bi bi-check-circle"></i> 
+                                        <i class="bi bi-check-circle"></i>
                                         {{ $hasTracking ? 'Update Link' : 'Save' }}
                                     </button>
 
-                                    @if($hasTracking)
-                                        <a href="{{ $delivery->tracking_number }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    @if ($hasTracking)
+                                        <a href="{{ $delivery->tracking_number }}" target="_blank"
+                                            class="btn btn-outline-primary btn-sm">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-                                        @if($delivery->delivery_proof)
+                                        @if ($delivery->delivery_proof)
                                             <button type="button" class="btn btn-sm btn-outline-secondary"
                                                 onclick="window.open('{{ Storage::url($delivery->delivery_proof) }}', '_blank')">
                                                 <i class="bi bi-image"></i> Proof
@@ -511,40 +628,43 @@
                     </div>
                 @endif
 
-                @if($delivery->status == 'delivered')
+                @if ($delivery->status == 'delivered')
                     <!-- Completed Delivery View -->
                     <div class="info-card">
                         <div class="card-header-custom">
-                            <h6><i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Delivery Completed</h6>
+                            <h6><i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Delivery Completed
+                            </h6>
                         </div>
                         <div class="card-body p-3">
-                            @if($delivery->delivery_proof || $delivery->payment_proof)
+                            @if ($delivery->delivery_proof || $delivery->payment_proof)
                                 <div class="row g-2">
-                                    @if($delivery->delivery_proof)
-                                    <div class="col-md-6">
-                                        <p class="info-label mb-2">Delivery Proof</p>
-                                        <img src="{{ Storage::url($delivery->delivery_proof) }}" 
-                                             class="proof-image" 
-                                             onclick="showImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
-                                        <div class="mt-2 text-center">
-                                            <a href="{{ Storage::url($delivery->delivery_proof) }}" download class="btn btn-sm btn-outline-primary rounded-pill">
-                                                <i class="bi bi-download"></i> Download
-                                            </a>
+                                    @if ($delivery->delivery_proof)
+                                        <div class="col-md-6">
+                                            <p class="info-label mb-2">Delivery Proof</p>
+                                            <img src="{{ Storage::url($delivery->delivery_proof) }}"
+                                                class="proof-image"
+                                                onclick="showImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
+                                            <div class="mt-2 text-center">
+                                                <a href="{{ Storage::url($delivery->delivery_proof) }}" download
+                                                    class="btn btn-sm btn-outline-primary rounded-pill">
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                            </div>
                                         </div>
-                                    </div>
                                     @endif
-                                    @if($delivery->payment_proof)
-                                    <div class="col-md-6">
-                                        <p class="info-label mb-2">Payment Proof</p>
-                                        <img src="{{ Storage::url($delivery->payment_proof) }}" 
-                                             class="proof-image" 
-                                             onclick="showImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
-                                        <div class="mt-2 text-center">
-                                            <a href="{{ Storage::url($delivery->payment_proof) }}" download class="btn btn-sm btn-outline-success rounded-pill">
-                                                <i class="bi bi-download"></i> Download
-                                            </a>
+                                    @if ($delivery->payment_proof)
+                                        <div class="col-md-6">
+                                            <p class="info-label mb-2">Payment Proof</p>
+                                            <img src="{{ Storage::url($delivery->payment_proof) }}"
+                                                class="proof-image"
+                                                onclick="showImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
+                                            <div class="mt-2 text-center">
+                                                <a href="{{ Storage::url($delivery->payment_proof) }}" download
+                                                    class="btn btn-sm btn-outline-success rounded-pill">
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                            </div>
                                         </div>
-                                    </div>
                                     @endif
                                 </div>
                             @else
@@ -553,11 +673,12 @@
                                     <p class="text-muted small mt-2">No proof images available</p>
                                 </div>
                             @endif
-                            
-                            @if($delivery->delivered_at)
-                            <div class="alert-custom alert-success-custom text-center mt-3">
-                                <i class="bi bi-check-circle-fill me-1"></i> Delivered on {{ $delivery->delivered_at->format('M d, Y h:i A') }}
-                            </div>
+
+                            @if ($delivery->delivered_at)
+                                <div class="alert-custom alert-success-custom text-center mt-3">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Delivered on
+                                    {{ $delivery->delivered_at->format('M d, Y h:i A') }}
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -568,36 +689,52 @@
                             <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
                         </div>
                         <div class="card-body p-3">
-                            <div id="errorAlert" class="alert-custom alert-danger-custom" style="display: none;"></div>
-                            <div id="successAlert" class="alert-custom alert-success-custom" style="display: none;"></div>
+                            <div id="errorAlert" class="alert-custom alert-danger-custom" style="display: none;">
+                            </div>
+                            <div id="successAlert" class="alert-custom alert-success-custom" style="display: none;">
+                            </div>
 
-                            <form id="updateStatusForm" action="{{ route('driver.delivery.update', $delivery) }}" method="POST" enctype="multipart/form-data">
+                            <form id="updateStatusForm" action="{{ route('driver.delivery.update', $delivery) }}"
+                                method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="mb-3">
                                     <p class="info-label">Status</p>
                                     <select name="status" id="statusSelect" class="form-select" required>
-                                        <option value="picked_up" {{ $delivery->status == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
-                                        <option value="in_transit" {{ $delivery->status == 'in_transit' ? 'selected' : '' }}>In Transit</option>
-                                        <option value="delivered" {{ $delivery->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                        <option value="failed" {{ $delivery->status == 'failed' ? 'selected' : '' }}>Failed Delivery</option>
+                                        <option value="picked_up"
+                                            {{ $delivery->status == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+                                        <option value="in_transit"
+                                            {{ $delivery->status == 'in_transit' ? 'selected' : '' }}>In Transit
+                                        </option>
+                                        <option value="delivered"
+                                            {{ $delivery->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                        <option value="failed" {{ $delivery->status == 'failed' ? 'selected' : '' }}>
+                                            Failed Delivery</option>
                                     </select>
                                 </div>
 
                                 <div class="mb-3" id="deliveryProofField">
-                                    <p class="info-label">Delivery Proof Photo <span class="text-danger" id="deliveryProofRequired">*</span></p>
-                                    <input type="file" name="delivery_proof" id="deliveryProof" class="form-control" accept="image/*">
-                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as delivered</small>
+                                    <p class="info-label">Delivery Proof Photo <span class="text-danger"
+                                            id="deliveryProofRequired">*</span></p>
+                                    <input type="file" name="delivery_proof" id="deliveryProof"
+                                        class="form-control" accept="image/*">
+                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as
+                                        delivered</small>
                                     <div id="deliveryProofPreview" class="mt-2" style="display: none;">
-                                        <img id="deliveryProofImg" src="#" style="max-width: 100%; max-height: 80px; border-radius: 8px;">
+                                        <img id="deliveryProofImg" src="#"
+                                            style="max-width: 100%; max-height: 80px; border-radius: 8px;">
                                     </div>
                                 </div>
 
                                 <div class="mb-3" id="paymentProofField">
-                                    <p class="info-label">Payment Proof Photo <span class="text-danger" id="paymentProofRequired">*</span></p>
-                                    <input type="file" name="payment_proof" id="paymentProof" class="form-control" accept="image/*">
-                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as delivered</small>
+                                    <p class="info-label">Payment Proof Photo <span class="text-danger"
+                                            id="paymentProofRequired">*</span></p>
+                                    <input type="file" name="payment_proof" id="paymentProof"
+                                        class="form-control" accept="image/*">
+                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as
+                                        delivered</small>
                                     <div id="paymentProofPreview" class="mt-2" style="display: none;">
-                                        <img id="paymentProofImg" src="#" style="max-width: 100%; max-height: 80px; border-radius: 8px;">
+                                        <img id="paymentProofImg" src="#"
+                                            style="max-width: 100%; max-height: 80px; border-radius: 8px;">
                                     </div>
                                 </div>
 
@@ -704,7 +841,7 @@
 
     function toggleRequired() {
         const isDelivered = statusSelect && statusSelect.value === 'delivered';
-        
+
         if (deliveryProofInput) {
             deliveryProofInput.required = isDelivered;
             const deliveryProofRequired = document.getElementById('deliveryProofRequired');
@@ -712,7 +849,7 @@
                 deliveryProofRequired.style.display = isDelivered ? 'inline' : 'none';
             }
         }
-        
+
         if (paymentProofInput) {
             paymentProofInput.required = isDelivered;
             const paymentProofRequired = document.getElementById('paymentProofRequired');
@@ -721,61 +858,64 @@
             }
         }
     }
-    
+
     if (statusSelect) {
         statusSelect.addEventListener('change', toggleRequired);
         toggleRequired();
     }
-    
+
     if (updateForm) {
         updateForm.addEventListener('submit', function(e) {
             const isDelivered = statusSelect && statusSelect.value === 'delivered';
-            
+
             errorAlert.style.display = 'none';
             successAlert.style.display = 'none';
-            
+
             if (isDelivered) {
                 if (!deliveryProofInput.files.length && !deliveryProofInput.value) {
                     e.preventDefault();
-                    errorAlert.textContent = 'Please upload a delivery proof photo. Required when marking as delivered.';
+                    errorAlert.textContent =
+                        'Please upload a delivery proof photo. Required when marking as delivered.';
                     errorAlert.style.display = 'block';
                     deliveryProofInput.focus();
                     return false;
                 }
-                
+
                 if (!paymentProofInput.files.length && !paymentProofInput.value) {
                     e.preventDefault();
-                    errorAlert.textContent = 'Please upload a payment proof photo. Required when marking as delivered.';
+                    errorAlert.textContent =
+                        'Please upload a payment proof photo. Required when marking as delivered.';
                     errorAlert.style.display = 'block';
                     paymentProofInput.focus();
                     return false;
                 }
             }
-            
+
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+                submitBtn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
             }
         });
     }
-    
+
     function showImagePreview(imageUrl, title) {
         document.getElementById('previewImage').src = imageUrl;
         document.getElementById('previewTitle').textContent = title;
         document.getElementById('downloadLink').href = imageUrl;
         document.getElementById('imagePreviewModal').style.display = 'flex';
     }
-    
+
     function closeImagePreview() {
         document.getElementById('imagePreviewModal').style.display = 'none';
     }
-    
+
     document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
         if (e.target === this) {
             closeImagePreview();
         }
     });
-    
+
     function closeModal() {
         const modalElement = document.getElementById('deliveryModal');
         if (modalElement) {

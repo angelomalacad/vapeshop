@@ -188,6 +188,18 @@ class DeliveryController extends Controller
             // Update order status based on delivery status
             if ($delivery->order) {
                 $order = $delivery->order;
+
+                // 🔥 FIX: Auto-assign current driver if delivery is Staff and driver_id is NULL
+                if ($delivery->driver_id === null) {
+                    // Check if it's Staff (city is Calamba)
+                    $cityLower = strtolower(trim($order->city ?? ''));
+                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+
+                    if ($isCalambaCity) {
+                        $delivery->driver_id = Auth::id(); // ✅ Save the driver ID
+                    }
+                }
+
                 if ($newStatus == 'picked_up') {
                     $order->order_status = 'out_for_delivery';
                     $delivery->status = 'picked_up'; // Add this line to sync the delivery table
@@ -198,7 +210,9 @@ class DeliveryController extends Controller
                 } elseif ($newStatus == 'failed') {
                     $order->order_status = 'delivery_failed';
                 }
-                $order->save();
+
+                $delivery->save(); // ✅ Ensure delivery is saved with new driver_id & status
+                $order->save(); // ✅ Ensure order is saved
                 \Log::info('Order status updated', ['order_id' => $order->id, 'status' => $order->order_status]);
             }
 

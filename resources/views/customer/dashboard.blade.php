@@ -570,13 +570,21 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($recentOrders as $order)
+                                            @php
+                                                $firstItem = $order->items->first();
+                                                $productName = $firstItem ? $firstItem->product->name ?? 'N/A' : 'N/A';
+                                                $itemCount = $order->items->count();
+                                            @endphp
                                             <tr>
                                                 <td>
                                                     <code class="fw-bold">{{ $order->order_number }}</code>
-                                                    @if ($order->delivery)
-                                                        <br><small class="text-muted"><i class="bi bi-upc-scan"></i>
-                                                            {{ $order->delivery->tracking_number ?? 'N/A' }}</small>
-                                                    @endif
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-box-seam me-1"></i> {{ $productName }}
+                                                        @if ($itemCount > 1)
+                                                            +{{ $itemCount - 1 }} more
+                                                        @endif
+                                                    </small>
                                                 </td>
                                                 <td class="text-nowrap">
                                                     {{ $order->created_at->format('M d, Y') }}<br>

@@ -100,7 +100,7 @@
         border-radius: 16px;
         padding: 1.25rem;
         margin-bottom: 2rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         border: 1px solid #eef2f6;
     }
 
@@ -125,7 +125,7 @@
     .filter-form .form-control:focus,
     .filter-form .form-select:focus {
         border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         outline: none;
     }
 
@@ -242,16 +242,20 @@
                 <!-- Search by Order Number -->
                 <div class="col-md-2">
                     <label class="form-label">Search Order</label>
-                    <input type="text" name="search" class="form-control" placeholder="Type Order #..." value="{{ request('search') }}">
+                    <input type="text" name="search" class="form-control" placeholder="Type Order #..."
+                        value="{{ request('search') }}">
                 </div>
 
                 <!-- Filter by Active/Completed -->
                 <div class="col-md-2">
                     <label class="form-label">Show</label>
                     <select name="filter_section" class="form-select">
-                        <option value="all" {{ request('filter_section') == 'all' ? 'selected' : '' }}>All Deliveries</option>
-                        <option value="active" {{ request('filter_section') == 'active' ? 'selected' : '' }}>Active Only</option>
-                        <option value="completed" {{ request('filter_section') == 'completed' ? 'selected' : '' }}>Completed Only</option>
+                        <option value="all" {{ request('filter_section') == 'all' ? 'selected' : '' }}>All Deliveries
+                        </option>
+                        <option value="active" {{ request('filter_section') == 'active' ? 'selected' : '' }}>Active Only
+                        </option>
+                        <option value="completed" {{ request('filter_section') == 'completed' ? 'selected' : '' }}>Completed
+                            Only</option>
                     </select>
                 </div>
 
@@ -260,7 +264,8 @@
                     <label class="form-label">Delivery Type</label>
                     <select name="delivery_type" class="form-select">
                         <option value="">All Types</option>
-                        <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove</option>
+                        <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove
+                        </option>
                         <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
                     </select>
                 </div>
@@ -330,6 +335,11 @@
                                             'picked_up' => 'primary',
                                             'in_transit' => 'warning',
                                         ];
+
+                                        // ✅ FIXED: Show system driver name for Staff, or manual input for Lalamove
+                                        $driverName = !$isLalamoveEligible
+                                            ? $delivery->driver->name ?? 'Waiting...'
+                                            : $delivery->notes ?? '—';
                                     @endphp
                                     <tr>
                                         <td class="ps-4">{{ $delivery->order->order_number ?? 'N/A' }}</td>
@@ -347,30 +357,29 @@
                                             </small><br>
                                             @if ($delivery->order->landmark)
                                                 <small class="text-muted">
-                                                    <i class="bi bi-pin-map"></i> Landmark: {{ $delivery->order->landmark }}
+                                                    <i class="bi bi-pin-map"></i> Landmark:
+                                                    {{ $delivery->order->landmark }}
                                                 </small>
                                             @endif
                                         </td>
                                         <td>
                                             <span class="delivery-badge">
-                                                @if($isLalamoveEligible)
+                                                @if ($isLalamoveEligible)
                                                     <i class="bi bi-truck me-1 text-primary"></i> Lalamove
                                                 @else
                                                     <i class="bi bi-bicycle me-1 text-success"></i> Staff
                                                 @endif
                                             </span>
                                         </td>
-                                        <td><span class="badge bg-{{ $statusColors[$delivery->status] ?? 'secondary' }}">{{ ucfirst($delivery->status) }}</span></td>
-                                        <td>
-                                            @if($isLalamoveEligible)
-                                                —
-                                            @else
-                                                {{ $delivery->driver->name ?? 'Waiting...' }}
-                                            @endif
+                                        <td><span
+                                                class="badge bg-{{ $statusColors[$delivery->status] ?? 'secondary' }}">{{ ucfirst($delivery->status) }}</span>
                                         </td>
+                                        <td>{{ $driverName }}</td>
                                         <td>
-                                            @if($isLalamoveEligible && !empty($delivery->tracking_number))
-                                                <a href="{{ $delivery->tracking_number }}" target="_blank" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
+                                            @if ($isLalamoveEligible && !empty($delivery->tracking_number))
+                                                <a href="{{ $delivery->tracking_number }}" target="_blank"
+                                                    class="btn btn-sm btn-primary"
+                                                    style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
                                                     <i class="bi bi-eye"></i> Link
                                                 </a>
                                             @else
@@ -392,7 +401,7 @@
             </div>
         @endif
 
-        <!-- COMPLETED DELIVERIES SECTION (STRICTLY DELIVERED ONLY) -->
+        <!-- COMPLETED DELIVERIES SECTION -->
         @if ($stats['delivered'] > 0)
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3">
@@ -424,12 +433,16 @@
                                         $orderStatus = $delivery->order->order_status ?? 'unknown';
                                     @endphp
 
-                                    {{-- 🔥 STRICT CHECK: Only show DELIVERED --}}
                                     @if ($orderStatus === 'delivered')
                                         @php
                                             $cityLower = strtolower(trim($delivery->order->city ?? ''));
                                             $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                             $isLalamoveEligible = !$isCalambaCity;
+
+                                            // ✅ FIXED: Show system driver name for Staff, or manual input for Lalamove
+                                            $driverName = !$isLalamoveEligible
+                                                ? $delivery->driver->name ?? 'Unassigned'
+                                                : $delivery->notes ?? '—';
                                         @endphp
                                         <tr>
                                             <td class="ps-4">{{ $delivery->order->order_number ?? 'N/A' }}</td>
@@ -447,13 +460,14 @@
                                                 </small><br>
                                                 @if ($delivery->order->landmark)
                                                     <small class="text-muted">
-                                                        <i class="bi bi-pin-map"></i> Landmark: {{ $delivery->order->landmark }}
+                                                        <i class="bi bi-pin-map"></i> Landmark:
+                                                        {{ $delivery->order->landmark }}
                                                     </small>
                                                 @endif
                                             </td>
                                             <td>
                                                 <span class="delivery-badge">
-                                                    @if($isLalamoveEligible)
+                                                    @if ($isLalamoveEligible)
                                                         <i class="bi bi-truck me-1 text-primary"></i> Lalamove
                                                     @else
                                                         <i class="bi bi-bicycle me-1 text-success"></i> Staff
@@ -463,30 +477,30 @@
                                             <td>
                                                 <span class="badge bg-success">Delivered</span>
                                             </td>
-                                            <td>
-                                                @if($isLalamoveEligible)
-                                                    —
-                                                @else
-                                                    {{ $delivery->driver->name ?? 'Unassigned' }}
-                                                @endif
-                                            </td>
+                                            <td>{{ $driverName }}</td>
                                             <td>
                                                 @if ($delivery->delivery_proof)
-                                                    <button type="button" class="btn btn-sm btn-outline-success me-1 rounded-pill" title="Delivery Proof"
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-success me-1 rounded-pill"
+                                                        title="Delivery Proof"
                                                         onclick="viewProof('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
                                                         <i class="bi bi-camera"></i>
                                                     </button>
                                                 @endif
                                                 @if ($delivery->payment_proof)
-                                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" title="Payment Proof"
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-primary rounded-pill"
+                                                        title="Payment Proof"
                                                         onclick="viewProof('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
                                                         <i class="bi bi-receipt"></i>
                                                     </button>
                                                 @endif
                                             </td>
                                             <td>
-                                                @if($isLalamoveEligible && !empty($delivery->tracking_number))
-                                                    <a href="{{ $delivery->tracking_number }}" target="_blank" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
+                                                @if ($isLalamoveEligible && !empty($delivery->tracking_number))
+                                                    <a href="{{ $delivery->tracking_number }}" target="_blank"
+                                                        class="btn btn-sm btn-primary"
+                                                        style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
                                                         <i class="bi bi-eye"></i> Link
                                                     </a>
                                                 @else
@@ -537,15 +551,13 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-0">
-                    <img id="proofModalImage" src="" class="img-fluid"
-                        style="max-height: 80vh; width: auto;">
+                    <img id="proofModalImage" src="" class="img-fluid" style="max-height: 80vh; width: auto;">
                 </div>
                 <div class="modal-footer bg-dark border-0">
                     <a id="proofModalDownload" href="#" download class="btn btn-success rounded-pill">
                         <i class="bi bi-download"></i> Download
                     </a>
-                    <button type="button" class="btn btn-secondary rounded-pill"
-                        data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
