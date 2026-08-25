@@ -45,7 +45,6 @@
                                                             $imageUrl = \Storage::url($inventory->product->image);
                                                         }
                                                     @endphp
-
                                                     <div class="flex-shrink-0 me-3">
                                                         @if ($imageUrl)
                                                             <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}"
@@ -57,10 +56,8 @@
                                                             </div>
                                                         @endif
                                                     </div>
-
                                                     <div>
                                                         <div class="fw-semibold">{{ $item->product->name }}</div>
-
                                                         @if ($item->flavor)
                                                             <div class="small text-muted">Variant: {{ $item->flavor->name }}
                                                             </div>
@@ -82,8 +79,7 @@
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
                                         <td class="text-end fw-bold fs-5 text-danger">
-                                            ₱{{ number_format($order->total_amount, 2) }}
-                                        </td>
+                                            ₱{{ number_format($order->total_amount, 2) }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -103,9 +99,7 @@
                                 <!-- Pending -->
                                 <div
                                     class="status-step {{ $order->order_status == 'pending' ? 'active' : ($order->order_status != 'pending' && $order->order_status != 'cancelled' ? 'completed' : '') }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-clock-history"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-clock-history"></i></div>
                                     <div class="status-label">Pending</div>
                                     <div class="status-date">{{ $order->created_at->format('M d, Y') }}</div>
                                     <div class="status-time">{{ $order->created_at->format('h:i A') }}</div>
@@ -114,9 +108,7 @@
                                 <!-- Confirmed -->
                                 <div
                                     class="status-step {{ $order->order_status == 'confirmed' ? 'active' : (in_array($order->order_status, ['processing', 'ready', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-check-circle"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-check-circle"></i></div>
                                     <div class="status-label">Confirmed</div>
                                     @if ($statusTimestamps['confirmed'])
                                         <div class="status-date">{{ $statusTimestamps['confirmed']->format('M d, Y') }}
@@ -129,9 +121,7 @@
                                 <!-- Packing -->
                                 <div
                                     class="status-step {{ $order->order_status == 'processing' ? 'active' : (in_array($order->order_status, ['ready', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-box-seam"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-box-seam"></i></div>
                                     <div class="status-label">Processing</div>
                                     @if ($statusTimestamps['packing'])
                                         <div class="status-date">{{ $statusTimestamps['packing']->format('M d, Y') }}</div>
@@ -142,9 +132,7 @@
                                 <!-- Ready -->
                                 <div
                                     class="status-step {{ $order->order_status == 'ready' ? 'active' : (in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
                                     <div class="status-label">Ready</div>
                                     @if ($statusTimestamps['ready'])
                                         <div class="status-date">{{ $statusTimestamps['ready']->format('M d, Y') }}</div>
@@ -155,9 +143,7 @@
                                 <!-- Out for Delivery -->
                                 <div
                                     class="status-step {{ $order->order_status == 'out_for_delivery' ? 'active' : ($order->order_status == 'delivered' ? 'completed' : '') }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-truck"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-truck"></i></div>
                                     <div class="status-label">Out for Delivery</div>
                                     @if ($statusTimestamps['out_for_delivery'])
                                         <div class="status-date">
@@ -169,9 +155,7 @@
 
                                 <!-- Delivered -->
                                 <div class="status-step {{ $order->order_status == 'delivered' ? 'active' : '' }}">
-                                    <div class="status-icon">
-                                        <i class="bi bi-flag-fill"></i>
-                                    </div>
+                                    <div class="status-icon"><i class="bi bi-flag-fill"></i></div>
                                     <div class="status-label">Delivered</div>
                                     @if ($statusTimestamps['delivered'])
                                         <div class="status-date">{{ $statusTimestamps['delivered']->format('M d, Y') }}
@@ -184,9 +168,8 @@
                         </div>
 
                         @php
-                            // Lalamove Eligibility Check (Defined EARLY so it's available)
-$cityLower = strtolower(trim($order->city ?? ''));
-$isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                            $cityLower = strtolower(trim($order->city ?? ''));
+                            $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                             $isLalamoveEligible = !$isCalambaCity;
                         @endphp
 
@@ -198,12 +181,9 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                             <div class="delivery-logs mt-4">
                                 <h6 class="mb-3"><i class="bi bi-truck me-2"></i> Delivery Logs</h6>
                                 <div class="delivery-timeline">
-                                    <!-- Assigned to Driver -->
                                     @if ($order->delivery->assigned_at)
                                         <div class="delivery-log-item">
-                                            <div class="delivery-log-icon assigned">
-                                                <i class="bi bi-person-check"></i>
-                                            </div>
+                                            <div class="delivery-log-icon assigned"><i class="bi bi-person-check"></i></div>
                                             <div class="delivery-log-content">
                                                 <div class="delivery-log-title">Assigned to Driver</div>
                                                 <div class="delivery-log-date">
@@ -214,12 +194,9 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                         </div>
                                     @endif
 
-                                    <!-- Picked Up -->
                                     @if ($order->delivery->picked_up_at)
                                         <div class="delivery-log-item">
-                                            <div class="delivery-log-icon picked">
-                                                <i class="bi bi-box-seam"></i>
-                                            </div>
+                                            <div class="delivery-log-icon picked"><i class="bi bi-box-seam"></i></div>
                                             <div class="delivery-log-content">
                                                 <div class="delivery-log-title">Picked Up</div>
                                                 <div class="delivery-log-date">
@@ -230,12 +207,9 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                         </div>
                                     @endif
 
-                                    <!-- In Transit -->
                                     @if ($statusTimestamps['in_transit'])
                                         <div class="delivery-log-item">
-                                            <div class="delivery-log-icon transit">
-                                                <i class="bi bi-truck"></i>
-                                            </div>
+                                            <div class="delivery-log-icon transit"><i class="bi bi-truck"></i></div>
                                             <div class="delivery-log-content">
                                                 <div class="delivery-log-title">In Transit</div>
                                                 <div class="delivery-log-date">
@@ -247,12 +221,10 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                         </div>
                                     @endif
 
-                                    <!-- Delivered -->
                                     @if ($order->delivery->delivered_at)
                                         <div class="delivery-log-item">
-                                            <div class="delivery-log-icon delivered">
-                                                <i class="bi bi-check-circle-fill"></i>
-                                            </div>
+                                            <div class="delivery-log-icon delivered"><i
+                                                    class="bi bi-check-circle-fill"></i></div>
                                             <div class="delivery-log-content">
                                                 <div class="delivery-log-title">Delivered</div>
                                                 <div class="delivery-log-date">
@@ -264,29 +236,27 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                     @endif
                                 </div>
 
-                                <!-- Driver Info (Works for Staff AND Lalamove) -->
-                                @if ($order->delivery->driver || (!empty($order->delivery->notes) && !$isCalambaCity))
+                                <!-- Driver Info -->
+                                @if ($order->delivery->driver || !empty($order->delivery->notes))
                                     <div class="driver-info mt-3 p-3 bg-light rounded">
                                         <div class="d-flex align-items-center">
-                                            <div class="driver-avatar me-3">
-                                                <i class="bi bi-person-circle fs-1 text-primary"></i>
-                                            </div>
+                                            <div class="driver-avatar me-3"><i
+                                                    class="bi bi-person-circle fs-1 text-primary"></i></div>
                                             <div>
-                                                <strong>Driver:
-                                                    {{ $order->delivery->driver->name ?? $order->delivery->notes }}
-                                                </strong><br>
-                                                <small class="text-muted">Contact:
-                                                    {{ $order->delivery->driver->phone ?? 'Lalamove Courier' }}
+                                                <strong>{{ $order->delivery->driver->name ?? $order->delivery->notes }}</strong><br>
+                                                <small class="text-muted">
+                                                    @if ($order->delivery->driver)
+                                                        Contact: {{ $order->delivery->driver->phone ?? 'N/A' }}
+                                                    @else
+                                                        Lalamove Courier
+                                                    @endif
                                                 </small>
                                             </div>
                                         </div>
                                     </div>
                                 @endif
 
-                                {{-- ============================================================ --}}
-                                {{-- MINIMIZED LALAMOVE TRACKING BELOW DELIVERY LOGS --}}
-                                {{-- ============================================================ --}}
-
+                                {{-- Lalamove Tracking --}}
                                 @if ($isLalamoveEligible)
                                     <div class="mt-3">
                                         <div
@@ -298,30 +268,24 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                                     <span class="fw-semibold small text-primary">Lalamove Tracking</span>
                                                 </div>
                                                 @if ($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
-                                                    <div class="small text-success mt-1">
-                                                        <i class="bi bi-check-circle-fill me-1"></i> Link ready
-                                                    </div>
+                                                    <div class="small text-success mt-1"><i
+                                                            class="bi bi-check-circle-fill me-1"></i> Link ready</div>
                                                 @else
-                                                    <div class="small text-muted mt-1">
-                                                        Link available when out for delivery.
-                                                    </div>
+                                                    <div class="small text-muted mt-1">Link available when out for
+                                                        delivery.</div>
                                                 @endif
                                             </div>
-
                                             @if ($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
                                                 <a href="{{ $order->delivery->tracking_number }}" target="_blank"
-                                                    class="btn btn-primary btn-sm px-3" style="font-size: 0.85rem;">
-                                                    <i class="bi bi-eye me-1"></i> Track
-                                                </a>
+                                                    class="btn btn-primary btn-sm px-3" style="font-size: 0.85rem;"><i
+                                                        class="bi bi-eye me-1"></i> Track</a>
                                             @endif
                                         </div>
                                     </div>
                                 @endif
-                                {{-- ============================================================ --}}
-
                             </div>
+                        @endif
                     </div>
-                    @endif
                 </div>
 
                 <!-- Delivery Details Card with Proof Images -->
@@ -333,10 +297,8 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                         <div class="card-body">
                             <p class="mb-1">{{ $order->delivery_address }}</p>
                             <p class="mb-1">
-                                {{-- If barangay is 'Other', show other_barangay instead. Else show normal barangay. --}}
                                 {{ $order->barangay === 'Other' && $order->other_barangay ? $order->other_barangay : $order->barangay }},
-                                {{ $order->city }}
-                            </p>
+                                {{ $order->city }}</p>
                             @if ($order->landmark)
                                 <p class="mb-0 text-muted"><small>Landmark: {{ $order->landmark }}</small></p>
                             @endif
@@ -344,7 +306,6 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                             <p class="mb-0"><strong>Recipient:</strong> {{ $order->customer_name }}</p>
                             <p class="mb-0"><strong>Contact:</strong> {{ $order->customer_phone }}</p>
 
-                            <!-- Proof Images with Thumbnails -->
                             @if ($order->delivery->delivery_proof || $order->delivery->payment_proof)
                                 <hr>
                                 <div class="row mt-2">
@@ -357,12 +318,10 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                                     style="width: 100%; max-height: 150px; object-fit: cover; cursor: pointer;"
                                                     onclick="showImagePreview('{{ Storage::url($order->delivery->delivery_proof) }}', 'Delivery Proof')">
                                             </div>
-                                            <div class="mt-2">
-                                                <a href="{{ Storage::url($order->delivery->delivery_proof) }}"
-                                                    target="_blank" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-box-arrow-up-right"></i> View Full
-                                                </a>
-                                            </div>
+                                            <div class="mt-2"><a
+                                                    href="{{ Storage::url($order->delivery->delivery_proof) }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-primary"><i
+                                                        class="bi bi-box-arrow-up-right"></i> View Full</a></div>
                                         </div>
                                     @endif
                                     @if ($order->delivery->payment_proof)
@@ -374,12 +333,10 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                                     style="width: 100%; max-height: 150px; object-fit: cover; cursor: pointer;"
                                                     onclick="showImagePreview('{{ Storage::url($order->delivery->payment_proof) }}', 'Payment Proof')">
                                             </div>
-                                            <div class="mt-2">
-                                                <a href="{{ Storage::url($order->delivery->payment_proof) }}"
-                                                    target="_blank" class="btn btn-sm btn-outline-success">
-                                                    <i class="bi bi-box-arrow-up-right"></i> View Full
-                                                </a>
-                                            </div>
+                                            <div class="mt-2"><a
+                                                    href="{{ Storage::url($order->delivery->payment_proof) }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-success"><i
+                                                        class="bi bi-box-arrow-up-right"></i> View Full</a></div>
                                         </div>
                                     @endif
                                 </div>
@@ -387,7 +344,7 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                         </div>
                     </div>
                 @endif
-            </div>
+            </div> <!-- ✅ ADDED: THIS CLOSES col-lg-8 -->
 
             <div class="col-lg-4">
                 <!-- Order Information Card -->
@@ -398,17 +355,12 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                     <div class="card-body">
                         <p><strong>Order Number:</strong></p>
                         <p><code>{{ $order->order_number }}</code></p>
-
                         <p><strong>Date placed:</strong></p>
                         <p>{{ $order->created_at->format('F d, Y h:i A') }}</p>
-
                         <p><strong>Branch:</strong></p>
                         <p>{{ $order->branch->name }}</p>
-
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
-
-
                         @if ($order->notes)
                             <hr>
                             <p><strong>Your Notes:</strong></p>
@@ -416,8 +368,6 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                         @endif
                     </div>
                 </div>
-
-                {{-- REMOVED: Separate Lalamove Tracking Card from Sidebar --}}
 
                 <!-- Need Help Card -->
                 <div class="card shadow-sm border-0 mt-4">
@@ -463,300 +413,301 @@ $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                         </div>
                     </div>
                 </div>
+            </div> <!-- ✅ THIS CLOSES col-lg-4 -->
+        </div>
+    </div>
 
-                <style>
-                    .status-timeline {
-                        padding: 10px 0;
-                    }
+    <style>
+        .status-timeline {
+            padding: 10px 0;
+        }
 
-                    .status-steps {
-                        display: flex;
-                        justify-content: space-between;
-                        flex-wrap: wrap;
-                        gap: 10px;
-                    }
+        .status-steps {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-                    .status-step {
-                        flex: 1;
-                        text-align: center;
-                        position: relative;
-                        min-width: 100px;
-                    }
+        .status-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            min-width: 100px;
+        }
 
-                    .status-step:not(:last-child):before {
-                        content: '';
-                        position: absolute;
-                        top: 25px;
-                        right: -50%;
-                        width: 100%;
-                        height: 3px;
-                        background: #e9ecef;
-                        z-index: 0;
-                    }
+        .status-step:not(:last-child):before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            right: -50%;
+            width: 100%;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 0;
+        }
 
-                    .status-step.completed:not(:last-child):before {
-                        background: #28a745;
-                    }
+        .status-step.completed:not(:last-child):before {
+            background: #28a745;
+        }
 
-                    .status-step.active:not(:last-child):before {
-                        background: #28a745;
-                    }
+        .status-step.active:not(:last-child):before {
+            background: #28a745;
+        }
 
-                    .status-icon {
-                        width: 55px;
-                        height: 55px;
-                        margin: 0 auto 10px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        border-radius: 50%;
-                        background: #e9ecef;
-                        color: #6c757d;
-                        position: relative;
-                        z-index: 1;
-                        transition: all 0.3s ease;
-                    }
+        .status-icon {
+            width: 55px;
+            height: 55px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
 
-                    .status-step.completed .status-icon {
-                        background: #28a745;
-                        color: white;
-                    }
+        .status-step.completed .status-icon {
+            background: #28a745;
+            color: white;
+        }
 
-                    .status-step.active .status-icon {
-                        background: #28a745;
-                        color: white;
-                        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
-                    }
+        .status-step.active .status-icon {
+            background: #28a745;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
+        }
 
-                    .status-label {
-                        font-weight: 600;
-                        font-size: 13px;
-                        margin-bottom: 5px;
-                        color: #6c757d;
-                    }
+        .status-label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #6c757d;
+        }
 
-                    .status-step.completed .status-label,
-                    .status-step.active .status-label {
-                        color: #28a745;
-                    }
+        .status-step.completed .status-label,
+        .status-step.active .status-label {
+            color: #28a745;
+        }
 
-                    .status-date,
-                    .status-time {
-                        font-size: 11px;
-                        color: #adb5bd;
-                    }
+        .status-date,
+        .status-time {
+            font-size: 11px;
+            color: #adb5bd;
+        }
 
-                    .status-step.completed .status-date,
-                    .status-step.completed .status-time,
-                    .status-step.active .status-date,
-                    .status-step.active .status-time {
-                        color: #6c757d;
-                    }
+        .status-step.completed .status-date,
+        .status-step.completed .status-time,
+        .status-step.active .status-date,
+        .status-step.active .status-time {
+            color: #6c757d;
+        }
 
-                    .delivery-logs {
-                        background: #f8f9fa;
-                        border-radius: 12px;
-                        padding: 15px;
-                    }
+        .delivery-logs {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+        }
 
-                    .delivery-timeline {
-                        position: relative;
-                    }
+        .delivery-timeline {
+            position: relative;
+        }
 
-                    .delivery-log-item {
-                        display: flex;
-                        gap: 15px;
-                        margin-bottom: 20px;
-                        position: relative;
-                    }
+        .delivery-log-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
 
-                    .delivery-log-item:not(:last-child):before {
-                        content: '';
-                        position: absolute;
-                        left: 22px;
-                        top: 40px;
-                        bottom: -20px;
-                        width: 2px;
-                        background: #dee2e6;
-                    }
+        .delivery-log-item:not(:last-child):before {
+            content: '';
+            position: absolute;
+            left: 22px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: #dee2e6;
+        }
 
-                    .delivery-log-icon {
-                        width: 45px;
-                        height: 45px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        flex-shrink: 0;
-                        z-index: 1;
-                        background: white;
-                        border: 2px solid;
-                    }
+        .delivery-log-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 1;
+            background: white;
+            border: 2px solid;
+        }
 
-                    .delivery-log-icon.assigned {
-                        border-color: #0d6efd;
-                        color: #0d6efd;
-                    }
+        .delivery-log-icon.assigned {
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
 
-                    .delivery-log-icon.picked {
-                        border-color: #6f42c1;
-                        color: #6f42c1;
-                    }
+        .delivery-log-icon.picked {
+            border-color: #6f42c1;
+            color: #6f42c1;
+        }
 
-                    .delivery-log-icon.transit {
-                        border-color: #fd7e14;
-                        color: #fd7e14;
-                    }
+        .delivery-log-icon.transit {
+            border-color: #fd7e14;
+            color: #fd7e14;
+        }
 
-                    .delivery-log-icon.delivered {
-                        border-color: #28a745;
-                        color: #28a745;
-                    }
+        .delivery-log-icon.delivered {
+            border-color: #28a745;
+            color: #28a745;
+        }
 
-                    .delivery-log-content {
-                        flex: 1;
-                    }
+        .delivery-log-content {
+            flex: 1;
+        }
 
-                    .delivery-log-title {
-                        font-weight: 600;
-                        font-size: 14px;
-                        margin-bottom: 3px;
-                        color: #212529;
-                    }
+        .delivery-log-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+            color: #212529;
+        }
 
-                    .delivery-log-date,
-                    .delivery-log-time {
-                        font-size: 11px;
-                        color: #6c757d;
-                        display: inline-block;
-                    }
+        .delivery-log-date,
+        .delivery-log-time {
+            font-size: 11px;
+            color: #6c757d;
+            display: inline-block;
+        }
 
-                    .delivery-log-time:before {
-                        content: '•';
-                        margin: 0 5px;
-                    }
+        .delivery-log-time:before {
+            content: '•';
+            margin: 0 5px;
+        }
 
-                    .delivery-log-note {
-                        font-size: 12px;
-                        color: #6c757d;
-                        margin-top: 3px;
-                    }
+        .delivery-log-note {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
 
-                    .driver-info {
-                        border-left: 3px solid #0d6efd;
-                    }
+        .driver-info {
+            border-left: 3px solid #0d6efd;
+        }
 
-                    .proof-thumbnail {
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    }
+        .proof-thumbnail {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-                    .proof-thumbnail:hover {
-                        transform: scale(1.02);
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                    }
+        .proof-thumbnail:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
 
-                    /* MINIMIZED LALAMOVE LOG STYLES */
-                    .lalamove-log-box {
-                        padding: 8px 12px !important;
-                        margin-top: 10px !important;
-                        border-radius: 8px !important;
-                        border: 1px solid #0d6efd !important;
-                        background: #ffffff !important;
-                    }
+        .lalamove-log-box {
+            padding: 8px 12px !important;
+            margin-top: 10px !important;
+            border-radius: 8px !important;
+            border: 1px solid #0d6efd !important;
+            background: #ffffff !important;
+        }
 
-                    .lalamove-log-box .lalamove-header {
-                        font-size: 13px !important;
-                        font-weight: 600 !important;
-                        color: #0d6efd !important;
-                        margin-bottom: 5px !important;
-                    }
+        .lalamove-log-box .lalamove-header {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #0d6efd !important;
+            margin-bottom: 5px !important;
+        }
 
-                    .lalamove-log-box .lalamove-header i {
-                        margin-right: 4px !important;
-                    }
+        .lalamove-log-box .lalamove-header i {
+            margin-right: 4px !important;
+        }
 
-                    .lalamove-log-box p {
-                        font-size: 12px !important;
-                        margin-bottom: 6px !important;
-                    }
+        .lalamove-log-box p {
+            font-size: 12px !important;
+            margin-bottom: 6px !important;
+        }
 
-                    .lalamove-log-box .btn-sm {
-                        font-size: 12px !important;
-                        padding: 4px 12px !important;
-                    }
+        .lalamove-log-box .btn-sm {
+            font-size: 12px !important;
+            padding: 4px 12px !important;
+        }
 
-                    @media (max-width: 768px) {
-                        .status-steps {
-                            flex-direction: column;
-                            gap: 20px;
-                        }
+        @media (max-width: 768px) {
+            .status-steps {
+                flex-direction: column;
+                gap: 20px;
+            }
 
-                        .status-step:not(:last-child):before {
-                            display: none;
-                        }
+            .status-step:not(:last-child):before {
+                display: none;
+            }
 
-                        .status-step {
-                            display: flex;
-                            align-items: center;
-                            text-align: left;
-                            gap: 15px;
-                        }
+            .status-step {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                gap: 15px;
+            }
 
-                        .status-icon {
-                            margin: 0;
-                        }
+            .status-icon {
+                margin: 0;
+            }
 
-                        .status-label,
-                        .status-date,
-                        .status-time {
-                            text-align: left;
-                        }
-                    }
-                </style>
+            .status-label,
+            .status-date,
+            .status-time {
+                text-align: left;
+            }
+        }
+    </style>
 
-                @php
-                    $statusColors = [
-                        'pending' => 'warning',
-                        'confirmed' => 'info',
-                        'processing' => 'primary',
-                        'ready' => 'success',
-                        'out_for_delivery' => 'secondary',
-                        'delivered' => 'dark',
-                        'cancelled' => 'danger',
-                    ];
+    @php
+        $statusColors = [
+            'pending' => 'warning',
+            'confirmed' => 'info',
+            'processing' => 'primary',
+            'ready' => 'success',
+            'out_for_delivery' => 'secondary',
+            'delivered' => 'dark',
+            'cancelled' => 'danger',
+        ];
+        $statusIcons = [
+            'pending' => 'bi-clock-history',
+            'confirmed' => 'bi-check-circle',
+            'processing' => 'bi-box-seam',
+            'ready' => 'bi-check-circle-fill',
+            'out_for_delivery' => 'bi-truck',
+            'delivered' => 'bi-flag-fill',
+            'cancelled' => 'bi-x-circle',
+        ];
+    @endphp
 
-                    $statusIcons = [
-                        'pending' => 'bi-clock-history',
-                        'confirmed' => 'bi-check-circle',
-                        'processing' => 'bi-box-seam',
-                        'ready' => 'bi-check-circle-fill',
-                        'out_for_delivery' => 'bi-truck',
-                        'delivered' => 'bi-flag-fill',
-                        'cancelled' => 'bi-x-circle',
-                    ];
-                @endphp
+    <script>
+        function showImagePreview(imageUrl, title) {
+            const modal = document.getElementById('imagePreviewModal');
+            const previewImage = document.getElementById('previewImage');
+            const previewTitle = document.getElementById('previewTitle');
+            const downloadLink = document.getElementById('downloadLink');
 
-                <script>
-                    function showImagePreview(imageUrl, title) {
-                        const modal = document.getElementById('imagePreviewModal');
-                        const previewImage = document.getElementById('previewImage');
-                        const previewTitle = document.getElementById('previewTitle');
-                        const downloadLink = document.getElementById('downloadLink');
+            previewImage.src = imageUrl;
+            previewTitle.textContent = title;
+            downloadLink.href = imageUrl;
+            modal.style.display = 'flex';
+        }
 
-                        previewImage.src = imageUrl;
-                        previewTitle.textContent = title;
-                        downloadLink.href = imageUrl;
-                        modal.style.display = 'flex';
-                    }
+        function closeImagePreview() {
+            document.getElementById('imagePreviewModal').style.display = 'none';
+        }
 
-                    function closeImagePreview() {
-                        document.getElementById('imagePreviewModal').style.display = 'none';
-                    }
-
-                    document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closeImagePreview();
-                        }
-                    });
-                </script>
-            @endsection
+        document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImagePreview();
+            }
+        });
+    </script>
+@endsection
