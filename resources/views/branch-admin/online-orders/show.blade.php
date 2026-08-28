@@ -1,39 +1,47 @@
 <style>
-    /* Modal Styles */
-    .modal-body-custom {
-        padding: 0;
-        max-height: 85vh;
-        overflow-y: auto;
+    /* FORCE EVERYTHING TO BE CLICKABLE */
+    .modal-content,
+    .modal-body,
+    .modal-body-custom,
+    button {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 99999 !important;
+    }
+
+    .modal-backdrop {
+        display: none !important;
+    }
+
+    .modal {
+        z-index: 99999 !important;
     }
 
     .modal-header-custom {
         padding: 1.25rem 1.5rem;
         border-bottom: 1px solid #eef2f6;
         background: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
     }
 
     .order-number {
         font-size: 1.25rem;
         font-weight: 700;
         color: #1a1a2e;
-        margin: 0;
+        margin-bottom: 0.25rem;
     }
 
     .order-date {
         font-size: 0.75rem;
         color: #64748b;
-        margin: 0;
+        margin-bottom: 0;
     }
 
-    /* Cards */
     .info-card {
+        border: none;
+        border-radius: 16px;
         background: white;
-        border-radius: 12px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
         overflow: hidden;
     }
 
@@ -47,10 +55,9 @@
         font-size: 0.875rem;
         font-weight: 600;
         color: #1a1a2e;
-        margin: 0;
+        margin-bottom: 0;
     }
 
-    /* Product Image */
     .product-image {
         width: 50px;
         height: 50px;
@@ -59,7 +66,6 @@
         background: #f8f9fa;
     }
 
-    /* Table */
     .order-items-table {
         margin-bottom: 0;
     }
@@ -86,7 +92,7 @@
     .product-name {
         font-weight: 600;
         color: #1a1a2e;
-        margin: 0;
+        margin-bottom: 0;
     }
 
     .product-flavor {
@@ -94,7 +100,6 @@
         color: #64748b;
     }
 
-    /* Info Labels */
     .info-label {
         font-size: 0.7rem;
         font-weight: 600;
@@ -121,7 +126,6 @@
         transition: all 0.3s ease;
         border: none;
         margin-bottom: 0.5rem;
-        cursor: pointer;
     }
 
     .status-btn:hover {
@@ -129,34 +133,51 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-delivery {
+    .btn-confirm {
         background: #1a1a2e;
         color: white;
     }
 
-    .btn-delivery:hover {
+    .btn-confirm:hover {
         background: #16213e;
     }
 
-    /* ✅ FIXED: Close Button - Absolute Position in Upper Right Corner */
-    .btn-close-modal {
-        position: absolute;
-        top: 20px;
-        right: 20px;
+    .btn-processing {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-processing:hover {
+        background: #2563eb;
+    }
+
+    .btn-ready {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-ready:hover {
+        background: #059669;
+    }
+
+    /* Close Button */
+    .btn-close {
+        position: relative;
+        z-index: 99999 !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
         background: transparent;
         border: none;
         font-size: 24px;
-        cursor: pointer !important;
-        color: #666;
-        padding: 0;
-        z-index: 99999 !important;
+        line-height: 1;
+        opacity: 0.5;
     }
 
-    .btn-close-modal:hover {
-        color: #333;
+    .btn-close:hover {
+        opacity: 1;
     }
 
-    /* Alerts */
+    /* Alert Styles */
     .alert-custom {
         border-radius: 12px;
         padding: 1rem;
@@ -173,12 +194,6 @@
         background: #ecfdf5;
         border: 1px solid #d1fae5;
         color: #065f46;
-    }
-
-    .alert-warning-custom {
-        background: #fef3c7;
-        border: 1px solid #fde68a;
-        color: #92400e;
     }
 
     /* Totals */
@@ -217,7 +232,22 @@
         color: #e74c3c;
     }
 
-    /* Badges */
+    /* Badge Styles */
+    .badge-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-confirmed {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge-packing {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
     .badge-ready {
         background: #d1fae5;
         color: #059669;
@@ -228,24 +258,9 @@
         color: #d97706;
     }
 
-    .badge-picked_up {
-        background: #dbeafe;
-        color: #2563eb;
-    }
-
-    .badge-in_transit {
-        background: #e0e7ff;
-        color: #4f46e5;
-    }
-
     .badge-delivered {
         background: #d1fae5;
         color: #059669;
-    }
-
-    .badge-delivery_failed {
-        background: #fee2e2;
-        color: #dc2626;
     }
 
     .badge-cancelled {
@@ -259,24 +274,32 @@
         font-weight: 500;
         font-size: 0.7rem;
     }
+
+    /* Modal Body Scroll */
+    .modal-body-custom {
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 0;
+    }
 </style>
 
 <div class="modal-body-custom">
-    <div style="padding: 1.5rem; position: relative;">
-        <!-- ✅ FIXED: X Button in Upper Right Corner -->
-        <button type="button" class="btn-close-modal" onclick="window.closeModal()">&times;</button>
-
+    <div style="padding: 1.5rem;">
+        <!-- Header -->
         <div class="modal-header-custom" style="padding: 0 0 1rem 0;">
-            <div>
-                <h5 class="order-number">Order #{{ $order->order_number }}</h5>
-                <p class="order-date">Placed on {{ $order->created_at->format('M d, Y h:i A') }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="order-number">Order #{{ $order->order_number }}</h5>
+                    <p class="order-date">Placed on {{ $order->created_at->format('M d, Y h:i A') }}</p>
+                </div>
+                <button type="button" class="btn-close" onclick="closeModal()">&times;</button>
             </div>
         </div>
 
         <div class="row g-3">
             <!-- LEFT COLUMN -->
             <div class="col-md-7">
-                <!-- Order Items -->
+                <!-- Order Items Card -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-receipt"></i> Order Items</h6>
@@ -286,9 +309,9 @@
                             <thead>
                                 <tr>
                                     <th>Product</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-end">Price</th>
-                                    <th class="text-end">Total</th>
+                                    <th class="text-center" style="width: 60px">Qty</th>
+                                    <th class="text-end" style="width: 90px">Price</th>
+                                    <th class="text-end" style="width: 90px">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -345,7 +368,7 @@
                     </div>
                 </div>
 
-                <!-- Customer Information -->
+                <!-- Customer Information Card -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-person"></i> Customer Information</h6>
@@ -380,19 +403,19 @@
                     <div class="card-body p-3">
                         @php
                             $statusClass = match ($order->order_status) {
+                                'pending' => 'badge-pending',
+                                'confirmed' => 'badge-confirmed',
+                                'processing' => 'badge-packing',
                                 'ready' => 'badge-ready',
                                 'out_for_delivery' => 'badge-out_for_delivery',
-                                'picked_up' => 'badge-picked_up',
-                                'in_transit' => 'badge-in_transit',
                                 'delivered' => 'badge-delivered',
-                                'delivery_failed' => 'badge-delivery_failed',
                                 'cancelled' => 'badge-cancelled',
                                 default => 'badge-secondary',
                             };
-                            $displayStatus = ucfirst(str_replace('_', ' ', $order->order_status));
-                            if ($order->order_status == 'delivery_failed') {
-                                $displayStatus = 'Delivery Failed';
-                            }
+                            $displayStatus =
+                                $order->order_status == 'processing'
+                                    ? 'Packing'
+                                    : ucfirst(str_replace('_', ' ', $order->order_status));
                         @endphp
 
                         <div class="mb-3">
@@ -400,37 +423,39 @@
                             <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                         </div>
 
-                        @if ($order->order_status == 'ready')
-                            <button type="button" class="status-btn btn-delivery"
-                                onclick="handleStatus('start-delivery', {{ $order->id }})">
-                                <i class="bi bi-truck me-2"></i> Start Delivery
+                        @if ($order->order_status == 'pending')
+                            <button type="button" class="status-btn btn-confirm"
+                                onclick="handleStatus('confirm', {{ $order->id }})">
+                                <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
                             </button>
-                        @elseif(in_array($order->order_status, ['out_for_delivery', 'picked_up', 'in_transit']))
-                            <div class="alert-custom alert-info-custom mb-3">
-                                <i class="bi bi-truck me-2"></i>
-                                <strong>Delivery in Progress</strong><br>
-                                <small class="text-muted">
-                                    Status: {{ $displayStatus }}<br>
-                                    Update delivery status below.
-                                </small>
+                        @elseif($order->order_status == 'confirmed')
+                            <button type="button" class="status-btn btn-processing"
+                                onclick="handleStatus('processing', {{ $order->id }})">
+                                <i class="bi bi-gear me-2"></i> Mark as Packing
+                            </button>
+                        @elseif($order->order_status == 'processing')
+                            <button type="button" class="status-btn btn-ready"
+                                onclick="handleStatus('ready', {{ $order->id }})">
+                                <i class="bi bi-box-seam me-2"></i> Mark as Ready
+                            </button>
+                        @elseif($order->order_status == 'ready')
+                            <div class="alert-custom alert-info-custom text-center">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Order is Ready</strong><br>
+                                <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
                             </div>
-                            @if ($order->delivery)
-                                <button type="button" class="status-btn btn-delivery"
-                                    onclick="window.openDeliveryModal({{ $order->delivery->id }})">
-                                    <i class="bi bi-truck me-2"></i> Manage Delivery
-                                </button>
-                            @endif
+                        @elseif($order->order_status == 'out_for_delivery')
+                            <div class="alert-custom alert-info-custom text-center">
+                                <i class="bi bi-truck me-2"></i>
+                                <strong>Out for Delivery</strong><br>
+                                <small class="text-muted">Driver is delivering this order.</small>
+                            </div>
                         @elseif($order->order_status == 'delivered')
                             <div class="alert-custom alert-success-custom text-center">
                                 <i class="bi bi-check-circle-fill me-2"></i>
                                 <strong>Order Completed</strong><br>
                                 <small class="text-muted">Delivered on
                                     {{ $order->updated_at->format('M d, Y h:i A') }}</small>
-                            </div>
-                        @elseif($order->order_status == 'delivery_failed')
-                            <div class="alert-custom alert-warning-custom text-center">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <strong>Delivery Failed</strong>
                             </div>
                         @endif
 
@@ -442,35 +467,44 @@
     </div>
 </div>
 
+<!-- ✅ JAVASCRIPT DIRECTLY HERE - NO BLADE DIRECTIVES -->
 <script>
-    // ✅ GLOBAL FUNCTIONS - Available everywhere
-    window.closeModal = function() {
-        const modal = document.getElementById('customModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-        const content = document.getElementById('customModalContent');
-        if (content) {
-            content.innerHTML = '';
-        }
-    };
-
-    window.handleStatus = function(action, orderId) {
+    function handleStatus(action, orderId) {
         const resultDiv = document.getElementById('result');
         const button = event.target.closest('button');
 
-        if (!button) return;
+        if (!button) {
+            console.error('Button not found');
+            return;
+        }
 
         const originalText = button.innerHTML;
+
         button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        button.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+        if (resultDiv) {
+            resultDiv.innerHTML = '<div class="alert alert-info">Processing...</div>';
+        }
 
         let url = '';
+
         switch (action) {
-            case 'start-delivery':
-                url = `/driver/online-orders/${orderId}/start-delivery`;
+            case 'confirm':
+                url = `/branch-admin/online-orders/${orderId}/confirm`;
+                break;
+            case 'processing':
+                url = `/branch-admin/online-orders/${orderId}/processing`;
+                break;
+            case 'ready':
+                url = `/branch-admin/online-orders/${orderId}/ready`;
                 break;
             default:
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">Invalid action</div>';
+                }
+                button.disabled = false;
+                button.innerHTML = originalText;
                 return;
         }
 
@@ -486,18 +520,54 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // ✅ RELOAD PAGE SO FLASH MESSAGE APPEARS AT TOP
-                    window.location.reload();
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
                 } else {
-                    alert(data.message || 'Error occurred');
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                            'Error occurred') + '</div>';
+                    }
                     button.disabled = false;
                     button.innerHTML = originalText;
                 }
             })
             .catch(error => {
-                alert('Error: ' + error);
+                console.error('Error:', error);
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+                }
                 button.disabled = false;
                 button.innerHTML = originalText;
             });
-    };
+    }
+
+    function closeModal() {
+        // Try multiple ways to close the modal
+        const customModal = document.getElementById('customModal');
+        if (customModal) {
+            customModal.style.display = 'none';
+            const content = document.getElementById('customModalContent');
+            if (content) content.innerHTML = '';
+        }
+
+        // Try Bootstrap modal
+        const orderModal = document.getElementById('orderModal');
+        if (orderModal) {
+            const bootstrapModal = bootstrap.Modal.getInstance(orderModal);
+            if (bootstrapModal) bootstrapModal.hide();
+        }
+
+        // Remove any remaining modal backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+
+        // Clear container
+        const container = document.getElementById('modalContainer');
+        if (container) container.innerHTML = '';
+    }
 </script>

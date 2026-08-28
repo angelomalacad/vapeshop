@@ -67,181 +67,13 @@ class DeliveryController extends Controller
      */
     public function show(Delivery $delivery)
     {
-        // ================================================================
-        // FIX: Allow Lalamove orders (driver_id = null) to be viewed
-        // ================================================================
-        // If the driver is assigned, verify it matches Auth::id()
+        // Allow Lalamove orders (driver_id = null) to be viewed
         if ($delivery->driver_id !== null && $delivery->driver_id !== Auth::id()) {
             abort(403, 'This delivery is not assigned to you.');
         }
-        // If driver_id is null, we allow access (Lalamove bypass)
-        // ================================================================
 
         $delivery->load(['order', 'order.items.product', 'order.branch']);
         return view('driver.deliveries.show', compact('delivery'));
-    }
-
-    /**
-     * Update delivery status (supports both AJAX and normal requests)
-     */
-    public function updateStatus(Request $request, Delivery $delivery)
-    {
-        // ================================================================
-        // FIX: Allow Lalamove orders (driver_id = null) to be updated
-        // ================================================================
-        if ($delivery->driver_id !== null && $delivery->driver_id !== Auth::id()) {
-            if ($request->ajax()) {
-                return response()->json(['success' => false, 'message' => 'Unauthorized access.']);
-            }
-            abort(403, 'This delivery is not assigned to you.');
-        }
-        // ================================================================
-
-        // Log the request for debugging
-        \Log::info('Update Status Request', [
-            'delivery_id' => $delivery->id,
-            'request_status' => $request->status,
-            'has_delivery_proof' => $request->hasFile('delivery_proof'),
-            'has_payment_proof' => $request->hasFile('payment_proof'),
-            'all_data' => $request->all()
-        ]);
-
-        $request->validate([
-            'status' => 'required|in:picked_up,in_transit,delivered,failed',
-            'notes' => 'nullable|string|max:500',
-            'delivery_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Increased to 5MB
-            'payment_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Increased to 5MB
-        ]);
-
-        try {
-            $oldStatus = $delivery->status;
-            $newStatus = $request->status;
-
-            // Cannot update status if already delivered or failed
-            if (in_array($delivery->status, ['delivered', 'failed'])) {
-                $errorMessage = 'Cannot update status of a completed delivery.';
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => $errorMessage]);
-                }
-                return redirect()->back()->with('error', $errorMessage);
-            }
-
-            // ========== VALIDATION FOR DELIVERED STATUS ==========
-            if ($newStatus == 'delivered') {
-                // Check if delivery proof is provided (either existing or new)
-                $hasDeliveryProof = !empty($delivery->delivery_proof) || $request->hasFile('delivery_proof');
-                $hasPaymentProof = !empty($delivery->payment_proof) || $request->hasFile('payment_proof');
-
-                if (!$hasDeliveryProof) {
-                    $errorMessage = 'Delivery proof photo is required when marking as delivered.';
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => $errorMessage]);
-                    }
-                    return redirect()->back()->with('error', $errorMessage)->withInput();
-                }
-
-                if (!$hasPaymentProof) {
-                    $errorMessage = 'Payment proof photo is required when marking as delivered.';
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => $errorMessage]);
-                    }
-                    return redirect()->back()->with('error', $errorMessage)->withInput();
-                }
-            }
-
-            // Handle status change timestamps
-            if ($newStatus == 'picked_up' && !$delivery->picked_up_at) {
-                $delivery->picked_up_at = now();
-            }
-            if ($newStatus == 'delivered' && !$delivery->delivered_at) {
-                $delivery->delivered_at = now();
-            }
-
-            // Handle proof of delivery images
-            if ($request->hasFile('delivery_proof')) {
-                // Delete old proof if exists
-                if ($delivery->delivery_proof && Storage::disk('public')->exists($delivery->delivery_proof)) {
-                    Storage::disk('public')->delete($delivery->delivery_proof);
-                }
-                $delivery->delivery_proof = $request->file('delivery_proof')->store('delivery-proofs', 'public');
-                \Log::info('Delivery proof saved', ['path' => $delivery->delivery_proof]);
-            }
-
-            if ($request->hasFile('payment_proof')) {
-                // Delete old proof if exists
-                if ($delivery->payment_proof && Storage::disk('public')->exists($delivery->payment_proof)) {
-                    Storage::disk('public')->delete($delivery->payment_proof);
-                }
-                $delivery->payment_proof = $request->file('payment_proof')->store('payment-proofs', 'public');
-                \Log::info('Payment proof saved', ['path' => $delivery->payment_proof]);
-            }
-
-            // Update notes
-            if ($request->filled('notes')) {
-                $delivery->driver_notes = $request->notes;
-            }
-
-            // Update delivery status
-            $delivery->status = $newStatus;
-            $delivery->save();
-
-            // Update order status based on delivery status
-            if ($delivery->order) {
-                $order = $delivery->order;
-
-                // 🔥 FIX: Auto-assign current driver if delivery is Staff and driver_id is NULL
-                if ($delivery->driver_id === null) {
-                    // Check if it's Staff (city is Calamba)
-                    $cityLower = strtolower(trim($order->city ?? ''));
-                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
-
-                    if ($isCalambaCity) {
-                        $delivery->driver_id = Auth::id(); // ✅ Save the driver ID
-                    }
-                }
-
-                if ($newStatus == 'picked_up') {
-                    $order->order_status = 'out_for_delivery';
-                    $delivery->status = 'picked_up'; // Add this line to sync the delivery table
-                    $order->out_for_delivery_at = now();
-                } elseif ($newStatus == 'delivered') {
-                    $order->order_status = 'delivered';
-                    $order->delivered_at = now();
-                } elseif ($newStatus == 'failed') {
-                    $order->order_status = 'delivery_failed';
-                }
-
-                $delivery->save(); // ✅ Ensure delivery is saved with new driver_id & status
-                $order->save(); // ✅ Ensure order is saved
-                \Log::info('Order status updated', ['order_id' => $order->id, 'status' => $order->order_status]);
-            }
-
-            $message = 'Delivery status updated successfully to ' . ucfirst($newStatus) . '!';
-
-            // For AJAX requests, return JSON
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $message,
-                    'new_status' => $newStatus,
-                    'delivery' => $delivery->fresh()
-                ]);
-            }
-
-            // For normal form submissions, redirect back with success message
-            return redirect()->back()->with('success', $message);
-
-        } catch (\Exception $e) {
-            \Log::error('Delivery update error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-            }
-            return redirect()->back()->with('error', 'Error updating delivery status: ' . $e->getMessage());
-        }
     }
 
     /**
@@ -269,7 +101,7 @@ class DeliveryController extends Controller
             ->whereIn('status', ['pending', 'assigned'])
             ->count();
 
-        // Get pending online orders (not yet started) - matches online orders index
+        // Get pending online orders (not yet started)
         $pendingOrdersCount = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->whereIn('order_status', ['pending', 'confirmed', 'processing'])
             ->count();
@@ -312,10 +144,6 @@ class DeliveryController extends Controller
     {
         $driverId = Auth::id();
 
-        // ================================================================
-        // FIXED: Allow Lalamove orders (driver_id = null) to be viewed
-        // ================================================================
-
         // Active Deliveries: Allows BOTH your Staff deliveries AND Lalamove deliveries
         $activeQuery = Delivery::whereNotIn('status', ['delivered', 'failed'])
             ->where(function($query) use ($driverId) {
@@ -347,7 +175,6 @@ class DeliveryController extends Controller
         if ($request->filled('delivery_type')) {
             $type = $request->delivery_type;
             if ($type === 'lalamove') {
-                // Lalamove: City is NOT Calamba
                 $activeQuery->whereHas('order', function($q) {
                     $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
                 });
@@ -355,7 +182,6 @@ class DeliveryController extends Controller
                     $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
                 });
             } elseif ($type === 'staff') {
-                // Staff: City IS Calamba
                 $activeQuery->whereHas('order', function($q) {
                     $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
                 });
@@ -375,9 +201,7 @@ class DeliveryController extends Controller
             $completedQuery->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // ================================================================
         // Fetch Active Deliveries (with filters applied)
-        // ================================================================
         $activeDeliveries = $activeQuery->orderBy('assigned_at', 'desc')
             ->paginate(5, ['*'], 'active_page');
 
@@ -385,7 +209,7 @@ class DeliveryController extends Controller
         $completedDeliveries = $completedQuery->orderBy('delivered_at', 'desc')
             ->paginate(5, ['*'], 'completed_page');
 
-        // FIXED: Counts for the header stats (Includes Lalamove)
+        // Counts for the header stats (Includes Lalamove)
         $activeCount = Delivery::whereNotIn('status', ['delivered', 'failed'])
             ->where(function($query) use ($driverId) {
                 $query->where('driver_id', $driverId)
@@ -407,5 +231,170 @@ class DeliveryController extends Controller
             'completedCount',
             'totalDeliveries'
         ));
+    }
+
+    /**
+     * Update delivery status (supports both AJAX and normal requests)
+     * Driver ONLY handles: picked_up, in_transit, delivered, failed
+     */
+    public function updateStatus(Request $request, Delivery $delivery)
+    {
+        // Allow Lalamove orders (driver_id = null) to be updated
+        if ($delivery->driver_id !== null && $delivery->driver_id !== Auth::id()) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access.']);
+            }
+            abort(403, 'This delivery is not assigned to you.');
+        }
+
+        // Log the request for debugging
+        \Log::info('Update Status Request', [
+            'delivery_id' => $delivery->id,
+            'request_status' => $request->status,
+            'has_delivery_proof' => $request->hasFile('delivery_proof'),
+            'has_payment_proof' => $request->hasFile('payment_proof'),
+            'all_data' => $request->all()
+        ]);
+
+        $request->validate([
+            'status' => 'required|in:picked_up,in_transit,delivered,failed',
+            'notes' => 'nullable|string|max:500',
+            'delivery_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'payment_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        try {
+            $oldStatus = $delivery->status;
+            $newStatus = $request->status;
+
+            // Cannot update status if already delivered or failed
+            if (in_array($delivery->status, ['delivered', 'failed'])) {
+                $errorMessage = 'Cannot update status of a completed delivery.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $errorMessage]);
+                }
+                return redirect()->back()->with('error', $errorMessage);
+            }
+
+            // ========== VALIDATION FOR DELIVERED STATUS ==========
+            if ($newStatus == 'delivered') {
+                // Check if delivery proof is provided (either existing or new)
+                $hasDeliveryProof = !empty($delivery->delivery_proof) || $request->hasFile('delivery_proof');
+                $hasPaymentProof = !empty($delivery->payment_proof) || $request->hasFile('payment_proof');
+
+                if (!$hasDeliveryProof) {
+                    $errorMessage = 'Delivery proof photo is required when marking as delivered.';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $errorMessage]);
+                    }
+                    return redirect()->back()->with('error', $errorMessage)->withInput();
+                }
+
+                if (!$hasPaymentProof) {
+                    $errorMessage = 'Payment proof photo is required when marking as delivered.';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $errorMessage]);
+                    }
+                    return redirect()->back()->with('error', $errorMessage)->withInput();
+                }
+            }
+
+            // Handle status change timestamps
+            if ($newStatus == 'picked_up' && !$delivery->picked_up_at) {
+                $delivery->picked_up_at = now();
+            }
+            if ($newStatus == 'in_transit' && !$delivery->in_transit_at) {
+                $delivery->in_transit_at = now();
+            }
+            if ($newStatus == 'delivered' && !$delivery->delivered_at) {
+                $delivery->delivered_at = now();
+            }
+
+            // Handle proof of delivery images
+            if ($request->hasFile('delivery_proof')) {
+                // Delete old proof if exists
+                if ($delivery->delivery_proof && Storage::disk('public')->exists($delivery->delivery_proof)) {
+                    Storage::disk('public')->delete($delivery->delivery_proof);
+                }
+                $delivery->delivery_proof = $request->file('delivery_proof')->store('delivery-proofs', 'public');
+                \Log::info('Delivery proof saved', ['path' => $delivery->delivery_proof]);
+            }
+
+            if ($request->hasFile('payment_proof')) {
+                // Delete old proof if exists
+                if ($delivery->payment_proof && Storage::disk('public')->exists($delivery->payment_proof)) {
+                    Storage::disk('public')->delete($delivery->payment_proof);
+                }
+                $delivery->payment_proof = $request->file('payment_proof')->store('payment-proofs', 'public');
+                \Log::info('Payment proof saved', ['path' => $delivery->payment_proof]);
+            }
+
+            // Update notes
+            if ($request->filled('notes')) {
+                $delivery->driver_notes = $request->notes;
+            }
+
+            // Update delivery status
+            $delivery->status = $newStatus;
+            $delivery->save();
+
+            // Update order status based on delivery status
+            if ($delivery->order) {
+                $order = $delivery->order;
+
+                // Auto-assign current driver if delivery is Staff and driver_id is NULL
+                if ($delivery->driver_id === null) {
+                    $cityLower = strtolower(trim($order->city ?? ''));
+                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+
+                    if ($isCalambaCity) {
+                        $delivery->driver_id = Auth::id();
+                        $delivery->save();
+                    }
+                }
+
+                // Update order status based on delivery status
+                if ($newStatus == 'picked_up') {
+                    $order->order_status = 'out_for_delivery';
+                    $order->out_for_delivery_at = now();
+                } elseif ($newStatus == 'in_transit') {
+                    $order->order_status = 'out_for_delivery';
+                    // Keep as out_for_delivery during transit
+                } elseif ($newStatus == 'delivered') {
+                    $order->order_status = 'delivered';
+                    $order->delivered_at = now();
+                } elseif ($newStatus == 'failed') {
+                    $order->order_status = 'delivery_failed';
+                }
+
+                $order->save();
+            }
+
+            $message = 'Delivery status updated successfully to ' . ucfirst($newStatus) . '!';
+
+            // For AJAX requests, return JSON
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'new_status' => $newStatus,
+                    'delivery' => $delivery->fresh()
+                ]);
+            }
+
+            // For normal form submissions, redirect back with success message
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            \Log::error('Delivery update error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            }
+            return redirect()->back()->with('error', 'Error updating delivery status: ' . $e->getMessage());
+        }
     }
 }

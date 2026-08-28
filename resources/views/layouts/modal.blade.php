@@ -18,12 +18,34 @@
         * {
             box-sizing: border-box;
         }
+
+        /* FORCE CLICKABILITY */
+        .modal-content,
+        .modal-body,
+        .modal-body-custom,
+        button {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 99999 !important;
+        }
+
+        .modal-backdrop {
+            display: none !important;
+        }
+
+        .modal {
+            z-index: 99999 !important;
+        }
     </style>
 </head>
 
 <body>
     @yield('content')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
 
-</html>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ ADD THIS - This is where @section('scripts') will be injected -->
+        @yield('scripts')
+    </body>
+
+    </html>

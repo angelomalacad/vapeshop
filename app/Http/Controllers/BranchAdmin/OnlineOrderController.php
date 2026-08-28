@@ -1,281 +1,267 @@
 <?php
+
 namespace App\Http\Controllers\BranchAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\BranchInventory;
 use App\Models\Delivery;
-use App\Models\User;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OnlineOrderController extends Controller
 {
-    public function index()
-{
-    $branchId = Auth::user()->branch_id;
-    $orders = Order::where('branch_id', $branchId)
-        ->whereNotNull('order_status')  // Only orders with order_status
-        ->where('order_number', 'NOT LIKE', 'POS-%')  // Exclude POS order numbers
-        ->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'])
-        ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled')")
-        ->orderBy('created_at', 'desc')
-        ->paginate(20);
-    
-    $counts = [
-        'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'processing' => Order::where('branch_id', $branchId)->where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'ready' => Order::where('branch_id', $branchId)->where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'out_for_delivery' => Order::where('branch_id', $branchId)->where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'delivered' => Order::where('branch_id', $branchId)->where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'cancelled' => Order::where('branch_id', $branchId)->where('order_status', 'cancelled')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-    ];
-    
-    return view('branch-admin.online-orders.index', compact('orders', 'counts'));
-}
-    
+    /**
+     * Display all online orders for the branch admin
+     */
+    public function index(Request $request)
+    {
+        // Show ALL online orders (not just the current branch)
+        $orders = Order::where('order_number', 'NOT LIKE', 'POS-%');
+
+        // ✅ Status filter
+        if ($request->filled('status')) {
+            $orders->where('order_status', $request->status);
+        }
+
+        // ✅ Date From filter
+        if ($request->filled('date_from')) {
+            $orders->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        // ✅ Date To filter
+        if ($request->filled('date_to')) {
+            $orders->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // ✅ Search by order number
+        if ($request->filled('search')) {
+            $orders->where('order_number', 'LIKE', '%' . $request->search . '%');
+        }
+
+        // ✅ Load relationships
+        $orders = $orders->with([
+                'items.product',
+                'items.inventory.branch',
+                'delivery'
+            ])
+            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled')")
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // ✅ Add custom attribute for Staff vs Lalamove
+        $orders->getCollection()->transform(function ($order) {
+            $cityLower = strtolower(trim($order->city ?? ''));
+            $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
+            $order->is_lalamove = !$isCalambaCity;
+            return $order;
+        });
+
+        // Counts for status cards (Show ALL online orders)
+        $counts = [
+            'pending' => Order::where('order_status', 'pending')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+            'confirmed' => Order::where('order_status', 'confirmed')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+            'processing' => Order::where('order_status', 'processing')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+            'ready' => Order::where('order_status', 'ready')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+            'out_for_delivery' => Order::where('order_status', 'out_for_delivery')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+            'delivered' => Order::where('order_status', 'delivered')
+                ->where('order_number', 'NOT LIKE', 'POS-%')
+                ->count(),
+        ];
+
+        return view('branch-admin.online-orders.index', compact('orders', 'counts'));
+    }
+
+    /**
+     * Show a specific online order
+     */
     public function show(Order $order)
     {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        $order->load('items.product', 'user', 'delivery.driver');
-        $drivers = User::where('role', 'driver')->get();
-        $statusHistory = $this->getStatusHistory($order);
-        
-        return view('branch-admin.online-orders.show', compact('order', 'drivers', 'statusHistory'));
+        $order->load(['items.product', 'items.inventory.branch', 'branch', 'delivery']);
+        return view('branch-admin.online-orders.show', compact('order'));
     }
-    
+
+    /**
+     * Confirm order - RESERVE stock (not deduct)
+     */
     public function confirm(Order $order)
     {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
         if ($order->order_status != 'pending') {
-            return back()->with('error', 'Order cannot be confirmed.');
-        }
-        
-        DB::beginTransaction();
-        try {
-            foreach ($order->items as $item) {
-                // Find inventory
-                $inventory = null;
-                
-                if ($item->inventory_id) {
-                    $inventory = BranchInventory::lockForUpdate()->find($item->inventory_id);
-                }
-                
-                if (!$inventory) {
-                    $inventory = BranchInventory::lockForUpdate()
-                        ->where('branch_id', $order->branch_id)
-                        ->where('product_id', $item->product_id)
-                        ->first();
-                }
-                
-                if (!$inventory) {
-                    throw new \Exception("Inventory not found for product ID: {$item->product_id}");
-                }
-                
-                // If reserved_quantity is less than requested, handle it gracefully
-                if ($inventory->reserved_quantity < $item->quantity) {
-                    // This handles orders placed before reservation was implemented
-                    // Directly deduct from quantity without checking reserved
-                    $inventory->decrement('quantity', $item->quantity);
-                    $inventory->decrement('reserved_quantity', $inventory->reserved_quantity);
-                } else {
-                    $inventory->confirmReservation($item->quantity);
-                }
-            }
-            
-            $order->update([
-                'order_status' => 'confirmed',
-                'admin_notes' => request('admin_notes'),
+            return response()->json([
+                'success' => false,
+                'message' => 'Order cannot be confirmed. Current status: ' . $order->order_status
             ]);
-            
-            DB::commit();
-            return back()->with('success', 'Order confirmed. Stock deducted.');
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error confirming order: ' . $e->getMessage());
         }
-    }
-    
-    public function reject(Order $order)
-    {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        if ($order->order_status != 'pending') {
-            return back()->with('error', 'Order cannot be rejected.');
-        }
-        
+
+        $branchId = $order->branch_id;
+
         DB::beginTransaction();
+
         try {
+            // Check and RESERVE inventory for each item
             foreach ($order->items as $item) {
-                $inventory = null;
-                
-                if ($item->inventory_id) {
-                    $inventory = BranchInventory::lockForUpdate()->find($item->inventory_id);
+                $inventory = BranchInventory::where('branch_id', $branchId)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if (!$inventory || $inventory->available_quantity < $item->quantity) {
+                    throw new \Exception("Insufficient stock for product: {$item->product->name}");
                 }
-                
-                if (!$inventory) {
-                    $inventory = BranchInventory::lockForUpdate()
-                        ->where('branch_id', $order->branch_id)
-                        ->where('product_id', $item->product_id)
-                        ->first();
-                }
-                
-                if ($inventory) {
-                    // If reserved_quantity is less than requested, just set to 0
-                    if ($inventory->reserved_quantity < $item->quantity) {
-                        $inventory->update(['reserved_quantity' => 0]);
-                    } else {
-                        $inventory->releaseReservation($item->quantity);
-                    }
-                }
-            }
-            $order->update(['order_status' => 'cancelled']);
-            
-            DB::commit();
-            return back()->with('success', 'Order rejected and stock released.');
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error rejecting order: ' . $e->getMessage());
-        }
-    }
-    
-    public function markProcessing(Order $order)
-    {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        if ($order->order_status != 'confirmed') {
-            return back()->with('error', 'Order cannot be marked as processing.');
-        }
-        $order->update(['order_status' => 'processing']);
-        return back()->with('success', 'Order marked as processing.');
-    }
-    
-    public function markReady(Order $order)
-    {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        if (!in_array($order->order_status, ['confirmed', 'processing'])) {
-            return back()->with('error', 'Order cannot be marked ready.');
-        }
-        $order->update(['order_status' => 'ready']);
-        return back()->with('success', 'Order marked ready for pickup/delivery.');
-    }
-    
-    public function assignDriver(Request $request, Order $order)
-    {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        if ($order->order_status != 'ready') {
-            return back()->with('error', 'Order must be ready before assigning driver.');
-        }
-        if ($order->delivery_type != 'delivery') {
-            return back()->with('error', 'Only delivery orders need a driver.');
-        }
-        
-        $request->validate(['driver_id' => 'required|exists:users,id']);
-        $driver = User::find($request->driver_id);
-        if ($driver->role != 'driver') {
-            return back()->with('error', 'Invalid driver.');
-        }
-        
-        DB::transaction(function () use ($order, $driver) {
-            $delivery = Delivery::updateOrCreate(
-                ['order_id' => $order->id],
-                [
-                    'driver_id' => $driver->id,
-                    'tracking_number' => 'D-' . $order->order_number,
-                    'status' => 'assigned',
-                    'delivery_address' => $order->delivery_address,
-                    'recipient_name' => $order->customer_name,
-                    'recipient_phone' => $order->customer_phone,
-                    'assigned_at' => now(),
-                ]
-            );
-            $order->update(['order_status' => 'out_for_delivery']);
-        });
-        
-        return back()->with('success', 'Driver assigned. Order is out for delivery.');
-    }
-    
-    public function markDelivered(Order $order)
-    {
-        if ($order->branch_id != Auth::user()->branch_id) abort(403);
-        if ($order->order_status != 'out_for_delivery') {
-            return back()->with('error', 'Order cannot be marked as delivered.');
-        }
-        
-        DB::transaction(function () use ($order) {
-            if ($order->delivery) {
-                $order->delivery->update([
-                    'status' => 'delivered',
-                    'delivered_at' => now(),
+
+                $oldQuantity = $inventory->quantity;
+                $oldReserved = $inventory->reserved_quantity;
+                $newQuantity = $oldQuantity; // Quantity stays the same
+                $newReserved = $oldReserved + $item->quantity;
+
+                // Update inventory - reserve stock
+                $inventory->update([
+                    'quantity' => $newQuantity,
+                    'reserved_quantity' => $newReserved
+                ]);
+
+                // Create stock movement record for reservation
+                StockMovement::create([
+                    'branch_id' => $branchId,
+                    'product_id' => $item->product_id,
+                    'flavor_id' => $item->flavor_id ?? null,
+                    'previous_quantity' => $oldQuantity,
+                    'new_quantity' => $newQuantity,
+                    'quantity_change' => 0,
+                    'movement_type' => 'reserve',
+                    'reference_type' => 'order',
+                    'reference_id' => $order->id,
+                    'notes' => "Order #{$order->order_number} confirmed - stock reserved by branch staff",
+                    'created_by' => Auth::id(),
                 ]);
             }
-            $order->update(['order_status' => 'delivered']);
-        });
-        
-        return back()->with('success', 'Order marked as delivered.');
-    }
-    
-    public function updateTracking(Request $request, Delivery $delivery)
-    {
-        if ($delivery->order->branch_id != Auth::user()->branch_id) abort(403);
-        
-        $request->validate([
-            'status' => 'required|in:assigned,picked_up,in_transit,delivered,failed',
-            'notes' => 'nullable|string',
-        ]);
-        
-        $delivery->update([
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'picked_up_at' => $request->status == 'picked_up' ? now() : $delivery->picked_up_at,
-            'delivered_at' => $request->status == 'delivered' ? now() : $delivery->delivered_at,
-        ]);
-        
-        if ($request->status == 'delivered') {
-            $delivery->order->update(['order_status' => 'delivered']);
+
+            // Update order status
+            $order->update(['order_status' => 'confirmed']);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order confirmed and stock reserved successfully.',
+                'new_status' => 'confirmed'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
-        
-        return back()->with('success', 'Tracking status updated.');
     }
-    
-    private function getStatusHistory($order)
+
+    /**
+     * Mark order as processing (packing)
+     */
+    public function markProcessing(Order $order)
     {
-        $history = [];
-        $statuses = ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'];
-        
-        // Check each status
-        $statusOrder = [
-            'pending' => $order->created_at,
-            'confirmed' => $order->updated_at,
-            'processing' => $order->updated_at,
-            'ready' => $order->updated_at,
-            'out_for_delivery' => $order->delivery ? $order->delivery->assigned_at : null,
-            'delivered' => $order->delivery ? $order->delivery->delivered_at : null,
-        ];
-        
-        $currentStatusIndex = array_search($order->order_status, $statuses);
-        
-        foreach ($statuses as $index => $status) {
-            $completed = $index <= $currentStatusIndex;
-            $date = null;
-            
-            if ($completed) {
-                if ($status == 'pending') $date = $order->created_at;
-                elseif ($status == 'out_for_delivery' && $order->delivery) $date = $order->delivery->assigned_at;
-                elseif ($status == 'delivered' && $order->delivery) $date = $order->delivery->delivered_at;
-                else $date = $order->updated_at;
+        if ($order->order_status != 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order must be confirmed first. Current status: ' . $order->order_status
+            ]);
+        }
+
+        $order->update(['order_status' => 'processing']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order marked as packing.',
+            'new_status' => 'processing'
+        ]);
+    }
+
+    /**
+     * Mark order as ready
+     */
+    public function markReady(Order $order)
+    {
+        if (!in_array($order->order_status, ['confirmed', 'processing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order cannot be marked as ready. Current status: ' . $order->order_status
+            ]);
+        }
+
+        $order->update(['order_status' => 'ready']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order is ready for delivery.',
+            'new_status' => 'ready'
+        ]);
+    }
+
+    /**
+     * Deduct inventory when order is delivered
+     */
+    public function deductInventory(Order $order)
+    {
+        $branchId = $order->branch_id;
+
+        DB::beginTransaction();
+
+        try {
+            // Deduct reserved inventory for each item
+            foreach ($order->items as $item) {
+                $inventory = BranchInventory::where('branch_id', $branchId)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if ($inventory) {
+                    $oldQuantity = $inventory->quantity;
+                    $oldReserved = $inventory->reserved_quantity;
+                    $newQuantity = $oldQuantity - $item->quantity;
+                    $newReserved = max(0, $oldReserved - $item->quantity);
+
+                    // Update inventory - deduct stock
+                    $inventory->update([
+                        'quantity' => $newQuantity,
+                        'reserved_quantity' => $newReserved
+                    ]);
+
+                    // Create stock movement record for actual sale
+                    StockMovement::create([
+                        'branch_id' => $branchId,
+                        'product_id' => $item->product_id,
+                        'flavor_id' => $item->flavor_id ?? null,
+                        'previous_quantity' => $oldQuantity,
+                        'new_quantity' => $newQuantity,
+                        'quantity_change' => -$item->quantity,
+                        'movement_type' => 'sale',
+                        'reference_type' => 'order',
+                        'reference_id' => $order->id,
+                        'notes' => "Order #{$order->order_number} delivered - stock deducted",
+                        'created_by' => Auth::id(),
+                    ]);
+                }
             }
-            
-            $history[] = [
-                'status' => $status,
-                'completed' => $completed,
-                'date' => $date,
-                'label' => ucfirst(str_replace('_', ' ', $status)),
-            ];
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Inventory deducted successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
-        
-        return $history;
     }
 }

@@ -1,6 +1,8 @@
-@extends('layouts.driver')
+@extends('layouts.branch-admin')
 
-@section('title', 'Online Orders - Driver')
+@section('title', 'Online Orders - Branch Staff')
+
+@section('page-title', 'Online Orders Management')
 
 @section('content')
     <style>
@@ -11,13 +13,9 @@
 
         .page-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #1a1a2e;
-        }
-
-        .page-subtitle {
-            color: #64748b;
-            font-size: 0.875rem;
+            margin-bottom: 0;
         }
 
         /* Status Cards */
@@ -79,26 +77,6 @@
             margin: 0;
         }
 
-        /* Modern Card */
-        .modern-card {
-            border: none;
-            border-radius: 16px;
-            background: white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header-modern {
-            background: white;
-            border-bottom: 1px solid #eef2f6;
-            padding: 1rem 1.25rem;
-        }
-
-        .card-header-modern h5 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
         /* Table Styles */
         .order-table {
             margin-bottom: 0;
@@ -129,6 +107,21 @@
         }
 
         /* Badge Styles */
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-confirmed {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-packing {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
         .badge-ready {
             background: #d1fae5;
             color: #059669;
@@ -139,24 +132,9 @@
             color: #d97706;
         }
 
-        .badge-picked_up {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .badge-in_transit {
-            background: #e0e7ff;
-            color: #4f46e5;
-        }
-
         .badge-delivered {
             background: #d1fae5;
             color: #059669;
-        }
-
-        .badge-delivery_failed {
-            background: #fee2e2;
-            color: #dc2626;
         }
 
         .badge-cancelled {
@@ -201,7 +179,7 @@
             font-size: 0.7rem;
         }
 
-        /* Pagination */
+        /* Simple Pagination */
         .simple-pagination {
             display: flex;
             justify-content: center;
@@ -216,7 +194,7 @@
             font-weight: 500;
         }
 
-        /* Responsive */
+        /* Mobile responsive */
         @media (max-width: 768px) {
 
             .order-table th,
@@ -226,179 +204,95 @@
                 white-space: nowrap;
             }
         }
-
-        /* Sidebar Styles */
-        .app-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 260px;
-            background: #ffffff;
-            border-radius: 0 16px 16px 0;
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
-            z-index: 1040;
-            overflow: hidden;
-            padding-bottom: 20px;
-            margin-top: 80px;
-        }
-
-        .sidebar-header {
-            background: #1e293b;
-            padding: 18px 20px;
-            text-align: center;
-            color: #fff;
-        }
-
-        .sidebar-header h6 {
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: 0.3px;
-        }
-
-        .sidebar-menu {
-            padding: 12px;
-        }
-
-        .sidebar-menu .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: #64748b;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            margin-bottom: 4px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu .menu-item i {
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-            margin-right: 14px;
-        }
-
-        .sidebar-menu .menu-item:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        .sidebar-menu .menu-item.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-left: 3px solid #2563eb;
-        }
-
-        /* MODAL STYLES - CRITICAL */
-        #customModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 99999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #customModalContent {
-            background: white;
-            width: 95%;
-            max-width: 900px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            position: relative;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
     </style>
 
-    <!-- SIDEBAR -->
-    <div class="app-sidebar">
-        <div class="sidebar-header">
-            <h6><i class="bi bi-grid-3x3-gap-fill"></i> Driver Menu</h6>
-        </div>
-        <div class="sidebar-menu">
-            <a href="{{ route('driver.dashboard') }}"
-                class="menu-item {{ request()->routeIs('driver.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-            <a href="{{ route('driver.online-orders.index') }}"
-                class="menu-item {{ request()->routeIs('driver.online-orders*') ? 'active' : '' }}">
-                <i class="bi bi-cart"></i> Online Orders
-            </a>
-            <a href="{{ route('driver.delivery-history', ['sidebar' => 1]) }}"
-                class="menu-item {{ request()->routeIs('driver.delivery-history') ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i> Delivery History
-            </a>
-        </div>
-    </div>
-
-    <!-- CONTENT -->
     <div class="container-fluid">
         <!-- Page Header -->
         <div class="page-header">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h1 class="page-title mb-1"><i class="bi bi-cart me-2 text-primary"></i> Online Orders</h1>
-                    <p class="page-subtitle mb-0">Manage your assigned deliveries</p>
+                    <p class="text-muted mb-0">Manage customer orders from confirmation to ready for delivery</p>
                 </div>
             </div>
         </div>
 
         <!-- Status Cards -->
         <div class="row g-2 mb-4">
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
+                <div class="card status-card">
+                    <div class="card-body status-card-body">
+                        <div class="status-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-hourglass-split text-warning"></i>
+                        </div>
+                        <div class="status-info">
+                            <h2 class="status-number">{{ $counts['pending'] }}</h2>
+                            <p class="status-label">Pending</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="card status-card">
+                    <div class="card-body status-card-body">
+                        <div class="status-icon bg-info bg-opacity-10">
+                            <i class="bi bi-check-circle text-info"></i>
+                        </div>
+                        <div class="status-info">
+                            <h2 class="status-number">{{ $counts['confirmed'] }}</h2>
+                            <p class="status-label">Confirmed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="card status-card">
+                    <div class="card-body status-card-body">
+                        <div class="status-icon bg-primary bg-opacity-10">
+                            <i class="bi bi-box-seam text-primary"></i>
+                        </div>
+                        <div class="status-info">
+                            <h2 class="status-number">{{ $counts['processing'] }}</h2>
+                            <p class="status-label">Packing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-success bg-opacity-10">
-                            <i class="bi bi-box-seam text-success"></i>
+                            <i class="bi bi-check-circle-fill text-success"></i>
                         </div>
                         <div class="status-info">
-                            <h2 class="status-number">{{ $counts['ready'] ?? 0 }}</h2>
+                            <h2 class="status-number">{{ $counts['ready'] }}</h2>
                             <p class="status-label">Ready</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-secondary bg-opacity-10">
                             <i class="bi bi-truck text-secondary"></i>
                         </div>
                         <div class="status-info">
-                            <h2 class="status-number">{{ $counts['out_for_delivery'] ?? 0 }}</h2>
+                            <h2 class="status-number">{{ $counts['out_for_delivery'] }}</h2>
                             <p class="status-label">Out for Delivery</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-dark bg-opacity-10">
                             <i class="bi bi-flag-fill text-dark"></i>
                         </div>
                         <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivered'] ?? 0 }}</h2>
+                            <h2 class="status-number">{{ $counts['delivered'] }}</h2>
                             <p class="status-label">Delivered</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-danger bg-opacity-10">
-                            <i class="bi bi-x-circle text-danger"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivery_failed'] ?? 0 }}</h2>
-                            <p class="status-label">Failed</p>
                         </div>
                     </div>
                 </div>
@@ -408,33 +302,45 @@
         <!-- Filter Section -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
-                <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                <form method="GET" action="{{ route('branch-admin.online-orders.index') }}"
+                    class="row g-3 align-items-end">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold">Filter by Status</label>
                         <select name="status" class="form-select">
                             <option value="">All Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
+                            </option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
+                            </option>
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
                             <option value="out_for_delivery"
                                 {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
                             <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
                             </option>
-                            <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>
-                                Delivery Failed</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                            </option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Search</label>
+                        <input type="text" name="search" class="form-control" placeholder="Order #..."
+                            value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label fw-semibold">Date From</label>
                         <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <label class="form-label fw-semibold">Date To</label>
                         <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                     </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-funnel me-1"></i> Apply Filters
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel me-1"></i> Filter
                         </button>
-                        <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary ms-2">
+                        <a href="{{ route('branch-admin.online-orders.index') }}"
+                            class="btn btn-outline-secondary w-100 mt-1">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                         </a>
                     </div>
@@ -443,16 +349,13 @@
         </div>
 
         <!-- Orders Table -->
-        <div class="card modern-card">
-            <div class="card-header-modern d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 class="mb-0"><i class="bi bi-list-ul me-2 text-primary"></i> Delivery Orders</h5>
-            </div>
+        <div class="card border-0 shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table order-table">
                         <thead>
                             <tr>
-                                <th class="ps-4">Order #</th>
+                                <th class="ps-3">Order #</th>
                                 <th>Image</th>
                                 <th>Product Name</th>
                                 <th>Date</th>
@@ -460,27 +363,27 @@
                                 <th>Total</th>
                                 <th>Type</th>
                                 <th>Status</th>
-                                <th>Lalamove Info</th>
-                                <th class="pe-4">Actions</th>
+                                <th class="text-end pe-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($orders as $order)
                                 @php
                                     $statusClass = match ($order->order_status) {
+                                        'pending' => 'badge-pending',
+                                        'confirmed' => 'badge-confirmed',
+                                        'processing' => 'badge-packing',
                                         'ready' => 'badge-ready',
                                         'out_for_delivery' => 'badge-out_for_delivery',
-                                        'picked_up' => 'badge-picked_up',
-                                        'in_transit' => 'badge-in_transit',
                                         'delivered' => 'badge-delivered',
-                                        'delivery_failed' => 'badge-delivery_failed',
                                         'cancelled' => 'badge-cancelled',
                                         default => 'badge-secondary',
                                     };
-                                    $displayStatus = ucfirst(str_replace('_', ' ', $order->order_status));
-                                    if ($order->order_status == 'delivery_failed') {
-                                        $displayStatus = 'Delivery Failed';
-                                    }
+
+                                    $displayStatus =
+                                        $order->order_status == 'processing'
+                                            ? 'Packing'
+                                            : ucfirst(str_replace('_', ' ', $order->order_status));
 
                                     $firstItem = $order->items->first();
                                     $product = $firstItem ? $firstItem->product : null;
@@ -495,13 +398,9 @@
                                             $imageUrl = Storage::url($product->image);
                                         }
                                     }
-
-                                    $cityLower = strtolower(trim($order->city ?? ''));
-                                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
-                                    $isLalamoveEligible = !$isCalambaCity;
                                 @endphp
                                 <tr>
-                                    <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
+                                    <td class="ps-3"><code class="fw-semibold">{{ $order->order_number }}</code></td>
                                     <td>
                                         @if ($imageUrl)
                                             <img src="{{ $imageUrl }}" alt="{{ $productName }}"
@@ -540,20 +439,8 @@
                                     <td>
                                         <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                                     </td>
-                                    <td>
-                                        @if ($isLalamoveEligible && $order->delivery && !empty($order->delivery->tracking_number))
-                                            <a href="{{ $order->delivery->tracking_number }}" target="_blank"
-                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i> View Link
-                                            </a>
-                                        @elseif($isLalamoveEligible && in_array($order->order_status, ['out_for_delivery', 'picked_up', 'in_transit']))
-                                            <span class="text-muted">Awaiting link</span>
-                                        @else
-                                            <span class="text-muted">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="pe-4">
-                                        <button onclick="window.openOrderModal({{ $order->id }})"
+                                    <td class="text-end pe-3">
+                                        <button onclick="openOrderModal({{ $order->id }})"
                                             class="btn btn-manage btn-sm text-white">
                                             <i class="bi bi-eye me-1"></i> Manage
                                         </button>
@@ -561,10 +448,10 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="9" class="text-center py-5">
                                         <i class="bi bi-inbox display-1 text-muted"></i>
                                         <h5 class="mt-3">No Online Orders</h5>
-                                        <p class="text-muted">There are no online orders assigned to you at this time.</p>
+                                        <p class="text-muted">There are no online orders to process at this time.</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -573,6 +460,7 @@
                 </div>
             </div>
 
+            <!-- Pagination -->
             @if ($orders->hasPages())
                 <div class="simple-pagination">
                     @if ($orders->onFirstPage())
@@ -591,93 +479,34 @@
         </div>
     </div>
 
-    <!-- MODAL CONTAINER - CRITICAL FIX -->
-    <div id="customModal">
-        <div id="customModalContent">
-            <!-- Content will be injected here via AJAX -->
-        </div>
-    </div>
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
 
     <script>
-        // ✅ GLOBAL FUNCTIONS
-        window.closeModal = function() {
-            const modal = document.getElementById('customModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            const content = document.getElementById('customModalContent');
-            if (content) {
-                content.innerHTML = '';
-            }
-        };
+        function openOrderModal(orderId) {
+            const container = document.getElementById('modalContainer');
 
-        window.openOrderModal = function(orderId) {
-            const modal = document.getElementById('customModal');
-            const modalContent = document.getElementById('customModalContent');
-
-            modalContent.innerHTML = `
-                <div style="padding: 40px; text-align: center;">
-                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Loading...</span>
+            // Create a simple, unstoppable modal
+            container.innerHTML = `
+            <div id="orderModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; display: flex; justify-content: center; align-items: center;">
+                <div style="background: white; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 20px; position: relative;">
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="spinner-border"></div>
+                        <p>Loading order details...</p>
                     </div>
-                    <p class="mt-3 text-muted">Loading order details...</p>
                 </div>
-            `;
-            modal.style.display = 'flex';
-
-            fetch(`/driver/online-orders/${orderId}`)
-                .then(response => response.text())
-                .then(html => {
-                    modalContent.innerHTML = html;
-
-                    // ✅ Execute any scripts in the returned HTML
-                    const scripts = modalContent.querySelectorAll('script');
-                    scripts.forEach(script => {
-                        const newScript = document.createElement('script');
-                        newScript.textContent = script.textContent;
-                        document.body.appendChild(newScript);
-                        script.remove();
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    modalContent.innerHTML = `
-                        <div style="padding: 20px;">
-                            <div class="alert alert-danger mb-3">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                Failed to load order details. Please try again.
-                            </div>
-                            <div class="text-center">
-                                <button onclick="window.closeModal()" class="btn btn-secondary rounded-pill px-4">Close</button>
-                            </div>
-                        </div>
-                    `;
-                });
-        };
-
-        // ✅ ADD THIS: Open Delivery Modal (for "Manage Delivery" button)
-        // ✅ ADD THIS FUNCTION
-        window.openDeliveryModal = function(deliveryId) {
-            const modal = document.getElementById('customModal');
-            const modalContent = document.getElementById('customModalContent');
-
-            modalContent.innerHTML = `
-        <div style="padding: 40px; text-align: center;">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3 text-muted">Loading delivery details...</p>
-        </div>
-    `;
-            modal.style.display = 'flex';
+        `;
 
-            fetch(`/driver/deliveries/${deliveryId}`)
+            // Fetch the content
+            fetch(`/branch-admin/online-orders/${orderId}`)
                 .then(response => response.text())
                 .then(html => {
-                    modalContent.innerHTML = html;
+                    // Replace the loading spinner with the actual content
+                    container.querySelector('#orderModal > div').innerHTML = html;
 
-                    // ✅ Execute any scripts in the returned HTML
-                    const scripts = modalContent.querySelectorAll('script');
+                    // ✅ CRITICAL: Execute the scripts in the returned HTML
+                    const scripts = container.querySelectorAll('#orderModal script');
                     scripts.forEach(script => {
                         const newScript = document.createElement('script');
                         newScript.textContent = script.textContent;
@@ -686,19 +515,8 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    modalContent.innerHTML = `
-                <div style="padding: 20px;">
-                    <div class="alert alert-danger mb-3">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Failed to load delivery details. Please try again.
-                    </div>
-                    <div class="text-center">
-                        <button onclick="window.closeModal()" class="btn btn-secondary rounded-pill px-4">Close</button>
-                    </div>
-                </div>
-            `;
+                    container.querySelector('#orderModal > div').innerHTML = '<p>Error loading order.</p>';
                 });
-        };
+        }
     </script>
 @endsection

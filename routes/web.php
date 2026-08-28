@@ -435,7 +435,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/pos', function () { return "Point of Sale - To be implemented"; })->name('pos');
     }
 
-    // Online Orders Management
+        // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'index'])->name('index');
         Route::get('/{order}', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'show'])->name('show');
@@ -443,6 +443,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/{order}/reject', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'reject'])->name('reject');
         Route::post('/{order}/processing', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markProcessing'])->name('processing');
         Route::post('/{order}/ready', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markReady'])->name('ready');
+        Route::post('/{order}/cancel', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/{order}/assign-driver', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'assignDriver'])->name('assign-driver');
         Route::post('/{order}/delivered', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markDelivered'])->name('delivered');
         Route::post('/delivery/{delivery}/tracking', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateTracking'])->name('update-tracking');
@@ -544,20 +545,20 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
 Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('driver.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Driver\DeliveryController::class, 'dashboard'])->name('dashboard');
-    // ✅ ADD THIS LINE RIGHT HERE (Pointing to DeliveryController):
+
+    // Delivery History
     Route::get('/delivery-history', [App\Http\Controllers\Driver\DeliveryController::class, 'deliveryHistory'])->name('delivery-history');
+
     // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\Driver\OnlineOrderController::class, 'index'])->name('index');
         Route::get('/{order}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'show'])->name('show');
-        Route::post('/{order}/confirm', [App\Http\Controllers\Driver\OnlineOrderController::class, 'confirm'])->name('confirm');
-        Route::post('/{order}/processing', [App\Http\Controllers\Driver\OnlineOrderController::class, 'markProcessing'])->name('processing');
-        Route::post('/{order}/ready', [App\Http\Controllers\Driver\OnlineOrderController::class, 'markReady'])->name('ready');
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
+        Route::post('/{order}/cancel', [App\Http\Controllers\Driver\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
     });
 
-    // Delivery Management - Driver sees ALL deliveries assigned to them
+    // Delivery Management
     Route::get('/deliveries', [App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
     Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
     Route::post('/deliveries/{delivery}/update', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('delivery.update');

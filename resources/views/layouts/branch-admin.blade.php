@@ -508,36 +508,43 @@
 
 <body>
     <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-glass">
-    <div class="container-fluid px-4">
-        <!-- Left Side: Menu Button & Logo -->
-        <div class="d-flex align-items-center">
-            <button type="button" id="sidebarCollapse" class="btn btn-light me-3">
-                <i class="bi bi-list"></i> Menu
-            </button>
-            <a class="navbar-brand text-white fw-bold fs-4 d-flex align-items-center" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30" class="d-inline-block me-2">
-                <span style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape Expo</span>
-                <small class="text-white-50 fs-6 ms-2 fw-normal">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
-            </a>
-        </div>
-
-        <!-- Right Side: User Info & Logout (Properly Aligned) -->
-        <div class="d-flex align-items-center ms-auto">
-            <span class="navbar-text text-white me-3 d-flex align-items-center">
-                <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} <span class="badge bg-light text-dark ms-2 rounded-pill px-3 py-1 fw-normal" style="background: rgba(255,255,255,0.15) !important; color: white !important;">Staff</span>
-            </span>
-            <form method="POST" action="{{ route('logout') }}" class="m-0">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3" style="border-color: rgba(255,255,255,0.3);">
-                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+    <nav class="navbar navbar-expand-lg navbar-glass">
+        <div class="container-fluid px-4">
+            <!-- Left Side: Menu Button & Logo -->
+            <div class="d-flex align-items-center">
+                <button type="button" id="sidebarCollapse" class="btn btn-light me-3">
+                    <i class="bi bi-list"></i> Menu
                 </button>
-            </form>
-        </div>
-    </div>
-</nav>
+                <a class="navbar-brand text-white fw-bold fs-4 d-flex align-items-center" href="{{ route('home') }}">
+                    <img src="{{ asset('images/logo.png') }}" alt="Vape Expo Logo" height="30"
+                        class="d-inline-block me-2">
+                    <span
+                        style="background: linear-gradient(135deg, #fff 0%, #a0aec0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Vape
+                        Expo</span>
+                    <small
+                        class="text-white-50 fs-6 ms-2 fw-normal">{{ Auth::user()->branch->name ?? 'Branch' }}</small>
+                </a>
+            </div>
 
-<div class="wrapper">
+            <!-- Right Side: User Info & Logout (Properly Aligned) -->
+            <div class="d-flex align-items-center ms-auto">
+                <span class="navbar-text text-white me-3 d-flex align-items-center">
+                    <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} <span
+                        class="badge bg-light text-dark ms-2 rounded-pill px-3 py-1 fw-normal"
+                        style="background: rgba(255,255,255,0.15) !important; color: white !important;">Staff</span>
+                </span>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3"
+                        style="border-color: rgba(255,255,255,0.3);">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-sticky">
@@ -610,6 +617,12 @@
                     <!-- ===== END OF WAREHOUSE SECTION ===== -->
 
                     <li class="sidebar-heading">SALES</li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('branch-admin.online-orders*') ? 'active' : '' }}"
+                            href="{{ route('branch-admin.online-orders.index') }}">
+                            <i class="bi bi-cart"></i> Online Orders
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.pos.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.pos.index') }}">
@@ -744,12 +757,12 @@
     <!-- NOTIFICATION SYSTEM - EMBEDDED DIRECTLY (Fixes routing issue) -->
     <!-- ============================================================ -->
     <script>
-    (function () {
-        // Add CSS only once
-        if (!document.querySelector('#admin-notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'admin-notification-styles';
-            style.textContent = `
+        (function() {
+            // Add CSS only once
+            if (!document.querySelector('#admin-notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'admin-notification-styles';
+                style.textContent = `
                 .admin-notification-container {
                     position: fixed;
                     top: 24px;
@@ -842,48 +855,48 @@
                     .admin-notification-icon-wrapper i { font-size: 1.1rem; }
                 }
             `;
-            document.head.appendChild(style);
-        }
-
-        // Global showNotification function
-        window.showNotification = function (message, type = 'success') {
-            let container = document.querySelector('.admin-notification-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'admin-notification-container';
-                document.body.appendChild(container);
+                document.head.appendChild(style);
             }
 
-            const notification = document.createElement('div');
-            notification.className = `admin-notification admin-notification-${type}`;
+            // Global showNotification function
+            window.showNotification = function(message, type = 'success') {
+                let container = document.querySelector('.admin-notification-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'admin-notification-container';
+                    document.body.appendChild(container);
+                }
 
-            let icon = '';
-            let title = '';
+                const notification = document.createElement('div');
+                notification.className = `admin-notification admin-notification-${type}`;
 
-            switch (type) {
-                case 'success':
-                    icon = 'bi-check-circle-fill';
-                    title = 'Success';
-                    break;
-                case 'error':
-                    icon = 'bi-x-circle-fill';
-                    title = 'Error';
-                    break;
-                case 'warning':
-                    icon = 'bi-exclamation-triangle-fill';
-                    title = 'Warning';
-                    break;
-                case 'info':
-                    icon = 'bi-info-circle-fill';
-                    title = 'Info';
-                    break;
-                default:
-                    icon = 'bi-info-circle-fill';
-                    title = 'Notice';
-                    type = 'info';
-            }
+                let icon = '';
+                let title = '';
 
-            notification.innerHTML = `
+                switch (type) {
+                    case 'success':
+                        icon = 'bi-check-circle-fill';
+                        title = 'Success';
+                        break;
+                    case 'error':
+                        icon = 'bi-x-circle-fill';
+                        title = 'Error';
+                        break;
+                    case 'warning':
+                        icon = 'bi-exclamation-triangle-fill';
+                        title = 'Warning';
+                        break;
+                    case 'info':
+                        icon = 'bi-info-circle-fill';
+                        title = 'Info';
+                        break;
+                    default:
+                        icon = 'bi-info-circle-fill';
+                        title = 'Notice';
+                        type = 'info';
+                }
+
+                notification.innerHTML = `
                 <div class="admin-notification-inner">
                     <div class="admin-notification-icon-wrapper ${type}">
                         <i class="bi ${icon}"></i>
@@ -899,60 +912,60 @@
                 <div class="admin-notification-progress ${type}"></div>
             `;
 
-            container.appendChild(notification);
+                container.appendChild(notification);
 
-            const progressBar = notification.querySelector('.admin-notification-progress');
-            if (progressBar) {
-                progressBar.style.animation = 'progressShrink 4s linear forwards';
-            }
+                const progressBar = notification.querySelector('.admin-notification-progress');
+                if (progressBar) {
+                    progressBar.style.animation = 'progressShrink 4s linear forwards';
+                }
 
-            const dismissNotification = (notif) => {
-                notif.classList.add('admin-notification-hide');
-                setTimeout(() => {
-                    if (notif && notif.parentElement) {
-                        notif.remove();
-                    }
-                }, 300);
-            };
+                const dismissNotification = (notif) => {
+                    notif.classList.add('admin-notification-hide');
+                    setTimeout(() => {
+                        if (notif && notif.parentElement) {
+                            notif.remove();
+                        }
+                    }, 300);
+                };
 
-            const timeoutId = setTimeout(() => {
-                dismissNotification(notification);
-            }, 4000);
+                const timeoutId = setTimeout(() => {
+                    dismissNotification(notification);
+                }, 4000);
 
-            const closeBtn = notification.querySelector('.admin-notification-close');
-            closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                clearTimeout(timeoutId);
-                dismissNotification(notification);
-            });
-
-            notification.addEventListener('click', (e) => {
-                if (e.target === notification || e.target.closest('.admin-notification-content')) {
+                const closeBtn = notification.querySelector('.admin-notification-close');
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     clearTimeout(timeoutId);
                     dismissNotification(notification);
-                }
-            });
+                });
 
-            notification.addEventListener('mouseenter', () => {
-                if (progressBar) {
-                    progressBar.style.animationPlayState = 'paused';
-                }
-                clearTimeout(timeoutId);
-            });
+                notification.addEventListener('click', (e) => {
+                    if (e.target === notification || e.target.closest('.admin-notification-content')) {
+                        clearTimeout(timeoutId);
+                        dismissNotification(notification);
+                    }
+                });
 
-            notification.addEventListener('mouseleave', () => {
-                if (progressBar) {
-                    progressBar.style.animationPlayState = 'running';
-                }
-                const newTimeoutId = setTimeout(() => {
-                    dismissNotification(notification);
-                }, 2000);
-                notification._timeoutId = newTimeoutId;
-            });
-        };
+                notification.addEventListener('mouseenter', () => {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'paused';
+                    }
+                    clearTimeout(timeoutId);
+                });
 
-        console.log('✅ Admin Notification System embedded successfully!');
-    })();
+                notification.addEventListener('mouseleave', () => {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'running';
+                    }
+                    const newTimeoutId = setTimeout(() => {
+                        dismissNotification(notification);
+                    }, 2000);
+                    notification._timeoutId = newTimeoutId;
+                });
+            };
+
+            console.log('✅ Admin Notification System embedded successfully!');
+        })();
     </script>
     <!-- ============================================================ -->
     <!-- END OF NOTIFICATION SYSTEM EMBED                                 -->
@@ -960,269 +973,269 @@
 
     <!-- Global Functions for Modals -->
     <script>
-    // Global function for edit modal submission
-    window.submitEditForm = function(id) {
-        console.log('submitEditForm called with id:', id);
-        const form = document.getElementById('editForm' + id);
-        if (!form) {
-            console.error('Form not found with id: editForm' + id);
-            if (typeof window.showNotification === 'function') {
-                window.showNotification('Form not found. Please refresh and try again.', 'error');
-            } else {
-                alert('Form not found. Please refresh and try again.');
-            }
-            return;
-        }
-
-        // Disable button to prevent double submission
-        const submitBtn = form.querySelector('.btn-update');
-        if (!submitBtn) {
-            console.error('Submit button not found in form');
-            if (typeof window.showNotification === 'function') {
-                window.showNotification('Submit button not found.', 'error');
-            } else {
-                alert('Submit button not found.');
-            }
-            return;
-        }
-        
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
-
-        // Show processing notification
-        if (typeof window.showNotification === 'function') {
-            window.showNotification('Updating inventory settings...', 'info');
-        }
-
-        const formData = new FormData(form);
-        formData.append('_method', 'PUT');
-
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            },
-            body: formData
-        })
-        .then(response => {
-            // Check if response is JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Server returned non-JSON response. Please check your controller.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Re-enable button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-
-            if (data.success) {
-                // Show success notification
+        // Global function for edit modal submission
+        window.submitEditForm = function(id) {
+            console.log('submitEditForm called with id:', id);
+            const form = document.getElementById('editForm' + id);
+            if (!form) {
+                console.error('Form not found with id: editForm' + id);
                 if (typeof window.showNotification === 'function') {
-                    window.showNotification(
-                        data.message || 'Inventory updated successfully!', 
-                        'success'
-                    );
+                    window.showNotification('Form not found. Please refresh and try again.', 'error');
                 } else {
-                    alert('Success: ' + (data.message || 'Inventory updated successfully!'));
+                    alert('Form not found. Please refresh and try again.');
                 }
-                
-                // Close modal
-                const modalElement = document.querySelector('.modal.show');
-                if (modalElement) {
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    if (modal) modal.hide();
-                }
-                // Remove backdrop
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) backdrop.remove();
-                document.body.classList.remove('modal-open');
+                return;
+            }
 
-                // RELOAD THE PAGE AFTER 1.5 SECONDS to show updated data
-                console.log('Reloading page in 1.5 seconds...');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                // Handle validation errors
-                if (data.errors) {
-                    // Clear previous errors
-                    document.querySelectorAll('.is-invalid').forEach(el => {
-                        el.classList.remove('is-invalid');
-                    });
-                    document.querySelectorAll('.invalid-feedback').forEach(el => {
-                        el.remove();
-                    });
-                    
-                    // Show new errors
-                    let errorMsg = '';
-                    for (const [field, errors] of Object.entries(data.errors)) {
-                        errorMsg += errors[0] + '\n';
-                        const input = document.querySelector(`[name="${field}"]`);
-                        if (input) {
-                            input.classList.add('is-invalid');
-                            const feedback = document.createElement('div');
-                            feedback.className = 'invalid-feedback';
-                            feedback.innerText = errors[0];
-                            input.parentNode.insertBefore(feedback, input.nextSibling);
+            // Disable button to prevent double submission
+            const submitBtn = form.querySelector('.btn-update');
+            if (!submitBtn) {
+                console.error('Submit button not found in form');
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Submit button not found.', 'error');
+                } else {
+                    alert('Submit button not found.');
+                }
+                return;
+            }
+
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+            // Show processing notification
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Updating inventory settings...', 'info');
+            }
+
+            const formData = new FormData(form);
+            formData.append('_method', 'PUT');
+
+            fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server returned non-JSON response. Please check your controller.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+
+                    if (data.success) {
+                        // Show success notification
+                        if (typeof window.showNotification === 'function') {
+                            window.showNotification(
+                                data.message || 'Inventory updated successfully!',
+                                'success'
+                            );
+                        } else {
+                            alert('Success: ' + (data.message || 'Inventory updated successfully!'));
+                        }
+
+                        // Close modal
+                        const modalElement = document.querySelector('.modal.show');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) modal.hide();
+                        }
+                        // Remove backdrop
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) backdrop.remove();
+                        document.body.classList.remove('modal-open');
+
+                        // RELOAD THE PAGE AFTER 1.5 SECONDS to show updated data
+                        console.log('Reloading page in 1.5 seconds...');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // Handle validation errors
+                        if (data.errors) {
+                            // Clear previous errors
+                            document.querySelectorAll('.is-invalid').forEach(el => {
+                                el.classList.remove('is-invalid');
+                            });
+                            document.querySelectorAll('.invalid-feedback').forEach(el => {
+                                el.remove();
+                            });
+
+                            // Show new errors
+                            let errorMsg = '';
+                            for (const [field, errors] of Object.entries(data.errors)) {
+                                errorMsg += errors[0] + '\n';
+                                const input = document.querySelector(`[name="${field}"]`);
+                                if (input) {
+                                    input.classList.add('is-invalid');
+                                    const feedback = document.createElement('div');
+                                    feedback.className = 'invalid-feedback';
+                                    feedback.innerText = errors[0];
+                                    input.parentNode.insertBefore(feedback, input.nextSibling);
+                                }
+                            }
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(errorMsg || data.message || 'Validation failed', 'error');
+                            } else {
+                                alert('Validation Error: ' + errorMsg);
+                            }
+                        } else {
+                            if (typeof window.showNotification === 'function') {
+                                window.showNotification(data.message || 'Update failed', 'error');
+                            } else {
+                                alert('Error: ' + (data.message || 'Update failed'));
+                            }
                         }
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                     if (typeof window.showNotification === 'function') {
-                        window.showNotification(errorMsg || data.message || 'Validation failed', 'error');
+                        // Show a user-friendly error message
+                        let errorMessage = 'Network error. Please try again.';
+                        if (error.message.includes('non-JSON')) {
+                            errorMessage = 'Server error. Please check your controller.';
+                        }
+                        window.showNotification(errorMessage, 'error');
                     } else {
-                        alert('Validation Error: ' + errorMsg);
+                        alert('Error: ' + error.message);
                     }
-                } else {
-                    if (typeof window.showNotification === 'function') {
-                        window.showNotification(data.message || 'Update failed', 'error');
-                    } else {
-                        alert('Error: ' + (data.message || 'Update failed'));
-                    }
+                });
+        };
+
+        // SIMPLE EVENT DELEGATION - Click handler at document level
+        document.addEventListener('click', function(e) {
+            // Check if the clicked element or its parent has the .btn-update class and data-inventory-id attribute
+            const btn = e.target.closest('.btn-update[data-inventory-id]');
+            if (btn) {
+                e.preventDefault();
+                const id = btn.getAttribute('data-inventory-id');
+                console.log('Update button clicked for inventory ID:', id);
+                if (typeof window.submitEditForm === 'function') {
+                    window.submitEditForm(id);
                 }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-            if (typeof window.showNotification === 'function') {
-                // Show a user-friendly error message
-                let errorMessage = 'Network error. Please try again.';
-                if (error.message.includes('non-JSON')) {
-                    errorMessage = 'Server error. Please check your controller.';
-                }
-                window.showNotification(errorMessage, 'error');
-            } else {
-                alert('Error: ' + error.message);
             }
         });
-    };
 
-    // SIMPLE EVENT DELEGATION - Click handler at document level
-    document.addEventListener('click', function(e) {
-        // Check if the clicked element or its parent has the .btn-update class and data-inventory-id attribute
-        const btn = e.target.closest('.btn-update[data-inventory-id]');
-        if (btn) {
-            e.preventDefault();
-            const id = btn.getAttribute('data-inventory-id');
-            console.log('Update button clicked for inventory ID:', id);
-            if (typeof window.submitEditForm === 'function') {
-                window.submitEditForm(id);
-            }
-        }
-    });
-
-    // Log to confirm script loaded
-    console.log('Modal edit script loaded successfully');
-    console.log('submitEditForm available:', typeof window.submitEditForm === 'function');
+        // Log to confirm script loaded
+        console.log('Modal edit script loaded successfully');
+        console.log('submitEditForm available:', typeof window.submitEditForm === 'function');
     </script>
 
     <!-- ============================================================ -->
     <!-- SIDEBAR TOGGLE FUNCTIONALITY - FIXED WITH LEFT/RIGHT ICONS     -->
     <!-- ============================================================ -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get elements
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleBtn');
-        const sidebarCollapseBtn = document.getElementById('sidebarCollapse');
-        
-        // Check if elements exist
-        if (!sidebar || !toggleBtn || !sidebarCollapseBtn) {
-            console.error('Required elements not found!');
-            return;
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const sidebarCollapseBtn = document.getElementById('sidebarCollapse');
 
-        // Function to toggle sidebar
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            
-            // Update toggle button icon - LEFT/RIGHT arrows
-            const icon = toggleBtn.querySelector('i');
-            if (sidebar.classList.contains('active')) {
-                // Sidebar is hidden - show RIGHT arrow (chevron-right) to open
-                icon.className = 'bi bi-chevron-right';
-            } else {
-                // Sidebar is visible - show LEFT arrow (chevron-left) to close
-                icon.className = 'bi bi-chevron-left';
+            // Check if elements exist
+            if (!sidebar || !toggleBtn || !sidebarCollapseBtn) {
+                console.error('Required elements not found!');
+                return;
             }
-            
-            // Save state to localStorage for persistence
-            const isCollapsed = sidebar.classList.contains('active');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-            
-            console.log('Sidebar toggled. Active:', sidebar.classList.contains('active'));
-        }
 
-        // Event listeners for both toggle buttons
-        toggleBtn.addEventListener('click', toggleSidebar);
-        sidebarCollapseBtn.addEventListener('click', toggleSidebar);
+            // Function to toggle sidebar
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
 
-        // Restore sidebar state from localStorage
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            sidebar.classList.add('active');
-            const icon = toggleBtn.querySelector('i');
-            icon.className = 'bi bi-chevron-right';
-        }
-
-        // Handle mobile responsive: auto-close sidebar on mobile when clicking main content
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.addEventListener('click', function(e) {
-                // Only on mobile devices
-                if (window.innerWidth <= 768) {
-                    if (!sidebar.classList.contains('active')) {
-                        // If sidebar is visible, close it
-                        sidebar.classList.add('active');
-                        const icon = toggleBtn.querySelector('i');
-                        icon.className = 'bi bi-chevron-right';
-                        localStorage.setItem('sidebarCollapsed', 'true');
-                    }
-                }
-            });
-        }
-
-        // Handle window resize - adjust behavior for mobile
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function() {
-                if (window.innerWidth > 768) {
-                    // On desktop, if sidebar is hidden, show it
-                    if (sidebar.classList.contains('active')) {
-                        sidebar.classList.remove('active');
-                        const icon = toggleBtn.querySelector('i');
-                        icon.className = 'bi bi-chevron-left';
-                        localStorage.setItem('sidebarCollapsed', 'false');
-                    }
+                // Update toggle button icon - LEFT/RIGHT arrows
+                const icon = toggleBtn.querySelector('i');
+                if (sidebar.classList.contains('active')) {
+                    // Sidebar is hidden - show RIGHT arrow (chevron-right) to open
+                    icon.className = 'bi bi-chevron-right';
                 } else {
-                    // On mobile, if sidebar is visible, add active class to hide it
-                    if (!sidebar.classList.contains('active')) {
-                        sidebar.classList.add('active');
-                        const icon = toggleBtn.querySelector('i');
-                        icon.className = 'bi bi-chevron-right';
-                        localStorage.setItem('sidebarCollapsed', 'true');
-                    }
+                    // Sidebar is visible - show LEFT arrow (chevron-left) to close
+                    icon.className = 'bi bi-chevron-left';
                 }
-            }, 250);
+
+                // Save state to localStorage for persistence
+                const isCollapsed = sidebar.classList.contains('active');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+
+                console.log('Sidebar toggled. Active:', sidebar.classList.contains('active'));
+            }
+
+            // Event listeners for both toggle buttons
+            toggleBtn.addEventListener('click', toggleSidebar);
+            sidebarCollapseBtn.addEventListener('click', toggleSidebar);
+
+            // Restore sidebar state from localStorage
+            const savedState = localStorage.getItem('sidebarCollapsed');
+            if (savedState === 'true') {
+                sidebar.classList.add('active');
+                const icon = toggleBtn.querySelector('i');
+                icon.className = 'bi bi-chevron-right';
+            }
+
+            // Handle mobile responsive: auto-close sidebar on mobile when clicking main content
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.addEventListener('click', function(e) {
+                    // Only on mobile devices
+                    if (window.innerWidth <= 768) {
+                        if (!sidebar.classList.contains('active')) {
+                            // If sidebar is visible, close it
+                            sidebar.classList.add('active');
+                            const icon = toggleBtn.querySelector('i');
+                            icon.className = 'bi bi-chevron-right';
+                            localStorage.setItem('sidebarCollapsed', 'true');
+                        }
+                    }
+                });
+            }
+
+            // Handle window resize - adjust behavior for mobile
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(function() {
+                    if (window.innerWidth > 768) {
+                        // On desktop, if sidebar is hidden, show it
+                        if (sidebar.classList.contains('active')) {
+                            sidebar.classList.remove('active');
+                            const icon = toggleBtn.querySelector('i');
+                            icon.className = 'bi bi-chevron-left';
+                            localStorage.setItem('sidebarCollapsed', 'false');
+                        }
+                    } else {
+                        // On mobile, if sidebar is visible, add active class to hide it
+                        if (!sidebar.classList.contains('active')) {
+                            sidebar.classList.add('active');
+                            const icon = toggleBtn.querySelector('i');
+                            icon.className = 'bi bi-chevron-right';
+                            localStorage.setItem('sidebarCollapsed', 'true');
+                        }
+                    }
+                }, 250);
+            });
+
+            // Initialize on mobile
+            if (window.innerWidth <= 768 && !sidebar.classList.contains('active')) {
+                sidebar.classList.add('active');
+                const icon = toggleBtn.querySelector('i');
+                icon.className = 'bi bi-chevron-right';
+                localStorage.setItem('sidebarCollapsed', 'true');
+            }
+
+            // Log success
+            console.log('✅ Sidebar toggle functionality initialized!');
         });
-
-        // Initialize on mobile
-        if (window.innerWidth <= 768 && !sidebar.classList.contains('active')) {
-            sidebar.classList.add('active');
-            const icon = toggleBtn.querySelector('i');
-            icon.className = 'bi bi-chevron-right';
-            localStorage.setItem('sidebarCollapsed', 'true');
-        }
-
-        // Log success
-        console.log('✅ Sidebar toggle functionality initialized!');
-    });
     </script>
     <!-- ============================================================ -->
     <!-- END OF SIDEBAR TOGGLE FUNCTIONALITY                              -->
