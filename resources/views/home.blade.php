@@ -105,8 +105,8 @@
             padding-top: 140px;
             padding-bottom: 100px;
             position: relative;
-            min-height: 70vh; 
-            background-color: #e2e8f0; 
+            min-height: 70vh;
+            background-color: #e2e8f0;
             background-image: url('{{ asset('images/geekbar.jpg') }}');
             background-size: cover;
             background-position: center;
@@ -116,7 +116,10 @@
         #home::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(255, 255, 255, 0.6);
             z-index: 0;
         }
@@ -233,15 +236,18 @@
             font-size: 1rem;
             margin-bottom: 4px;
         }
+
         .founder-role {
             font-size: 0.9rem;
             color: #64748b;
         }
+
         .founder-desc {
             font-size: 0.95rem;
             color: #1e293b;
             margin: 12px 0 16px 0;
         }
+
         .founder-meta {
             display: flex;
             gap: 20px;
@@ -249,6 +255,7 @@
             color: #64748b;
             font-size: 0.85rem;
         }
+
         .founder-meta i {
             margin-right: 6px;
         }
@@ -423,7 +430,7 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        
+
         .delivery-icon-box i {
             font-size: 1.8rem;
             color: var(--primary-color);
@@ -456,7 +463,7 @@
             border-left: 3px solid var(--primary-color);
             margin: 16px 0;
         }
-        
+
         .delivery-highlight-box strong {
             color: #1e293b;
         }
@@ -464,11 +471,11 @@
         .delivery-hours {
             margin-top: 8px;
         }
-        
+
         .delivery-hours p {
             margin-bottom: 0;
         }
-        
+
         .payment-wrapper {
             background: #fff;
             border: 1px solid #f1f5f9;
@@ -530,6 +537,7 @@
             border-radius: 50%;
             background-color: #cbd5e1;
         }
+
         .carousel-indicators button.active {
             background-color: var(--primary-color);
         }
@@ -542,7 +550,7 @@
             background-size: 60%;
             backdrop-filter: blur(4px);
         }
-        
+
         .carousel-control-prev-icon:hover,
         .carousel-control-next-icon:hover {
             background-color: var(--primary-color);
@@ -558,21 +566,25 @@
             transition: transform 0.2s;
             height: 100%;
         }
+
         .branch-card-grid:hover {
             transform: translateY(-4px);
             border-color: #e2e8f0;
         }
+
         .branch-card-grid .title-wrap {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 12px;
         }
+
         .branch-card-grid h5 {
             font-weight: 700;
             margin-bottom: 0;
             font-size: 1.05rem;
         }
+
         .branch-card-grid .branch-badge {
             background: #f1f5f9;
             color: #475569;
@@ -582,6 +594,7 @@
             font-weight: 600;
             text-transform: uppercase;
         }
+
         .branch-card-grid .branch-info {
             color: #64748b;
             font-size: 0.9rem;
@@ -592,10 +605,12 @@
             align-items: flex-start;
             gap: 8px;
         }
+
         .branch-card-grid .branch-info i {
             color: #94a3b8;
             margin-top: 4px;
         }
+
         .branch-card-grid .branch-manager {
             color: #64748b;
             font-size: 0.9rem;
@@ -603,9 +618,11 @@
             align-items: center;
             gap: 8px;
         }
+
         .branch-card-grid .branch-manager i {
             color: #94a3b8;
         }
+
         .branch-card-grid .branch-manager span {
             color: #1e293b;
             font-weight: 500;
@@ -708,21 +725,26 @@
             .hero-title {
                 font-size: 2.2rem;
             }
+
             .hero-buttons .btn {
                 display: block;
                 width: 100%;
                 margin: 10px 0;
             }
+
             .cta-banner {
                 padding: 30px;
             }
+
             .navbar-brand {
                 font-size: 1.1rem;
             }
+
             .timeline-row {
                 flex-direction: column;
                 gap: 6px;
             }
+
             .carousel-item .position-relative {
                 min-height: 350px;
             }
@@ -736,7 +758,8 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">
                 <!-- Logo Image Placeholder with fallback -->
-                <img src="images/logo.png" onerror="this.src='https://placehold.co/40x40/0d6efd/ffffff?text=Logo'" alt="VapeExpo Logo">
+                <img src="images/logo.png" onerror="this.src='https://placehold.co/40x40/0d6efd/ffffff?text=Logo'"
+                    alt="VapeExpo Logo">
                 Vape Expo
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -747,7 +770,7 @@
                     <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
                     <li class="nav-item"><a class="nav-link" href="#branches">Branches</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contact-info">Contact</a></li>
-                    
+
                     @auth
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -756,13 +779,18 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                 @if (Auth::user()->role == 'super_admin')
-                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Admin Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                                    </li>
                                 @elseif(Auth::user()->role == 'branch_admin')
-                                    <li><a class="dropdown-item" href="{{ route('branch-admin.dashboard') }}">Branch Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('branch-admin.dashboard') }}">Branch
+                                            Dashboard</a></li>
                                 @elseif(Auth::user()->role == 'customer')
-                                    <li><a class="dropdown-item" href="{{ route('customer.dashboard') }}">My Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('customer.dashboard') }}">My Dashboard</a>
+                                    </li>
                                 @endif
-                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
@@ -791,7 +819,8 @@
             <div class="hero-text">
                 <div class="hero-badge">Now open across Calamba, Laguna</div>
                 <h1 class="hero-title">Your Premium <span>Vape</span><br>Destination</h1>
-                <p class="hero-subtitle">Discover top-tier vape products from trusted brands. Walk in, explore, and find your perfect match at Vape Expo.</p>
+                <p class="hero-subtitle">Discover top-tier vape products from trusted brands. Walk in, explore, and find
+                    your perfect match at Vape Expo.</p>
                 <div class="hero-buttons">
                     <a href="#branches" class="btn btn-hero-primary">Find a Branch Near You</a>
                     <a href="#products" class="btn btn-hero-secondary">Browse Products</a>
@@ -808,7 +837,8 @@
                     <div class="story-text-group text-center">
                         <div class="badge-label">Our Story</div>
                         <h2>Built from Passion, Grown by Community</h2>
-                        <p>What started as one shop with a big dream has become the go-to vape destination across Calamba. Here's how it happened.</p>
+                        <p>What started as one shop with a big dream has become the go-to vape destination across
+                            Calamba. Here's how it happened.</p>
                     </div>
 
                     <div class="founder-profile-card">
@@ -824,7 +854,9 @@
                             </div>
                         </div>
                         <div class="founder-desc">
-                            "I started Vape Expo to create a place where vapers could find quality products without the hassle — a shop that feels welcoming and reliable. Every branch is built with that same mission."
+                            "I started Vape Expo to create a place where vapers could find quality products without the
+                            hassle — a shop that feels welcoming and reliable. Every branch is built with that same
+                            mission."
                         </div>
                     </div>
 
@@ -833,28 +865,33 @@
                             <div class="timeline-date-box">MAY 2024</div>
                             <div class="timeline-content-box">
                                 <h6>The Beginning</h6>
-                                <p>We opened our very first Vape Expo Canlubang branch, driven by a passion for quality vape products and a desire to create a welcoming community.</p>
+                                <p>We opened our very first Vape Expo Canlubang branch, driven by a passion for quality
+                                    vape products and a desire to create a welcoming community.</p>
                             </div>
                         </div>
                         <div class="timeline-row">
                             <div class="timeline-date-box">APRIL 2025</div>
                             <div class="timeline-content-box">
                                 <h6>Growing Roots</h6>
-                                <p>Due to growing demand, we expanded to open our second branch in Calamba — Asia 1, MCDC, and Majada Out — each staffed with people who share the same passion for service.</p>
+                                <p>Due to growing demand, we expanded to open our second branch in Calamba — Asia 1,
+                                    MCDC, and Majada Out — each staffed with people who share the same passion for
+                                    service.</p>
                             </div>
                         </div>
                         <div class="timeline-row">
                             <div class="timeline-date-box">NOV 2025</div>
                             <div class="timeline-content-box">
                                 <h6>Reaching More</h6>
-                                <p>Paciano and Paciano V2 joined the family, extending Vape Expo's reach across Calamba City and beyond — bringing the brand to more vapers.</p>
+                                <p>Paciano and Paciano V2 joined the family, extending Vape Expo's reach across Calamba
+                                    City and beyond — bringing the brand to more vapers.</p>
                             </div>
                         </div>
                         <div class="timeline-row">
                             <div class="timeline-date-box">2026</div>
                             <div class="timeline-content-box">
                                 <h6>Going Strong</h6>
-                                <p>Every branch is open from 9 AM to 10 PM, seven days a week — because we believe great service should be available whenever you need it.</p>
+                                <p>Every branch is open from 9 AM to 10 PM, seven days a week — because we believe great
+                                    service should be available whenever you need it.</p>
                             </div>
                         </div>
                     </div>
@@ -900,7 +937,8 @@
         <div class="container">
             <div class="text-center mb-5">
                 <h2 class="fw-bold">Our Products</h2>
-                <p class="text-muted">From premium disposables to sleek pod systems, we've got what you're looking for.</p>
+                <p class="text-muted">From premium disposables to sleek pod systems, we've got what you're looking for.
+                </p>
             </div>
             <div class="row g-4">
                 @php
@@ -908,17 +946,21 @@
                         ['name' => 'ULTRA', 'desc' => 'High-performance disposable vape', 'img' => 'x-ultra.jpg'],
                         ['name' => 'Slimbar', 'desc' => 'Sleek and portable pod system', 'img' => 'slimbar.jpg'],
                         ['name' => 'Relx', 'desc' => 'Popular pod system with various flavors', 'img' => 'relx.jpg'],
-                        ['name' => 'Many More', 'desc' => 'Explore our wide selection of brands in-store', 'img' => 'DISPOSABLEVAPES.jpg'],
+                        [
+                            'name' => 'Many More',
+                            'desc' => 'Explore our wide selection of brands in-store',
+                            'img' => 'DISPOSABLEVAPES.jpg',
+                        ],
                     ];
                 @endphp
                 @foreach ($products as $product)
                     <div class="col-6 col-md-3">
                         <div class="product-card">
                             <div class="product-img-wrapper">
-                                <img src="{{ asset('images/products/' . $product['img']) }}" 
-                                     alt="{{ $product['name'] }}"
-                                     style="width: 100%; height: 100%; object-fit: contain;"
-                                     onerror="this.style.display='none'; this.parentElement.innerHTML = `
+                                <img src="{{ asset('images/products/' . $product['img']) }}"
+                                    alt="{{ $product['name'] }}"
+                                    style="width: 100%; height: 100%; object-fit: contain;"
+                                    onerror="this.style.display='none'; this.parentElement.innerHTML = `
                                         <div style='width:100%; height:100%; display:flex; align-items:center; justify-content:center; background-color: #f8fafc; border-radius: 8px;'>
                                             <span style='color: #94a3b8; font-weight: 600; font-size: 1.1rem;'>{{ $product['name'] }}</span>
                                         </div>
@@ -962,7 +1004,8 @@
                                 <span class="text-muted">Within Calamba City</span>
                             </div>
                             <div class="delivery-hours">
-                                <span class="fw-semibold"><i class="bi bi-clock text-primary me-1"></i> Delivery Hours:</span>
+                                <span class="fw-semibold"><i class="bi bi-clock text-primary me-1"></i> Delivery
+                                    Hours:</span>
                                 <p class="text-muted mt-1">9:00 AM – 8:00 PM Daily</p>
                             </div>
                         </div>
@@ -988,7 +1031,8 @@
                                 <span class="text-muted">Fees based on Lalamove rate</span>
                             </div>
                             <div class="delivery-hours">
-                                <span class="fw-semibold"><i class="bi bi-info-circle text-primary me-1"></i> How it works:</span>
+                                <span class="fw-semibold"><i class="bi bi-info-circle text-primary me-1"></i> How it
+                                    works:</span>
                                 <ul class="text-muted mt-1 ps-3" style="font-size: 0.9rem;">
                                     <li>We book Lalamove for your delivery</li>
                                     <li>Fee calculated via Lalamove's rate</li>
@@ -1040,7 +1084,8 @@
             <div class="text-center mb-5">
                 <h6 class="text-primary fw-bold text-uppercase small">Where to Find Us</h6>
                 <h2 class="fw-bold">Our Branches</h2>
-                <p class="text-muted">5 Branches across Calamba and surrounding areas —<br>each one ready to serve you with the same care and quality.</p>
+                <p class="text-muted">5 Branches across Calamba and surrounding areas —<br>each one ready to serve you
+                    with the same care and quality.</p>
             </div>
 
             @php
@@ -1087,8 +1132,8 @@
             <div id="branchCarousel" class="carousel slide shadow-sm" data-bs-ride="carousel">
                 <div class="carousel-indicators">
                     @foreach ($branches as $index => $branch)
-                        <button type="button" data-bs-target="#branchCarousel" data-bs-slide-to="{{ $index }}"
-                            class="{{ $index == 0 ? 'active' : '' }}"
+                        <button type="button" data-bs-target="#branchCarousel"
+                            data-bs-slide-to="{{ $index }}" class="{{ $index == 0 ? 'active' : '' }}"
                             aria-current="{{ $index == 0 ? 'true' : 'false' }}"
                             aria-label="Slide {{ $index + 1 }}"></button>
                     @endforeach
@@ -1098,7 +1143,8 @@
                     @foreach ($branches as $index => $branch)
                         <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
                             <div class="position-relative">
-                                <div style="max-height: 500px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #f8fafc;">
+                                <div
+                                    style="max-height: 500px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #f8fafc;">
                                     <img src="{{ asset('images/branches/' . $branch['img']) }}" class="d-block w-100"
                                         alt="{{ $branch['name'] }}"
                                         style="width: 100%; height: auto; max-height: 500px; object-fit: contain;"
@@ -1118,10 +1164,10 @@
                                                     <i class="bi bi-pin-map-fill text-info me-2"></i>
                                                     {{ $branch['landmark'] }}
                                                 </p>
-                                                <p class="text-white mb-0">
+                                                {{-- <p class="text-white mb-0">
                                                     <i class="bi bi-person-badge-fill text-success me-2"></i>
                                                     <span class="fw-semibold">Manager:</span> {{ $branch['manager'] }}
-                                                </p>
+                                                </p> --}}
                                             </div>
                                         </div>
                                     </div>
@@ -1131,11 +1177,13 @@
                     @endforeach
                 </div>
 
-                <button class="carousel-control-prev" type="button" data-bs-target="#branchCarousel" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#branchCarousel"
+                    data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#branchCarousel" data-bs-slide="next">
+                <button class="carousel-control-next" type="button" data-bs-target="#branchCarousel"
+                    data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
@@ -1145,11 +1193,36 @@
             <div class="row g-4 mt-2">
                 @php
                     $branch_grid_data = [
-                        ['name' => 'Asia 1 Branch', 'address' => 'Blk 67 Lot 1, Canlubang, Calamba, Laguna', 'manager' => 'Karl Viscaino', 'since' => '2024'],
-                        ['name' => 'Majada Out Branch', 'address' => 'EFG Building, Majada Out Road', 'manager' => 'Rocky Ace', 'since' => '2025'],
-                        ['name' => 'MCDC Branch', 'address' => 'Blk 1 Lot 10, Canlubang, Calamba, Laguna', 'manager' => 'Mhark Apoliga', 'since' => '2025'],
-                        ['name' => 'Paciano Branch', 'address' => '215 National Road, Brgy. Paciano Rizal, Calamba City', 'manager' => 'Jeremy Abustan', 'since' => '2025'],
-                        ['name' => 'Paciano V2 Branch', 'address' => '39 Mayapa, Canlubang Cadre Road, Calamba', 'manager' => 'Rhe Ann Alqueza', 'since' => '2025'],
+                        [
+                            'name' => 'Asia 1 Branch',
+                            'address' => 'Blk 67 Lot 1, Canlubang, Calamba, Laguna',
+                            'manager' => 'Karl Viscaino',
+                            'since' => '2024',
+                        ],
+                        [
+                            'name' => 'Majada Out Branch',
+                            'address' => 'EFG Building, Majada Out Road',
+                            'manager' => 'Rocky Ace',
+                            'since' => '2025',
+                        ],
+                        [
+                            'name' => 'MCDC Branch',
+                            'address' => 'Blk 1 Lot 10, Canlubang, Calamba, Laguna',
+                            'manager' => 'Mhark Apoliga',
+                            'since' => '2025',
+                        ],
+                        [
+                            'name' => 'Paciano Branch',
+                            'address' => '215 National Road, Brgy. Paciano Rizal, Calamba City',
+                            'manager' => 'Jeremy Abustan',
+                            'since' => '2025',
+                        ],
+                        [
+                            'name' => 'Paciano V2 Branch',
+                            'address' => '39 Mayapa, Canlubang Cadre Road, Calamba',
+                            'manager' => 'Rhe Ann Alqueza',
+                            'since' => '2025',
+                        ],
                     ];
                 @endphp
 
@@ -1164,10 +1237,10 @@
                                 <i class="bi bi-geo-alt"></i>
                                 {{ $grid_branch['address'] }}
                             </div>
-                            <div class="branch-manager">
+                            {{-- <div class="branch-manager">
                                 <i class="bi bi-person"></i>
                                 <span>{{ $grid_branch['manager'] }}</span>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 @endforeach
@@ -1180,7 +1253,7 @@
         <div class="cta-banner">
             <h3>Ready to explore?</h3>
             <p>Visit any of our 5 branches today and discover your next favorite vape.</p>
-            
+
             @guest
                 <a href="{{ route('login') }}" class="btn">Login to Find Your Nearest Branch</a>
             @else
@@ -1235,9 +1308,10 @@
                     <h5>VapeExpo</h5>
                     <p class="small">Your trusted vape shop since 2024.<br>Owner: Carlo Caranto</p>
                     <p><i class="bi bi-telephone me-2"></i>0993 990 1044<br>
-                        <i class="bi bi-envelope me-2"></i>vapeexpo2024@gmail.com</p>
+                        <i class="bi bi-envelope me-2"></i>vapeexpo2024@gmail.com
+                    </p>
                 </div>
-                
+
                 <div class="col-md-4 mb-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled small">
@@ -1261,4 +1335,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
