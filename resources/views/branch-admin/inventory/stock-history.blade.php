@@ -11,14 +11,6 @@
                 <i class="bi bi-clock-history me-1"></i> Complete log of all stock changes for your branch
             </p>
         </div>
-        {{-- <div class="d-flex gap-2">
-            <a href="{{ route('branch-admin.warehouse.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-house-door"></i> Warehouse Requests
-            </a>
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div> --}}
     </div>
 
     <!-- Filter Section -->
@@ -30,7 +22,10 @@
                     <select name="type" class="form-select">
                         <option value="">All Types</option>
                         <option value="purchase" {{ request('type') == 'purchase' ? 'selected' : '' }}>Purchase</option>
-                        <option value="sale" {{ request('type') == 'sale' ? 'selected' : '' }}>Sale</option>
+                        <option value="sale" {{ request('type') == 'sale' ? 'selected' : '' }}>POS Sale</option>
+                        <option value="online_sale" {{ request('type') == 'online_sale' ? 'selected' : '' }}>Online Order Sale</option>
+                        <option value="reserve" {{ request('type') == 'reserve' ? 'selected' : '' }}>Online Order Reserve</option>
+                        <option value="reserve_cancel" {{ request('type') == 'reserve_cancel' ? 'selected' : '' }}>Reservation Cancelled</option>
                         <option value="warehouse_receive" {{ request('type') == 'warehouse_receive' ? 'selected' : '' }}>Warehouse Receive</option>
                         <option value="transfer_out" {{ request('type') == 'transfer_out' ? 'selected' : '' }}>Transfer Out</option>
                         <option value="transfer_in" {{ request('type') == 'transfer_in' ? 'selected' : '' }}>Transfer In</option>
@@ -114,10 +109,23 @@
                             <td>{{ $movement->flavor->name ?? 'No Flavor' }}</td>
                             <td>
                                 @php
+                                    $movementType = $movement->movement_type;
+                                    $notes = $movement->notes ?? '';
+                                    $lowerNotes = strtolower($notes);
+                                    
+                                    // ✅ Check if notes contain "pos" (POS Sale)
+                                    $isPOS = str_contains($lowerNotes, 'pos');
+                                    
+                                    // ✅ Check if notes contain "order #ord-" or "ord-" (Online Order)
+                                    $isOnlineOrder = str_contains($lowerNotes, 'order #ord-') || str_contains($lowerNotes, 'ord-');
+                                    
                                     // Map movement types to display names
                                     $typeDisplay = [
                                         'purchase' => 'Purchase',
                                         'sale' => 'Sale',
+                                        'online_sale' => 'Online Order Sale',
+                                        'reserve' => 'Online Order Reserve',
+                                        'reserve_cancel' => 'Reservation Cancelled',
                                         'transfer_out' => 'Transfer Out',
                                         'transfer_in' => 'Transfer In',
                                         'receive' => 'Warehouse Receive',
@@ -126,9 +134,25 @@
                                         'adjustment' => 'Adjustment',
                                     ];
                                     
+                                    // ✅ Override display name based on notes
+                                    if ($movementType === 'sale' && $isOnlineOrder) {
+                                        $displayName = 'Online Order Sale';
+                                    } elseif ($movementType === 'sale' && $isPOS) {
+                                        $displayName = 'POS Sale';
+                                    } elseif ($movementType === 'sale') {
+                                        $displayName = 'POS Sale'; // Default for sale
+                                    } elseif (isset($typeDisplay[$movementType])) {
+                                        $displayName = $typeDisplay[$movementType];
+                                    } else {
+                                        $displayName = ucfirst(str_replace('_', ' ', $movementType));
+                                    }
+                                    
                                     $typeColors = [
                                         'purchase' => 'success',
                                         'sale' => 'danger',
+                                        'online_sale' => 'danger',
+                                        'reserve' => 'warning',
+                                        'reserve_cancel' => 'info',
                                         'transfer_out' => 'warning',
                                         'transfer_in' => 'info',
                                         'receive' => 'primary',
@@ -137,9 +161,14 @@
                                         'adjustment' => 'secondary',
                                     ];
                                     
+                                    $color = $typeColors[$movementType] ?? 'secondary';
+                                    
                                     $typeIcons = [
                                         'purchase' => 'bi-box-arrow-in-down',
                                         'sale' => 'bi-cart-x',
+                                        'online_sale' => 'bi-cart-check',
+                                        'reserve' => 'bi-hourglass-split',
+                                        'reserve_cancel' => 'bi-x-circle',
                                         'transfer_out' => 'bi-send',
                                         'transfer_in' => 'bi-download',
                                         'receive' => 'bi-building',
@@ -147,9 +176,6 @@
                                         'adjustment' => 'bi-sliders'
                                     ];
                                     
-                                    $movementType = $movement->movement_type;
-                                    $displayName = $typeDisplay[$movementType] ?? ucfirst(str_replace('_', ' ', $movementType));
-                                    $color = $typeColors[$movementType] ?? 'secondary';
                                     $icon = $typeIcons[$movementType] ?? 'bi-clock';
                                 @endphp
                                 <span class="badge bg-{{ $color }}">

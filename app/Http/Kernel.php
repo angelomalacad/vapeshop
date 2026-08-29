@@ -69,5 +69,9 @@ class Kernel extends HttpKernel
         'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         'branch_admin' => \App\Http\Middleware\BranchAdminMiddleware::class,
         'customer' => \App\Http\Middleware\CustomerMiddleware::class, // This should exist
+
+        // ✅ ADD THESE:
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
+        'check.driver.duty' => \App\Http\Middleware\CheckDriverDuty::class,
     ];
 }

@@ -247,7 +247,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-0 fw-bold">
-                    <i class="bi bi-cart me-2 text-primary"></i>Online Orders
+                    <i class="bi bi-cart me-2 text-primary"></i>Online Orders History
                 </h1>
                 <p class="text-muted small mb-0">Monitor customer orders from confirmation to delivery (Read-only)</p>
             </div>

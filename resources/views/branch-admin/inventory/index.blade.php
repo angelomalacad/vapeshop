@@ -1,4 +1,5 @@
 @extends('layouts.branch-admin')
+
 <style>
     .stat-card-modern {
         background: #ffffff;
@@ -383,6 +384,147 @@
             padding: 0.75rem 1rem;
         }
     }
+
+    /* NEW: Reservation display styles */
+    .reserved-badge {
+        background: #fef3c7;
+        color: #d97706;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .reserved-badge i {
+        font-size: 0.8rem;
+    }
+
+    .available-badge {
+        background: #d1fae5;
+        color: #059669;
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .inventory-quantity {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .quantity-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quantity-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        min-width: 60px;
+    }
+
+    .quantity-value {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* NEW: Low stock row highlighting - Fixed with !important */
+    .table > tbody > tr.table-low-stock > td {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+
+    .table > tbody > tr.table-low-stock:hover > td {
+        background-color: #fecaca !important;
+    }
+
+    /* Make text more visible */
+    .table > tbody > tr.table-low-stock > td .fw-bold,
+    .table > tbody > tr.table-low-stock > td .fw-semibold {
+        color: #991b1b !important;
+        font-weight: 700 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .text-muted {
+        color: #7f1d1d !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .quantity-value {
+        color: #991b1b !important;
+        font-weight: 700 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .quantity-label {
+        color: #7f1d1d !important;
+    }
+
+    /* Style badges inside low stock rows */
+    .table > tbody > tr.table-low-stock > td .badge {
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+    }
+
+    .table > tbody > tr.table-low-stock > td .badge-low-stock {
+        background: #b91c1c !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.4rem 0.7rem !important;
+    }
+
+    /* Update available badge in low stock rows */
+    .table > tbody > tr.table-low-stock > td .available-badge {
+        background: #dc2626 !important;
+        color: white !important;
+    }
+
+    /* Update reserved badge in low stock rows */
+    .table > tbody > tr.table-low-stock > td .reserved-badge {
+        background: #dc2626 !important;
+        color: white !important;
+    }
+
+    /* Style action buttons in low stock rows */
+    .table > tbody > tr.table-low-stock > td .btn {
+        border-color: #dc2626 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .btn:hover {
+        background: #dc2626 !important;
+        color: white !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .btn-outline-info {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .btn-outline-warning {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .btn-outline-secondary {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    .table > tbody > tr.table-low-stock > td .btn-outline-danger {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    /* Make sure price text is visible */
+    .table > tbody > tr.table-low-stock > td:last-child {
+        font-weight: 700;
+    }
 </style>
 @section('content')
     <div class="container-fluid">
@@ -556,6 +698,7 @@
                                         <th>Specs</th>
                                         <th>In Stock</th>
                                         <th>Available</th>
+                                        <th>Reserved</th>
                                         <th>Expiration Date</th>
                                         <th>Status</th>
                                         <th>Price</th>
@@ -567,7 +710,9 @@
                                         @php
                                             $product = $inv->product;
                                             $available = $inv->available_quantity;
+                                            $reserved = $inv->reserved_quantity ?? 0;
                                             $isArchived = $inv->is_archived ?? false;
+                                            $isLowStock = $available <= $inv->low_stock_threshold && $available > 0;
                                             $expiry = $inv->expiration_date
                                                 ? \Carbon\Carbon::parse($inv->expiration_date)
                                                 : null;
@@ -580,7 +725,7 @@
                                                 }
                                             }
                                         @endphp
-                                        <tr>
+                                        <tr class="{{ $isLowStock ? 'table-low-stock' : '' }}">
                                             <td style="width: 60px">
                                                 @if ($imageUrl)
                                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
@@ -614,20 +759,30 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <span class="fw-bold">{{ $inv->quantity }}</span>
-                                                <br>
-                                                <small class="text-muted">Alert: {{ $inv->low_stock_threshold }}</small>
+                                                <div class="inventory-quantity">
+                                                    <span class="quantity-value">{{ $inv->quantity }}</span>
+                                                    <small class="text-muted">Alert: {{ $inv->low_stock_threshold }}</small>
+                                                </div>
                                             </td>
                                             <td>
-                                                <span class="fw-bold text-success">{{ $available }}</span>
+                                                <span class="available-badge">
+                                                    <i class="bi bi-check-circle"></i> {{ $available }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if($reserved > 0)
+                                                    <span class="reserved-badge">
+                                                        <i class="bi bi-clock"></i> {{ $reserved }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted">0</span>
+                                                @endif
                                             </td>
                                             <td>
                                                 @if ($expiry)
                                                     {{ $expiry->format('M d, Y') }}
                                                     @if ($expiry->isPast())
                                                         <span class="badge bg-danger ms-1">Expired</span>
-                                                    @elseif($expiry->diffInDays(now()) <= 30)
-                                                        <span class="badge bg-warning ms-1">Soon</span>
                                                     @endif
                                                 @else
                                                     <span class="text-muted">N/A</span>
@@ -638,8 +793,8 @@
                                                     <span class="badge bg-secondary">Archived</span>
                                                 @elseif($available <= 0)
                                                     <span class="badge bg-danger">Out of Stock</span>
-                                                @elseif($available <= $inv->low_stock_threshold)
-                                                    <span class="badge bg-warning">Low Stock</span>
+                                                @elseif($isLowStock)
+                                                    <span class="badge badge-low-stock">Low Stock</span>
                                                 @else
                                                     <span class="badge bg-success">In Stock</span>
                                                 @endif
@@ -689,7 +844,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11" class="text-center py-5">
+                                            <td colspan="12" class="text-center py-5">
                                                 <i class="bi bi-box-seam display-1 text-muted"></i>
                                                 <p class="mt-3 text-muted">No inventory items found</p>
                                                 <a href="{{ route('branch-admin.inventory.add-product') }}"
@@ -838,6 +993,7 @@
                                                 <th>Specs</th>
                                                 <th>In Stock</th>
                                                 <th>Available</th>
+                                                <th>Reserved</th>
                                                 <th>Expiration Date</th>
                                                 <th>Status</th>
                                                 <th>Price</th>
@@ -849,6 +1005,8 @@
                                                 @php
                                                     $product = $inv->product;
                                                     $available = $inv->available_quantity;
+                                                    $reserved = $inv->reserved_quantity ?? 0;
+                                                    $isLowStock = $available <= $inv->low_stock_threshold && $available > 0;
                                                     $expiry = $inv->expiration_date
                                                         ? \Carbon\Carbon::parse($inv->expiration_date)
                                                         : null;
@@ -861,7 +1019,7 @@
                                                         }
                                                     }
                                                 @endphp
-                                                <tr>
+                                                <tr class="{{ $isLowStock ? 'table-low-stock' : '' }}">
                                                     <td style="width: 60px">
                                                         @if ($imageUrl)
                                                             <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
@@ -901,15 +1059,24 @@
                                                             {{ $inv->low_stock_threshold }}</small>
                                                     </td>
                                                     <td>
-                                                        <span class="fw-bold text-success">{{ $available }}</span>
+                                                        <span class="available-badge">
+                                                            <i class="bi bi-check-circle"></i> {{ $available }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @if($reserved > 0)
+                                                            <span class="reserved-badge">
+                                                                <i class="bi bi-clock"></i> {{ $reserved }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">0</span>
+                                                        @endif
                                                     </td>
                                                     <td>
                                                         @if ($expiry)
                                                             {{ $expiry->format('M d, Y') }}
                                                             @if ($expiry->isPast())
                                                                 <span class="badge bg-danger ms-1">Expired</span>
-                                                            @elseif($expiry->diffInDays(now()) <= 30)
-                                                                <span class="badge bg-warning ms-1">Soon</span>
                                                             @endif
                                                         @else
                                                             <span class="text-muted">N/A</span>
@@ -918,8 +1085,8 @@
                                                     <td>
                                                         @if ($available <= 0)
                                                             <span class="badge bg-danger">Out of Stock</span>
-                                                        @elseif($available <= $inv->low_stock_threshold)
-                                                            <span class="badge bg-warning">Low Stock</span>
+                                                        @elseif($isLowStock)
+                                                            <span class="badge badge-low-stock">Low Stock</span>
                                                         @else
                                                             <span class="badge bg-success">In Stock</span>
                                                         @endif

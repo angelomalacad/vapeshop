@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Driver;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\Order;
+use App\Models\BranchInventory;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DeliveryController extends Controller
@@ -81,6 +84,15 @@ class DeliveryController extends Controller
      */
     public function dashboard()
     {
+        // ✅ Check if driver has active shift
+        $todayShift = \App\Models\DriverShift::where('shift_date', today())
+            ->where('status', 'active')
+            ->where('driver_id', Auth::id())
+            ->first();
+
+        if (!$todayShift) {
+            // Allow dashboard access, but block other actions via checks in methods
+        }
         $driverId = Auth::id();
 
         // Get today's active shift for this driver
@@ -363,6 +375,9 @@ class DeliveryController extends Controller
                 } elseif ($newStatus == 'delivered') {
                     $order->order_status = 'delivered';
                     $order->delivered_at = now();
+                    
+                    // ✅ NEW: Deduct inventory when order is delivered
+                    $this->deductOrderInventory($order);
                 } elseif ($newStatus == 'failed') {
                     $order->order_status = 'delivery_failed';
                 }
@@ -395,6 +410,81 @@ class DeliveryController extends Controller
                 return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
             }
             return redirect()->back()->with('error', 'Error updating delivery status: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deduct inventory when order is delivered
+     */
+    private function deductOrderInventory(Order $order)
+    {
+        $branchId = $order->branch_id;
+
+        DB::beginTransaction();
+
+        try {
+            // Check if inventory already deducted for this order
+            $alreadyDeducted = StockMovement::where('reference_type', 'order')
+                ->where('reference_id', $order->id)
+                ->where('movement_type', 'sale')
+                ->exists();
+
+            if ($alreadyDeducted) {
+                \Log::info("Inventory already deducted for order #{$order->order_number}");
+                return;
+            }
+
+            // Deduct reserved inventory for each item
+            foreach ($order->items as $item) {
+                $inventory = BranchInventory::where('branch_id', $branchId)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if (!$inventory) {
+                    \Log::warning("Inventory not found for product: {$item->product->name} in branch {$branchId}");
+                    continue;
+                }
+
+                // Check if enough reserved quantity
+                if ($inventory->reserved_quantity >= $item->quantity) {
+                    $oldQuantity = $inventory->quantity;
+                    $oldReserved = $inventory->reserved_quantity;
+                    $newQuantity = $oldQuantity - $item->quantity;
+                    $newReserved = max(0, $oldReserved - $item->quantity);
+
+                    // Update inventory - deduct stock
+                    $inventory->update([
+                        'quantity' => $newQuantity,
+                        'reserved_quantity' => $newReserved
+                    ]);
+
+                    // Create stock movement record for actual sale
+                    StockMovement::create([
+                        'branch_id' => $branchId,
+                        'product_id' => $item->product_id,
+                        'flavor_id' => $item->flavor_id ?? null,
+                        'previous_quantity' => $oldQuantity,
+                        'new_quantity' => $newQuantity,
+                        'quantity_change' => -$item->quantity,
+                        'movement_type' => 'sale',
+                        'reference_type' => 'order',
+                        'reference_id' => $order->id,
+                        'notes' => "Order #{$order->order_number} delivered by driver - stock deducted",
+                        'created_by' => Auth::id(),
+                    ]);
+
+                    \Log::info("Stock deducted for product {$item->product_id} in order #{$order->order_number}");
+                } else {
+                    \Log::warning("Insufficient reserved quantity for product {$item->product_id}. Reserved: {$inventory->reserved_quantity}, Needed: {$item->quantity}");
+                }
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error deducting inventory for order: ' . $e->getMessage());
+            throw $e;
         }
     }
 }

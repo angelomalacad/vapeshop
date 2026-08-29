@@ -7,9 +7,7 @@
     <title>Branch Staff Dashboard - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Inter', sans-serif;
@@ -466,6 +464,10 @@
                         <a href="{{ route('branch-admin.dashboard') }}"
                             class="list-group-item list-group-item-action active">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                        <a href="{{ route('branch-admin.online-orders.index') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-cart me-2"></i> Online Orders
                         </a>
                         <a href="{{ route('branch-admin.inventory.index') }}"
                             class="list-group-item list-group-item-action">
