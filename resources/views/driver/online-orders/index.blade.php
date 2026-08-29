@@ -1,5 +1,7 @@
 @extends('layouts.driver')
 
+@section('page-class', 'has-sidebar')
+
 @section('title', 'Online Orders - Driver')
 
 @section('content')
@@ -227,68 +229,73 @@
             }
         }
 
-        /* Sidebar Styles */
-        .app-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 260px;
-            background: #ffffff;
-            border-radius: 0 16px 16px 0;
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
-            z-index: 1040;
-            overflow: hidden;
-            padding-bottom: 20px;
-            margin-top: 80px;
-        }
+        /* Sidebar Styles - OVERRIDE to match layout */
+        /* .app-sidebar {
+                    position: fixed !important;
+                    top: 60px !important;
+                    left: 0 !important;
+                    width: 260px !important;
+                    height: auto !important;
+                    max-height: calc(100vh - 80px) !important;
+                    background: #ffffff;
+                    border-radius: 0 0 16px 0;
+                    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+                    z-index: 1040 !important;
+                    overflow-y: auto !important;
+                    padding-bottom: 10px !important;
+                    margin-top: 0 !important;
+                    transform: none !important;
+                    transition: none !important;
+                }
 
-        .sidebar-header {
-            background: #1e293b;
-            padding: 18px 20px;
-            text-align: center;
-            color: #fff;
-        }
 
-        .sidebar-header h6 {
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: 0.3px;
-        }
+                .sidebar-header {
+                    background: #1e293b;
+                    padding: 18px 20px;
+                    text-align: center;
+                    color: #fff;
+                }
 
-        .sidebar-menu {
-            padding: 12px;
-        }
+                .sidebar-header h6 {
+                    font-weight: 600;
+                    margin: 0;
+                    letter-spacing: 0.3px;
+                }
 
-        .sidebar-menu .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: #64748b;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            margin-bottom: 4px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
+                .sidebar-menu {
+                    padding: 12px;
+                }
 
-        .sidebar-menu .menu-item i {
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-            margin-right: 14px;
-        }
+                .sidebar-menu .menu-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    color: #64748b;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                    margin-bottom: 4px;
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                }
 
-        .sidebar-menu .menu-item:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+                .sidebar-menu .menu-item i {
+                    font-size: 1.1rem;
+                    width: 24px;
+                    text-align: center;
+                    margin-right: 14px;
+                }
 
-        .sidebar-menu .menu-item.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-left: 3px solid #2563eb;
-        }
+                .sidebar-menu .menu-item:hover {
+                    background: #f1f5f9;
+                    color: #1e293b;
+                }
+
+                .sidebar-menu .menu-item.active {
+                    background: #eff6ff;
+                    color: #2563eb;
+                    border-left: 3px solid #2563eb;
+                } */
 
         /* MODAL STYLES - CRITICAL */
         #customModal {

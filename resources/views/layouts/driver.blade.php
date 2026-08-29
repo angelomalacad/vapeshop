@@ -11,6 +11,12 @@
     <style>
         .navbar-driver {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 1050;
         }
 
         .card {
@@ -27,26 +33,114 @@
             border-radius: 30px;
             padding: 0.35rem 0.75rem;
         }
-        
+
         /* Minimal Home button matching the dark theme */
         .btn-home-minimal {
-            color: rgba(255,255,255,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 0.25rem 0.8rem;
             font-size: 0.85rem;
             transition: all 0.2s ease;
         }
+
         .btn-home-minimal:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            border-color: rgba(255,255,255,0.4);
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         /* ================================================================ */
-        /* RESPONSIVE SIDEBAR FIX (Preserves your design)                   */
+        /* ✅ SIDEBAR STYLES (Only used when .has-sidebar is on body) */
+        /* ================================================================ */
+        .app-sidebar {
+            position: fixed !important;
+            top: 80px !important;
+            /* 20px below navbar */
+            left: 0 !important;
+            width: 260px !important;
+            height: auto !important;
+            max-height: calc(100vh - 100px) !important;
+            background: #ffffff;
+            border-radius: 0 0 16px 0;
+            border-radius: 16px !important;
+            /* ✅ Fully rounded corners */
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+            z-index: 1040 !important;
+            overflow-y: auto !important;
+            padding-bottom: 10px !important;
+            margin-top: 0 !important;
+            transform: none !important;
+            transition: none !important;
+        }
+
+        .sidebar-header {
+            background: #1e293b;
+            padding: 18px 20px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .sidebar-header h6 {
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-menu {
+            padding: 12px;
+        }
+
+        .sidebar-menu .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-menu .menu-item i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            margin-right: 14px;
+        }
+
+        .sidebar-menu .menu-item:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .sidebar-menu .menu-item.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-left: 3px solid #2563eb;
+        }
+
+        /* ================================================================ */
+        /* ✅ CONTENT MARGINS - Only applies to pages with .has-sidebar */
+        /* ================================================================ */
+        body.has-sidebar .container.mt-4 {
+            margin-left: 280px !important;
+            max-width: calc(100% - 280px) !important;
+            padding-right: 20px !important;
+            padding-top: 80px !important;
+        }
+
+        /* ✅ Normal pages (No sidebar) - Centered */
+        body:not(.has-sidebar) .container.mt-4 {
+            padding-top: 80px !important;
+            max-width: 1140px !important;
+        }
+
+        /* ================================================================ */
+        /* RESPONSIVE SIDEBAR FIX (Mobile) */
         /* ================================================================ */
 
-        /* 1. Mobile Overlay (Only shows when sidebar is open on mobile) */
         .sidebar-overlay {
             display: none;
             position: fixed;
@@ -55,57 +149,53 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.4);
-            z-index: 9998; /* Behind sidebar, above content */
+            z-index: 9998;
         }
 
         .sidebar-overlay.active {
             display: block;
         }
 
-        /* 2. Apply responsiveness to your existing .app-sidebar class */
-        .app-sidebar {
-            transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out;
-        }
-
-        /* 3. Mobile Behavior: Hide the sidebar off-screen */
         @media (max-width: 991px) {
             .app-sidebar {
                 position: fixed !important;
-                top: 0 !important;
+                top: 60px !important;
                 left: 0 !important;
-                height: 100vh !important;
-                transform: translateX(-100%);
-                z-index: 9999; /* On top of everything */
+                height: auto !important;
+                max-height: calc(100vh - 60px) !important;
+                transform: translateX(-100%) !important;
+                z-index: 9999 !important;
+                margin-top: 0 !important;
+                transition: transform 0.3s ease-in-out !important;
             }
 
-            /* JavaScript will add this class to slide it in */
             .app-sidebar.open {
-                transform: translateX(0);
+                transform: translateX(0) !important;
+            }
+
+            /* Mobile: No sidebar margins */
+            body.has-sidebar .container.mt-4 {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-right: 15px !important;
+                padding-left: 15px !important;
+                padding-top: 80px !important;
             }
         }
 
-        /* 4. Ensure the main content fits screen on mobile */
-        @media (max-width: 991px) {
-            .container.mt-4 {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding-left: 15px !important;
-                padding-right: 15px !important;
-            }
-        }
         /* ================================================================ */
     </style>
 </head>
 
-<body>
+<body class="@yield('page-class')">
     <nav class="navbar navbar-driver navbar-dark">
-        <div class="container">
+        <div class="container-fluid px-5">
             <div class="d-flex align-items-center">
-                <!-- ✅ HOME BUTTON (Placed before the logo) -->
+                <!-- ✅ HOME BUTTON -->
                 <a href="{{ route('driver.dashboard') }}" class="btn btn-home-minimal rounded-pill me-3">
                     <i class="bi bi-house-door me-1"></i> Home
                 </a>
-                
+
                 <!-- Logo & Brand Name -->
                 <a class="navbar-brand" href="{{ route('driver.dashboard') }}">
                     <img src="{{ asset('images/logo.png') }}" alt="Vape Expo" height="30"
@@ -113,7 +203,7 @@
                     Vape Expo Driver
                 </a>
             </div>
-            
+
             <div class="d-flex align-items-center">
                 <span class="text-white me-3">
                     <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
@@ -147,7 +237,7 @@
         @yield('content')
     </div>
 
-    <!-- Custom Modal Structure (not using Bootstrap Modal) -->
+    <!-- Custom Modal Structure -->
     <div id="customModal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
         <div
@@ -162,7 +252,6 @@
         window.handleStatus = function(action, orderId) {
             console.log('handleStatus called with:', action, orderId);
 
-            // Find result div in the modal
             const resultDiv = document.getElementById('result');
             if (resultDiv) {
                 resultDiv.innerHTML = '<div class="alert alert-info">Processing...</div>';
@@ -172,8 +261,6 @@
             if (action === 'confirm') url = '/driver/online-orders/' + orderId + '/confirm';
             else if (action === 'processing') url = '/driver/online-orders/' + orderId + '/processing';
             else if (action === 'ready') url = '/driver/online-orders/' + orderId + '/ready';
-
-            console.log('Fetching URL:', url);
 
             fetch(url, {
                     method: 'POST',
@@ -186,7 +273,6 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Response:', data);
                     if (data.success) {
                         if (resultDiv) {
                             resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
@@ -258,7 +344,7 @@
         function toggleSidebar() {
             const sidebar = document.querySelector('.app-sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
+
             if (sidebar) {
                 sidebar.classList.toggle('open');
                 if (overlay) {
