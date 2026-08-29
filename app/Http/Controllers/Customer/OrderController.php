@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\BranchInventory;
+use App\Models\InventoryReservation; // ADD THIS
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,30 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order) {
-            // Release reserved stock safely
+            // ADD: Release all inventory reservations for this order
+            $reservations = InventoryReservation::where('order_id', $order->id)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($reservations as $reservation) {
+                // Find the inventory
+                $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
+                
+                if ($inventory) {
+                    // Release the reservation
+                    $inventory->update([
+                        'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
+                    ]);
+                }
+                
+                // Update reservation status
+                $reservation->update([
+                    'status' => 'released',
+                    'released_at' => now()
+                ]);
+            }
+            
+            // Keep your existing release logic as backup
             foreach ($order->items as $item) {
                 // 1. Find the inventory specifically tied to this order item
                 $inventory = BranchInventory::where('id', $item->inventory_id)->first();

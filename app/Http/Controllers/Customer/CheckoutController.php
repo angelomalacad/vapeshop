@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Order;
 use App\Models\Delivery;
 use App\Models\BranchInventory;
+use App\Models\InventoryReservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -126,7 +127,10 @@ class CheckoutController extends Controller
                 if (!$inventory || $inventory->available_quantity < $item['quantity']) {
                     throw new \Exception("Insufficient stock for {$item['product_name']}");
                 }
-                $inventory->reserve($item['quantity']);
+                // Reserve stock
+                $inventory->update([
+                    'reserved_quantity' => $inventory->reserved_quantity + $item['quantity']
+                ]);
             }
 
             // --- MAP ADDRESS DATA BASED ON SELECTION ---
@@ -192,8 +196,9 @@ class CheckoutController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // 5. Create order items
+            // 5. Create order items AND create reservation records
             foreach ($cart as $inventoryId => $item) {
+                // Create order item
                 $order->items()->create([
                     'inventory_id' => $inventoryId,
                     'product_id' => $item['product_id'],
@@ -201,6 +206,18 @@ class CheckoutController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['price'] * $item['quantity'],
+                ]);
+                
+                // CREATE INVENTORY RESERVATION RECORD
+                InventoryReservation::create([
+                    'branch_inventory_id' => $inventoryId,
+                    'order_id' => $order->id,
+                    'user_id' => Auth::id(),
+                    'quantity' => $item['quantity'],
+                    'reservation_type' => 'online_order',
+                    'status' => 'active',
+                    'expires_at' => now()->addHours(24),
+                    'notes' => 'Auto-reserved for order #' . $order->order_number
                 ]);
             }
 
