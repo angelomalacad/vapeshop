@@ -178,7 +178,7 @@
 
                             <!-- Hidden branch selection (system will assign nearest branch) -->
                             <input type="hidden" name="branch_id" value="{{ $branch->id }}">
-
+                            
                             <div class="mb-3">
                                 <label>Payment Method *</label>
                                 <select name="payment_method" id="paymentMethod" class="form-select">

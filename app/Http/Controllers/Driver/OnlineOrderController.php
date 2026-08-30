@@ -223,4 +223,29 @@ class OnlineOrderController extends Controller
 
         return back()->with('success', 'Lalamove tracking link submitted!');
     }
+    /**
+ * Update delivery date for an order
+ */
+public function updateDeliveryDate(Request $request, Order $order)
+{
+    \Log::info('Updating delivery date for order: ' . $order->id);
+    \Log::info('Delivery date received: ' . $request->delivery_date);
+    \Log::info('Order fillable: ' . json_encode($order->getFillable()));
+
+    $request->validate([
+        'delivery_date' => 'required|date',
+    ]);
+
+    // ✅ Direct update to avoid mass assignment issues
+    $order->delivery_date = $request->delivery_date;
+    $order->save();
+
+    \Log::info('Delivery date after save: ' . $order->fresh()->delivery_date);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Delivery date updated successfully!',
+        'delivery_date' => $order->fresh()->delivery_date
+    ]);
+}
 }

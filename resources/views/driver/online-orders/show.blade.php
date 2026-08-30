@@ -477,6 +477,20 @@
                             </div>
                         @endif
 
+                        <!-- ✅ FIXED: Delivery Date with Save Button -->
+                        <div class="mb-3">
+                            <label class="info-label">Delivery Date</label>
+                            <div class="d-flex gap-2">
+                                <input type="date" name="delivery_date" id="delivery_date" class="form-control"
+                                    value="{{ $order->delivery_date ? \Carbon\Carbon::parse($order->delivery_date)->format('Y-m-d') : '' }}"
+                                    min="{{ date('Y-m-d') }}">
+                                <button type="button" class="btn btn-primary btn-sm" id="saveDeliveryDateBtn"
+                                    onclick="saveDeliveryDate()">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="result" class="mt-3"></div>
                     </div>
                 </div>
@@ -497,6 +511,17 @@
             content.innerHTML = '';
         }
     };
+
+    // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMessage = sessionStorage.getItem('delivery_success_message');
+        if (successMessage) {
+            if (typeof showNotification === 'function') {
+                showNotification(successMessage, 'success');
+            }
+            sessionStorage.removeItem('delivery_success_message');
+        }
+    });
 
     window.handleStatus = function(action, orderId) {
         const resultDiv = document.getElementById('result');
@@ -529,18 +554,98 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // ✅ RELOAD PAGE SO FLASH MESSAGE APPEARS AT TOP
+                    sessionStorage.setItem('delivery_success_message', data.message || 'Status updated successfully!');
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Error occurred');
+                    if (typeof showNotification === 'function') {
+                        showNotification(data.message || 'Error occurred', 'error');
+                    } else {
+                        alert(data.message || 'Error occurred');
+                    }
                     button.disabled = false;
                     button.innerHTML = originalText;
                 }
             })
             .catch(error => {
-                alert('Error: ' + error);
+                console.error('Error:', error);
+                if (typeof showNotification === 'function') {
+                    showNotification('Network error. Please try again.', 'error');
+                } else {
+                    alert('Network error. Please try again.');
+                }
                 button.disabled = false;
                 button.innerHTML = originalText;
             });
     };
+
+    // ✅ FIXED: Delivery Date Save Function - Shows message inside modal then refreshes
+    function saveDeliveryDate() {
+        const orderId = {{ $order->id }};
+        const deliveryDate = document.getElementById('delivery_date').value;
+        const resultDiv = document.getElementById('result');
+        
+        if (!deliveryDate) {
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please select a delivery date first.</div>';
+            }
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveDeliveryDateBtn');
+        const originalBtnText = 'Save';
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        if (resultDiv) {
+            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery date...</div>';
+        }
+
+        // ✅ USE ABSOLUTE URL TO ENSURE IT WORKS
+        fetch(`{{ url('/driver/online-orders') }}/${orderId}/delivery-date`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ delivery_date: deliveryDate })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
+
+            if (data.success) {
+                // ✅ SHOW SUCCESS MESSAGE INSIDE THE MODAL
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery date saved successfully!') + '</div>';
+                }
+                
+                // ✅ REFRESH PAGE AFTER 1.5 SECONDS TO CLEAR THE MESSAGE
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // ✅ SHOW ERROR MESSAGE INSIDE THE MODAL
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Error saving delivery date') + '</div>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
+            
+            // ✅ SHOW NETWORK ERROR INSIDE THE MODAL
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
+            }
+        });
+    }
 </script>

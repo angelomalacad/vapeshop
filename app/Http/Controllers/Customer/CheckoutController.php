@@ -106,6 +106,7 @@ class CheckoutController extends Controller
             'delivery_type' => 'required|in:pickup,delivery',
 
             'delivery_address' => 'required_if:address_option,saved|nullable|string',
+            'delivery_date' => 'nullable|date|after_or_equal:today', // ✅ ADD THIS
             'new_delivery_address' => 'required_if:address_option,new|nullable|string',
 
             'new_city' => 'required_if:address_option,new|nullable|string|max:100',
@@ -186,6 +187,7 @@ class CheckoutController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_email' => $request->customer_email,
                 'delivery_address' => $deliveryAddress,
+                'delivery_date' => $request->delivery_date, // ✅ ADD THIS
                 'city' => $city,
                 'barangay' => $barangay,
                 'other_barangay' => $otherBarangay,

@@ -556,6 +556,9 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
         Route::post('/{order}/cancel', [App\Http\Controllers\Driver\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
+        
+        // ✅ ADD THIS ROUTE for updating delivery date
+        Route::post('/{order}/delivery-date', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateDeliveryDate'])->name('update-delivery-date');
     });
 
     // Delivery Management

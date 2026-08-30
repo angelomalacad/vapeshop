@@ -23,6 +23,7 @@ class Order extends Model
         'payment_proof',
         'delivery_type',
         'delivery_address',
+        'delivery_date',
         'customer_name',
         'customer_phone',
         'notes',
@@ -96,6 +97,10 @@ class Order extends Model
         ];
         return $classes[$this->order_status] ?? 'bg-secondary';
     }
+    public function getDeliveryDateAttribute($value)
+{
+    return $value ? \Carbon\Carbon::parse($value) : null;
+}
     
 
 }

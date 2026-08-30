@@ -50,19 +50,23 @@
                                 @endif
                             </div>
                         </div>
-
-                       
-
                     </div>
                     <div class="col-md-2">
                         <small class="text-muted">Date</small>
                         <div>{{ $order->created_at->format('M d, Y') }}</div>
                     </div>
+                    
+                    <!-- ✅ Delivery Date Column -->
+                    <div class="col-md-2">
+                        <small class="text-muted">Delivery Date</small>
+                        <div>{{ $order->delivery_date ? $order->delivery_date->format('M d, Y') : 'Pending' }}</div>
+                    </div>
+                    
                     <div class="col-md-2">
                         <small class="text-muted">Total</small>
                         <div class="fw-bold text-danger">₱{{ number_format($order->total_amount,2) }}</div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <small class="text-muted">Status</small>
                         <div>
                             <span class="badge {{ $order->order_status_badge_class }}">
@@ -70,15 +74,17 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col-md-3 text-md-end">
-                        <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-outline-primary rounded-pill">View Details</a>
-                        
-                         {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
-                        @if($order->order_status === 'pending')
-                        <button type="button" class="btn btn-outline-danger rounded-pill ms-2" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ $order->id }}">
-                            Cancel
-                        </button>
-                        @endif
+                    <div class="col-md-2 text-md-end">
+                        <div class="d-flex justify-content-end align-items-center gap-1" style="white-space: nowrap;">
+                            <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-outline-primary rounded-pill btn-sm" style="white-space: nowrap;">View Details</a>
+                            
+                            {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
+                            @if($order->order_status === 'pending')
+                            <button type="button" class="btn btn-outline-danger rounded-pill btn-sm" style="white-space: nowrap;" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ $order->id }}">
+                                Cancel
+                            </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

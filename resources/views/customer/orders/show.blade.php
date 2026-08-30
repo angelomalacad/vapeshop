@@ -367,6 +367,11 @@
                         <p>{{ $order->branch->name }}</p>
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
+                        
+                        <!-- ✅ ADD THIS: Delivery Date (View Only) -->
+                        <p><strong>Delivery Date:</strong></p>
+                        <p>{{ $order->delivery_date ? $order->delivery_date->format('F d, Y') : 'Pending' }}</p>
+                        
                         @if ($order->notes)
                             <hr>
                             <p><strong>Your Notes:</strong></p>
