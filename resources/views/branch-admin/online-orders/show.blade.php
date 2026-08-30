@@ -275,11 +275,72 @@
         font-size: 0.7rem;
     }
 
-    /* Modal Body Scroll */
+    /* Modal Body Scroll - ONLY WHEN NEEDED */
     .modal-body-custom {
         max-height: 85vh;
         overflow-y: auto;
         padding: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+
+    .modal-body-custom::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .modal-body-custom::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .modal-body-custom::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .modal-body-custom::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* NEW: Branch badge styles */
+    .branch-badge {
+        padding: 0.25rem 0.65rem;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        background: #e0f2fe;
+        color: #0369a1;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .locked-alert {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .locked-alert i {
+        font-size: 2rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .locked-alert h6 {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.25rem;
+    }
+
+    .locked-alert p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0;
     }
 </style>
 
@@ -297,9 +358,9 @@
         </div>
 
         <div class="row g-3">
-            <!-- LEFT COLUMN -->
+            <!-- LEFT COLUMN - 7 columns -->
             <div class="col-md-7">
-                <!-- Order Items Card -->
+                <!-- Order Items Card - MOVED TO TOP -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-receipt"></i> Order Items</h6>
@@ -368,6 +429,35 @@
                     </div>
                 </div>
 
+                <!-- Branch Information - MOVED BELOW ORDER ITEMS -->
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-shop"></i> Branch Information</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-12">
+                                <p class="info-label">Branch</p>
+                                <p class="info-value">
+                                    @if($order->branch)
+                                        <span class="branch-badge">
+                                            <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </p>
+                            </div>
+                            @if($order->branch && $order->branch->address)
+                                <div class="col-12">
+                                    <p class="info-label">Branch Address</p>
+                                    <p class="info-value">{{ $order->branch->address }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Customer Information Card -->
                 <div class="info-card">
                     <div class="card-header-custom">
@@ -394,8 +484,9 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN - Status Actions -->
+            <!-- RIGHT COLUMN - 5 columns -->
             <div class="col-md-5">
+                <!-- Update Status Card -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
@@ -416,6 +507,8 @@
                                 $order->order_status == 'processing'
                                     ? 'Packing'
                                     : ucfirst(str_replace('_', ' ', $order->order_status));
+                            
+                            $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
                         @endphp
 
                         <div class="mb-3">
@@ -423,39 +516,51 @@
                             <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                         </div>
 
-                        @if ($order->order_status == 'pending')
-                            <button type="button" class="status-btn btn-confirm"
-                                onclick="handleStatus('confirm', {{ $order->id }})">
-                                <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
-                            </button>
-                        @elseif($order->order_status == 'confirmed')
-                            <button type="button" class="status-btn btn-processing"
-                                onclick="handleStatus('processing', {{ $order->id }})">
-                                <i class="bi bi-gear me-2"></i> Mark as Packing
-                            </button>
-                        @elseif($order->order_status == 'processing')
-                            <button type="button" class="status-btn btn-ready"
-                                onclick="handleStatus('ready', {{ $order->id }})">
-                                <i class="bi bi-box-seam me-2"></i> Mark as Ready
-                            </button>
-                        @elseif($order->order_status == 'ready')
-                            <div class="alert-custom alert-info-custom text-center">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Order is Ready</strong><br>
-                                <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
-                            </div>
-                        @elseif($order->order_status == 'out_for_delivery')
-                            <div class="alert-custom alert-info-custom text-center">
-                                <i class="bi bi-truck me-2"></i>
-                                <strong>Out for Delivery</strong><br>
-                                <small class="text-muted">Driver is delivering this order.</small>
-                            </div>
-                        @elseif($order->order_status == 'delivered')
-                            <div class="alert-custom alert-success-custom text-center">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                <strong>Order Completed</strong><br>
-                                <small class="text-muted">Delivered on
-                                    {{ $order->updated_at->format('M d, Y h:i A') }}</small>
+                        @if($isCurrentBranch)
+                            @if ($order->order_status == 'pending')
+                                <button type="button" class="status-btn btn-confirm"
+                                    onclick="handleStatus('confirm', {{ $order->id }})">
+                                    <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
+                                </button>
+                            @elseif($order->order_status == 'confirmed')
+                                <button type="button" class="status-btn btn-processing"
+                                    onclick="handleStatus('processing', {{ $order->id }})">
+                                    <i class="bi bi-gear me-2"></i> Mark as Packing
+                                </button>
+                            @elseif($order->order_status == 'processing')
+                                <button type="button" class="status-btn btn-ready"
+                                    onclick="handleStatus('ready', {{ $order->id }})">
+                                    <i class="bi bi-box-seam me-2"></i> Mark as Ready
+                                </button>
+                            @elseif($order->order_status == 'ready')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Order is Ready</strong><br>
+                                    <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
+                                </div>
+                            @elseif($order->order_status == 'out_for_delivery')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-truck me-2"></i>
+                                    <strong>Out for Delivery</strong><br>
+                                    <small class="text-muted">Driver is delivering this order.</small>
+                                </div>
+                            @elseif($order->order_status == 'delivered')
+                                <div class="alert-custom alert-success-custom text-center">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Order Completed</strong><br>
+                                    <small class="text-muted">Delivered on
+                                        {{ $order->updated_at->format('M d, Y h:i A') }}</small>
+                                </div>
+                            @endif
+                        @else
+                            <!-- Locked Alert for non-owning branches -->
+                            <div class="locked-alert">
+                                <i class="bi bi-lock-fill"></i>
+                                <h6>Locked Order</h6>
+                                <p>
+                                    This order belongs to <strong>{{ $order->branch->name ?? 'Another Branch' }}</strong>.
+                                    Only that branch can manage this order.
+                                </p>
                             </div>
                         @endif
 

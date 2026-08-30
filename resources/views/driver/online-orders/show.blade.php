@@ -259,6 +259,19 @@
         font-weight: 500;
         font-size: 0.7rem;
     }
+
+    /* Branch Badge */
+    .branch-badge {
+        padding: 0.25rem 0.65rem;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        background: #e0f2fe;
+        color: #0369a1;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -276,7 +289,7 @@
         <div class="row g-3">
             <!-- LEFT COLUMN -->
             <div class="col-md-7">
-                <!-- Order Items -->
+                <!-- Order Items (LEFT - FIRST) -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-receipt"></i> Order Items</h6>
@@ -345,7 +358,36 @@
                     </div>
                 </div>
 
-                <!-- Customer Information -->
+                <!-- Branch Information (LEFT - BELOW ORDER ITEMS) -->
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-shop"></i> Branch Information</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-12">
+                                <p class="info-label">Branch</p>
+                                <p class="info-value">
+                                    @if($order->branch)
+                                        <span class="branch-badge">
+                                            <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </p>
+                            </div>
+                            @if($order->branch && $order->branch->address)
+                                <div class="col-12">
+                                    <p class="info-label">Branch Address</p>
+                                    <p class="info-value">{{ $order->branch->address }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information (LEFT - THIRD) -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-person"></i> Customer Information</h6>
@@ -371,8 +413,9 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN - Status Actions -->
+            <!-- RIGHT COLUMN -->
             <div class="col-md-5">
+                <!-- Update Status (RIGHT - FIRST) -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>

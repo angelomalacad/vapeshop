@@ -253,10 +253,15 @@
                             @endforeach
                         </div>
 
-                        <div class="d-flex justify-content-between mb-2">
+                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal</span>
                             <span>₱{{ number_format($subtotal, 2) }}</span>
                         </div>
+                        <!-- REMOVE TAX ROW - No tax -->
+                        <!-- <div class="d-flex justify-content-between mb-2">
+                            <span>Tax</span>
+                            <span>₱{{ number_format($tax, 2) }}</span>
+                        </div> -->
                         <div class="d-flex justify-content-between mb-2">
                             <span>Delivery Fee</span>
                             <span id="deliveryFeeDisplay">₱0.00</span>

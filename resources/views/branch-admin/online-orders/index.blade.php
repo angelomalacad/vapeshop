@@ -165,6 +165,28 @@
             transform: translateY(-1px);
         }
 
+        /* Branch Badge */
+        .branch-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .locked-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
         /* Delivery Type Badge */
         .delivery-badge {
             padding: 0.25rem 0.65rem;
@@ -203,6 +225,38 @@
                 font-size: 0.75rem;
                 white-space: nowrap;
             }
+        }
+
+        /* Compact Filter Styles */
+        .filter-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-select,
+        .filter-input {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        .filter-select:focus,
+        .filter-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .filter-btn {
+            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
     </style>
 
@@ -299,48 +353,59 @@
             </div>
         </div>
 
-        <!-- Filter Section -->
+        <!-- Compact Filter Section - One Row -->
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
+            <div class="card-body py-2">
                 <form method="GET" action="{{ route('branch-admin.online-orders.index') }}"
-                    class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Filter by Status</label>
-                        <select name="status" class="form-select">
-                            <option value="">All Status</option>
+                    class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="filter-label">Status</label>
+                        <select name="status" class="form-select filter-select">
+                            <option value="">All</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
-                            </option>
-                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
-                            </option>
+                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing</option>
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                            <option value="out_for_delivery"
-                                {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
-                            </option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
-                            </option>
+                            <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Search</label>
-                        <input type="text" name="search" class="form-control" placeholder="Order #..."
+                    <div class="col-md-2">
+                        <label class="filter-label">Branch</label>
+                        <select name="branch_filter" class="form-select filter-select">
+                            <option value="">All</option>
+                            <option value="my_branch" {{ request('branch_filter') == 'my_branch' ? 'selected' : '' }}>
+                                My Branch
+                            </option>
+                            @foreach($branches as $branch)
+                                @if($branch->id != Auth::user()->branch_id)
+                                    <option value="{{ $branch->id }}" {{ request('branch_filter') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="filter-label">Search</label>
+                        <input type="text" name="search" class="form-control filter-input" placeholder="Order #..."
                             value="{{ request('search') }}">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label fw-semibold">Date From</label>
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                        <label class="filter-label">From</label>
+                        <input type="date" name="date_from" class="form-control filter-input" value="{{ request('date_from') }}">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label fw-semibold">Date To</label>
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                        <label class="filter-label">To</label>
+                        <input type="date" name="date_to" class="form-control filter-input" value="{{ request('date_to') }}">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary filter-btn w-100">
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>
                         <a href="{{ route('branch-admin.online-orders.index') }}"
-                            class="btn btn-outline-secondary w-100 mt-1">
+                            class="btn btn-outline-secondary filter-btn w-100 mt-1">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                         </a>
                     </div>
@@ -361,6 +426,7 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Total</th>
+                                <th>Branch</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th class="text-end pe-3">Actions</th>
@@ -428,6 +494,15 @@
                                             class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
                                     </td>
                                     <td>
+                                        @if($order->branch)
+                                            <span class="branch-badge">
+                                                <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
+                                            </span>
+                                        @else
+                                            <span class="branch-badge">N/A</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <span class="delivery-badge">
                                             @if ($order->is_lalamove)
                                                 <i class="bi bi-truck me-1 text-primary"></i> Lalamove
@@ -440,15 +515,22 @@
                                         <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                                     </td>
                                     <td class="text-end pe-3">
-                                        <button onclick="openOrderModal({{ $order->id }})"
-                                            class="btn btn-manage btn-sm text-white">
-                                            <i class="bi bi-eye me-1"></i> Manage
-                                        </button>
+                                        @if($order->is_current_branch)
+                                            <button onclick="openOrderModal({{ $order->id }})"
+                                                class="btn btn-manage btn-sm text-white">
+                                                <i class="bi bi-eye me-1"></i> Manage
+                                            </button>
+                                        @else
+                                            <button class="btn btn-outline-secondary btn-sm" disabled
+                                                title="Only {{ $order->branch->name ?? 'the owning branch' }} can manage this order">
+                                                <i class="bi bi-lock me-1"></i> Locked
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-5">
+                                    <td colspan="10" class="text-center py-5">
                                         <i class="bi bi-inbox display-1 text-muted"></i>
                                         <h5 class="mt-3">No Online Orders</h5>
                                         <p class="text-muted">There are no online orders to process at this time.</p>

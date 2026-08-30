@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\BranchInventory;
-use App\Models\InventoryReservation; // ADD THIS
+use App\Models\InventoryReservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +18,36 @@ class OrderController extends Controller
             ->with(['items.product', 'items.flavor']) 
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+            
+        // ✅ ADD: Transform orders to include status badge class and label
+        $orders->getCollection()->transform(function ($order) {
+            $statusColors = [
+                'pending' => 'warning',
+                'confirmed' => 'info',
+                'processing' => 'primary',
+                'ready' => 'success',
+                'picked_up' => 'secondary',
+                'out_for_delivery' => 'secondary',
+                'delivered' => 'dark',
+                'cancelled' => 'danger',
+            ];
+            $statusLabels = [
+                'pending' => 'Pending',
+                'confirmed' => 'Confirmed',
+                'processing' => 'Processing',
+                'ready' => 'Ready',
+                'picked_up' => 'Picked Up',
+                'out_for_delivery' => 'Out for Delivery',
+                'delivered' => 'Delivered',
+                'cancelled' => 'Cancelled',
+            ];
+
+            $order->order_status_badge_class = 'bg-' . ($statusColors[$order->order_status] ?? 'secondary');
+            $order->order_status_label = $statusLabels[$order->order_status] ?? ucfirst(str_replace('_', ' ', $order->order_status));
+
+            return $order;
+        });
+
         return view('customer.orders.index', compact('orders'));
     }
 
@@ -42,38 +72,30 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order) {
-            // ADD: Release all inventory reservations for this order
             $reservations = InventoryReservation::where('order_id', $order->id)
                 ->where('status', 'active')
                 ->get();
 
             foreach ($reservations as $reservation) {
-                // Find the inventory
                 $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
                 
                 if ($inventory) {
-                    // Release the reservation
                     $inventory->update([
                         'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
                     ]);
                 }
                 
-                // Update reservation status
                 $reservation->update([
                     'status' => 'released',
                     'released_at' => now()
                 ]);
             }
             
-            // Keep your existing release logic as backup
             foreach ($order->items as $item) {
-                // 1. Find the inventory specifically tied to this order item
                 $inventory = BranchInventory::where('id', $item->inventory_id)->first();
                 
                 if ($inventory) {
-                    // 2. ONLY release if there is actually a reserved quantity
                     if ($inventory->reserved_quantity > 0) {
-                        // Determine how much to release (don't exceed what's reserved)
                         $quantityToRelease = min($item->quantity, $inventory->reserved_quantity);
                         $inventory->decrement('reserved_quantity', $quantityToRelease);
                     }
@@ -96,12 +118,12 @@ class OrderController extends Controller
             'confirmed' => null,
             'packing' => null,
             'ready' => null,
+            'picked_up' => null, // ✅ ADD THIS
             'out_for_delivery' => null,
             'in_transit' => null,
             'delivered' => null,
         ];
 
-        // Helper function to ensure Carbon instance
         $ensureCarbon = function($value) {
             if ($value instanceof Carbon) {
                 return $value;
@@ -113,7 +135,7 @@ class OrderController extends Controller
         };
 
         // Get confirmed timestamp
-        if (in_array($order->order_status, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'])) {
+        if (in_array($order->order_status, ['confirmed', 'processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->confirmed_at) && $order->confirmed_at) {
                 $timestamps['confirmed'] = $ensureCarbon($order->confirmed_at);
             } elseif ($order->delivery && $order->delivery->assigned_at) {
@@ -124,7 +146,7 @@ class OrderController extends Controller
         }
 
         // Get packing timestamp (maps from database 'processing')
-        if (in_array($order->order_status, ['processing', 'ready', 'out_for_delivery', 'delivered'])) {
+        if (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->processing_at) && $order->processing_at) {
                 $timestamps['packing'] = $ensureCarbon($order->processing_at);
             } else {
@@ -133,11 +155,22 @@ class OrderController extends Controller
         }
 
         // Get ready timestamp
-        if (in_array($order->order_status, ['ready', 'out_for_delivery', 'delivered'])) {
+        if (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->ready_at) && $order->ready_at) {
                 $timestamps['ready'] = $ensureCarbon($order->ready_at);
             } else {
                 $timestamps['ready'] = $order->updated_at;
+            }
+        }
+
+        // ✅ ADD: Get picked_up timestamp
+        if (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered'])) {
+            if ($order->delivery && $order->delivery->picked_up_at) {
+                $timestamps['picked_up'] = $ensureCarbon($order->delivery->picked_up_at);
+            } elseif ($order->out_for_delivery_at) {
+                $timestamps['picked_up'] = $ensureCarbon($order->out_for_delivery_at);
+            } else {
+                $timestamps['picked_up'] = $order->updated_at;
             }
         }
 

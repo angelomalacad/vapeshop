@@ -59,8 +59,8 @@ class CheckoutController extends Controller
         $firstBranchId = collect($cart)->first()['branch_id'] ?? null;
         $branch = $firstBranchId ? Branch::find($firstBranchId) : null;
 
-        $tax = $subtotal * 0.12;
-        $total = $subtotal + $tax;
+        $tax = 0; // ✅ No tax
+        $total = $subtotal; // ✅ Total is just subtotal
 
         // ================================================================
         // FIX: Determine Calamba status from the User Profile
@@ -158,8 +158,8 @@ class CheckoutController extends Controller
             foreach ($cart as $item) {
                 $subtotal += $item['price'] * $item['quantity'];
             }
-            $tax = $subtotal * 0.12;
-            $total = $subtotal + $tax;
+            $tax = 0; // ✅ No tax
+            $total = $subtotal; // ✅ Total is just subtotal
 
             // 3. Determine if the cart has mixed branches
             $branchIds = collect($cart)->pluck('branch_id')->unique();
@@ -174,9 +174,9 @@ class CheckoutController extends Controller
                 'user_id' => Auth::id(),
                 'branch_id' => $singleBranchId,
                 'subtotal' => $subtotal,
-                'tax' => $tax,
-                'delivery_fee' => 0,
-                'total_amount' => $total,
+                'tax' => 0, // ✅ No tax
+                'delivery_fee' => 0, // ✅ No delivery fee
+                'total_amount' => $subtotal, // ✅ Total is just subtotal
                 'status' => 'pending',
                 'order_status' => 'pending',
                 'payment_status' => 'pending',

@@ -203,6 +203,19 @@
             font-size: 0.7rem;
         }
 
+        /* Branch Badge - ADDED */
+        .branch-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         /* Pagination */
         .simple-pagination {
             display: flex;
@@ -357,60 +370,73 @@
         </div>
 
         <!-- Status Cards -->
-        <div class="row g-2 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-success bg-opacity-10">
-                            <i class="bi bi-box-seam text-success"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['ready'] ?? 0 }}</h2>
-                            <p class="status-label">Ready</p>
-                        </div>
-                    </div>
+<div class="row g-2 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card status-card">
+            <div class="card-body status-card-body">
+                <div class="status-icon bg-success bg-opacity-10">
+                    <i class="bi bi-box-seam text-success"></i>
                 </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-secondary bg-opacity-10">
-                            <i class="bi bi-truck text-secondary"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['out_for_delivery'] ?? 0 }}</h2>
-                            <p class="status-label">Out for Delivery</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-dark bg-opacity-10">
-                            <i class="bi bi-flag-fill text-dark"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivered'] ?? 0 }}</h2>
-                            <p class="status-label">Delivered</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-danger bg-opacity-10">
-                            <i class="bi bi-x-circle text-danger"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivery_failed'] ?? 0 }}</h2>
-                            <p class="status-label">Failed</p>
-                        </div>
-                    </div>
+                <div class="status-info">
+                    <h2 class="status-number">{{ $counts['ready'] ?? 0 }}</h2>
+                    <p class="status-label">Ready</p>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card status-card">
+            <div class="card-body status-card-body">
+                <div class="status-icon bg-info bg-opacity-10">
+                    <i class="bi bi-box-seam text-info"></i>
+                </div>
+                <div class="status-info">
+                    <h2 class="status-number">{{ $counts['picked_up'] ?? 0 }}</h2>
+                    <p class="status-label">Picked Up</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card status-card">
+            <div class="card-body status-card-body">
+                <div class="status-icon bg-secondary bg-opacity-10">
+                    <i class="bi bi-truck text-secondary"></i>
+                </div>
+                <div class="status-info">
+                    <h2 class="status-number">{{ $counts['out_for_delivery'] ?? 0 }}</h2>
+                    <p class="status-label">Out for Delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card status-card">
+            <div class="card-body status-card-body">
+                <div class="status-icon bg-dark bg-opacity-10">
+                    <i class="bi bi-flag-fill text-dark"></i>
+                </div>
+                <div class="status-info">
+                    <h2 class="status-number">{{ $counts['delivered'] ?? 0 }}</h2>
+                    <p class="status-label">Delivered</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card status-card">
+            <div class="card-body status-card-body">
+                <div class="status-icon bg-danger bg-opacity-10">
+                    <i class="bi bi-x-circle text-danger"></i>
+                </div>
+                <div class="status-info">
+                    <h2 class="status-number">{{ $counts['delivery_failed'] ?? 0 }}</h2>
+                    <p class="status-label">Failed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Filter Section -->
         <div class="card border-0 shadow-sm mb-4">
@@ -419,15 +445,16 @@
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Filter by Status</label>
                         <select name="status" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                            <option value="out_for_delivery"
-                                {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
-                            </option>
-                            <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>
-                                Delivery Failed</option>
-                        </select>
+    <option value="">All Status</option>
+    <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+    <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+    <option value="out_for_delivery"
+        {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+    <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
+    </option>
+    <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>
+        Delivery Failed</option>
+</select>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Date From</label>
@@ -465,6 +492,7 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Total</th>
+                                <th>Branch</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Lalamove Info</th>
@@ -536,6 +564,15 @@
                                             class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
                                     </td>
                                     <td>
+                                        @if($order->branch)
+                                            <span class="branch-badge">
+                                                <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
+                                            </span>
+                                        @else
+                                            <span class="branch-badge">N/A</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <span class="delivery-badge">
                                             @if ($order->is_lalamove)
                                                 <i class="bi bi-truck me-1 text-primary"></i> Lalamove
@@ -568,7 +605,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-inbox display-1 text-muted"></i>
                                         <h5 class="mt-3">No Online Orders</h5>
                                         <p class="text-muted">There are no online orders assigned to you at this time.</p>
@@ -618,6 +655,18 @@
             }
         };
 
+        // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMessage = sessionStorage.getItem('delivery_success_message');
+            if (successMessage) {
+                if (typeof showNotification === 'function') {
+                    showNotification(successMessage, 'success');
+                }
+                // Clear the stored message
+                sessionStorage.removeItem('delivery_success_message');
+            }
+        });
+
         window.openOrderModal = function(orderId) {
             const modal = document.getElementById('customModal');
             const modalContent = document.getElementById('customModalContent');
@@ -663,19 +712,18 @@
         };
 
         // ✅ ADD THIS: Open Delivery Modal (for "Manage Delivery" button)
-        // ✅ ADD THIS FUNCTION
         window.openDeliveryModal = function(deliveryId) {
             const modal = document.getElementById('customModal');
             const modalContent = document.getElementById('customModalContent');
 
             modalContent.innerHTML = `
-        <div style="padding: 40px; text-align: center;">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">Loading delivery details...</p>
-        </div>
-    `;
+                <div style="padding: 40px; text-align: center;">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading delivery details...</p>
+                </div>
+            `;
             modal.style.display = 'flex';
 
             fetch(`/driver/deliveries/${deliveryId}`)
@@ -691,20 +739,70 @@
                         document.body.appendChild(newScript);
                         script.remove();
                     });
+
+                    // ✅ ATTACH FORM SUBMIT HANDLER AFTER MODAL IS LOADED
+                    const deliveryForm = document.getElementById('deliveryStatusForm');
+                    if (deliveryForm) {
+                        deliveryForm.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            
+                            const formData = new FormData(this);
+                            
+                            // Show processing notification
+                            if (typeof showNotification === 'function') {
+                                showNotification('Updating delivery status...', 'info');
+                            }
+                            
+                            fetch(this.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: formData
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // ✅ STORE MESSAGE IN SESSIONSTORAGE
+                                    sessionStorage.setItem('delivery_success_message', data.message || 'Delivery status updated successfully!');
+                                    
+                                    // ✅ RELOAD PAGE
+                                    window.location.reload();
+                                } else {
+                                    // ✅ SHOW ERROR MESSAGE
+                                    if (typeof showNotification === 'function') {
+                                        showNotification(data.message || 'Error occurred', 'error');
+                                    } else {
+                                        alert(data.message || 'Error occurred');
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                if (typeof showNotification === 'function') {
+                                    showNotification('Network error. Please try again.', 'error');
+                                } else {
+                                    alert('Network error. Please try again.');
+                                }
+                            });
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     modalContent.innerHTML = `
-                <div style="padding: 20px;">
-                    <div class="alert alert-danger mb-3">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Failed to load delivery details. Please try again.
-                    </div>
-                    <div class="text-center">
-                        <button onclick="window.closeModal()" class="btn btn-secondary rounded-pill px-4">Close</button>
-                    </div>
-                </div>
-            `;
+                        <div style="padding: 20px;">
+                            <div class="alert alert-danger mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Failed to load delivery details. Please try again.
+                            </div>
+                            <div class="text-center">
+                                <button onclick="window.closeModal()" class="btn btn-secondary rounded-pill px-4">Close</button>
+                            </div>
+                        </div>
+                    `;
                 });
         };
     </script>
