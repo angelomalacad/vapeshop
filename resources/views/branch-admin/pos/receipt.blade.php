@@ -58,7 +58,7 @@
                                 <span>Subtotal:</span>
                                 <span>₱{{ number_format($receipt['subtotal'], 2) }}</span>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between fw-bold fs-5">
                                 <span>TOTAL:</span>
                                 <span>₱{{ number_format($receipt['total'], 2) }}</span>
@@ -79,6 +79,7 @@
                             </div>
                             <div class="d-flex justify-content-between text-success">
                                 <span>Change:</span>
+                                <!-- ✅ CHANGED: Added number_format for comma separation -->
                                 <span>₱{{ number_format($receipt['change'], 2) }}</span>
                             </div>
                         </div>

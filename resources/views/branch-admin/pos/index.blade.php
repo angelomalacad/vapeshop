@@ -16,6 +16,25 @@
             border-color: #0d6efd;
         }
 
+        /* ✅ ADDED: Out of Stock styling */
+        .pos-product-card.out-of-stock {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-color: #dc2626 !important;
+        }
+
+        .pos-product-card.out-of-stock:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: #dc2626 !important;
+        }
+
+        .pos-product-card.out-of-stock .product-image,
+        .pos-product-card.out-of-stock h6,
+        .pos-product-card.out-of-stock small {
+            filter: grayscale(100%);
+        }
+
         .pos-cart-item {
             border-bottom: 1px solid #e9ecef;
             padding: 10px 0;
@@ -595,6 +614,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -750,65 +770,67 @@
                     </div>
                     <div class="card-body">
                         @foreach ($products as $category => $categoryProducts)
-    <div class="mb-4">
-        <h6 class="fw-semibold mb-3">
-            <span class="category-badge">
-                <i class="bi bi-tag me-1"></i>{{ $category }}
-            </span>
-        </h6>
-        <div class="row g-3">
-            @foreach ($categoryProducts as $item)
-                @php
-                    // ✅ SKIP if item is archived or disposed
-                    if ($item->is_archived || $item->is_disposed) {
-                        continue;
-                    }
-                    
-                    $product = $item->product;
-                    $available = $item->available_quantity;
-                    $imageUrl = $product->image_url ?? $product->image ?? '';
-                @endphp
-                <div class="col-md-3 col-sm-4 col-6">
-                    <div class="card pos-product-card h-100" 
-                        data-inventory-id="{{ $item->id }}"
-                        data-product-id="{{ $product->id }}"
-                        data-product-name="{{ $product->name }}"
-                        data-product-price="{{ $product->price }}"
-                        data-flavor-name="{{ $item->flavor->name ?? '' }}"
-                        data-flavor-id="{{ $item->flavor_id }}"
-                        data-available="{{ $available }}"
-                        data-image="{{ $imageUrl }}">
-                        <div class="card-body text-center p-3">
-                            <div class="product-image mb-2" style="height: 80px; display: flex; align-items: center; justify-content: center;">
-                                @if ($imageUrl)
-                                    <img src="{{ $imageUrl }}"
-                                        alt="{{ $product->name }}" 
-                                        style="max-height: 70px; max-width: 100%; object-fit: contain;"
-                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-box-seam text-muted\' style=\'font-size: 2rem;\'></i>'">
-                                @else
-                                    <i class="bi bi-box-seam text-muted" style="font-size: 2rem;"></i>
-                                @endif
+                            <div class="mb-4">
+                                <h6 class="fw-semibold mb-3">
+                                    <span class="category-badge">
+                                        <i class="bi bi-tag me-1"></i>{{ $category }}
+                                    </span>
+                                </h6>
+                                <div class="row g-3">
+                                    @foreach ($categoryProducts as $item)
+                                        @php
+                                            // ✅ SKIP if item is archived or disposed
+                                            if ($item->is_archived || $item->is_disposed) {
+                                                continue;
+                                            }
+
+                                            $product = $item->product;
+                                            $available = $item->available_quantity;
+                                            $imageUrl = $product->image_url ?? ($product->image ?? '');
+                                        @endphp
+                                        <div class="col-md-3 col-sm-4 col-6">
+                                            <div class="card pos-product-card h-100 {{ $available <= 0 ? 'out-of-stock' : '' }}"
+                                                data-inventory-id="{{ $item->id }}"
+                                                data-product-id="{{ $product->id }}"
+                                                data-product-name="{{ $product->name }}"
+                                                data-product-price="{{ $product->price }}"
+                                                data-flavor-name="{{ $item->flavor->name ?? '' }}"
+                                                data-flavor-id="{{ $item->flavor_id }}" data-available="{{ $available }}"
+                                                data-image="{{ $imageUrl }}">
+                                                <div class="card-body text-center p-3">
+                                                    <div class="product-image mb-2"
+                                                        style="height: 80px; display: flex; align-items: center; justify-content: center;">
+                                                        @if ($imageUrl)
+                                                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
+                                                                style="max-height: 70px; max-width: 100%; object-fit: contain;"
+                                                                onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-box-seam text-muted\' style=\'font-size: 2rem;\'></i>'">
+                                                        @else
+                                                            <i class="bi bi-box-seam text-muted"
+                                                                style="font-size: 2rem;"></i>
+                                                        @endif
+                                                    </div>
+                                                    <h6 class="mb-0 small fw-semibold">{{ Str::limit($product->name, 25) }}
+                                                    </h6>
+                                                    @if ($item->flavor)
+                                                        <small class="text-muted">{{ $item->flavor->name }}</small>
+                                                    @endif
+                                                    <div class="mt-2">
+                                                        <span
+                                                            class="fw-bold text-primary">₱{{ number_format($product->price, 2) }}</span>
+                                                        @if ($available <= 0)
+                                                            <span class="badge bg-danger ms-1">Out of Stock</span>
+                                                        @elseif ($available <= 5)
+                                                            <span class="badge bg-warning ms-1">Low Stock</span>
+                                                        @endif
+                                                    </div>
+                                                    <small class="text-muted">Stock: {{ $available }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                            <h6 class="mb-0 small fw-semibold">{{ Str::limit($product->name, 25) }}
-                            </h6>
-                            @if ($item->flavor)
-                                <small class="text-muted">{{ $item->flavor->name }}</small>
-                            @endif
-                            <div class="mt-2">
-                                <span
-                                    class="fw-bold text-primary">₱{{ number_format($product->price, 2) }}</span>
-                                @if ($available <= 5)
-                                    <span class="badge bg-warning ms-1">Low Stock</span>
-                                @endif
-                            </div>
-                            <small class="text-muted">Stock: {{ $available }}</small>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endforeach
+                        @endforeach
 
                         @if ($products->isEmpty())
                             <div class="text-center py-5">
@@ -911,7 +933,8 @@
                     <!-- Product Info -->
                     <div class="product-info-card">
                         <div id="modalImageContainer">
-                            <img id="modalProductImage" src="" alt="Product" class="product-image" style="display:none;">
+                            <img id="modalProductImage" src="" alt="Product" class="product-image"
+                                style="display:none;">
                             <div id="modalImagePlaceholder" class="product-image-placeholder">
                                 <i class="bi bi-box-seam"></i>
                             </div>
@@ -922,7 +945,8 @@
                             <div class="product-price" id="modalProductPrice">₱0.00</div>
                             <div class="stock-info">
                                 Available: <span id="modalStockAvailable">0</span> units
-                                <span class="badge bg-warning ms-1" id="modalLowStock" style="display:none;">Low Stock</span>
+                                <span class="badge bg-danger ms-1" id="modalLowStock" style="display:none;">Out of
+                                    Stock</span>
                             </div>
                         </div>
                     </div>
@@ -966,7 +990,8 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="checkoutForm" action="{{ route('branch-admin.pos.checkout') }}" method="POST" enctype="multipart/form-data">
+                <form id="checkoutForm" action="{{ route('branch-admin.pos.checkout') }}" method="POST"
+                    enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="row">
@@ -978,7 +1003,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Customer Phone (Optional)</label>
-                                    <input type="text" name="customer_phone" class="form-control" placeholder="09xxxxxxxxx">
+                                    <input type="text" name="customer_phone" class="form-control"
+                                        placeholder="09xxxxxxxxx">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Payment Method <span class="text-danger">*</span></label>
@@ -991,15 +1017,21 @@
                                     <label class="form-label">Total Amount</label>
                                     <div class="input-group">
                                         <span class="input-group-text">₱</span>
-                                        <input type="text" id="modalTotal" class="form-control bg-light" readonly>
+                                        <input type="text" id="modalTotal" class="form-control bg-light" readonly
+                                            value="{{ number_format($total, 2) }}">
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Amount Paid <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text">₱</span>
-                                        <input type="number" step="0.01" name="amount_paid" id="amountPaid"
-                                            class="form-control" required>
+                                        <input type="text" inputmode="decimal" name="amount_paid" id="amountPaid"
+                                            class="form-control" required placeholder="0.00">
+                                    </div>
+                                    <!-- ✅ ADD THIS: Error Message -->
+                                    <div id="amountPaidError" class="text-danger small mt-1" style="display: none;">
+                                        <i class="bi bi-exclamation-circle me-1"></i> Amount paid is not enough. Please
+                                        enter at least ₱{{ number_format($total, 2) }}.
                                     </div>
                                 </div>
                                 <div class="mb-3" id="changeDiv" style="display: none;">
@@ -1017,20 +1049,23 @@
                                         <div class="section-title">
                                             <i class="bi bi-image me-1"></i> GCash Proof of Payment
                                         </div>
-                                        
+
                                         <!-- Upload Options -->
                                         <div class="mb-3">
                                             <label class="form-label">Choose option:</label>
                                             <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-outline-primary btn-sm flex-fill active-option" id="uploadOptionBtn">
+                                                <button type="button"
+                                                    class="btn btn-outline-primary btn-sm flex-fill active-option"
+                                                    id="uploadOptionBtn">
                                                     <i class="bi bi-upload"></i> Upload
                                                 </button>
-                                                <button type="button" class="btn btn-outline-success btn-sm flex-fill" id="cameraOptionBtn">
+                                                <button type="button" class="btn btn-outline-success btn-sm flex-fill"
+                                                    id="cameraOptionBtn">
                                                     <i class="bi bi-camera"></i> Take Photo
                                                 </button>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Upload Area -->
                                         <div id="uploadAreaContainer">
                                             <div class="gcash-upload-area" id="uploadArea">
@@ -1041,15 +1076,16 @@
                                                     Click or drag to upload proof of payment<br>
                                                     <small class="text-muted">Supported: JPG, PNG, PDF (Max 5MB)</small>
                                                 </div>
-                                                <input type="file" name="payment_proof" id="paymentProof" 
+                                                <input type="file" name="payment_proof" id="paymentProof"
                                                     class="file-input-hidden" accept="image/*,application/pdf">
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Camera Capture Area -->
                                         <div id="cameraAreaContainer" style="display: none;">
                                             <div class="camera-container">
-                                                <video id="cameraVideo" autoplay playsinline style="width: 100%; max-height: 300px; background: #000; display: none;"></video>
+                                                <video id="cameraVideo" autoplay playsinline
+                                                    style="width: 100%; max-height: 300px; background: #000; display: none;"></video>
                                                 <canvas id="cameraCanvas" style="display: none;"></canvas>
                                                 <div id="cameraPlaceholder" class="camera-placeholder">
                                                     <i class="bi bi-camera"></i>
@@ -1068,7 +1104,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Upload Preview -->
                                         <div id="uploadPreview" class="text-center" style="display: none;">
                                             <div class="gcash-preview">
@@ -1079,7 +1115,7 @@
                                             </div>
                                             <small class="text-muted d-block mt-2">Click X to remove</small>
                                         </div>
-                                        
+
                                         <!-- Camera Preview -->
                                         <div id="cameraPreview" class="text-center" style="display: none;">
                                             <div class="gcash-preview">
@@ -1110,6 +1146,30 @@
         </div>
     </div>
 
+    <!-- Clear Cart Confirmation Modal -->
+    <div class="modal fade" id="clearCartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: none; border-radius: 20px; overflow: hidden;">
+                <div class="modal-header" style="border-bottom: 1px solid #eef2f6; background: #f8f9fa;">
+                    <h5 class="modal-title">
+                        <i class="bi bi-trash3 text-danger me-2"></i> Clear Cart
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 mb-2">Are you sure?</h5>
+                    <p class="text-muted">This will remove all items from your cart. This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #eef2f6; background: #f8f9fa;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmClearCartBtn">
+                        <i class="bi bi-trash me-1"></i> Yes, Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Toast Container for Notifications -->
     <div id="toastContainer"></div>
 @endsection
@@ -1178,25 +1238,29 @@
                 if (cameraStream) {
                     stopCamera();
                 }
-                
+
                 cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
+                    video: {
                         facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        width: {
+                            ideal: 1280
+                        },
+                        height: {
+                            ideal: 720
+                        }
                     },
                     audio: false
                 });
-                
+
                 cameraVideo.srcObject = cameraStream;
                 cameraVideo.style.display = 'block';
                 cameraPlaceholder.style.display = 'none';
                 cameraControls.style.display = 'flex';
                 cameraActive = true;
-                
+
                 this.textContent = 'Camera Started';
                 this.disabled = true;
-                
+
             } catch (err) {
                 console.error('Error accessing camera:', err);
                 showToast('error', 'Unable to access camera. Please check permissions and try again.');
@@ -1209,26 +1273,26 @@
                 showToast('error', 'Please start the camera first.');
                 return;
             }
-            
+
             const context = cameraCanvas.getContext('2d');
             cameraCanvas.width = cameraVideo.videoWidth || 1280;
             cameraCanvas.height = cameraVideo.videoHeight || 720;
             context.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
-            
+
             // Convert to data URL
             capturedPhotoData = cameraCanvas.toDataURL('image/jpeg', 0.9);
-            
+
             // Show preview
             cameraPreviewImage.src = capturedPhotoData;
             cameraPreview.style.display = 'block';
-            
+
             // Hide video and controls
             cameraVideo.style.display = 'none';
             cameraControls.style.display = 'none';
-            
+
             // Stop camera
             stopCamera();
-            
+
             showToast('success', 'Photo captured successfully!');
         });
 
@@ -1363,7 +1427,7 @@
                 uploadArea.style.display = 'none';
                 showToast('info', 'PDF file uploaded successfully');
             }
-            
+
             // Clear camera preview if exists
             clearCameraPreview();
         }
@@ -1389,14 +1453,20 @@
         if (checkoutForm) {
             checkoutForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 // Get form data
                 const formData = new FormData(this);
                 const method = document.getElementById('paymentMethod').value;
-                
+
+                // ✅ FIX: Strip commas from amount_paid before sending
+                const amountPaidInput = document.getElementById('amountPaid');
+                if (amountPaidInput) {
+                    const rawAmount = amountPaidInput.value.replace(/,/g, '');
+                    formData.set('amount_paid', rawAmount);
+                }
+
                 // Validate GCash
                 if (method === 'gcash') {
-                    // Check if using camera capture
                     if (capturedPhotoData) {
                         // Convert base64 to blob
                         const byteString = atob(capturedPhotoData.split(',')[1]);
@@ -1406,8 +1476,12 @@
                         for (let i = 0; i < byteString.length; i++) {
                             ia[i] = byteString.charCodeAt(i);
                         }
-                        const blob = new Blob([ab], { type: mimeString });
-                        const file = new File([blob], 'captured_photo_' + Date.now() + '.jpg', { type: mimeString });
+                        const blob = new Blob([ab], {
+                            type: mimeString
+                        });
+                        const file = new File([blob], 'captured_photo_' + Date.now() + '.jpg', {
+                            type: mimeString
+                        });
                         formData.append('payment_proof', file);
                     } else {
                         const fileInput = document.getElementById('paymentProof');
@@ -1415,52 +1489,51 @@
                             showToast('error', 'Please upload a proof of payment or take a photo for GCash.');
                             return;
                         }
-                        // File is already in formData from the input
                     }
                 }
-                
+
                 // Show loading
                 const submitBtn = document.getElementById('completePaymentBtn');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
                 submitBtn.disabled = true;
-                
+
                 // Send request
                 fetch(this.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.message || 'Server error');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        showToast('success', 'Payment successful!');
-                        setTimeout(() => {
-                            window.location.href = data.redirect;
-                        }, 1000);
-                    } else {
-                        showToast('error', data.message || 'Payment failed. Please try again.');
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.message || 'Server error');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            showToast('success', 'Payment successful!');
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1000);
+                        } else {
+                            showToast('error', data.message || 'Payment failed. Please try again.');
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('error', error.message || 'Network error. Please check your connection.');
                         submitBtn.innerHTML = originalText;
                         submitBtn.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('error', error.message || 'Network error. Please check your connection.');
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                });
+                    });
             });
         }
 
@@ -1483,20 +1556,56 @@
             modalTotal.value = currentTotal.toFixed(2);
         }
 
-        // Calculate change
+        // ============================================
+        // AMOUNT PAID - FORMAT WITH COMMAS
+        // ============================================
         const amountPaidInput = document.getElementById('amountPaid');
+        const amountPaidError = document.getElementById('amountPaidError');
+        const submitBtn = document.getElementById('completePaymentBtn');
+
         if (amountPaidInput) {
+            // Format as user types with commas
             amountPaidInput.addEventListener('input', function() {
-                const amountPaid = parseFloat(this.value) || 0;
+                // Get current raw value (remove commas first)
+                let value = this.value.replace(/,/g, '');
+
+                // Only keep numbers and decimal point
+                value = value.replace(/[^0-9.]/g, '');
+
+                // Split into integer and decimal parts
+                let parts = value.split('.');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+                // Add commas to integer part
+                if (integerPart) {
+                    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+
+                // Set formatted value
+                this.value = integerPart + decimalPart;
+
+                // Check if amount is enough
+                const rawValue = this.value.replace(/,/g, '');
+                const amountPaid = parseFloat(rawValue) || 0;
                 const change = amountPaid - currentTotal;
                 const changeDiv = document.getElementById('changeDiv');
                 const changeAmount = document.getElementById('changeAmount');
 
                 if (amountPaid >= currentTotal) {
+                    // ✅ Hide error and show change
+                    if (amountPaidError) amountPaidError.style.display = 'none';
                     changeDiv.style.display = 'block';
-                    changeAmount.value = change.toFixed(2);
+                    changeAmount.value = change.toLocaleString('en-PH', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    if (submitBtn) submitBtn.disabled = false;
                 } else {
+                    // ✅ Show error and hide change
+                    if (amountPaidError) amountPaidError.style.display = 'block';
                     changeDiv.style.display = 'none';
+                    if (submitBtn) submitBtn.disabled = true;
                 }
             });
         }
@@ -1518,7 +1627,7 @@
             // Set product image
             const img = document.getElementById('modalProductImage');
             const placeholder = document.getElementById('modalImagePlaceholder');
-            
+
             if (productData.image && productData.image.trim() !== '') {
                 img.src = productData.image;
                 img.style.display = 'block';
@@ -1532,12 +1641,20 @@
                 placeholder.style.display = 'flex';
             }
 
-            // Show low stock badge
+            // ✅ FIXED: Show low stock or out of stock badge
             const lowStockBadge = document.getElementById('modalLowStock');
-            if (maxAvailable <= 5) {
-                lowStockBadge.style.display = 'inline-block';
-            } else {
-                lowStockBadge.style.display = 'none';
+            if (lowStockBadge) {
+                if (maxAvailable <= 0) {
+                    lowStockBadge.textContent = 'Out of Stock';
+                    lowStockBadge.className = 'badge bg-danger ms-1';
+                    lowStockBadge.style.display = 'inline-block';
+                } else if (maxAvailable <= 5) {
+                    lowStockBadge.textContent = 'Low Stock';
+                    lowStockBadge.className = 'badge bg-warning ms-1';
+                    lowStockBadge.style.display = 'inline-block';
+                } else {
+                    lowStockBadge.style.display = 'none';
+                }
             }
 
             // Reset quantity
@@ -1581,7 +1698,7 @@
             const priceText = document.getElementById('modalProductPrice').textContent;
             const price = parseFloat(priceText.replace('₱', '')) || 0;
             const total = qty * price;
-            
+
             document.getElementById('modalTotalPrice').textContent = `₱${total.toFixed(2)}`;
             document.getElementById('qtyDecrease').disabled = qty <= 1;
             document.getElementById('qtyIncrease').disabled = qty >= maxAvailable;
@@ -1591,7 +1708,7 @@
         // Add to Cart from Modal
         document.getElementById('addToCartBtn')?.addEventListener('click', function() {
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            
+
             if (qty > maxAvailable) {
                 showToast('error', `Only ${maxAvailable} units available!`);
                 return;
@@ -1716,28 +1833,52 @@
                 });
         }
 
-        // Clear cart
+        // Clear cart - with proper modal
         if (clearCartBtn) {
             clearCartBtn.addEventListener('click', function() {
-                if (confirm('Clear entire cart?')) {
-                    fetch('{{ route('branch-admin.pos.clear-cart') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            showToast('error', 'Error clearing cart');
-                        });
-                }
+                // Show the clear cart modal
+                const clearCartModal = new bootstrap.Modal(document.getElementById('clearCartModal'));
+                clearCartModal.show();
+            });
+        }
+
+        // Confirm clear cart
+        const confirmClearCartBtn = document.getElementById('confirmClearCartBtn');
+        if (confirmClearCartBtn) {
+            confirmClearCartBtn.addEventListener('click', function() {
+                // Disable button while processing
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Clearing...';
+
+                fetch('{{ route('branch-admin.pos.clear-cart') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Hide modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById(
+                            'clearCartModal'));
+                            if (modal) modal.hide();
+
+                            showToast('success', 'Cart cleared successfully!');
+
+                            // Reload after short delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showToast('error', data.message || 'Error clearing cart');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('error', 'Error clearing cart');
+                    });
             });
         }
 
@@ -1823,7 +1964,7 @@
                     const price = parseFloat(item.price) || 0;
                     const quantity = parseInt(item.quantity) || 0;
                     const subtotal = price * quantity;
-                    
+
                     html += `
                         <div class="pos-cart-item" data-inventory-id="${item.inventory_id}">
                             <div class="d-flex justify-content-between align-items-start">

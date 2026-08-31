@@ -436,41 +436,60 @@
     }
 
     /* NEW: Low stock row highlighting - Fixed with !important */
-    .table > tbody > tr.table-low-stock > td {
+    .table>tbody>tr.table-low-stock>td {
         background-color: #fee2e2 !important;
         color: #991b1b !important;
     }
 
-    .table > tbody > tr.table-low-stock:hover > td {
+    .table>tbody>tr.table-low-stock:hover>td {
         background-color: #fecaca !important;
     }
 
+    /* NEW: Out of Stock row highlighting - Brighter red */
+    .table>tbody>tr.table-out-of-stock>td {
+        background-color: #dc2626 !important;
+        color: white !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock:hover>td {
+        background-color: #b91c1c !important;
+    }
+
     /* Make text more visible */
-    .table > tbody > tr.table-low-stock > td .fw-bold,
-    .table > tbody > tr.table-low-stock > td .fw-semibold {
+    .table>tbody>tr.table-low-stock>td .fw-bold,
+    .table>tbody>tr.table-low-stock>td .fw-semibold {
         color: #991b1b !important;
         font-weight: 700 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .text-muted {
+    .table>tbody>tr.table-low-stock>td .text-muted {
         color: #7f1d1d !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .quantity-value {
+    .table>tbody>tr.table-low-stock>td .quantity-value {
         color: #991b1b !important;
         font-weight: 700 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .quantity-label {
+    .table>tbody>tr.table-low-stock>td .quantity-label {
         color: #7f1d1d !important;
+    }
+
+    /* Make Out of Stock text white */
+    .table>tbody>tr.table-out-of-stock>td .fw-bold,
+    .table>tbody>tr.table-out-of-stock>td .fw-semibold,
+    .table>tbody>tr.table-out-of-stock>td .quantity-value,
+    .table>tbody>tr.table-out-of-stock>td .quantity-label,
+    .table>tbody>tr.table-out-of-stock>td .text-muted {
+        color: white !important;
     }
 
     /* Style badges inside low stock rows */
-    .table > tbody > tr.table-low-stock > td .badge {
+    .table>tbody>tr.table-low-stock>td .badge {
         box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
     }
 
-    .table > tbody > tr.table-low-stock > td .badge-low-stock {
+    .table>tbody>tr.table-low-stock>td .badge-low-stock {
         background: #b91c1c !important;
         color: white !important;
         font-weight: 700;
@@ -480,50 +499,81 @@
     }
 
     /* Update available badge in low stock rows */
-    .table > tbody > tr.table-low-stock > td .available-badge {
+    .table>tbody>tr.table-low-stock>td .available-badge {
         background: #dc2626 !important;
         color: white !important;
     }
 
     /* Update reserved badge in low stock rows */
-    .table > tbody > tr.table-low-stock > td .reserved-badge {
+    .table>tbody>tr.table-low-stock>td .reserved-badge {
         background: #dc2626 !important;
         color: white !important;
     }
 
     /* Style action buttons in low stock rows */
-    .table > tbody > tr.table-low-stock > td .btn {
+    .table>tbody>tr.table-low-stock>td .btn {
         border-color: #dc2626 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .btn:hover {
+    .table>tbody>tr.table-low-stock>td .btn:hover {
         background: #dc2626 !important;
         color: white !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .btn-outline-info {
+    .table>tbody>tr.table-low-stock>td .btn-outline-info {
         color: #dc2626 !important;
         border-color: #dc2626 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .btn-outline-warning {
+    .table>tbody>tr.table-low-stock>td .btn-outline-warning {
         color: #dc2626 !important;
         border-color: #dc2626 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .btn-outline-secondary {
+    .table>tbody>tr.table-low-stock>td .btn-outline-secondary {
         color: #dc2626 !important;
         border-color: #dc2626 !important;
     }
 
-    .table > tbody > tr.table-low-stock > td .btn-outline-danger {
+    .table>tbody>tr.table-low-stock>td .btn-outline-danger {
         color: #dc2626 !important;
         border-color: #dc2626 !important;
+    }
+
+    /* Style action buttons in out of stock rows */
+    .table>tbody>tr.table-out-of-stock>td .btn {
+        border-color: white !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock>td .btn:hover {
+        background: white !important;
+        color: #dc2626 !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-info,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-warning,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-secondary,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-danger {
+        color: white !important;
+        border-color: white !important;
     }
 
     /* Make sure price text is visible */
-    .table > tbody > tr.table-low-stock > td:last-child {
+    .table>tbody>tr.table-low-stock>td:last-child,
+    .table>tbody>tr.table-out-of-stock>td:last-child {
         font-weight: 700;
+    }
+
+    /* Out of Stock badge - bigger and more prominent */
+    .table>tbody>tr.table-out-of-stock>td .badge-out-of-stock {
+        background: #dc2626 !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.5rem 0.9rem !important;
+        font-size: 0.85rem !important;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
     }
 </style>
 @section('content')
@@ -713,6 +763,7 @@
                                             $reserved = $inv->reserved_quantity ?? 0;
                                             $isArchived = $inv->is_archived ?? false;
                                             $isLowStock = $available <= $inv->low_stock_threshold && $available > 0;
+                                            $isOutOfStock = $available <= 0;
                                             $expiry = $inv->expiration_date
                                                 ? \Carbon\Carbon::parse($inv->expiration_date)
                                                 : null;
@@ -725,7 +776,8 @@
                                                 }
                                             }
                                         @endphp
-                                        <tr class="{{ $isLowStock ? 'table-low-stock' : '' }}">
+                                        <tr
+                                            class="{{ $isOutOfStock ? 'table-out-of-stock' : ($isLowStock ? 'table-low-stock' : '') }}">
                                             <td style="width: 60px">
                                                 @if ($imageUrl)
                                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
@@ -761,7 +813,8 @@
                                             <td>
                                                 <div class="inventory-quantity">
                                                     <span class="quantity-value">{{ $inv->quantity }}</span>
-                                                    <small class="text-muted">Alert: {{ $inv->low_stock_threshold }}</small>
+                                                    <small class="text-muted">Alert:
+                                                        {{ $inv->low_stock_threshold }}</small>
                                                 </div>
                                             </td>
                                             <td>
@@ -770,7 +823,7 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                @if($reserved > 0)
+                                                @if ($reserved > 0)
                                                     <span class="reserved-badge">
                                                         <i class="bi bi-clock"></i> {{ $reserved }}
                                                     </span>
@@ -791,8 +844,8 @@
                                             <td>
                                                 @if ($isArchived)
                                                     <span class="badge bg-secondary">Archived</span>
-                                                @elseif($available <= 0)
-                                                    <span class="badge bg-danger">Out of Stock</span>
+                                                @elseif($isOutOfStock)
+                                                    <span class="badge badge-out-of-stock">Out of Stock</span>
                                                 @elseif($isLowStock)
                                                     <span class="badge badge-low-stock">Low Stock</span>
                                                 @else
@@ -816,9 +869,9 @@
                                                     </button>
 
                                                     @if ($isArchived)
-                                                        <button type="button" class="btn btn-outline-success restore-archive-btn"
-                                                            title="Restore Item"
-                                                            data-bs-toggle="modal"
+                                                        <button type="button"
+                                                            class="btn btn-outline-success restore-archive-btn"
+                                                            title="Restore Item" data-bs-toggle="modal"
                                                             data-bs-target="#restoreArchiveModal"
                                                             data-id="{{ $inv->id }}"
                                                             data-name="{{ $product->name }}">
@@ -1006,7 +1059,9 @@
                                                     $product = $inv->product;
                                                     $available = $inv->available_quantity;
                                                     $reserved = $inv->reserved_quantity ?? 0;
-                                                    $isLowStock = $available <= $inv->low_stock_threshold && $available > 0;
+                                                    $isLowStock =
+                                                        $available <= $inv->low_stock_threshold && $available > 0;
+                                                    $isOutOfStock = $available <= 0;
                                                     $expiry = $inv->expiration_date
                                                         ? \Carbon\Carbon::parse($inv->expiration_date)
                                                         : null;
@@ -1019,7 +1074,8 @@
                                                         }
                                                     }
                                                 @endphp
-                                                <tr class="{{ $isLowStock ? 'table-low-stock' : '' }}">
+                                                <tr
+                                                    class="{{ $isOutOfStock ? 'table-out-of-stock' : ($isLowStock ? 'table-low-stock' : '') }}">
                                                     <td style="width: 60px">
                                                         @if ($imageUrl)
                                                             <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
@@ -1064,7 +1120,7 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        @if($reserved > 0)
+                                                        @if ($reserved > 0)
                                                             <span class="reserved-badge">
                                                                 <i class="bi bi-clock"></i> {{ $reserved }}
                                                             </span>
@@ -1083,8 +1139,8 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        @if ($available <= 0)
-                                                            <span class="badge bg-danger">Out of Stock</span>
+                                                        @if ($isOutOfStock)
+                                                            <span class="badge badge-out-of-stock">Out of Stock</span>
                                                         @elseif($isLowStock)
                                                             <span class="badge badge-low-stock">Low Stock</span>
                                                         @else
@@ -1206,12 +1262,11 @@
                                                 </td>
                                                 <td>{{ $item->dispose_reason ?? 'No reason provided' }}</td>
                                                 <td>
-                                                    <button type="button" class="btn btn-sm btn-outline-success restore-disposed-btn"
-                                                        title="Restore Item"
-                                                        data-bs-toggle="modal"
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-success restore-disposed-btn"
+                                                        title="Restore Item" data-bs-toggle="modal"
                                                         data-bs-target="#restoreDisposedModal"
-                                                        data-id="{{ $item->id }}"
-                                                        data-name="{{ $product->name }}">
+                                                        data-id="{{ $item->id }}" data-name="{{ $product->name }}">
                                                         <i class="bi bi-arrow-counterclockwise"></i> Restore
                                                     </button>
                                                 </td>
@@ -1275,7 +1330,8 @@
                             </div>
                             <p>Are you sure you want to archive this item?</p>
                             <p class="fw-bold" id="archiveItemName"></p>
-                            <p class="text-muted small">Archived items can be viewed by selecting "Archived" in the stock status filter.</p>
+                            <p class="text-muted small">Archived items can be viewed by selecting "Archived" in the stock
+                                status filter.</p>
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
@@ -1317,7 +1373,8 @@
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #dc2626;">
+                            <button type="submit" class="btn-update"
+                                style="width: auto; padding: 0.5rem 1.25rem; background: #dc2626;">
                                 <i class="bi bi-trash me-1"></i> Dispose Item
                             </button>
                         </div>
@@ -1350,7 +1407,8 @@
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
+                            <button type="submit" class="btn-update"
+                                style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Item
                             </button>
                         </div>
@@ -1383,7 +1441,8 @@
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn-update" style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
+                            <button type="submit" class="btn-update"
+                                style="width: auto; padding: 0.5rem 1.25rem; background: #10b981;">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Restore Item
                             </button>
                         </div>
@@ -1525,60 +1584,64 @@
             if (archiveForm) {
                 const newForm = archiveForm.cloneNode(true);
                 archiveForm.parentNode.replaceChild(newForm, archiveForm);
-                
+
                 newForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const modal = document.getElementById('archiveModal');
                     const inventoryId = modal.getAttribute('data-inventory-id');
-                    
+
                     if (!inventoryId) {
                         if (typeof window.showNotification === 'function') {
                             window.showNotification('Error: Inventory ID not found.', 'error');
                         }
                         return;
                     }
-                    
+
                     this.action = '/branch-admin/inventory/' + inventoryId + '/archive';
-                    
+
                     const formData = new FormData(this);
-                    
+
                     if (typeof window.showNotification === 'function') {
                         window.showNotification('Archiving item...', 'info');
                     }
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Item archived successfully!', 'success');
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Item archived successfully!', 'success');
+                                }
+                                const modal = bootstrap.Modal.getInstance(document.getElementById(
+                                    'archiveModal'));
+                                if (modal) modal.hide();
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message || 'Failed to archive item.',
+                                        'error');
+                                }
                             }
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('archiveModal'));
-                            if (modal) modal.hide();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Failed to archive item.', 'error');
+                                window.showNotification('Network error. Please try again.', 'error');
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Network error. Please try again.', 'error');
-                        }
-                    });
+                        });
                 });
             }
 
@@ -1601,60 +1664,64 @@
             if (disposeForm) {
                 const newForm = disposeForm.cloneNode(true);
                 disposeForm.parentNode.replaceChild(newForm, disposeForm);
-                
+
                 newForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const modal = document.getElementById('disposeModal');
                     const inventoryId = modal.getAttribute('data-inventory-id');
-                    
+
                     if (!inventoryId) {
                         if (typeof window.showNotification === 'function') {
                             window.showNotification('Error: Inventory ID not found.', 'error');
                         }
                         return;
                     }
-                    
+
                     this.action = '/branch-admin/inventory/' + inventoryId + '/dispose';
-                    
+
                     const formData = new FormData(this);
-                    
+
                     if (typeof window.showNotification === 'function') {
                         window.showNotification('Disposing item...', 'info');
                     }
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Item disposed successfully!', 'success');
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Item disposed successfully!', 'success');
+                                }
+                                const modal = bootstrap.Modal.getInstance(document.getElementById(
+                                    'disposeModal'));
+                                if (modal) modal.hide();
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message || 'Failed to dispose item.',
+                                        'error');
+                                }
                             }
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('disposeModal'));
-                            if (modal) modal.hide();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Failed to dispose item.', 'error');
+                                window.showNotification('Network error. Please try again.', 'error');
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Network error. Please try again.', 'error');
-                        }
-                    });
+                        });
                 });
             }
 
@@ -1677,60 +1744,64 @@
             if (restoreArchiveForm) {
                 const newForm = restoreArchiveForm.cloneNode(true);
                 restoreArchiveForm.parentNode.replaceChild(newForm, restoreArchiveForm);
-                
+
                 newForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const modal = document.getElementById('restoreArchiveModal');
                     const inventoryId = modal.getAttribute('data-inventory-id');
-                    
+
                     if (!inventoryId) {
                         if (typeof window.showNotification === 'function') {
                             window.showNotification('Error: Inventory ID not found.', 'error');
                         }
                         return;
                     }
-                    
+
                     this.action = '/branch-admin/inventory/' + inventoryId + '/unarchive';
-                    
+
                     const formData = new FormData(this);
-                    
+
                     if (typeof window.showNotification === 'function') {
                         window.showNotification('Restoring archived item...', 'info');
                     }
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Item restored successfully!', 'success');
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Item restored successfully!', 'success');
+                                }
+                                const modal = bootstrap.Modal.getInstance(document.getElementById(
+                                    'restoreArchiveModal'));
+                                if (modal) modal.hide();
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message || 'Failed to restore item.',
+                                        'error');
+                                }
                             }
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('restoreArchiveModal'));
-                            if (modal) modal.hide();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Failed to restore item.', 'error');
+                                window.showNotification('Network error. Please try again.', 'error');
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Network error. Please try again.', 'error');
-                        }
-                    });
+                        });
                 });
             }
 
@@ -1753,60 +1824,64 @@
             if (restoreDisposedForm) {
                 const newForm = restoreDisposedForm.cloneNode(true);
                 restoreDisposedForm.parentNode.replaceChild(newForm, restoreDisposedForm);
-                
+
                 newForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    
+
                     const modal = document.getElementById('restoreDisposedModal');
                     const inventoryId = modal.getAttribute('data-inventory-id');
-                    
+
                     if (!inventoryId) {
                         if (typeof window.showNotification === 'function') {
                             window.showNotification('Error: Inventory ID not found.', 'error');
                         }
                         return;
                     }
-                    
+
                     this.action = '/branch-admin/inventory/' + inventoryId + '/restore-disposed';
-                    
+
                     const formData = new FormData(this);
-                    
+
                     if (typeof window.showNotification === 'function') {
                         window.showNotification('Restoring disposed item...', 'info');
                     }
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Item restored successfully!', 'success');
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Item restored successfully!', 'success');
+                                }
+                                const modal = bootstrap.Modal.getInstance(document.getElementById(
+                                    'restoreDisposedModal'));
+                                if (modal) modal.hide();
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message || 'Failed to restore item.',
+                                        'error');
+                                }
                             }
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('restoreDisposedModal'));
-                            if (modal) modal.hide();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Failed to restore item.', 'error');
+                                window.showNotification('Network error. Please try again.', 'error');
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Network error. Please try again.', 'error');
-                        }
-                    });
+                        });
                 });
             }
 
@@ -1842,61 +1917,100 @@
                             modalContent.innerHTML = html;
                             const bsModal = new bootstrap.Modal(transferModal);
                             bsModal.show();
-                            
+
                             // After the modal is shown, attach the submit handler
                             transferModal.addEventListener('shown.bs.modal', function() {
-                                const transferForm = document.getElementById('transferForm');
+                                const transferForm = document.getElementById(
+                                    'transferForm');
                                 if (transferForm) {
                                     // Remove any existing listeners
-                                    const newTransferForm = transferForm.cloneNode(true);
-                                    transferForm.parentNode.replaceChild(newTransferForm, transferForm);
-                                    
-                                    newTransferForm.addEventListener('submit', function(e) {
+                                    const newTransferForm = transferForm.cloneNode(
+                                        true);
+                                    transferForm.parentNode.replaceChild(
+                                        newTransferForm, transferForm);
+
+                                    newTransferForm.addEventListener('submit', function(
+                                        e) {
                                         e.preventDefault();
-                                        
+
                                         const formData = new FormData(this);
-                                        
-                                        if (typeof window.showNotification === 'function') {
-                                            window.showNotification('Submitting transfer request...', 'info');
+
+                                        if (typeof window.showNotification ===
+                                            'function') {
+                                            window.showNotification(
+                                                'Submitting transfer request...',
+                                                'info');
                                         }
-                                        
+
                                         fetch(this.action, {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                                'X-Requested-With': 'XMLHttpRequest',
-                                                'Accept': 'application/json',
-                                            },
-                                            body: formData
-                                        })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            if (data.success) {
-                                                if (typeof window.showNotification === 'function') {
-                                                    window.showNotification(data.message || 'Transfer request submitted successfully!', 'success');
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document
+                                                        .querySelector(
+                                                            'meta[name="csrf-token"]'
+                                                        ).getAttribute(
+                                                            'content'),
+                                                    'X-Requested-With': 'XMLHttpRequest',
+                                                    'Accept': 'application/json',
+                                                },
+                                                body: formData
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    if (typeof window
+                                                        .showNotification ===
+                                                        'function') {
+                                                        window
+                                                            .showNotification(
+                                                                data
+                                                                .message ||
+                                                                'Transfer request submitted successfully!',
+                                                                'success');
+                                                    }
+                                                    // Close modal
+                                                    const modal = bootstrap
+                                                        .Modal.getInstance(
+                                                            document
+                                                            .getElementById(
+                                                                'transferModal'
+                                                            ));
+                                                    if (modal) modal.hide();
+                                                    // Reload page after 1.5 seconds
+                                                    setTimeout(() => {
+                                                        window
+                                                            .location
+                                                            .reload();
+                                                    }, 1500);
+                                                } else {
+                                                    if (typeof window
+                                                        .showNotification ===
+                                                        'function') {
+                                                        window
+                                                            .showNotification(
+                                                                data
+                                                                .message ||
+                                                                'Failed to submit transfer request.',
+                                                                'error');
+                                                    }
                                                 }
-                                                // Close modal
-                                                const modal = bootstrap.Modal.getInstance(document.getElementById('transferModal'));
-                                                if (modal) modal.hide();
-                                                // Reload page after 1.5 seconds
-                                                setTimeout(() => {
-                                                    window.location.reload();
-                                                }, 1500);
-                                            } else {
-                                                if (typeof window.showNotification === 'function') {
-                                                    window.showNotification(data.message || 'Failed to submit transfer request.', 'error');
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:',
+                                                    error);
+                                                if (typeof window
+                                                    .showNotification ===
+                                                    'function') {
+                                                    window.showNotification(
+                                                        'Network error. Please try again.',
+                                                        'error');
                                                 }
-                                            }
-                                        })
-                                        .catch(error => {
-                                            console.error('Error:', error);
-                                            if (typeof window.showNotification === 'function') {
-                                                window.showNotification('Network error. Please try again.', 'error');
-                                            }
-                                        });
+                                            });
                                     });
                                 }
-                            }, { once: true });
+                            }, {
+                                once: true
+                            });
                         })
                         .catch(error => {
                             modalContent.innerHTML = `
