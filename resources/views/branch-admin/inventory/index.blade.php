@@ -1366,10 +1366,10 @@
                             <p>Are you sure you want to dispose this item?</p>
                             <p class="fw-bold" id="disposeItemName"></p>
                             <div class="mb-3">
-                                <label class="form-label-minimal">Reason for Disposal (Optional)</label>
-                                <textarea name="dispose_reason" class="form-control-minimal" rows="3"
-                                    placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
-                            </div>
+    <label class="form-label-minimal">Reason for Disposal *</label>
+    <textarea name="dispose_reason" class="form-control-minimal" rows="3" required
+        placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
+</div>
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn-secondary-minimal" data-bs-dismiss="modal">Cancel</button>
@@ -1646,84 +1646,97 @@
             }
 
             // ============================================================
-            // DISPOSE MODAL HANDLING
-            // ============================================================
-            const disposeModal = document.getElementById('disposeModal');
-            if (disposeModal) {
-                disposeModal.addEventListener('show.bs.modal', function(event) {
-                    const button = event.relatedTarget;
-                    const inventoryId = button.getAttribute('data-id');
-                    const itemName = button.getAttribute('data-name');
+// DISPOSE MODAL HANDLING
+// ============================================================
+const disposeModal = document.getElementById('disposeModal');
+if (disposeModal) {
+    disposeModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const inventoryId = button.getAttribute('data-id');
+        const itemName = button.getAttribute('data-name');
 
-                    document.getElementById('disposeItemName').textContent = itemName;
-                    this.setAttribute('data-inventory-id', inventoryId);
-                });
+        document.getElementById('disposeItemName').textContent = itemName;
+        this.setAttribute('data-inventory-id', inventoryId);
+    });
+}
+
+const disposeForm = document.getElementById('disposeForm');
+if (disposeForm) {
+    const newForm = disposeForm.cloneNode(true);
+    disposeForm.parentNode.replaceChild(newForm, disposeForm);
+
+    newForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // ✅ ADD THIS: Validate dispose_reason is required
+        const disposeReasonInput = document.getElementById('dispose_reason');
+        const disposeReason = disposeReasonInput ? disposeReasonInput.value.trim() : '';
+
+        if (!disposeReason) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Please provide a reason for disposal.', 'error');
+            } else {
+                alert('Please provide a reason for disposal.');
             }
+            return;
+        }
 
-            const disposeForm = document.getElementById('disposeForm');
-            if (disposeForm) {
-                const newForm = disposeForm.cloneNode(true);
-                disposeForm.parentNode.replaceChild(newForm, disposeForm);
+        const modal = document.getElementById('disposeModal');
+        const inventoryId = modal.getAttribute('data-inventory-id');
 
-                newForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+        if (!inventoryId) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Error: Inventory ID not found.', 'error');
+            }
+            return;
+        }
 
-                    const modal = document.getElementById('disposeModal');
-                    const inventoryId = modal.getAttribute('data-inventory-id');
+        this.action = '/branch-admin/inventory/' + inventoryId + '/dispose';
 
-                    if (!inventoryId) {
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Error: Inventory ID not found.', 'error');
-                        }
-                        return;
-                    }
+        const formData = new FormData(this);
 
-                    this.action = '/branch-admin/inventory/' + inventoryId + '/dispose';
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Disposing item...', 'info');
+        }
 
-                    const formData = new FormData(this);
-
+        fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                        .getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     if (typeof window.showNotification === 'function') {
-                        window.showNotification('Disposing item...', 'info');
+                        window.showNotification(data.message ||
+                            'Item disposed successfully!', 'success');
                     }
-
-                    fetch(this.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json',
-                            },
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                if (typeof window.showNotification === 'function') {
-                                    window.showNotification(data.message ||
-                                        'Item disposed successfully!', 'success');
-                                }
-                                const modal = bootstrap.Modal.getInstance(document.getElementById(
-                                    'disposeModal'));
-                                if (modal) modal.hide();
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1500);
-                            } else {
-                                if (typeof window.showNotification === 'function') {
-                                    window.showNotification(data.message || 'Failed to dispose item.',
-                                        'error');
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification('Network error. Please try again.', 'error');
-                            }
-                        });
-                });
-            }
+                    const modal = bootstrap.Modal.getInstance(document.getElementById(
+                        'disposeModal'));
+                    if (modal) modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    if (typeof window.showNotification === 'function') {
+                        window.showNotification(data.message || 'Failed to dispose item.',
+                            'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Network error. Please try again.', 'error');
+                }
+            });
+    });
+}
 
             // ============================================================
             // RESTORE ARCHIVED ITEM MODAL HANDLING
