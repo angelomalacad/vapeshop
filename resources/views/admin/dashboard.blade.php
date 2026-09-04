@@ -562,10 +562,10 @@
         }
 
         .chart-container-medium {
-            max-width: 100%;
-            height: 250px;
-            margin: 0 auto;
-        }
+    max-width: 100%;
+    height: 200px;
+    margin: 0 auto;
+}
 
         .chart-container-large {
             max-width: 100%;
@@ -1644,298 +1644,274 @@
                 </ul>
 
                 <div class="tab-content">
-                    <!-- ANALYTICS TAB - NOW FIRST -->
-                    <div class="tab-pane fade show active" id="analytics" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics
-                            </h3>
+                    <!-- ANALYTICS TAB -->
+<div class="tab-pane fade show active" id="analytics" role="tabpanel">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0"><i class="bi bi-graph-up me-2 text-primary"></i> Business Analytics</h3>
+    </div>
+
+    <!-- ROW 1: Monthly Orders & Sales Comparison (col-md-6) -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Orders Trend -->
+        <div class="col-md-6">
+            <div class="card analytics-card h-100 animate-fade-up delay-1">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+                    <div><i class="bi bi-calendar-month me-2 text-primary"></i> Monthly Orders Trend</div>
+                    <div class="filter-controls mb-0">
+                        <label for="yearSelect" class="me-2">Year:</label>
+                        <select id="yearSelect" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+                            @php
+                                $currentYear = date('Y');
+                                $startYear = 2020;
+                            @endphp
+                            @for ($y = $currentYear; $y >= $startYear; $y--)
+                                <option value="{{ $y }}" {{ $y == $currentYear ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container-medium">
+                        <canvas id="monthlyOrdersChart"></canvas>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span class="badge bg-primary me-2">POS Orders</span>
+                        <span class="badge bg-success me-2">Online Orders</span>
+                        <span class="badge bg-warning text-dark">Total Orders</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Comparison -->
+        <div class="col-md-6">
+            <div class="card analytics-card h-100 animate-fade-up delay-2">
+                <div class="card-header bg-white d-flex flex-column align-items-start gap-2">
+                    <div class="w-100"><i class="bi bi-bar-chart me-2 text-success"></i> Sales Comparison</div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 w-100">
+                        <div class="d-flex align-items-center gap-1">
+                            <label for="compareType" class="text-muted small mb-0 me-1">Compare by:</label>
+                            <select id="compareType" class="form-select form-select-sm" style="width: auto;">
+                                <option value="brand">Brand</option>
+                                <option value="category">Category</option>
+                                <option value="product">Product</option>
+                            </select>
                         </div>
-
-                        <!-- ========== MONTHLY ORDERS LINE GRAPH ========== -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-1">
-                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-                                        <div>
-                                            <i class="bi bi-calendar-month me-2 text-primary"></i> Monthly Orders Trend
-                                        </div>
-                                        <div class="filter-controls mb-0">
-                                            <label for="yearSelect" class="me-2">Year:</label>
-                                            <select id="yearSelect" class="form-select form-select-sm" style="width: auto; display: inline-block;">
-                                                @php
-                                                    $currentYear = date('Y');
-                                                    $startYear = 2020;
-                                                @endphp
-                                                @for ($y = $currentYear; $y >= $startYear; $y--)
-                                                    <option value="{{ $y }}" {{ $y == $currentYear ? 'selected' : '' }}>
-                                                        {{ $y }}
-                                                    </option>
-                                                @endfor
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="chart-container-large">
-                                            <canvas id="monthlyOrdersChart"></canvas>
-                                        </div>
-                                        <div class="text-center mt-2">
-                                            <span class="badge bg-primary me-2">POS Orders</span>
-                                            <span class="badge bg-success me-2">Online Orders</span>
-                                            <span class="badge bg-warning text-dark">Total Orders</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <label for="salesRange" class="text-muted small mb-0 me-1">Range:</label>
+                            <select id="salesRange" class="form-select form-select-sm" style="width: auto;">
+                                <option value="today">Today</option>
+                                <option value="week" selected>This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
                         </div>
-
-                        <!-- ========== SALES COMPARISON BAR GRAPH ========== -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-2">
-                                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-                                        <div>
-                                            <i class="bi bi-bar-chart me-2 text-success"></i> Sales Comparison
-                                        </div>
-                                        <div class="filter-controls mb-0">
-                                            <label for="compareType" class="me-2">Compare by:</label>
-                                            <select id="compareType" class="form-select form-select-sm" style="width: auto; display: inline-block;">
-                                                <option value="brand">Brand</option>
-                                                <option value="category">Category</option>
-                                                <option value="product">Product</option>
-                                            </select>
-                                            <label for="salesRange" class="ms-2 me-2">Range:</label>
-                                            <select id="salesRange" class="form-select form-select-sm" style="width: auto; display: inline-block;">
-                                                <option value="today">Today</option>
-                                                <option value="week" selected>This Week</option>
-                                                <option value="month">This Month</option>
-                                                <option value="last_month">Last Month</option>
-                                                <option value="custom">Custom Range</option>
-                                            </select>
-                                            <div id="customDateRange" style="display: none; gap: 0.5rem; align-items: center;" class="d-inline-flex ms-2">
-                                                <input type="date" id="startDate" class="form-control form-control-sm" style="width: auto; display: inline-block;">
-                                                <span class="text-muted">to</span>
-                                                <input type="date" id="endDate" class="form-control form-control-sm" style="width: auto; display: inline-block;">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="chart-container-large">
-                                            <canvas id="compareChart"></canvas>
-                                        </div>
-                                        <div class="text-center mt-2 text-muted small">
-                                            <i class="bi bi-info-circle"></i> Comparing sales by <span id="compareTypeLabel">Brand</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Expiring Soon -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-3">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next
-                                        30 days)
-                                        @if ($expiringSoon->count() > 0)
-                                            <span class="badge bg-danger float-end">{{ $expiringSoon->count() }}
-                                                items</span>
-                                        @endif
-                                    </div>
-                                    <div class="card-body p-0">
-                                        @if ($expiringSoon->count() > 0)
-                                            <div class="table-responsive">
-                                                <table class="table table-hover mb-0">
-                                                    <thead class="bg-light">
-                                                        <tr>
-                                                            <th>Branch</th>
-                                                            <th>Product</th>
-                                                            <th>Expiration Date</th>
-                                                            <th>Days Left</th>
-                                                            <th>Qty</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($expiringSoon as $item)
-                                                            <tr>
-                                                                <td>{{ $item->branch->name ?? 'N/A' }}</td>
-                                                                <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                                                <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
-                                                                </td>
-                                                                <td>
-                                                                    @php $daysLeft = \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
-                                                                    <span
-                                                                        class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">
-                                                                        {{ max(0, $daysLeft) }} days
-                                                                    </span>
-                                                                </td>
-                                                                <td>{{ number_format($item->quantity) }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        @else
-                                            <div class="text-center py-4 text-success">
-                                                <i class="bi bi-check-circle fs-2"></i>
-                                                <p class="mb-0">No products expiring soon</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Charts Row -->
-                        <div class="row g-4 mb-4">
-                            <!-- Online Order Status -->
-                            <div class="col-md-5">
-                                <div class="card analytics-card h-100 animate-fade-up delay-4">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
-                                        <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }}
-                                            total</span>
-                                    </div>
-                                    <div class="card-body text-center">
-                                        @if (count($onlineOrderStatus) > 0)
-                                            <div class="chart-container-medium">
-                                                <canvas id="orderStatusChart"></canvas>
-                                            </div>
-                                            <div class="row mt-3 text-center small">
-                                                @foreach ($onlineOrderStatus as $status => $count)
-                                                    <div class="col-4 col-md-3 mb-2">
-                                                        @php
-                                                            $badgeClass = match ($status) {
-                                                                'pending' => 'warning',
-                                                                'confirmed' => 'info',
-                                                                'processing' => 'primary',
-                                                                'ready' => 'success',
-                                                                'out_for_delivery' => 'dark',
-                                                                'delivered' => 'secondary',
-                                                                'cancelled' => 'danger',
-                                                                default => 'secondary',
-                                                            };
-                                                        @endphp
-                                                        <span
-                                                            class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
-                                                        <div class="fw-bold mt-1">{{ $count }}</div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <div class="chart-fallback">
-                                                <p class="text-muted">No online orders data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Delivery vs POS -->
-                            <div class="col-md-3">
-                                <div class="card analytics-card h-100 animate-fade-up delay-5">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
-                                    </div>
-                                    <div class="card-body text-center">
-                                        @php
-                                            $hasSalesData =
-                                                ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 ||
-                                                ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
-                                        @endphp
-                                        @if ($hasSalesData)
-                                            <div class="chart-container-small">
-                                                <canvas id="deliveryVsPickupChart"></canvas>
-                                            </div>
-                                            <div class="row text-center mt-3">
-                                                <div class="col-6">
-                                                    <span class="badge bg-primary status-badge">Delivery</span>
-                                                    <h5 class="mb-0 mt-1">
-                                                        ₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}
-                                                    </h5>
-                                                </div>
-                                                <div class="col-6">
-                                                    <span class="badge bg-success status-badge">POS</span>
-                                                    <h5 class="mb-0 mt-1">
-                                                        ₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="chart-fallback">
-                                                <p class="text-muted">No sales data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Repeat Customer Rate -->
-                            <div class="col-md-4">
-                                <div class="card analytics-card h-100 text-center animate-fade-up delay-6">
-                                    <div class="card-body d-flex flex-column justify-content-center">
-                                        <i class="bi bi-people-fill fs-1 text-primary"></i>
-                                        <h5 class="mt-2">Repeat Customer Rate</h5>
-                                        <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
-                                        <small class="text-muted">of customers ordered more than once</small>
-                                        <div class="progress mt-3" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar"
-                                                style="width: {{ $repeatCustomerRate }}%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fastest Moving Products -->
-                        <div class="row g-4">
-                            <div class="col-md-12">
-                                <div class="card analytics-card animate-fade-up delay-7">
-                                    <div class="card-header bg-white">
-                                        <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving
-                                        Products
-                                    </div>
-                                    <div class="card-body p-0">
-                                        @if ($fastMovingProducts->count() > 0)
-                                            <div class="table-responsive">
-                                                <table class="table table-hover mb-0">
-                                                    <thead class="bg-light">
-                                                        <tr>
-                                                            <th>Product</th>
-                                                            <th>Units Sold</th>
-                                                            <th>Revenue</th>
-                                                            <th class="text-end">Rank</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($fastMovingProducts as $index => $product)
-                                                            <tr>
-                                                                <td><strong>{{ $product->name }}</strong></td>
-                                                                <td><span
-                                                                        class="badge bg-primary">{{ number_format($product->total_sold) }}</span>
-                                                                </td>
-                                                                <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}
-                                                                </td>
-                                                                <td class="text-end"><span
-                                                                        class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        @else
-                                            <div class="text-center py-4 text-muted">
-                                                <i class="bi bi-box-seam fs-2"></i>
-                                                <p>No product sales data yet</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                        <div id="customDateRange" class="d-none align-items-center gap-1">
+                            <input type="date" id="startDate" class="form-control form-control-sm" style="width: auto;">
+                            <span class="text-muted small">to</span>
+                            <input type="date" id="endDate" class="form-control form-control-sm" style="width: auto;">
                         </div>
                     </div>
-                    <!-- END OF ANALYTICS TAB-PANE -->
+                </div>
+                <div class="card-body">
+                    <div class="chart-container-medium">
+                        <canvas id="compareChart"></canvas>
+                    </div>
+                    <div class="text-center mt-2 text-muted small">
+                        <i class="bi bi-info-circle"></i> Comparing sales by <span id="compareTypeLabel">Brand</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 2: Expiring Soon & Fastest Moving (col-md-6) -->
+    <div class="row g-4 mb-4">
+        <!-- Expiring Soon (Whole Numbers) -->
+        <div class="col-md-6">
+            <div class="card analytics-card h-100 animate-fade-up delay-3">
+                <div class="card-header bg-white">
+                    <i class="bi bi-calendar-exclamation me-2 text-danger"></i> Expiring Soon (next 30 days)
+                    @if ($expiringSoon->count() > 0)
+                        <span class="badge bg-danger float-end">{{ $expiringSoon->count() }} items</span>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    @if ($expiringSoon->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Branch</th>
+                                        <th>Product</th>
+                                        <th>Expiration Date</th>
+                                        <th>Days Left</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($expiringSoon as $item)
+                                        <tr>
+                                            <td>{{ $item->branch->name ?? 'N/A' }}</td>
+                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}</td>
+                                            <td>
+                                                @php $daysLeft = (int) \Carbon\Carbon::now()->diffInDays($item->expiration_date, false); @endphp
+                                                <span class="badge {{ $daysLeft <= 7 ? 'bg-danger' : ($daysLeft <= 14 ? 'bg-warning' : 'bg-secondary') }}">
+                                                    {{ max(0, $daysLeft) }} days
+                                                </span>
+                                            </td>
+                                            <td>{{ number_format($item->quantity) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-success">
+                            <i class="bi bi-check-circle fs-2"></i>
+                            <p class="mb-0">No products expiring soon</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Fastest Moving Products -->
+        <div class="col-md-6">
+            <div class="card analytics-card h-100 animate-fade-up delay-7">
+                <div class="card-header bg-white">
+                    <i class="bi bi-lightning-charge me-2 text-warning"></i> Fastest Moving Products
+                </div>
+                <div class="card-body p-0">
+                    @if ($fastMovingProducts->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Units Sold</th>
+                                        <th>Revenue</th>
+                                        <th class="text-end">Rank</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($fastMovingProducts as $index => $product)
+                                        <tr>
+                                            <td><strong>{{ $product->name }}</strong></td>
+                                            <td><span class="badge bg-primary">{{ number_format($product->total_sold) }}</span></td>
+                                            <td>₱{{ number_format($product->total_sold * ($product->price ?? 350), 2) }}</td>
+                                            <td class="text-end"><span class="badge bg-secondary rounded-pill">#{{ $index + 1 }}</span></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-box-seam fs-2"></i>
+                            <p>No product sales data yet</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 3: Smaller Stats (col-md-4) -->
+    <div class="row g-4 mb-4">
+        <!-- Online Order Status -->
+        <div class="col-md-4">
+            <div class="card analytics-card h-100 animate-fade-up delay-4">
+                <div class="card-header bg-white">
+                    <i class="bi bi-cart-check me-2 text-primary"></i> Online Order Status
+                    <span class="badge bg-secondary float-end">{{ array_sum($onlineOrderStatus) }} total</span>
+                </div>
+                <div class="card-body text-center">
+                    @if (count($onlineOrderStatus) > 0)
+                        <div class="chart-container-small">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                        <div class="row mt-3 text-center small">
+                            @foreach ($onlineOrderStatus as $status => $count)
+                                <div class="col-4 col-md-3 mb-2">
+                                    @php
+                                        $badgeClass = match ($status) {
+                                            'pending' => 'warning',
+                                            'confirmed' => 'info',
+                                            'processing' => 'primary',
+                                            'ready' => 'success',
+                                            'out_for_delivery' => 'dark',
+                                            'delivered' => 'secondary',
+                                            'cancelled' => 'danger',
+                                            default => 'secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $badgeClass }} status-badge">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
+                                    <div class="fw-bold mt-1">{{ $count }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="chart-fallback">
+                            <p class="text-muted">No online orders data yet</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery vs POS -->
+        <div class="col-md-4">
+            <div class="card analytics-card h-100 animate-fade-up delay-5">
+                <div class="card-header bg-white">
+                    <i class="bi bi-truck me-2 text-primary"></i> Delivery vs POS
+                </div>
+                <div class="card-body text-center">
+                    @php
+                        $hasSalesData = ($deliveryVsPickup['delivery_sales'] ?? 0) > 0 || ($deliveryVsPickup['pickup_sales'] ?? 0) > 0;
+                    @endphp
+                    @if ($hasSalesData)
+                        <div class="chart-container-small">
+                            <canvas id="deliveryVsPickupChart"></canvas>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <span class="badge bg-primary status-badge">Delivery</span>
+                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['delivery_sales'] ?? 0, 2) }}</h5>
+                            </div>
+                            <div class="col-6">
+                                <span class="badge bg-success status-badge">POS</span>
+                                <h5 class="mb-0 mt-1">₱{{ number_format($deliveryVsPickup['pickup_sales'] ?? 0, 2) }}</h5>
+                            </div>
+                        </div>
+                    @else
+                        <div class="chart-fallback">
+                            <p class="text-muted">No sales data yet</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Repeat Customer Rate -->
+        <div class="col-md-4">
+            <div class="card analytics-card h-100 text-center animate-fade-up delay-6">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <i class="bi bi-people-fill fs-1 text-primary"></i>
+                    <h5 class="mt-2">Repeat Customer Rate</h5>
+                    <h2 class="mb-0">{{ $repeatCustomerRate }}%</h2>
+                    <small class="text-muted">of customers ordered more than once</small>
+                    <div class="progress mt-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $repeatCustomerRate }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END OF ANALYTICS TAB-PANE -->
 
                     <!-- OVERVIEW TAB - NOW SECOND -->
                     <div class="tab-pane fade" id="overview" role="tabpanel">
@@ -2786,14 +2762,16 @@
                             });
 
                             document.getElementById('salesRange').addEventListener('change', function() {
-                                const customRange = document.getElementById('customDateRange');
-                                if (this.value === 'custom') {
-                                    customRange.style.display = 'inline-flex';
-                                } else {
-                                    customRange.style.display = 'none';
-                                    updateCompareChart();
-                                }
-                            });
+    const customRange = document.getElementById('customDateRange');
+    if (this.value === 'custom') {
+        customRange.classList.remove('d-none');
+        customRange.classList.add('d-flex');
+    } else {
+        customRange.classList.add('d-none');
+        customRange.classList.remove('d-flex');
+        updateCompareChart();
+    }
+});
 
                             document.getElementById('startDate').addEventListener('change', function() {
                                 if (document.getElementById('salesRange').value === 'custom') {
