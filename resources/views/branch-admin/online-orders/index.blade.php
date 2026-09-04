@@ -132,6 +132,11 @@
             color: #d97706;
         }
 
+        .badge-picked_up {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
         .badge-delivered {
             background: #d1fae5;
             color: #059669;
@@ -441,6 +446,7 @@
                                         'processing' => 'badge-packing',
                                         'ready' => 'badge-ready',
                                         'out_for_delivery' => 'badge-out_for_delivery',
+                                        'picked_up' => 'badge-picked_up',
                                         'delivered' => 'badge-delivered',
                                         'cancelled' => 'badge-cancelled',
                                         default => 'badge-secondary',

@@ -575,11 +575,13 @@
                 @endphp
 
                 {{-- LALAMOVE TRACKING CARD --}}
-                @if (
-                    $isLalamoveEligible &&
-                        ($delivery->order->order_status === 'out_for_delivery' ||
-                            $delivery->order->order_status === 'lalamove_pending' ||
-                            $delivery->order->order_status === 'ready'))
+@if (
+    $isLalamoveEligible &&
+        ($delivery->order->order_status === 'out_for_delivery' ||
+            $delivery->order->order_status === 'lalamove_pending' ||
+            $delivery->order->order_status === 'ready' ||
+            $delivery->order->order_status === 'picked_up' ||
+            $delivery->status === 'picked_up'))
                     <div class="info-card" style="border: 1px solid #0d6efd;">
                         <div class="card-header-custom bg-primary bg-opacity-10">
                             <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Tracking</h6>

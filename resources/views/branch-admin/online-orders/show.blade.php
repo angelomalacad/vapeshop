@@ -258,6 +258,12 @@
         color: #d97706;
     }
 
+    /* ✅ ADDED: picked_up badge */
+    .badge-picked_up {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
     .badge-delivered {
         background: #d1fae5;
         color: #059669;
@@ -485,91 +491,173 @@
             </div>
 
             <!-- RIGHT COLUMN - 5 columns -->
-            <div class="col-md-5">
-                <!-- Update Status Card -->
-                <div class="info-card">
-                    <div class="card-header-custom">
-                        <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
-                    </div>
-                    <div class="card-body p-3">
-                        @php
-                            $statusClass = match ($order->order_status) {
-                                'pending' => 'badge-pending',
-                                'confirmed' => 'badge-confirmed',
-                                'processing' => 'badge-packing',
-                                'ready' => 'badge-ready',
-                                'out_for_delivery' => 'badge-out_for_delivery',
-                                'delivered' => 'badge-delivered',
-                                'cancelled' => 'badge-cancelled',
-                                default => 'badge-secondary',
-                            };
-                            $displayStatus =
-                                $order->order_status == 'processing'
-                                    ? 'Packing'
-                                    : ucfirst(str_replace('_', ' ', $order->order_status));
-                            
-                            $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
-                        @endphp
+<div class="col-md-5">
+    <!-- Update Status Card -->
+    <div class="info-card">
+        <div class="card-header-custom">
+            <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
+        </div>
+        <div class="card-body p-3">
+            @php
+                $statusClass = match ($order->order_status) {
+                    'pending' => 'badge-pending',
+                    'confirmed' => 'badge-confirmed',
+                    'processing' => 'badge-packing',
+                    'ready' => 'badge-ready',
+                    'out_for_delivery' => 'badge-out_for_delivery',
+                    'picked_up' => 'badge-picked_up',
+                    'delivered' => 'badge-delivered',
+                    'cancelled' => 'badge-cancelled',
+                    default => 'badge-secondary',
+                };
+                $displayStatus =
+                    $order->order_status == 'processing'
+                        ? 'Packing'
+                        : ucfirst(str_replace('_', ' ', $order->order_status));
+                
+                $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
+            @endphp
 
-                        <div class="mb-3">
-                            <p class="info-label">Current Status</p>
-                            <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
-                        </div>
-
-                        @if($isCurrentBranch)
-                            @if ($order->order_status == 'pending')
-                                <button type="button" class="status-btn btn-confirm"
-                                    onclick="handleStatus('confirm', {{ $order->id }})">
-                                    <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
-                                </button>
-                            @elseif($order->order_status == 'confirmed')
-                                <button type="button" class="status-btn btn-processing"
-                                    onclick="handleStatus('processing', {{ $order->id }})">
-                                    <i class="bi bi-gear me-2"></i> Mark as Packing
-                                </button>
-                            @elseif($order->order_status == 'processing')
-                                <button type="button" class="status-btn btn-ready"
-                                    onclick="handleStatus('ready', {{ $order->id }})">
-                                    <i class="bi bi-box-seam me-2"></i> Mark as Ready
-                                </button>
-                            @elseif($order->order_status == 'ready')
-                                <div class="alert-custom alert-info-custom text-center">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <strong>Order is Ready</strong><br>
-                                    <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
-                                </div>
-                            @elseif($order->order_status == 'out_for_delivery')
-                                <div class="alert-custom alert-info-custom text-center">
-                                    <i class="bi bi-truck me-2"></i>
-                                    <strong>Out for Delivery</strong><br>
-                                    <small class="text-muted">Driver is delivering this order.</small>
-                                </div>
-                            @elseif($order->order_status == 'delivered')
-                                <div class="alert-custom alert-success-custom text-center">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    <strong>Order Completed</strong><br>
-                                    <small class="text-muted">Delivered on
-                                        {{ $order->updated_at->format('M d, Y h:i A') }}</small>
-                                </div>
-                            @endif
-                        @else
-                            <!-- Locked Alert for non-owning branches -->
-                            <div class="locked-alert">
-                                <i class="bi bi-lock-fill"></i>
-                                <h6>Locked Order</h6>
-                                <p>
-                                    This order belongs to <strong>{{ $order->branch->name ?? 'Another Branch' }}</strong>.
-                                    Only that branch can manage this order.
-                                </p>
-                            </div>
-                        @endif
-
-                        <div id="result" class="mt-3"></div>
-                    </div>
-                </div>
+            <div class="mb-3">
+                <p class="info-label">Current Status</p>
+                <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
             </div>
+
+            @if($isCurrentBranch)
+                @if ($order->order_status == 'pending')
+                    <button type="button" class="status-btn btn-confirm"
+                        onclick="handleStatus('confirm', {{ $order->id }})">
+                        <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
+                    </button>
+                @elseif($order->order_status == 'confirmed')
+                    <button type="button" class="status-btn btn-processing"
+                        onclick="handleStatus('processing', {{ $order->id }})">
+                        <i class="bi bi-gear me-2"></i> Mark as Packing
+                    </button>
+                @elseif($order->order_status == 'processing')
+                    <button type="button" class="status-btn btn-ready"
+                        onclick="handleStatus('ready', {{ $order->id }})">
+                        <i class="bi bi-box-seam me-2"></i> Mark as Ready
+                    </button>
+                @elseif($order->order_status == 'ready')
+                    <div class="alert-custom alert-info-custom text-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Order is Ready</strong><br>
+                        <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
+                    </div>
+                @elseif($order->order_status == 'out_for_delivery')
+                    <div class="alert-custom alert-info-custom text-center">
+                        <i class="bi bi-truck me-2"></i>
+                        <strong>Out for Delivery</strong><br>
+                        <small class="text-muted">Driver is delivering this order.</small>
+                    </div>
+                    @if($order->delivery && $order->delivery->driver)
+                        <div class="alert-custom alert-info-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
+                        </div>
+                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
+                        <div class="alert-custom alert-info-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
+                        </div>
+                    @endif
+                @elseif($order->order_status == 'picked_up')
+                    <div class="alert-custom alert-info-custom text-center">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <strong>Picked Up</strong><br>
+                        <small class="text-muted">Driver has picked up the order.</small>
+                    </div>
+                    @if($order->delivery && $order->delivery->driver)
+                        <div class="alert-custom alert-info-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
+                            <br>
+                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
+                        </div>
+                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
+                        <div class="alert-custom alert-info-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
+                            <br>
+                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
+                        </div>
+                    @endif
+                @elseif($order->order_status == 'delivered')
+                    <div class="alert-custom alert-success-custom text-center">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Order Completed</strong><br>
+                        <small class="text-muted">Delivered on
+                            {{ $order->updated_at->format('M d, Y h:i A') }}</small>
+                    </div>
+                    @if($order->delivery && $order->delivery->driver)
+                        <div class="alert-custom alert-success-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
+                        </div>
+                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
+                        <div class="alert-custom alert-success-custom mt-2">
+                            <i class="bi bi-person-badge me-2"></i>
+                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
+                        </div>
+                    @endif
+                @endif
+            @else
+                <!-- Locked Alert for non-owning branches -->
+                <div class="locked-alert">
+                    <i class="bi bi-lock-fill"></i>
+                    <h6>Locked Order</h6>
+                    <p>
+                        This order belongs to <strong>{{ $order->branch->name ?? 'Another Branch' }}</strong>.
+                        Only that branch can manage this order.
+                    </p>
+                </div>
+            @endif
+
+            <div id="result" class="mt-3"></div>
         </div>
     </div>
+
+    <!-- ✅ LALAMOVE TRACKING & DRIVER INFO CARD -->
+    @php
+        $cityLower = strtolower(trim($order->city ?? ''));
+        $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+        $isLalamoveEligible = !$isCalambaCity;
+        
+        $lalamoveTracking = $order->delivery->tracking_number ?? null;
+        $lalamoveDriver = $order->delivery->notes ?? null;
+    @endphp
+
+    @if($isLalamoveEligible && ($order->order_status == 'out_for_delivery' || $order->order_status == 'picked_up' || $order->order_status == 'in_transit'))
+        <div class="info-card" style="border: 1px solid #0d6efd;">
+            <div class="card-header-custom bg-primary bg-opacity-10">
+                <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Information</h6>
+            </div>
+            <div class="card-body p-3">
+                @if($lalamoveTracking)
+                    <p class="info-label">Tracking Link</p>
+                    <p class="info-value">
+                        <a href="{{ $lalamoveTracking }}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-eye me-1"></i> View Tracking Link
+                        </a>
+                    </p>
+                @else
+                    <p class="info-label">Tracking Link</p>
+                    <p class="info-value text-muted">Not yet provided</p>
+                @endif
+                
+                @if($lalamoveDriver)
+                    <p class="info-label mt-3">Lalamove Driver</p>
+                    <p class="info-value">
+                        <i class="bi bi-person-badge me-2 text-primary"></i> {{ $lalamoveDriver }}
+                    </p>
+                @else
+                    <p class="info-label mt-3">Lalamove Driver</p>
+                    <p class="info-value text-muted">Not yet provided</p>
+                @endif
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- ✅ JAVASCRIPT DIRECTLY HERE - NO BLADE DIRECTIVES -->

@@ -22,17 +22,9 @@ class OnlineOrderController extends Controller
 {
     $branchId = Auth::user()->branch_id;
     
-    // Show ALL online orders (not just the current branch)
-    $orders = Order::where('order_number', 'NOT LIKE', 'POS-%');
-
-    // ✅ Branch filter
-    if ($request->filled('branch_filter')) {
-        if ($request->branch_filter === 'my_branch') {
-            $orders->where('branch_id', $branchId);
-        } else {
-            $orders->where('branch_id', $request->branch_filter);
-        }
-    }
+    // ✅ FIX: Show ONLY orders for the current branch
+    $orders = Order::where('branch_id', $branchId)
+        ->where('order_number', 'NOT LIKE', 'POS-%');
 
     // ✅ Status filter
     if ($request->filled('status')) {
@@ -71,23 +63,23 @@ class OnlineOrderController extends Controller
         $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
         $order->is_lalamove = !$isCalambaCity;
         
-        // Check if this order belongs to the current branch
-        $order->is_current_branch = ($order->branch_id === Auth::user()->branch_id);
+        // ✅ This is always true now since we only show current branch orders
+        $order->is_current_branch = true;
         
         return $order;
     });
 
-    // Get all branches for filter
+    // ✅ Get all branches for filter (but only show current branch's orders)
     $branches = \App\Models\Branch::where('is_active', true)->get();
 
-    // Counts for status cards
+    // ✅ Counts for status cards - ONLY for current branch
     $counts = [
-        'pending' => Order::where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'confirmed' => Order::where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'processing' => Order::where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'ready' => Order::where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'out_for_delivery' => Order::where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'delivered' => Order::where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'processing' => Order::where('branch_id', $branchId)->where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'ready' => Order::where('branch_id', $branchId)->where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'out_for_delivery' => Order::where('branch_id', $branchId)->where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        'delivered' => Order::where('branch_id', $branchId)->where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
     ];
 
     return view('branch-admin.online-orders.index', compact('orders', 'counts', 'branches'));
@@ -98,6 +90,11 @@ class OnlineOrderController extends Controller
      */
     public function show(Order $order)
     {
+        // ✅ CHECK: Only the branch that owns the order can view it
+        if ($order->branch_id !== Auth::user()->branch_id) {
+            abort(403, 'You can only view orders for your branch.');
+        }
+
         $order->load(['items.product', 'items.inventory.branch', 'branch', 'delivery']);
         
         // Check if this order belongs to the current branch
