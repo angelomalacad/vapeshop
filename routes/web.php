@@ -500,6 +500,8 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
         Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('check-availability');
 
+        // ✅ ADD THE NEW ROUTE HERE - After the other transfer routes, before the parameterized routes
+    Route::get('/transfers/{transfer}/details', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'getTransferDetails'])->name('transfers.details');
         // PARAMETERIZED ROUTES - KEEP THESE AT THE BOTTOM
         Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
         Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
@@ -556,7 +558,7 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
         Route::post('/{order}/cancel', [App\Http\Controllers\Driver\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
-        
+
         // ✅ ADD THIS ROUTE for updating delivery date
         Route::post('/{order}/delivery-date', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateDeliveryDate'])->name('update-delivery-date');
     });
