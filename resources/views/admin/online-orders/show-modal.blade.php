@@ -122,6 +122,11 @@
         color: #059669;
     }
 
+    .badge-picked_up {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
     .badge-out_for_delivery {
         background: #fef3c7;
         color: #d97706;
@@ -244,6 +249,10 @@
         width: 2px;
         height: calc(100% - 20px);
         background: #e2e8f0;
+    }
+
+    .timeline-line.completed {
+        background: #10b981;
     }
 
     .timeline-item:last-child .timeline-line {
@@ -389,7 +398,7 @@
                             <tr>
                                 <td colspan="4" class="text-end fw-bold">Total:</td>
                                 <td class="text-end fw-bold text-danger">
-                                    ₱{{ number_format($order->total_amount, 2) }}
+                                    ₱{{ number_format($order->subtotal, 2) }}
                                 </td>
                             </tr>
                         </tfoot>
@@ -443,13 +452,18 @@
                                     'confirmed' => 'badge-confirmed',
                                     'processing' => 'badge-processing',
                                     'ready' => 'badge-ready',
+                                    'picked_up' => 'badge-picked_up',
                                     'out_for_delivery' => 'badge-out_for_delivery',
                                     'delivered' => 'badge-delivered',
                                     'cancelled' => 'badge-cancelled',
                                     default => 'badge-secondary',
                                 };
-                                $displayStatus =
-                                    $order->order_status == 'processing' ? 'Packing' : ucfirst($order->order_status);
+                                $displayStatus = match ($order->order_status) {
+                                    'processing' => 'Packing',
+                                    'picked_up' => 'Picked Up',
+                                    'out_for_delivery' => 'Out for Delivery',
+                                    default => ucfirst($order->order_status),
+                                };
                             @endphp
                             <span class="badge {{ $statusClass }}">
                                 {{ $displayStatus }}
@@ -509,10 +523,6 @@
                         <h6><i class="bi bi-truck"></i> Delivery Information</h6>
                     </div>
                     <div class="card-body-minimal">
-                        {{-- <div class="info-row">
-                            <div class="info-label">Tracking #</div>
-                            <div class="info-value">{{ $order->delivery->tracking_number }}</div>
-                        </div> --}}
                         <div class="info-row">
                             <div class="info-label">Driver</div>
                             <div class="info-value">{{ $order->delivery->driver->name ?? 'Not Assigned' }}</div>
@@ -540,6 +550,30 @@
                                 </span>
                             </div>
                         </div>
+                        @if ($order->delivery->picked_up_at)
+                            <div class="info-row">
+                                <div class="info-label">Picked Up</div>
+                                <div class="info-value">
+                                    {{ \Carbon\Carbon::parse($order->delivery->picked_up_at)->format('M d, Y h:i A') }}
+                                </div>
+                            </div>
+                        @endif
+                        @if ($order->delivery->in_transit_at)
+                            <div class="info-row">
+                                <div class="info-label">In Transit</div>
+                                <div class="info-value">
+                                    {{ \Carbon\Carbon::parse($order->delivery->in_transit_at)->format('M d, Y h:i A') }}
+                                </div>
+                            </div>
+                        @endif
+                        @if ($order->delivery->delivered_at)
+                            <div class="info-row">
+                                <div class="info-label">Delivered</div>
+                                <div class="info-value">
+                                    {{ \Carbon\Carbon::parse($order->delivery->delivered_at)->format('M d, Y h:i A') }}
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif
@@ -553,7 +587,55 @@
                 </div>
                 <div class="card-body-minimal">
                     <div class="timeline-container">
-                        <!-- Pending -->
+                        @php
+                            // Status progression levels
+                            $statusOrder = [
+                                'pending' => 0,
+                                'confirmed' => 1,
+                                'processing' => 2,
+                                'ready' => 3,
+                                'picked_up' => 4,
+                                'out_for_delivery' => 5,
+                                'in_transit' => 5,
+                                'delivered' => 6,
+                                'cancelled' => 99,
+                            ];
+
+                            $currentStatus = $order->order_status;
+                            $currentStatusLevel = $statusOrder[$currentStatus] ?? 0;
+
+                            // Also check delivery status
+                            if ($order->delivery) {
+                                $deliveryStatus = $order->delivery->status;
+                                $deliveryStatusLevel = $statusOrder[$deliveryStatus] ?? 0;
+                                $currentStatusLevel = max($currentStatusLevel, $deliveryStatusLevel);
+                            }
+
+                            // Helper function
+                            $isCompleted = function ($level) use ($currentStatusLevel) {
+                                return $currentStatusLevel >= $level;
+                            };
+
+                            // Get timestamps (from orders or deliveries)
+                            $confirmedAt = $order->confirmed_at;
+                            $processingAt = $order->processing_at;
+                            $readyAt = $order->ready_at;
+                            $pickedUpAt = $order->delivery ? $order->delivery->picked_up_at : null;
+                            $outForDeliveryAt =
+                                $order->out_for_delivery_at ?:
+                                ($order->delivery
+                                    ? $order->delivery->in_transit_at
+                                    : null);
+                            $deliveredAt =
+                                $order->delivered_at ?: ($order->delivery ? $order->delivery->delivered_at : null);
+
+                            // Format date helper
+                            $formatDate = function ($date) {
+                                return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
+                            };
+                        @endphp
+
+                        <!-- Order Placed (Always completed) -->
                         <div class="timeline-item">
                             <div class="timeline-icon completed">
                                 <i class="bi bi-clock-history"></i>
@@ -562,97 +644,110 @@
                                 <div class="timeline-title">Order Placed</div>
                                 <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                             </div>
-                            <div class="timeline-line"></div>
+                            <div class="timeline-line {{ $isCompleted(1) ? 'completed' : '' }}"></div>
                         </div>
 
                         <!-- Confirmed -->
                         <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ in_array($order->order_status, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered']) ? 'completed' : 'pending' }}">
+                            <div class="timeline-icon {{ $isCompleted(1) ? 'completed' : 'pending' }}">
                                 <i class="bi bi-check-circle"></i>
                             </div>
                             <div class="timeline-content">
                                 <div class="timeline-title">Confirmed</div>
-                                @if ($order->confirmed_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($order->confirmed_at)->format('F d, Y h:i A') }}
-                                    </div>
+                                @if ($confirmedAt)
+                                    <div class="timeline-date">{{ $formatDate($confirmedAt) }}</div>
+                                @elseif ($isCompleted(1))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Pending confirmation</div>
                                 @endif
                             </div>
-                            <div class="timeline-line"></div>
+                            <div class="timeline-line {{ $isCompleted(2) ? 'completed' : '' }}"></div>
                         </div>
 
                         <!-- Packing -->
                         <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ in_array($order->order_status, ['processing', 'ready', 'out_for_delivery', 'delivered']) ? 'completed' : 'pending' }}">
+                            <div class="timeline-icon {{ $isCompleted(2) ? 'completed' : 'pending' }}">
                                 <i class="bi bi-box-seam"></i>
                             </div>
                             <div class="timeline-content">
                                 <div class="timeline-title">Packing</div>
-                                @if ($order->processing_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($order->processing_at)->format('F d, Y h:i A') }}
-                                    </div>
+                                @if ($processingAt)
+                                    <div class="timeline-date">{{ $formatDate($processingAt) }}</div>
+                                @elseif ($isCompleted(2))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet started</div>
                                 @endif
                             </div>
-                            <div class="timeline-line"></div>
+                            <div class="timeline-line {{ $isCompleted(3) ? 'completed' : '' }}"></div>
                         </div>
 
                         <!-- Ready -->
                         <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ in_array($order->order_status, ['ready', 'out_for_delivery', 'delivered']) ? 'completed' : 'pending' }}">
+                            <div class="timeline-icon {{ $isCompleted(3) ? 'completed' : 'pending' }}">
                                 <i class="bi bi-check-circle-fill"></i>
                             </div>
                             <div class="timeline-content">
                                 <div class="timeline-title">Ready</div>
-                                @if ($order->ready_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($order->ready_at)->format('F d, Y h:i A') }}</div>
+                                @if ($readyAt)
+                                    <div class="timeline-date">{{ $formatDate($readyAt) }}</div>
+                                @elseif ($isCompleted(3))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet ready</div>
                                 @endif
                             </div>
-                            <div class="timeline-line"></div>
+                            <div class="timeline-line {{ $isCompleted(4) ? 'completed' : '' }}"></div>
+                        </div>
+
+                        <!-- Picked Up -->
+                        <div class="timeline-item">
+                            <div class="timeline-icon {{ $isCompleted(4) ? 'completed' : 'pending' }}">
+                                <i class="bi bi-box-arrow-up"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">Picked Up</div>
+                                @if ($pickedUpAt)
+                                    <div class="timeline-date">{{ $formatDate($pickedUpAt) }}</div>
+                                @elseif ($isCompleted(4))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
+                                @else
+                                    <div class="timeline-date text-muted">Not yet picked up</div>
+                                @endif
+                            </div>
+                            <div class="timeline-line {{ $isCompleted(5) ? 'completed' : '' }}"></div>
                         </div>
 
                         <!-- Out for Delivery -->
                         <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : 'pending' }}">
+                            <div class="timeline-icon {{ $isCompleted(5) ? 'completed' : 'pending' }}">
                                 <i class="bi bi-truck"></i>
                             </div>
                             <div class="timeline-content">
                                 <div class="timeline-title">Out for Delivery</div>
-                                @if ($order->out_for_delivery_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($order->out_for_delivery_at)->format('F d, Y h:i A') }}
-                                    </div>
+                                @if ($outForDeliveryAt)
+                                    <div class="timeline-date">{{ $formatDate($outForDeliveryAt) }}</div>
+                                @elseif ($isCompleted(5))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet dispatched</div>
                                 @endif
                             </div>
-                            <div class="timeline-line"></div>
+                            <div class="timeline-line {{ $isCompleted(6) ? 'completed' : '' }}"></div>
                         </div>
 
-                        <!-- Delivered -->
+                        <!-- Delivered (Last item - no line) -->
                         <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ $order->order_status == 'delivered' ? 'completed' : 'pending' }}">
+                            <div class="timeline-icon {{ $isCompleted(6) ? 'completed' : 'pending' }}">
                                 <i class="bi bi-flag-fill"></i>
                             </div>
                             <div class="timeline-content">
                                 <div class="timeline-title">Delivered</div>
-                                @if ($order->delivered_at)
-                                    {{-- ✅ FIX: Wrapped in parse() to prevent String to Method error --}}
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($order->delivered_at)->format('F d, Y h:i A') }}
-                                    </div>
+                                @if ($deliveredAt)
+                                    <div class="timeline-date">{{ $formatDate($deliveredAt) }}</div>
+                                @elseif ($isCompleted(6))
+                                    <div class="timeline-date">{{ $order->created_at->format('F d, Y h:i A') }}</div>
                                 @else
                                     <div class="timeline-date text-muted">Not yet delivered</div>
                                 @endif

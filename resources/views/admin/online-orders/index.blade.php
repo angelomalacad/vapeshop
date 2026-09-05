@@ -138,6 +138,11 @@
             color: #059669;
         }
 
+        .badge-picked_up {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
         .badge-out_for_delivery {
             background: #fef3c7;
             color: #d97706;
@@ -271,6 +276,8 @@
                         <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
                         </option>
                         <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
+                        </option>
                         <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out
                             for Delivery</option>
                         <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
@@ -304,69 +311,80 @@
         </div>
 
         <!-- Status Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-2 col-6">
+        <div class="row g-2 mb-4">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-warning bg-opacity-10 mx-auto">
-                            <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-warning bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-hourglass-split fs-5 text-warning"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['pending'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['pending'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Pending</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-info bg-opacity-10 mx-auto">
-                            <i class="bi bi-check-circle fs-4 text-info"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-info bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-check-circle fs-5 text-info"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['confirmed'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['confirmed'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Confirmed</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-primary bg-opacity-10 mx-auto">
-                            <i class="bi bi-box-seam fs-4 text-primary"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-primary bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-box-seam fs-5 text-primary"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['processing'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['processing'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Packing</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-success bg-opacity-10 mx-auto">
-                            <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-success bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-check-circle-fill fs-5 text-success"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['ready'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['ready'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Ready</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-secondary bg-opacity-10 mx-auto">
-                            <i class="bi bi-truck fs-4 text-secondary"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-primary bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-box-arrow-up fs-5 text-primary"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['out_for_delivery'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['picked_up'] ?? 0 }}</h6>
+                        <p class="status-label mb-0">Picked Up</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card status-card">
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-secondary bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-truck fs-5 text-secondary"></i>
+                        </div>
+                        <h6 class="status-number mb-0">{{ $counts['out_for_delivery'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Out for Delivery</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-6">
+            <div class="col">
                 <div class="card status-card">
-                    <div class="card-body text-center">
-                        <div class="status-icon bg-dark bg-opacity-10 mx-auto">
-                            <i class="bi bi-flag-fill fs-4 text-dark"></i>
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-dark bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-flag-fill fs-5 text-dark"></i>
                         </div>
-                        <h2 class="status-number">{{ $counts['delivered'] ?? 0 }}</h2>
+                        <h6 class="status-number mb-0">{{ $counts['delivered'] ?? 0 }}</h6>
                         <p class="status-label mb-0">Delivered</p>
                     </div>
                 </div>
@@ -402,16 +420,20 @@
                                         'confirmed' => 'badge-confirmed',
                                         'processing' => 'badge-packing',
                                         'ready' => 'badge-ready',
+                                        'picked_up' => 'badge-picked_up',
                                         'out_for_delivery' => 'badge-out_for_delivery',
                                         'delivered' => 'badge-delivered',
                                         'cancelled' => 'badge-cancelled',
                                         default => 'badge-secondary',
                                     };
 
-                                    $displayStatus =
-                                        $order->order_status == 'processing'
-                                            ? 'Packing'
-                                            : ucfirst($order->order_status);
+                                    $displayStatus = match ($order->order_status) {
+                                        'processing' => 'Packing',
+                                        'picked_up' => 'Picked Up',
+                                        'out_for_delivery' => 'Out for Delivery',
+                                        default => ucfirst($order->order_status),
+                                    };
+
                                     $driverName = $order->delivery
                                         ? $order->delivery->driver->name ?? 'Not Assigned'
                                         : 'Not Assigned';
@@ -426,8 +448,7 @@
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
-                                    <td><strong
-                                            class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                    <td><strong class="text-success">₱{{ number_format($order->subtotal, 2) }}</strong>
                                     </td>
                                     <td>
                                         <span class="delivery-badge">
