@@ -435,9 +435,10 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/pos', function () { return "Point of Sale - To be implemented"; })->name('pos');
     }
 
-        // Online Orders Management
+               // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'index'])->name('index');
+        Route::get('/{order}/modal', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'showModal'])->name('modal');
         Route::get('/{order}', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'show'])->name('show');
         Route::post('/{order}/confirm', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'confirm'])->name('confirm');
         Route::post('/{order}/reject', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'reject'])->name('reject');
@@ -520,10 +521,12 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/{inventory}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'show'])->name('show');
     });
 
-    // ===== POINT OF SALE ROUTES =====
+        // ===== POINT OF SALE ROUTES =====
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\PosController::class, 'index'])->name('index');
         Route::get('/history', [App\Http\Controllers\BranchAdmin\PosController::class, 'history'])->name('history');
+        Route::get('/online-orders-history', [App\Http\Controllers\BranchAdmin\PosController::class, 'onlineOrdersHistory'])->name('online-orders.history');
+        Route::get('/delivery-history', [App\Http\Controllers\BranchAdmin\PosController::class, 'deliveryHistory'])->name('delivery-history');
         Route::get('/order/{order}', [App\Http\Controllers\BranchAdmin\PosController::class, 'showOrder'])->name('order.show');
         Route::post('/add-to-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'addToCart'])->name('add-to-cart');
         Route::post('/update-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'updateCart'])->name('update-cart');
@@ -531,6 +534,10 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/checkout', [App\Http\Controllers\BranchAdmin\PosController::class, 'checkout'])->name('checkout');
         Route::get('/receipt', [App\Http\Controllers\BranchAdmin\PosController::class, 'receipt'])->name('receipt');
         Route::get('/search-product', [App\Http\Controllers\BranchAdmin\PosController::class, 'searchProduct'])->name('search-product');
+    });
+        // ===== BRANCH ADMIN DELIVERY ROUTES =====
+    Route::prefix('deliveries')->name('deliveries.')->group(function () {
+        Route::get('/{delivery}/modal', [App\Http\Controllers\BranchAdmin\DeliveryController::class, 'showModal'])->name('modal');
     });
 
     // ===== WAREHOUSE REQUESTS (BRANCH STAFF) =====

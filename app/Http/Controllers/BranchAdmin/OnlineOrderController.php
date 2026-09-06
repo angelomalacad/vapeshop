@@ -504,4 +504,9 @@ class OnlineOrderController extends Controller
             'message' => "Expired {$count} order reservations."
         ]);
     }
+    public function showModal(Order $order)
+{
+    $order->load(['items.product', 'branch', 'delivery.driver']);
+    return view('branch-admin.online-orders.show-modal', compact('order'));
+}
 }
