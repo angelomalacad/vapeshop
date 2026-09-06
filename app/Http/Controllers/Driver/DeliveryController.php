@@ -150,100 +150,123 @@ class DeliveryController extends Controller
     }
 
     /**
-     * Display the driver's delivery history (Active & Completed)
-     */
-    public function deliveryHistory(Request $request)
-    {
-        $driverId = Auth::id();
+ * Display the driver's delivery history (Active & Completed & Cancelled/Failed)
+ */
+public function deliveryHistory(Request $request)
+{
+    $driverId = Auth::id();
 
-        // Active Deliveries: Allows BOTH your Staff deliveries AND Lalamove deliveries
-        $activeQuery = Delivery::whereNotIn('status', ['delivered', 'failed'])
-            ->where(function($query) use ($driverId) {
-                $query->where('driver_id', $driverId)
-                      ->orWhereNull('driver_id');
-            })
-            ->with(['order.items.product', 'order.branch']);
+    // ========== ACTIVE DELIVERIES (Staff + Lalamove) ==========
+    $activeQuery = Delivery::whereNotIn('status', ['delivered', 'failed', 'cancelled'])
+        ->where(function($query) use ($driverId) {
+            $query->where('driver_id', $driverId)
+                  ->orWhereNull('driver_id');
+        })
+        ->with(['order.items.product', 'order.branch']);
 
-        // Completed Deliveries: Allows BOTH your Staff deliveries AND Lalamove deliveries
-        $completedQuery = Delivery::whereIn('status', ['delivered', 'failed'])
-            ->where(function($query) use ($driverId) {
-                $query->where('driver_id', $driverId)
-                      ->orWhereNull('driver_id');
-            })
-            ->with(['order.items.product', 'order.branch']);
+    // ========== COMPLETED DELIVERIES (Delivered) ==========
+    $completedQuery = Delivery::where('status', 'delivered')
+        ->where(function($query) use ($driverId) {
+            $query->where('driver_id', $driverId)
+                  ->orWhereNull('driver_id');
+        })
+        ->with(['order.items.product', 'order.branch']);
 
-        // --- FILTER: Search by Order Number ---
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $activeQuery->whereHas('order', function($q) use ($search) {
-                $q->where('order_number', 'LIKE', "%{$search}%");
-            });
-            $completedQuery->whereHas('order', function($q) use ($search) {
-                $q->where('order_number', 'LIKE', "%{$search}%");
-            });
-        }
+    // ========== CANCELLED/FAILED DELIVERIES ==========
+    $cancelledQuery = Delivery::whereIn('status', ['cancelled', 'failed'])
+        ->with(['order.items.product', 'order.branch']);
 
-        // --- FILTER: Delivery Type (Lalamove vs Staff) ---
-        if ($request->filled('delivery_type')) {
-            $type = $request->delivery_type;
-            if ($type === 'lalamove') {
-                $activeQuery->whereHas('order', function($q) {
-                    $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
-                });
-                $completedQuery->whereHas('order', function($q) {
-                    $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
-                });
-            } elseif ($type === 'staff') {
-                $activeQuery->whereHas('order', function($q) {
-                    $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
-                });
-                $completedQuery->whereHas('order', function($q) {
-                    $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
-                });
-            }
-        }
-
-        // --- FILTER: Date Range ---
-        if ($request->filled('date_from')) {
-            $activeQuery->whereDate('created_at', '>=', $request->date_from);
-            $completedQuery->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $activeQuery->whereDate('created_at', '<=', $request->date_to);
-            $completedQuery->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        // Fetch Active Deliveries (with filters applied)
-        $activeDeliveries = $activeQuery->orderBy('assigned_at', 'desc')
-            ->paginate(5, ['*'], 'active_page');
-
-        // Fetch Completed Deliveries (with filters applied)
-        $completedDeliveries = $completedQuery->orderBy('delivered_at', 'desc')
-            ->paginate(5, ['*'], 'completed_page');
-
-        // Counts for the header stats (Includes Lalamove)
-        $activeCount = Delivery::whereNotIn('status', ['delivered', 'failed'])
-            ->where(function($query) use ($driverId) {
-                $query->where('driver_id', $driverId)
-                      ->orWhereNull('driver_id');
-            })->count();
-
-        $completedCount = Delivery::whereIn('status', ['delivered', 'failed'])
-            ->where(function($query) use ($driverId) {
-                $query->where('driver_id', $driverId)
-                      ->orWhereNull('driver_id');
-            })->count();
-
-        $totalDeliveries = $activeCount + $completedCount;
-
-        return view('driver.deliveries.delivery-history', compact(
-            'activeDeliveries',
-            'completedDeliveries',
-            'activeCount',
-            'completedCount',
-            'totalDeliveries'
-        ));
+    // --- FILTER: Search by Order Number ---
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $activeQuery->whereHas('order', function($q) use ($search) {
+            $q->where('order_number', 'LIKE', "%{$search}%");
+        });
+        $completedQuery->whereHas('order', function($q) use ($search) {
+            $q->where('order_number', 'LIKE', "%{$search}%");
+        });
+        $cancelledQuery->whereHas('order', function($q) use ($search) {
+            $q->where('order_number', 'LIKE', "%{$search}%");
+        });
     }
+
+    // --- FILTER: Delivery Type (Lalamove vs Staff) ---
+    if ($request->filled('delivery_type')) {
+        $type = $request->delivery_type;
+        if ($type === 'lalamove') {
+            $activeQuery->whereHas('order', function($q) {
+                $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
+            });
+            $completedQuery->whereHas('order', function($q) {
+                $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
+            });
+            $cancelledQuery->whereHas('order', function($q) {
+                $q->where('city', '!=', 'Calamba')->where('city', '!=', 'Calamba City');
+            });
+        } elseif ($type === 'staff') {
+            $activeQuery->whereHas('order', function($q) {
+                $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
+            });
+            $completedQuery->whereHas('order', function($q) {
+                $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
+            });
+            $cancelledQuery->whereHas('order', function($q) {
+                $q->where('city', 'Calamba')->orWhere('city', 'Calamba City');
+            });
+        }
+    }
+
+    // --- FILTER: Date Range ---
+    if ($request->filled('date_from')) {
+        $activeQuery->whereDate('created_at', '>=', $request->date_from);
+        $completedQuery->whereDate('created_at', '>=', $request->date_from);
+        $cancelledQuery->whereDate('created_at', '>=', $request->date_from);
+    }
+    if ($request->filled('date_to')) {
+        $activeQuery->whereDate('created_at', '<=', $request->date_to);
+        $completedQuery->whereDate('created_at', '<=', $request->date_to);
+        $cancelledQuery->whereDate('created_at', '<=', $request->date_to);
+    }
+
+    // Fetch Active Deliveries (with filters applied)
+    $activeDeliveries = $activeQuery->orderBy('assigned_at', 'desc')
+        ->paginate(5, ['*'], 'active_page');
+
+    // Fetch Completed Deliveries (with filters applied)
+    $completedDeliveries = $completedQuery->orderBy('delivered_at', 'desc')
+        ->paginate(5, ['*'], 'completed_page');
+
+    // Fetch Cancelled/Failed Deliveries (with filters applied)
+    $cancelledDeliveries = $cancelledQuery->orderBy('created_at', 'desc')
+        ->paginate(5, ['*'], 'cancelled_page');
+
+    // ========== COUNTS ==========
+    $activeCount = Delivery::whereNotIn('status', ['delivered', 'failed', 'cancelled'])
+        ->where(function($query) use ($driverId) {
+            $query->where('driver_id', $driverId)
+                  ->orWhereNull('driver_id');
+        })->count();
+
+    $completedCount = Delivery::where('status', 'delivered')
+        ->where(function($query) use ($driverId) {
+            $query->where('driver_id', $driverId)
+                  ->orWhereNull('driver_id');
+        })->count();
+
+    $cancelledCount = Delivery::whereIn('status', ['cancelled', 'failed'])->count();
+
+    $totalDeliveries = Delivery::count();
+
+    return view('driver.deliveries.delivery-history', compact(
+        'activeDeliveries',
+        'completedDeliveries',
+        'cancelledDeliveries',
+        'activeCount',
+        'completedCount',
+        'cancelledCount',
+        'totalDeliveries'
+    ));
+}
 
     /**
      * Update delivery status (supports both AJAX and normal requests)

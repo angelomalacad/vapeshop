@@ -492,6 +492,28 @@
                             </span>
                         </p>
 
+                        <!-- ✅ Driver Information -->
+                        <div class="info-label">Driver</div>
+                        <p class="info-value">
+                            @if ($delivery->driver)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->driver->name }}
+                            @elseif ($delivery->notes)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->notes }}
+                            @else
+                                <span class="text-muted">Not Assigned</span>
+                            @endif
+                        </p>
+
+                        @if ($delivery->driver && $delivery->driver->phone)
+                            <div class="info-label">Driver Contact</div>
+                            <p class="info-value">
+                                <i class="bi bi-telephone text-primary me-1"></i>
+                                {{ $delivery->driver->phone }}
+                            </p>
+                        @endif
+
                         @if ($delivery->picked_up_at)
                             <p class="info-label">Picked Up</p>
                             <p class="info-value">

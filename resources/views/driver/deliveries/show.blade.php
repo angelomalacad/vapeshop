@@ -1,5 +1,5 @@
 <style>
-    /* Modern Minimalist Styles */
+    /* Modern Minimalist Modal Styles */
     .modal-header-custom {
         padding: 1.25rem 1.5rem;
         border-bottom: 1px solid #eef2f6;
@@ -56,9 +56,11 @@
         background: #f8f9fa;
     }
 
-    /* Table Styles */
+    /* Table Styles - FIXED: No horizontal scroll */
     .order-items-table {
         margin-bottom: 0;
+        width: 100%;
+        table-layout: fixed;
     }
 
     .order-items-table th {
@@ -68,16 +70,18 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #64748b;
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0.5rem;
         border-bottom: 1px solid #eef2f6;
+        text-align: left;
     }
 
     .order-items-table td {
-        padding: 0.75rem 1rem;
+        padding: 0.75rem 0.5rem;
         vertical-align: middle;
         border-bottom: 1px solid #eef2f6;
         font-size: 0.8rem;
         color: #334155;
+        word-wrap: break-word;
     }
 
     .product-name {
@@ -106,6 +110,7 @@
         color: #1a1a2e;
         margin-bottom: 0.75rem;
         font-weight: 500;
+        word-wrap: break-word;
     }
 
     /* Alert Styles */
@@ -170,55 +175,118 @@
         padding: 0;
     }
 
-    .table-responsive::-webkit-scrollbar {
+    .table-responsive {
+        overflow: hidden !important;
+    }
+
+    /* Timeline Styles */
+    .timeline-container {
+        padding: 0.5rem 0;
+    }
+
+    .timeline-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-right: 1rem;
+        z-index: 1;
+        background: white;
+        border: 2px solid;
+    }
+
+    .timeline-icon.completed {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+    }
+
+    .timeline-icon.pending {
+        background: white;
+        border-color: #cbd5e1;
+        color: #94a3b8;
+    }
+
+    .timeline-icon i {
+        font-size: 1rem;
+    }
+
+    .timeline-content {
+        flex: 1;
+    }
+
+    .timeline-title {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #1a1a2e;
+        margin-bottom: 0.25rem;
+    }
+
+    .timeline-date {
+        font-size: 0.7rem;
+        color: #64748b;
+    }
+
+    .timeline-line {
+        position: absolute;
+        left: 20px;
+        top: 40px;
+        width: 2px;
+        height: calc(100% - 20px);
+        background: #e2e8f0;
+    }
+
+    .timeline-line.completed {
+        background: #10b981;
+    }
+
+    .timeline-item:last-child .timeline-line {
         display: none;
     }
 
-    .table-responsive {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+    /* Badge Styles */
+    .badge-secondary {
+        background: #6c757d;
+        color: white;
     }
 
-    /* Badge Styles - From Online Orders */
-    .badge-pending {
-        background: #fef3c7;
-        color: #d97706;
+    .badge-info {
+        background: #17a2b8;
+        color: white;
     }
 
-    .badge-confirmed {
-        background: #dbeafe;
-        color: #2563eb;
+    .badge-primary {
+        background: #0d6efd;
+        color: white;
     }
 
-    .badge-packing {
-        background: #e0e7ff;
-        color: #4f46e5;
+    .badge-warning {
+        background: #ffc107;
+        color: #212529;
     }
 
-    .badge-ready {
-        background: #d1fae5;
-        color: #059669;
+    .badge-success {
+        background: #198754;
+        color: white;
     }
 
-    .badge-out_for_delivery {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .badge-delivered {
-        background: #d1fae5;
-        color: #059669;
-    }
-
-    .badge-cancelled {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    /* ADDED: Blue Lalamove Pending */
-    .badge-lalamove_pending {
-        background: #dbeafe;
-        color: #2563eb;
+    .badge-danger {
+        background: #dc3545;
+        color: white;
     }
 
     .badge {
@@ -226,72 +294,6 @@
         border-radius: 30px;
         font-weight: 500;
         font-size: 0.7rem;
-    }
-
-    /* Form Elements */
-    .form-control,
-    .form-select {
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-    }
-
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-
-    /* Buttons */
-    .btn-manage {
-        background: #1a1a2e;
-        border: none;
-        border-radius: 30px;
-        padding: 0.35rem 1rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .btn-manage:hover {
-        background: #16213e;
-        transform: translateY(-1px);
-    }
-
-    .btn-update-status {
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 30px;
-        padding: 0.6rem 1rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        width: 100%;
-        transition: all 0.3s ease;
-    }
-
-    .btn-update-status:hover {
-        background: #2563eb;
-        transform: translateY(-1px);
-    }
-
-    .btn-save-lalamove {
-        background: #10b981;
-        color: white;
-        border: none;
-        border-radius: 30px;
-        padding: 0.6rem 1rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        width: 100%;
-        transition: all 0.3s ease;
-    }
-
-    .btn-save-lalamove:hover {
-        background: #059669;
-        transform: translateY(-1px);
     }
 
     /* Proof Images */
@@ -370,37 +372,6 @@
             height: 40px !important;
         }
     }
-
-    /* Delivery Status Badge Overrides */
-    .badge-secondary {
-        background: #6c757d;
-        color: white;
-    }
-
-    .badge-info {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .badge-primary {
-        background: #0d6efd;
-        color: white;
-    }
-
-    .badge-warning {
-        background: #ffc107;
-        color: #212529;
-    }
-
-    .badge-success {
-        background: #198754;
-        color: white;
-    }
-
-    .badge-danger {
-        background: #dc3545;
-        color: white;
-    }
 </style>
 
 <div class="modal-body-custom">
@@ -409,10 +380,10 @@
         <div class="modal-header-custom" style="padding: 0 0 1rem 0;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 class="order-number"><i class="bi bi-truck text-primary me-2"></i> Delivery</h5>
+                    <h5 class="order-number"><i class="bi bi-truck text-primary me-2"></i> Delivery Details</h5>
                     <p class="order-date">Delivery for Order #{{ $delivery->order->order_number ?? 'N/A' }}</p>
                 </div>
-                <button type="button" class="btn-close" onclick="closeModal()"></button>
+                <button type="button" class="btn-close" onclick="window.closeBranchDeliveryModal()"></button>
             </div>
         </div>
 
@@ -430,11 +401,11 @@
                                 <table class="table order-items-table">
                                     <thead>
                                         <tr>
-                                            <th>Image</th>
-                                            <th>Product</th>
-                                            <th class="text-center" style="width: 60px">Qty</th>
-                                            <th class="text-end" style="width: 90px">Price</th>
-                                            <th class="text-end" style="width: 90px">Subtotal</th>
+                                            <th style="width: 15%">Image</th>
+                                            <th style="width: 35%">Product</th>
+                                            <th class="text-center" style="width: 10%">Qty</th>
+                                            <th class="text-end" style="width: 20%">Price</th>
+                                            <th class="text-end" style="width: 20%">Subtotal</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -482,7 +453,7 @@
                                 <div class="totals-row totals-total">
                                     <span class="totals-label">Total</span>
                                     <span
-                                        class="totals-value text-success">₱{{ number_format($delivery->order->total_amount, 2) }}</span>
+                                        class="totals-value text-success">₱{{ number_format($delivery->order->subtotal, 2) }}</span>
                                 </div>
                             </div>
                         @else
@@ -505,7 +476,6 @@
                         <p class="info-label">Status</p>
                         <p class="info-value">
                             @php
-                                // Determine the correct badge class based on delivery status
                                 $statusBadgeClass = match ($delivery->status) {
                                     'pending' => 'badge-secondary',
                                     'assigned' => 'badge-info',
@@ -522,13 +492,37 @@
                             </span>
                         </p>
 
+                        <!-- ✅ Driver Information -->
+                        <div class="info-label">Driver</div>
+                        <p class="info-value">
+                            @if ($delivery->driver)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->driver->name }}
+                            @elseif ($delivery->notes)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->notes }}
+                            @else
+                                <span class="text-muted">Not Assigned</span>
+                            @endif
+                        </p>
+
+                        @if ($delivery->driver && $delivery->driver->phone)
+                            <div class="info-label">Driver Contact</div>
+                            <p class="info-value">
+                                <i class="bi bi-telephone text-primary me-1"></i>
+                                {{ $delivery->driver->phone }}
+                            </p>
+                        @endif
+
                         @if ($delivery->picked_up_at)
                             <p class="info-label">Picked Up</p>
-                            <p class="info-value">{{ $delivery->picked_up_at->format('M d, Y h:i A') }}</p>
+                            <p class="info-value">
+                                {{ \Carbon\Carbon::parse($delivery->picked_up_at)->format('M d, Y h:i A') }}</p>
                         @endif
                         @if ($delivery->delivered_at)
                             <p class="info-label">Delivered</p>
-                            <p class="info-value">{{ $delivery->delivered_at->format('M d, Y h:i A') }}</p>
+                            <p class="info-value">
+                                {{ \Carbon\Carbon::parse($delivery->delivered_at)->format('M d, Y h:i A') }}</p>
                         @endif
                     </div>
                 </div>
@@ -561,194 +555,183 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN -->
+            <!-- RIGHT COLUMN - DELIVERY TIMELINE -->
             <div class="col-md-5">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-clock-history"></i> Delivery Progress</h6>
+                    </div>
+                    <div class="card-body-minimal">
+                        <div class="timeline-container">
+                            @php
+                                // Define status progression
+                                $deliveryStatusOrder = [
+                                    'pending' => 0,
+                                    'assigned' => 1,
+                                    'picked_up' => 2,
+                                    'in_transit' => 3,
+                                    'delivered' => 4,
+                                    'failed' => 99,
+                                ];
+
+                                $currentDeliveryStatus = $delivery->status;
+                                $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
+
+                                // Helper function
+                                $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
+                                    return $currentDeliveryLevel >= $level;
+                                };
+
+                                // Format date helper
+                                $formatDate = function ($date) {
+                                    return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
+                                };
+                            @endphp
+
+                            <!-- Assigned to Driver -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Assigned to Driver</div>
+                                    @if ($delivery->assigned_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->assigned_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(1))
+                                        <div class="timeline-date">Assigned</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Pending</div>
+                                    @endif
+                                    @if ($delivery->driver)
+                                        <div class="timeline-details">
+                                            <i class="bi bi-person-badge me-1"></i> Driver:
+                                            {{ $delivery->driver->name }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="timeline-line {{ $isDeliveryCompleted(2) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- Picked Up -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Picked Up</div>
+                                    @if ($delivery->picked_up_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->picked_up_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(2))
+                                        <div class="timeline-date">Picked Up</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                                <div class="timeline-line {{ $isDeliveryCompleted(3) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- In Transit -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">In Transit</div>
+                                    @if ($delivery->in_transit_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->in_transit_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(3))
+                                        <div class="timeline-date">In Transit</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                                <div class="timeline-line {{ $isDeliveryCompleted(4) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- Delivered -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-flag-fill"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Delivered</div>
+                                    @if ($delivery->delivered_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(4))
+                                        <div class="timeline-date">Delivered</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 @php
                     // Lalamove Eligibility Check
                     $cityLower = strtolower(trim($delivery->order->city ?? ''));
                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                     $isLalamoveEligible = !$isCalambaCity;
-
-                    // Check if tracking number is already saved
-                    $hasTracking = $delivery && !empty($delivery->tracking_number);
                 @endphp
 
-                {{-- LALAMOVE TRACKING CARD --}}
-@if (
-    $isLalamoveEligible &&
-        ($delivery->order->order_status === 'out_for_delivery' ||
-            $delivery->order->order_status === 'lalamove_pending' ||
-            $delivery->order->order_status === 'ready' ||
-            $delivery->order->order_status === 'picked_up' ||
-            $delivery->status === 'picked_up'))
+                <!-- LALAMOVE TRACKING CARD (VIEW ONLY) -->
+                @if ($isLalamoveEligible && !empty($delivery->tracking_number))
                     <div class="info-card" style="border: 1px solid #0d6efd;">
                         <div class="card-header-custom bg-primary bg-opacity-10">
                             <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Tracking</h6>
                         </div>
                         <div class="card-body p-3">
-                            <form action="{{ url('/driver/online-orders/update-lalamove/' . $delivery->order->id) }}"
-                                method="POST" enctype="multipart/form-data">
-                                @csrf
-
-                                <div class="mb-3">
-                                    <p class="info-label">Lalamove Tracking Link *</p>
-                                    <input type="url" name="tracking_url" class="form-control"
-                                        placeholder="Paste Lalamove Link here..."
-                                        value="{{ $delivery->tracking_number ?? '' }}" required>
-                                </div>
-
-                                {{-- ✅ ADDED: Lalamove Driver Name Input --}}
-                                <div class="mb-3">
-                                    <p class="info-label">Lalamove Driver Name</p>
-                                    <input type="text" name="lalamove_driver_name" class="form-control"
-                                        placeholder="Enter Lalamove driver name..."
-                                        value="{{ $delivery->notes ?? '' }}">
-                                </div>
-
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="submit" class="btn-save-lalamove">
-                                        <i class="bi bi-check-circle"></i>
-                                        {{ $hasTracking ? 'Update Link' : 'Save' }}
-                                    </button>
-
-                                    @if ($hasTracking)
-                                        <a href="{{ $delivery->tracking_number }}" target="_blank"
-                                            class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-eye"></i> View
-                                        </a>
-                                        @if ($delivery->delivery_proof)
-                                            <button type="button" class="btn btn-sm btn-outline-secondary"
-                                                onclick="window.open('{{ Storage::url($delivery->delivery_proof) }}', '_blank')">
-                                                <i class="bi bi-image"></i> Proof
-                                            </button>
-                                        @endif
-                                    @endif
-                                </div>
-                            </form>
+                            <p class="info-label">Lalamove Tracking Link</p>
+                            <p class="info-value">
+                                <a href="{{ $delivery->tracking_number }}" target="_blank"
+                                    class="text-primary text-break">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> View Tracking Link
+                                </a>
+                            </p>
+                            @if ($delivery->notes)
+                                <p class="info-label">Lalamove Driver Name</p>
+                                <p class="info-value">{{ $delivery->notes }}</p>
+                            @endif
                         </div>
                     </div>
                 @endif
 
-                @if ($delivery->status == 'delivered')
-                    <!-- Completed Delivery View -->
+                @if ($delivery->status == 'delivered' && ($delivery->delivery_proof || $delivery->payment_proof))
+                    <!-- Proof Images -->
                     <div class="info-card">
                         <div class="card-header-custom">
-                            <h6><i class="bi bi-check-circle-fill" style="color: #10b981;"></i> Delivery Completed
-                            </h6>
+                            <h6><i class="bi bi-image"></i> Proof of Delivery</h6>
                         </div>
                         <div class="card-body p-3">
-                            @if ($delivery->delivery_proof || $delivery->payment_proof)
-                                <div class="row g-2">
-                                    @if ($delivery->delivery_proof)
-                                        <div class="col-md-6">
-                                            <p class="info-label mb-2">Delivery Proof</p>
-                                            <img src="{{ Storage::url($delivery->delivery_proof) }}"
-                                                class="proof-image"
-                                                onclick="showImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
-                                            <div class="mt-2 text-center">
-                                                <a href="{{ Storage::url($delivery->delivery_proof) }}" download
-                                                    class="btn btn-sm btn-outline-primary rounded-pill">
-                                                    <i class="bi bi-download"></i> Download
-                                                </a>
-                                            </div>
+                            <div class="row g-2">
+                                @if ($delivery->delivery_proof)
+                                    <div class="col-md-6">
+                                        <p class="info-label mb-2">Delivery Proof</p>
+                                        <img src="{{ Storage::url($delivery->delivery_proof) }}" class="proof-image"
+                                            onclick="window.showImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
+                                        <div class="mt-2 text-center">
+                                            <a href="{{ Storage::url($delivery->delivery_proof) }}" download
+                                                class="btn btn-sm btn-outline-primary rounded-pill">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
                                         </div>
-                                    @endif
-                                    @if ($delivery->payment_proof)
-                                        <div class="col-md-6">
-                                            <p class="info-label mb-2">Payment Proof</p>
-                                            <img src="{{ Storage::url($delivery->payment_proof) }}"
-                                                class="proof-image"
-                                                onclick="showImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
-                                            <div class="mt-2 text-center">
-                                                <a href="{{ Storage::url($delivery->payment_proof) }}" download
-                                                    class="btn btn-sm btn-outline-success rounded-pill">
-                                                    <i class="bi bi-download"></i> Download
-                                                </a>
-                                            </div>
+                                    </div>
+                                @endif
+                                @if ($delivery->payment_proof)
+                                    <div class="col-md-6">
+                                        <p class="info-label mb-2">Payment Proof</p>
+                                        <img src="{{ Storage::url($delivery->payment_proof) }}" class="proof-image"
+                                            onclick="window.showImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
+                                        <div class="mt-2 text-center">
+                                            <a href="{{ Storage::url($delivery->payment_proof) }}" download
+                                                class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
                                         </div>
-                                    @endif
-                                </div>
-                            @else
-                                <div class="text-center py-4">
-                                    <i class="bi bi-image fs-1 text-muted"></i>
-                                    <p class="text-muted small mt-2">No proof images available</p>
-                                </div>
-                            @endif
-
-                            @if ($delivery->delivered_at)
-                                <div class="alert-custom alert-success-custom text-center mt-3">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Delivered on
-                                    {{ $delivery->delivered_at->format('M d, Y h:i A') }}
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @else
-                    <!-- Active Delivery - Update Status Form -->
-                    <div class="info-card">
-                        <div class="card-header-custom">
-                            <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
-                        </div>
-                        <div class="card-body p-3">
-                            <div id="errorAlert" class="alert-custom alert-danger-custom" style="display: none;">
-                            </div>
-                            <div id="successAlert" class="alert-custom alert-success-custom" style="display: none;">
-                            </div>
-
-                            <form id="updateStatusForm" action="{{ route('driver.delivery.update', $delivery) }}"
-                                method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <div class="mb-3">
-                                    <p class="info-label">Status</p>
-                                    <select name="status" id="statusSelect" class="form-select" required>
-                                        <option value="picked_up"
-                                            {{ $delivery->status == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
-                                        <option value="in_transit"
-                                            {{ $delivery->status == 'in_transit' ? 'selected' : '' }}>In Transit
-                                        </option>
-                                        <option value="delivered"
-                                            {{ $delivery->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                        <option value="failed" {{ $delivery->status == 'failed' ? 'selected' : '' }}>
-                                            Failed Delivery</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3" id="deliveryProofField">
-                                    <p class="info-label">Delivery Proof Photo <span class="text-danger"
-                                            id="deliveryProofRequired">*</span></p>
-                                    <input type="file" name="delivery_proof" id="deliveryProof"
-                                        class="form-control" accept="image/*">
-                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as
-                                        delivered</small>
-                                    <div id="deliveryProofPreview" class="mt-2" style="display: none;">
-                                        <img id="deliveryProofImg" src="#"
-                                            style="max-width: 100%; max-height: 80px; border-radius: 8px;">
                                     </div>
-                                </div>
-
-                                <div class="mb-3" id="paymentProofField">
-                                    <p class="info-label">Payment Proof Photo <span class="text-danger"
-                                            id="paymentProofRequired">*</span></p>
-                                    <input type="file" name="payment_proof" id="paymentProof"
-                                        class="form-control" accept="image/*">
-                                    <small class="text-muted" style="font-size: 0.75rem;">Required when marking as
-                                        delivered</small>
-                                    <div id="paymentProofPreview" class="mt-2" style="display: none;">
-                                        <img id="paymentProofImg" src="#"
-                                            style="max-width: 100%; max-height: 80px; border-radius: 8px;">
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <p class="info-label">Notes</p>
-                                    <textarea name="notes" class="form-control" rows="2" placeholder="Optional delivery notes...">{{ $delivery->driver_notes }}</textarea>
-                                </div>
-
-                                <button type="submit" class="btn-update-status" id="submitBtn">
-                                    <i class="bi bi-check-circle me-2"></i> Update Status
-                                </button>
-                            </form>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -757,176 +740,67 @@
     </div>
 </div>
 
-<!-- Image Preview Modal -->
-<div id="imagePreviewModal" class="image-preview-modal">
-    <div class="image-preview-content">
-        <div class="image-preview-header">
-            <h6 class="mb-0" id="previewTitle">Image Preview</h6>
-            <button type="button" class="btn-close" onclick="closeImagePreview()"></button>
-        </div>
-        <div class="image-preview-body">
-            <img id="previewImage" src="">
-        </div>
-        <div class="image-preview-footer">
-            <button type="button" class="btn btn-sm btn-secondary me-2" onclick="closeImagePreview()">Close</button>
-            <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
-        </div>
-    </div>
-</div>
-
 <script>
-    const statusSelect = document.getElementById('statusSelect');
-    const deliveryProofInput = document.getElementById('deliveryProof');
-    const paymentProofInput = document.getElementById('paymentProof');
-    const deliveryProofPreview = document.getElementById('deliveryProofPreview');
-    const paymentProofPreview = document.getElementById('paymentProofPreview');
-    const deliveryProofImg = document.getElementById('deliveryProofImg');
-    const paymentProofImg = document.getElementById('paymentProofImg');
-    const submitBtn = document.getElementById('submitBtn');
-    const updateForm = document.getElementById('updateStatusForm');
-    const errorAlert = document.getElementById('errorAlert');
-    const successAlert = document.getElementById('successAlert');
-
-    if (deliveryProofInput) {
-        deliveryProofInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file');
-                    this.value = '';
-                    return;
-                }
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File size must be less than 2MB');
-                    this.value = '';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    deliveryProofImg.src = event.target.result;
-                    deliveryProofPreview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            } else {
-                deliveryProofPreview.style.display = 'none';
-                deliveryProofImg.src = '';
-            }
-        });
-    }
-
-    if (paymentProofInput) {
-        paymentProofInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file');
-                    this.value = '';
-                    return;
-                }
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File size must be less than 2MB');
-                    this.value = '';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    paymentProofImg.src = event.target.result;
-                    paymentProofPreview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            } else {
-                paymentProofPreview.style.display = 'none';
-                paymentProofImg.src = '';
-            }
-        });
-    }
-
-    function toggleRequired() {
-        const isDelivered = statusSelect && statusSelect.value === 'delivered';
-
-        if (deliveryProofInput) {
-            deliveryProofInput.required = isDelivered;
-            const deliveryProofRequired = document.getElementById('deliveryProofRequired');
-            if (deliveryProofRequired) {
-                deliveryProofRequired.style.display = isDelivered ? 'inline' : 'none';
-            }
-        }
-
-        if (paymentProofInput) {
-            paymentProofInput.required = isDelivered;
-            const paymentProofRequired = document.getElementById('paymentProofRequired');
-            if (paymentProofRequired) {
-                paymentProofRequired.style.display = isDelivered ? 'inline' : 'none';
-            }
-        }
-    }
-
-    if (statusSelect) {
-        statusSelect.addEventListener('change', toggleRequired);
-        toggleRequired();
-    }
-
-    if (updateForm) {
-        updateForm.addEventListener('submit', function(e) {
-            const isDelivered = statusSelect && statusSelect.value === 'delivered';
-
-            errorAlert.style.display = 'none';
-            successAlert.style.display = 'none';
-
-            if (isDelivered) {
-                if (!deliveryProofInput.files.length && !deliveryProofInput.value) {
-                    e.preventDefault();
-                    errorAlert.textContent =
-                        'Please upload a delivery proof photo. Required when marking as delivered.';
-                    errorAlert.style.display = 'block';
-                    deliveryProofInput.focus();
-                    return false;
-                }
-
-                if (!paymentProofInput.files.length && !paymentProofInput.value) {
-                    e.preventDefault();
-                    errorAlert.textContent =
-                        'Please upload a payment proof photo. Required when marking as delivered.';
-                    errorAlert.style.display = 'block';
-                    paymentProofInput.focus();
-                    return false;
-                }
-            }
-
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML =
-                    '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-            }
-        });
-    }
-
-    function showImagePreview(imageUrl, title) {
-        document.getElementById('previewImage').src = imageUrl;
-        document.getElementById('previewTitle').textContent = title;
-        document.getElementById('downloadLink').href = imageUrl;
-        document.getElementById('imagePreviewModal').style.display = 'flex';
-    }
-
-    function closeImagePreview() {
-        document.getElementById('imagePreviewModal').style.display = 'none';
-    }
-
-    document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeImagePreview();
-        }
-    });
-
-    function closeModal() {
-        const modalElement = document.getElementById('deliveryModal');
+    // Global close function
+    window.closeBranchDeliveryModal = function() {
+        const modalElement = document.getElementById('branchDeliveryModal');
         if (modalElement) {
             const modal = bootstrap.Modal.getInstance(modalElement);
             if (modal) modal.hide();
         }
-        const container = document.getElementById('modalContainer');
-        if (container) container.innerHTML = '';
-        const customModal = document.getElementById('customModal');
-        if (customModal) customModal.style.display = 'none';
-    }
+        const container = document.getElementById('branchDeliveryModalContainer');
+        if (container) {
+            setTimeout(() => {
+                container.innerHTML = '';
+                document.body.classList.remove('modal-open');
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+            }, 300);
+        }
+    };
+
+    // Global image preview functions
+    window.showImagePreview = function(imageUrl, title) {
+        let previewModal = document.getElementById('imagePreviewModal');
+        if (!previewModal) {
+            previewModal = document.createElement('div');
+            previewModal.id = 'imagePreviewModal';
+            previewModal.className = 'image-preview-modal';
+            previewModal.innerHTML = `
+                <div class="image-preview-content">
+                    <div class="image-preview-header">
+                        <h6 class="mb-0" id="previewTitle">Image Preview</h6>
+                        <button type="button" class="btn-close" onclick="window.closeImagePreview()"></button>
+                    </div>
+                    <div class="image-preview-body">
+                        <img id="previewImage" src="">
+                    </div>
+                    <div class="image-preview-footer">
+                        <button type="button" class="btn btn-sm btn-secondary me-2" onclick="window.closeImagePreview()">Close</button>
+                        <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(previewModal);
+        }
+
+        document.getElementById('previewImage').src = imageUrl;
+        document.getElementById('previewTitle').textContent = title;
+        document.getElementById('downloadLink').href = imageUrl;
+        previewModal.style.display = 'flex';
+    };
+
+    window.closeImagePreview = function() {
+        const previewModal = document.getElementById('imagePreviewModal');
+        if (previewModal) {
+            previewModal.style.display = 'none';
+        }
+    };
+
+    document.addEventListener('click', function(e) {
+        const previewModal = document.getElementById('imagePreviewModal');
+        if (previewModal && e.target === previewModal) {
+            window.closeImagePreview();
+        }
+    });
 </script>
