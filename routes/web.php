@@ -571,10 +571,12 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
     });
 
     // Delivery Management
-    Route::get('/deliveries', [App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
-    Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
-    Route::post('/deliveries/{delivery}/update', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('delivery.update');
-    Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('delivery.location');
+Route::get('/deliveries', [App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
+Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
+Route::get('/deliveries/{delivery}/modal-data', [App\Http\Controllers\Driver\DeliveryController::class, 'getModalData'])->name('deliveries.modal-data');
+Route::post('/deliveries/{delivery}/update-status', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
+Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
+Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
 });
 
 // ===========================================================================

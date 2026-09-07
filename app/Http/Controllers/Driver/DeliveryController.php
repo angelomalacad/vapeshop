@@ -268,7 +268,7 @@ public function deliveryHistory(Request $request)
     ));
 }
 
-    /**
+        /**
      * Update delivery status (supports both AJAX and normal requests)
      * Driver ONLY handles: picked_up, in_transit, delivered, failed
      */
@@ -406,6 +406,9 @@ public function deliveryHistory(Request $request)
                 }
 
                 $order->save();
+                
+                // ✅ ADD THIS LINE - Log the actual order status after update
+                \Log::info('Order status after update: ' . $order->fresh()->order_status . ' for order #' . $order->order_number . ' (Delivery status: ' . $newStatus . ')');
             }
 
             $message = 'Delivery status updated successfully to ' . ucfirst($newStatus) . '!';
@@ -510,4 +513,19 @@ public function deliveryHistory(Request $request)
             throw $e;
         }
     }
+    public function getModalData(Delivery $delivery)
+{
+    // ✅ LOAD ALL RELATED DATA
+    $delivery->load([
+        'order.items.product', 
+        'order.branch', 
+        'order.customer'
+    ]);
+    
+    return response()->json([
+        'success' => true,
+        'delivery' => $delivery
+    ]);
+}
+    
 }

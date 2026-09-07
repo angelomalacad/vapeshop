@@ -459,9 +459,9 @@
                             </div>
                             @if ($order->delivery)
                                 <button type="button" class="status-btn btn-delivery"
-                                    onclick="window.openDeliveryModal({{ $order->delivery->id }})">
-                                    <i class="bi bi-truck me-2"></i> Manage Delivery
-                                </button>
+    onclick="showDeliveryStatusModal({{ json_encode($order->delivery->load('order.items.product', 'order.branch')) }})">
+    <i class="bi bi-truck me-2"></i> Manage Delivery
+</button>
                             @endif
                         @elseif($order->order_status == 'delivered')
                             <div class="alert-custom alert-success-custom text-center">
