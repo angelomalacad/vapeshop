@@ -559,41 +559,42 @@ public function history(Request $request)
     $onlineOrders = $onlineQuery->paginate(20)->withQueryString();
 
     // ========== DELIVERIES - FILTERED BY BRANCH ==========
-    // Active Deliveries
-    $activeDeliveries = Delivery::with(['order', 'driver'])
-        ->whereHas('order', function ($q) use ($branchId) {
-            $q->where('branch_id', $branchId);
-        })
-        ->whereIn('status', ['assigned', 'picked_up', 'in_transit'])
-        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
 
-    // Completed Deliveries
-    $completedDeliveries = Delivery::with(['order', 'driver'])
-        ->whereHas('order', function ($q) use ($branchId) {
-            $q->where('branch_id', $branchId);
-        })
-        ->where('status', 'delivered')
-        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+// Active Deliveries (paginated)
+$activeDeliveries = Delivery::with(['order', 'driver'])
+    ->whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })
+    ->whereIn('status', ['assigned', 'picked_up', 'in_transit'])
+    ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+    ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+    ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+    ->orderBy('created_at', 'desc')
+    ->paginate(10);
 
-    // Cancelled/Failed Deliveries
-    $cancelledDeliveries = Delivery::with(['order', 'driver'])
-        ->whereHas('order', function ($q) use ($branchId) {
-            $q->where('branch_id', $branchId);
-        })
-        ->whereIn('status', ['cancelled', 'failed'])
-        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
-        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
-        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+// Completed Deliveries (paginated)
+$completedDeliveries = Delivery::with(['order', 'driver'])
+    ->whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })
+    ->where('status', 'delivered')
+    ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+    ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+    ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+    ->orderBy('created_at', 'desc')
+    ->paginate(10);
+
+// Cancelled/Failed Deliveries (paginated)
+$cancelledDeliveries = Delivery::with(['order', 'driver'])
+    ->whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })
+    ->whereIn('status', ['cancelled', 'failed'])
+    ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+    ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+    ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+    ->orderBy('created_at', 'desc')
+    ->paginate(10);
 
     // ========== CALCULATE TOTALS ==========
     $totalSales = Order::where('branch_id', $branchId)

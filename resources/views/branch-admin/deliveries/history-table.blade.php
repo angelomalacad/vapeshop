@@ -261,18 +261,12 @@
             <label class="form-label">Status</label>
             <select name="delivery_status" class="form-select">
                 <option value="">All Status</option>
-                <option value="assigned" {{ request('delivery_status') == 'assigned' ? 'selected' : '' }}>Assigned
-                </option>
-                <option value="picked_up" {{ request('delivery_status') == 'picked_up' ? 'selected' : '' }}>Picked Up
-                </option>
-                <option value="in_transit" {{ request('delivery_status') == 'in_transit' ? 'selected' : '' }}>In Transit
-                </option>
-                <option value="delivered" {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>Delivered
-                </option>
-                <option value="cancelled" {{ request('delivery_status') == 'cancelled' ? 'selected' : '' }}>Cancelled
-                </option>
-                <option value="failed" {{ request('delivery_status') == 'failed' ? 'selected' : '' }}>Failed
-                </option>
+                <option value="assigned" {{ request('delivery_status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                <option value="picked_up" {{ request('delivery_status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+                <option value="in_transit" {{ request('delivery_status') == 'in_transit' ? 'selected' : '' }}>In Transit</option>
+                <option value="delivered" {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                <option value="cancelled" {{ request('delivery_status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                <option value="failed" {{ request('delivery_status') == 'failed' ? 'selected' : '' }}>Failed</option>
             </select>
         </div>
 
@@ -379,8 +373,7 @@
                                 <small class="text-muted">{{ $itemsCount }} item(s)</small>
                             </td>
                             <td>
-                                <span
-                                    class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                             </td>
                             <td>{{ $delivery->recipient_name }}</td>
                             <td>{{ $delivery->recipient_phone }}</td>
@@ -403,8 +396,7 @@
                             </td>
                             <td>
                                 <span class="status-badge {{ $statusClass }}">
-                                    <i
-                                        class="bi bi-{{ $delivery->status == 'in_transit' ? 'truck' : ($delivery->status == 'picked_up' ? 'box-seam' : 'clock') }}"></i>
+                                    <i class="bi bi-{{ $delivery->status == 'in_transit' ? 'truck' : ($delivery->status == 'picked_up' ? 'box-seam' : 'clock') }}"></i>
                                     {{ ucfirst(str_replace('_', ' ', $delivery->status)) }}
                                 </span>
                             </td>
@@ -500,8 +492,7 @@
                                 <small class="text-muted">{{ $itemsCount }} item(s)</small>
                             </td>
                             <td>
-                                <span
-                                    class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                             </td>
                             <td>{{ $delivery->recipient_name }}</td>
                             <td>{{ $delivery->recipient_phone }}</td>
@@ -641,8 +632,7 @@
                                 <small class="text-muted">{{ $itemsCount }} item(s)</small>
                             </td>
                             <td>
-                                <span
-                                    class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                             </td>
                             <td>{{ $delivery->recipient_name }}</td>
                             <td>{{ $delivery->recipient_phone }}</td>

@@ -18,15 +18,18 @@ class OnlineOrderController extends Controller
         $query = Order::where('order_number', 'NOT LIKE', 'POS-%')
             ->with(['branch', 'delivery.driver', 'items.product']);
 
-        // Apply filters
+        // Apply status filter
         if ($request->filled('status')) {
             $query->where('order_status', $request->status);
         }
 
-        if ($request->filled('delivery_type')) {
-            $query->where('delivery_type', $request->delivery_type);
+        // Apply search by order number
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('order_number', 'LIKE', "%{$search}%");
         }
 
+        // Apply date range filter
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -36,6 +39,14 @@ class OnlineOrderController extends Controller
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        // Add custom attribute for Staff vs Lalamove
+        $orders->getCollection()->transform(function ($order) {
+            $cityLower = strtolower(trim($order->city ?? ''));
+            $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
+            $order->is_lalamove = !$isCalambaCity;
+            return $order;
+        });
 
         // Get counts for each status
         $counts = [
