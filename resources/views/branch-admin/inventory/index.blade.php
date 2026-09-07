@@ -832,15 +832,20 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if ($expiry)
-                                                    {{ $expiry->format('M d, Y') }}
-                                                    @if ($expiry->isPast())
-                                                        <span class="badge bg-danger ms-1">Expired</span>
-                                                    @endif
-                                                @else
-                                                    <span class="text-muted">N/A</span>
-                                                @endif
-                                            </td>
+    @if ($expiry)
+        @if ($expiry->isPast())
+            <span class="text-danger fw-bold">{{ $expiry->format('M d, Y') }}</span>
+            <span class="badge bg-danger ms-1">Expired</span>
+        @elseif ($expiry->lessThanOrEqualTo(\Carbon\Carbon::now()->addDays(30)))
+            <span class="text-warning fw-bold" title="Expiring soon!">{{ $expiry->format('M d, Y') }}</span>
+            <span class="badge bg-warning text-dark ms-1">Expiring Soon</span>
+        @else
+            {{ $expiry->format('M d, Y') }}
+        @endif
+    @else
+        <span class="text-muted">N/A</span>
+    @endif
+</td>
                                             <td>
                                                 @if ($isArchived)
                                                     <span class="badge bg-secondary">Archived</span>
@@ -1129,15 +1134,20 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        @if ($expiry)
-                                                            {{ $expiry->format('M d, Y') }}
-                                                            @if ($expiry->isPast())
-                                                                <span class="badge bg-danger ms-1">Expired</span>
-                                                            @endif
-                                                        @else
-                                                            <span class="text-muted">N/A</span>
-                                                        @endif
-                                                    </td>
+    @if ($expiry)
+        @if ($expiry->isPast())
+            <span class="text-danger fw-bold">{{ $expiry->format('M d, Y') }}</span>
+            <span class="badge bg-danger ms-1">Expired</span>
+        @elseif ($expiry->lessThanOrEqualTo(\Carbon\Carbon::now()->addDays(30)))
+            <span class="text-warning fw-bold" title="Expiring soon!">{{ $expiry->format('M d, Y') }}</span>
+            <span class="badge bg-warning text-dark ms-1">Expiring Soon</span>
+        @else
+            {{ $expiry->format('M d, Y') }}
+        @endif
+    @else
+        <span class="text-muted">N/A</span>
+    @endif
+</td>
                                                     <td>
                                                         @if ($isOutOfStock)
                                                             <span class="badge badge-out-of-stock">Out of Stock</span>

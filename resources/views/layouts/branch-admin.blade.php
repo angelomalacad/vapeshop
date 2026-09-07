@@ -91,7 +91,7 @@
             scrollbar-color: #cbd5e1 #f0f2f5;
         }
 
-        /* Navigation items – unchanged */
+        /* Navigation items – UNCHANGED ORIGINAL STYLE */
         .sidebar .nav-link {
             font-weight: 500;
             color: var(--text-dark);
@@ -137,6 +137,90 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* ===================================================== */
+        /* BADGE COUNTS - ONLY ADDED THESE CLASSES */
+        /* ===================================================== */
+        .badge-count {
+            background: #0d6efd;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-cyan {
+            background: #0dcaf0;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-green {
+            background: #198754;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-gray {
+            background: #6c757d;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-red {
+            background: #dc3545;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+        /* ===================================================== */
 
         /* Main Content */
         .main-content {
@@ -352,34 +436,9 @@
             gap: 0.5rem;
         }
 
-        /* Badges */
-        .badge-count {
-            background: var(--primary-color);
-            color: white;
-            border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            margin-left: 0.5rem;
-            font-weight: 500;
-            display: inline-block;
-        }
-
+        /* Pending Badge */
         .pending-badge {
             animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.6;
-            }
-
-            100% {
-                opacity: 1;
-            }
         }
 
         /* Dropdown */
@@ -555,6 +614,7 @@
                     <div class="small mt-1"><i class="bi bi-shield-check"></i> Branch Staff</div>
                 </div>
 
+                <!-- UPDATED SIDEBAR MENU WITH BADGES AND SEQUENCE -->
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.dashboard') ? 'active' : '' }}"
@@ -568,6 +628,12 @@
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.inventory.index') }}">
                             <i class="bi bi-box-seam"></i> Inventory
+                            @php
+                                $inventoryCount = \App\Models\BranchInventory::where('branch_id', Auth::user()->branch_id)->count();
+                            @endphp
+                            @if($inventoryCount > 0)
+                                <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
+                            @endif
                         </a>
                     </li>
 
@@ -589,6 +655,14 @@
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers') ? 'active' : '' }}"
                             href="{{ route('branch-admin.inventory.transfers') }}">
                             <i class="bi bi-arrow-left-right"></i> All Transfers
+                            @php
+                                $pendingTransfersNav = \App\Models\StockTransfer::where(function($q) {
+                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere('to_branch_id', Auth::user()->branch_id);
+                                })->where('status', 'pending')->count();
+                            @endphp
+                            @if($pendingTransfersNav > 0)
+                                <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
+                            @endif
                         </a>
                     </li>
 
@@ -597,6 +671,12 @@
                         <a class="nav-link {{ request()->routeIs('branch-admin.products.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.products.index') }}">
                             <i class="bi bi-tags"></i> Catalog
+                            @php
+                                $catalogCount = \App\Models\Product::count();
+                            @endphp
+                            @if($catalogCount > 0)
+                                <span class="badge-count-green float-end">{{ $catalogCount }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-item">
@@ -606,7 +686,7 @@
                         </a>
                     </li>
 
-                    <!-- ===== WAREHOUSE SECTION - ADDED HERE ===== -->
+                    <!-- ===== WAREHOUSE SECTION ===== -->
                     <li class="sidebar-heading">WAREHOUSE</li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.warehouse.index') ? 'active' : '' }}"
@@ -614,13 +694,19 @@
                             <i class="bi bi-house-door"></i> Warehouse Stock
                         </a>
                     </li>
-                    <!-- ===== END OF WAREHOUSE SECTION ===== -->
 
                     <li class="sidebar-heading">SALES</li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.online-orders*') ? 'active' : '' }}"
                             href="{{ route('branch-admin.online-orders.index') }}">
                             <i class="bi bi-cart"></i> Online Orders
+                            @php
+                                $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
+                                    ->whereIn('status', ['pending', 'confirmed', 'processing', 'ready'])->count();
+                            @endphp
+                            @if($onlineOrdersCount > 0)
+                                <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
+                            @endif
                         </a>
                     </li>
                     <li class="nav-item">
@@ -678,16 +764,19 @@
                         <i class="bi bi-clock me-1"></i> {{ now()->format('h:i A') }}
                     </span>
 
-                    <!-- Low Stock Quick View -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-exclamation-triangle"></i> Stock
-                            <span class="badge-count" id="lowStockBadge">0</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('branch-admin.inventory.low-stock') }}">View
-                                    Low Stock</a></li>
-                        </ul>
+                    <!-- Low Stock Quick View (With Real Count) -->
+                    @php
+                        $lowStockCount = \App\Models\BranchInventory::where('branch_id', Auth::user()->branch_id)
+                            ->whereColumn('quantity', '<=', 'low_stock_threshold')
+                            ->where('is_disposed', false)
+                            ->where('is_archived', false)
+                            ->count();
+                    @endphp
+                    <div class="ms-2">
+                        <a href="{{ route('branch-admin.inventory.low-stock') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-exclamation-triangle"></i> Low Stock
+                            <span class="{{ $lowStockCount > 0 ? 'badge-count-red' : 'badge-count-gray' }}">{{ $lowStockCount }}</span>
+                        </a>
                     </div>
 
                     <!-- Pending Transfers Quick View -->

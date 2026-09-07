@@ -119,6 +119,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 4px 8px;
             border-radius: 12px;
+            position: relative;
         }
 
         .sidebar-card .list-group-item:hover {
@@ -141,6 +142,87 @@
 
         .sidebar-card .list-group-item:hover i {
             transform: scale(1.1);
+        }
+
+        /* Count Badges */
+        .badge-count {
+            background: #0d6efd;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-cyan {
+            background: #0dcaf0;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-green {
+            background: #198754;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-gray {
+            background: #6c757d;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .badge-count-red {
+            background: #dc3545;
+            color: white;
+            border-radius: 20px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            margin-left: auto;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* Modern Cards */
@@ -462,57 +544,75 @@
                     </div>
                     <div class="list-group list-group-flush">
                         <!-- Dashboard -->
-                        <a href="{{ route('branch-admin.dashboard') }}"
-                            class="list-group-item list-group-item-action active">
+                        <a href="{{ route('branch-admin.dashboard') }}" class="list-group-item list-group-item-action active">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
 
                         <!-- Inventory -->
-                        <a href="{{ route('branch-admin.inventory.index') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.index') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-box-seam me-2"></i> Inventory
+                            @php
+                                $inventoryCount = \App\Models\BranchInventory::where('branch_id', Auth::user()->branch_id)->count();
+                            @endphp
+                            @if($inventoryCount > 0)
+                                <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
+                            @endif
                         </a>
 
                         <!-- Stock History -->
-                        <a href="{{ route('branch-admin.inventory.stock-history') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Stock History
                         </a>
 
                         <!-- Request Transfer -->
-                        <a href="{{ route('branch-admin.inventory.transfer.form') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.transfer.form') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-send me-2"></i> Request Transfer
                         </a>
 
                         <!-- All Transfers -->
-                        <a href="{{ route('branch-admin.inventory.transfers') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.transfers') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-arrow-left-right me-2"></i> All Transfers
+                            @php
+                                $pendingTransfersNav = \App\Models\StockTransfer::where(function($q) {
+                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere('to_branch_id', Auth::user()->branch_id);
+                                })->where('status', 'pending')->count();
+                            @endphp
+                            @if($pendingTransfersNav > 0)
+                                <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
+                            @endif
                         </a>
 
                         <!-- Catalog -->
-                        <a href="{{ route('branch-admin.products.index') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.products.index') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-tags me-2"></i> Catalog
+                            @php
+                                $catalogCount = \App\Models\Product::count();
+                            @endphp
+                            @if($catalogCount > 0)
+                                <span class="badge-count-green float-end">{{ $catalogCount }}</span>
+                            @endif
                         </a>
 
                         <!-- New Product -->
-                        <a href="{{ route('branch-admin.products.create') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.products.create') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-plus-lg me-2"></i> New Product
                         </a>
 
                         <!-- Warehouse Stock -->
-                        <a href="{{ route('branch-admin.warehouse.index') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.warehouse.index') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-house-door me-2"></i> Warehouse Stock
                         </a>
 
                         <!-- Online Orders -->
-                        <a href="{{ route('branch-admin.online-orders.index') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.online-orders.index') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-cart me-2"></i> Online Orders
+                            @php
+                                $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
+                                    ->whereIn('status', ['pending', 'confirmed', 'processing', 'ready'])->count();
+                            @endphp
+                            @if($onlineOrdersCount > 0)
+                                <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
+                            @endif
                         </a>
 
                         <!-- Point of Sale -->
@@ -521,12 +621,11 @@
                         </a>
 
                         <!-- Sales History -->
-                        <a href="{{ route('branch-admin.pos.history') }}"
-                            class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.pos.history') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Sales History
                         </a>
 
-                        {{-- <!-- Home -->
+                        <!-- Home -->
                         <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-house me-2"></i> Home
                         </a>
@@ -537,7 +636,7 @@
                             <button type="submit" class="list-group-item list-group-item-action w-100 text-start border-0 bg-transparent">
                                 <i class="bi bi-box-arrow-right me-2"></i> Logout
                             </button>
-                        </form> --}}
+                        </form>
                     </div>
                 </div>
 

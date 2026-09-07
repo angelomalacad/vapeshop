@@ -535,6 +535,7 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
             'flavor_id' => 'nullable|exists:product_flavors,id',
             'quantity' => 'required|integer|min:0',
             'low_stock_threshold' => 'required|integer|min:1',
+            'expiration_date' => 'nullable|date', // ✅ ADDED
         ]);
 
         // Check if already exists
@@ -557,6 +558,7 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
             'low_stock_threshold' => $request->low_stock_threshold,
             'reorder_point' => 10,
             'optimal_stock' => 30,
+            'expiration_date' => $request->expiration_date, // ✅ ADDED
             'last_restocked_at' => $request->quantity > 0 ? now() : null,
         ]);
 
@@ -611,6 +613,7 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
         $request->validate([
             'quantity' => 'required|integer|min:1',
             'notes' => 'nullable|string|max:500',
+            'expiration_date' => 'nullable|date', // ✅ ADDED
         ]);
 
         DB::beginTransaction();
@@ -621,6 +624,7 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
 
             $inventory->update([
                 'quantity' => $newQuantity,
+                'expiration_date' => $request->expiration_date ?? $inventory->expiration_date, // ✅ ADDED
                 'last_restocked_at' => now(),
             ]);
 
@@ -1708,6 +1712,7 @@ public function completeTransfer(StockTransfer $transfer)
             'optimal_stock' => 'required|integer|min:1',
             'last_purchase_price' => 'nullable|numeric|min:0',
             'last_restocked_at' => 'nullable|date',
+            'expiration_date' => 'nullable|date', // ✅ ADDED EXPIRATION DATE
         ]);
 
         if ($validator->fails()) {
@@ -1729,6 +1734,7 @@ public function completeTransfer(StockTransfer $transfer)
                 'optimal_stock' => $request->optimal_stock,
                 'last_purchase_price' => $request->last_purchase_price,
                 'last_restocked_at' => $request->last_restocked_at ? Carbon::parse($request->last_restocked_at) : $inventory->last_restocked_at,
+                'expiration_date' => $request->expiration_date ? Carbon::parse($request->expiration_date) : null, // ✅ ADDED EXPIRATION DATE
             ]);
 
             if ($oldQuantity != $newQuantity) {

@@ -82,10 +82,17 @@
         <!-- Timestamp Section -->
         <div class="info-card">
             <div class="card-header-minimal">
-                <h6><i class="bi bi-calendar"></i>Last Updated</h6>
+                <h6><i class="bi bi-calendar"></i>Dates & Expiration</h6>
             </div>
             <div class="card-body-minimal">
                 <div class="row">
+                    <!-- ADDED: EXPIRATION DATE FIELD HERE -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-minimal">Expiration Date</label>
+                        <input type="date" name="expiration_date" class="form-control-minimal" value="{{ $inventory->expiration_date ? \Carbon\Carbon::parse($inventory->expiration_date)->format('Y-m-d') : '' }}">
+                        <small class="text-muted" style="font-size: 0.7rem;">Leave empty if no expiration</small>
+                    </div>
+
                     <div class="col-md-6 mb-3">
                         <label class="form-label-minimal">Last Restocked Date</label>
                         <input type="datetime-local" name="last_restocked_at" class="form-control-minimal" value="{{ $inventory->last_restocked_at ? $inventory->last_restocked_at->format('Y-m-d\TH:i') : '' }}">
