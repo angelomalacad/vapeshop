@@ -757,11 +757,10 @@
                 </div>
             </div>
 
-            <!-- Info Note for Owner -->
+            <!-- Info Note for Branch -->
             <div class="alert-minimal alert-info-minimal mt-3">
                 <i class="bi bi-info-circle me-2"></i>
-                This is a <strong>read-only view</strong>. The driver and branch staff are responsible for updating the
-                order status. You can monitor the progress here.
+                This is a <strong>read-only view</strong>. You can monitor the order progress here.
             </div>
         </div>
     </div>

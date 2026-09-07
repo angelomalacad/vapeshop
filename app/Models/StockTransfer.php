@@ -25,6 +25,10 @@ class StockTransfer extends Model
         'received_by',
         'received_at',
         'notes',
+        'rejection_reason',
+        'rejected_by',
+        'rejected_at',
+        'cancelled_by',
     ];
 
     protected $casts = [
@@ -111,4 +115,12 @@ class StockTransfer extends Model
     {
         return $query->where('status', 'cancelled');
     }
+    public function rejectedBy()
+{
+    return $this->belongsTo(User::class, 'rejected_by');
+}
+public function cancelledBy()
+{
+    return $this->belongsTo(User::class, 'cancelled_by');
+}
 }

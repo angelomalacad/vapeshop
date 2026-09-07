@@ -1,6 +1,6 @@
 @extends('layouts.driver')
 
-@section('page-class', 'has-sidebar') <!-- ✅ ADD THIS -->
+@section('page-class', 'has-sidebar')
 
 @section('content')
     <style>
@@ -40,6 +40,11 @@
             color: #059669;
         }
 
+        .stat-badge-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         .stat-badge-total {
             background: #f8f9fa;
             color: #1a1a2e;
@@ -74,7 +79,6 @@
             margin-bottom: 0;
             border-collapse: collapse;
             table-layout: fixed;
-            /* Ensures columns stay nicely in the box */
         }
 
         .delivery-table thead {
@@ -133,24 +137,17 @@
             color: #059669;
         }
 
+        .status-badge-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-badge-failed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         /* Buttons */
-        .btn-update {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 0.4rem 1rem;
-            font-size: 0.7rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-update:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
         .btn-view {
             display: inline-flex;
             align-items: center;
@@ -324,6 +321,7 @@
             }
         }
     </style>
+
     <!-- SIDEBAR -->
     <div class="app-sidebar">
         <div class="sidebar-header">
@@ -345,7 +343,7 @@
         </div>
     </div>
 
-    <!-- 2. YOUR MAIN CONTENT -->
+    <!-- MAIN CONTENT -->
     <div class="container-fluid">
         <!-- Page Header -->
         <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -358,6 +356,9 @@
                 </span>
                 <span class="stat-badge stat-badge-completed">
                     <i class="bi bi-check-circle-fill me-1"></i> {{ $completedCount ?? 0 }} Completed
+                </span>
+                <span class="stat-badge stat-badge-cancelled">
+                    <i class="bi bi-x-circle-fill me-1"></i> {{ $cancelledCount ?? 0 }} Cancelled/Failed
                 </span>
                 <span class="stat-badge stat-badge-total">
                     <i class="bi bi-receipt me-1"></i> {{ $totalDeliveries ?? 0 }} Total
@@ -376,28 +377,21 @@
                         value="{{ request('search') }}">
                 </div>
 
-                <!-- Filter by Active/Completed -->
+                <!-- Filter by Status -->
                 <div class="col-md-2">
-                    <label class="form-label">Show</label>
-                    <select name="filter_section" class="form-select">
-                        <option value="all" {{ request('filter_section') == 'all' ? 'selected' : '' }}>All Deliveries
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
+                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
                         </option>
-                        <option value="active" {{ request('filter_section') == 'active' ? 'selected' : '' }}>Active Only
+                        <option value="in_transit" {{ request('status') == 'in_transit' ? 'selected' : '' }}>In Transit
                         </option>
-                        <option value="completed" {{ request('filter_section') == 'completed' ? 'selected' : '' }}>
-                            Completed
-                            Only</option>
-                    </select>
-                </div>
-
-                <!-- Filter by Delivery Type -->
-                <div class="col-md-2">
-                    <label class="form-label">Delivery Type</label>
-                    <select name="delivery_type" class="form-select">
-                        <option value="">All Types</option>
-                        <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove
+                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
                         </option>
-                        <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                        </option>
+                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
                     </select>
                 </div>
 
@@ -414,7 +408,7 @@
                 </div>
 
                 <!-- Buttons -->
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn-filter">
                             <i class="bi bi-funnel me-1"></i> Filter
@@ -429,16 +423,12 @@
         </div>
 
         <!-- Active Deliveries Section -->
-        @if (
-            $activeDeliveries->count() > 0 &&
-                (request('filter_section') == 'all' ||
-                    request('filter_section') == 'active' ||
-                    empty(request('filter_section'))))
+        @if ($activeDeliveries->count() > 0)
             <div class="mb-5">
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-play-circle-fill text-warning"></i> Active Deliveries
-                        <span class="count-badge">{{ $activeCount ?? 0 }} active</span>
+                        <span class="count-badge">{{ $activeDeliveries->count() }} active</span>
                     </h4>
                 </div>
                 <div class="table-wrapper">
@@ -454,6 +444,7 @@
                                 <th>Address</th>
                                 <th>Type</th>
                                 <th>Status</th>
+                                <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -476,6 +467,13 @@
                                     $cityLower = strtolower(trim($delivery->order->city ?? ''));
                                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                     $isLalamoveEligible = !$isCalambaCity;
+
+                                    $statusClass = match ($delivery->status) {
+                                        'in_transit' => 'status-badge-active',
+                                        'picked_up' => 'status-badge-active',
+                                        'assigned' => 'status-badge-pending',
+                                        default => 'status-badge-pending',
+                                    };
                                 @endphp
                                 <tr>
                                     <td>
@@ -501,7 +499,7 @@
                                     </td>
                                     <td>
                                         <span
-                                            class="fw-bold text-success">₱{{ number_format($delivery->order->total_amount ?? 0, 2) }}</span>
+                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                                     </td>
                                     <td>{{ $delivery->recipient_name }}</td>
                                     <td>{{ $delivery->recipient_phone }}</td>
@@ -523,11 +521,17 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="status-badge status-badge-active">
+                                        <span class="status-badge {{ $statusClass }}">
                                             <i
                                                 class="bi bi-{{ $delivery->status == 'in_transit' ? 'truck' : ($delivery->status == 'picked_up' ? 'box-seam' : 'clock') }}"></i>
-                                            {{ ucfirst($delivery->status) }}
+                                            {{ ucfirst(str_replace('_', ' ', $delivery->status)) }}
                                         </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn-view"
+                                            onclick="openDriverDeliveryModal({{ $delivery->id }})">
+                                            <i class="bi bi-eye me-1"></i> Details
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -535,26 +539,21 @@
                     </table>
                 </div>
 
-                <!-- Pagination for Active Deliveries -->
                 @if ($activeDeliveries->hasPages())
                     <div class="d-flex justify-content-center mt-4">
-                        {{ $activeDeliveries->appends(['completed_page' => request('completed_page')])->links('pagination::bootstrap-5') }}
+                        {{ $activeDeliveries->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
         @endif
 
         <!-- Completed Deliveries Section -->
-        @if (
-            $completedDeliveries->count() > 0 &&
-                (request('filter_section') == 'all' ||
-                    request('filter_section') == 'completed' ||
-                    empty(request('filter_section'))))
+        @if ($completedDeliveries->count() > 0)
             <div class="mb-4">
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-check-circle-fill text-success"></i> Completed Deliveries
-                        <span class="count-badge">{{ $completedCount ?? 0 }} completed</span>
+                        <span class="count-badge">{{ $completedDeliveries->count() }} completed</span>
                     </h4>
                 </div>
                 <div class="table-wrapper">
@@ -572,7 +571,7 @@
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Lalamove Info</th>
-                                <th class="text-end" style="width: 115px;">Action</th>
+                                <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -620,7 +619,7 @@
                                     </td>
                                     <td>
                                         <span
-                                            class="fw-bold text-success">₱{{ number_format($delivery->order->total_amount ?? 0, 2) }}</span>
+                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                                     </td>
                                     <td>{{ $delivery->recipient_name }}</td>
                                     <td>{{ $delivery->recipient_phone }}</td>
@@ -632,7 +631,12 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td>{{ $delivery->delivered_at ? $delivery->delivered_at->format('M d, Y h:i A') : 'N/A' }}
+                                    <td>
+                                        @if ($delivery->delivered_at)
+                                            {{ \Carbon\Carbon::parse($delivery->delivered_at)->format('M d, Y h:i A') }}
+                                        @else
+                                            N/A
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="delivery-badge">
@@ -648,8 +652,6 @@
                                             <i class="bi bi-check-circle-fill"></i> Delivered
                                         </span>
                                     </td>
-
-                                    <!-- Lalamove Info Column -->
                                     <td>
                                         @if ($isLalamoveEligible && !empty($delivery->tracking_number))
                                             <a href="{{ $delivery->tracking_number }}" target="_blank"
@@ -661,11 +663,10 @@
                                             <span class="text-muted">—</span>
                                         @endif
                                     </td>
-
-                                    <td class="text-end" style="white-space: nowrap;">
+                                    <td class="text-end">
                                         <button type="button" class="btn-view"
-                                            onclick="openDeliveryModal({{ $delivery->id }})">
-                                            <i class="bi bi-eye me-1"></i> Proof
+                                            onclick="openDriverDeliveryModal({{ $delivery->id }})">
+                                            <i class="bi bi-eye me-1"></i> Details
                                         </button>
                                     </td>
                                 </tr>
@@ -674,21 +675,143 @@
                     </table>
                 </div>
 
-                <!-- Pagination for Completed Deliveries -->
                 @if ($completedDeliveries->hasPages())
                     <div class="d-flex justify-content-center mt-4">
-                        {{ $completedDeliveries->appends(['active_page' => request('active_page')])->links('pagination::bootstrap-5') }}
+                        {{ $completedDeliveries->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        <!-- Cancelled/Failed Deliveries Section -->
+        @if ($cancelledDeliveries->count() > 0)
+            <div class="mb-4">
+                <div class="section-header">
+                    <h4 class="section-title">
+                        <i class="bi bi-x-circle-fill text-danger"></i> Cancelled/Failed Deliveries
+                        <span class="count-badge">{{ $cancelledDeliveries->count() }} cancelled/failed</span>
+                    </h4>
+                </div>
+                <div class="table-wrapper">
+                    <table class="delivery-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Image</th>
+                                <th>Product</th>
+                                <th>Amount</th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($cancelledDeliveries as $delivery)
+                                @php
+                                    $firstItem = $delivery->order->items->first();
+                                    $product = $firstItem ? $firstItem->product : null;
+                                    $productName = $product ? $product->name : 'N/A';
+                                    $itemsCount = $delivery->order->items->count();
+                                    $imageUrl = null;
+                                    if ($product && $product->image) {
+                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                            $imageUrl = $product->image;
+                                        } elseif (Storage::disk('public')->exists($product->image)) {
+                                            $imageUrl = Storage::url($product->image);
+                                        }
+                                    }
+
+                                    // Lalamove Eligibility Check
+                                    $cityLower = strtolower(trim($delivery->order->city ?? ''));
+                                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                                    $isLalamoveEligible = !$isCalambaCity;
+
+                                    $statusClass = match ($delivery->status) {
+                                        'cancelled' => 'status-badge-cancelled',
+                                        'failed' => 'status-badge-failed',
+                                        default => 'status-badge-pending',
+                                    };
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">
+                                            <i class="bi bi-receipt me-1 text-muted"></i>
+                                            #{{ $delivery->order->order_number ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if ($imageUrl)
+                                            <img src="{{ $imageUrl }}" alt="{{ $productName }}"
+                                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                        @else
+                                            <div
+                                                style="width: 50px; height: 50px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div>{{ $productName }}</div>
+                                        <small class="text-muted">{{ $itemsCount }} item(s)</small>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                    </td>
+                                    <td>{{ $delivery->recipient_name }}</td>
+                                    <td>{{ $delivery->recipient_phone }}</td>
+                                    <td>
+                                        <div>{{ Str::limit($delivery->delivery_address, 40) }}</div>
+                                        @if ($delivery->order)
+                                            <div class="text-muted small">
+                                                {{ $delivery->order->barangay ?? '' }}, {{ $delivery->order->city ?? '' }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="delivery-badge">
+                                            @if ($isLalamoveEligible)
+                                                <i class="bi bi-truck me-1 text-primary"></i> Lalamove
+                                            @else
+                                                <i class="bi bi-bicycle me-1 text-success"></i> Staff
+                                            @endif
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {{ $statusClass }}">
+                                            <i class="bi bi-x-circle"></i>
+                                            {{ ucfirst(str_replace('_', ' ', $delivery->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn-view"
+                                            onclick="openDriverDeliveryModal({{ $delivery->id }})">
+                                            <i class="bi bi-eye me-1"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($cancelledDeliveries->hasPages())
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $cancelledDeliveries->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
         @endif
 
         <!-- No Deliveries Message -->
-        @if ($activeDeliveries->count() == 0 && $completedDeliveries->count() == 0)
+        @if ($activeDeliveries->count() == 0 && $completedDeliveries->count() == 0 && $cancelledDeliveries->count() == 0)
             <div class="empty-state">
                 <i class="bi bi-truck"></i>
-                <h5>No Deliveries Assigned</h5>
-                <p>You don't have any deliveries assigned yet.</p>
+                <h5>No Deliveries Found</h5>
+                <p>There are no deliveries to display at this time.</p>
             </div>
         @endif
     </div>
@@ -697,11 +820,79 @@
     <div id="modalContainer"></div>
 
     <script>
-        function openDeliveryModal(deliveryId) {
+        // Global close function
+        window.closeDriverDeliveryModal = function() {
+            const modalElement = document.getElementById('driverDeliveryModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
             const container = document.getElementById('modalContainer');
+            if (container) {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                    document.body.classList.remove('modal-open');
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                }, 300);
+            }
+        };
+
+        // Global image preview functions
+        window.showImagePreview = function(imageUrl, title) {
+            let previewModal = document.getElementById('imagePreviewModal');
+            if (!previewModal) {
+                previewModal = document.createElement('div');
+                previewModal.id = 'imagePreviewModal';
+                previewModal.className = 'image-preview-modal';
+                previewModal.innerHTML = `
+                    <div class="image-preview-content">
+                        <div class="image-preview-header">
+                            <h6 class="mb-0" id="previewTitle">Image Preview</h6>
+                            <button type="button" class="btn-close" onclick="window.closeImagePreview()"></button>
+                        </div>
+                        <div class="image-preview-body">
+                            <img id="previewImage" src="">
+                        </div>
+                        <div class="image-preview-footer">
+                            <button type="button" class="btn btn-sm btn-secondary me-2" onclick="window.closeImagePreview()">Close</button>
+                            <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(previewModal);
+            }
+
+            document.getElementById('previewImage').src = imageUrl;
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('downloadLink').href = imageUrl;
+            previewModal.style.display = 'flex';
+        };
+
+        window.closeImagePreview = function() {
+            const previewModal = document.getElementById('imagePreviewModal');
+            if (previewModal) {
+                previewModal.style.display = 'none';
+            }
+        };
+
+        document.addEventListener('click', function(e) {
+            const previewModal = document.getElementById('imagePreviewModal');
+            if (previewModal && e.target === previewModal) {
+                window.closeImagePreview();
+            }
+        });
+
+        // Open delivery modal
+        function openDriverDeliveryModal(deliveryId) {
+            const container = document.getElementById('modalContainer');
+            container.innerHTML = '';
+            document.body.classList.remove('modal-open');
+            const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+            existingBackdrops.forEach(backdrop => backdrop.remove());
 
             container.innerHTML = `
-            <div class="modal fade" id="deliveryModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal fade" id="driverDeliveryModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-body text-center p-5">
@@ -713,25 +904,35 @@
             </div>
         `;
 
-            const modal = new bootstrap.Modal(document.getElementById('deliveryModal'));
+            const modalElement = document.getElementById('driverDeliveryModal');
+            const modal = new bootstrap.Modal(modalElement);
             modal.show();
 
             fetch(`/driver/deliveries/${deliveryId}`)
                 .then(response => response.text())
                 .then(html => {
-                    const modalContent = document.querySelector('#deliveryModal .modal-content');
+                    const modalContent = document.querySelector('#driverDeliveryModal .modal-content');
                     if (modalContent) {
                         modalContent.innerHTML = html;
+
+                        // Rebind close button
+                        const closeBtn = modalContent.querySelector('.btn-close');
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                window.closeDriverDeliveryModal();
+                            });
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    const modalContent = document.querySelector('#deliveryModal .modal-content');
+                    const modalContent = document.querySelector('#driverDeliveryModal .modal-content');
                     if (modalContent) {
                         modalContent.innerHTML = `
                         <div class="modal-header" style="border-bottom: 1px solid #eef2f6;">
                             <h5 class="modal-title">Error</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close" onclick="window.closeDriverDeliveryModal()"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-danger">
@@ -739,7 +940,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-secondary" onclick="window.closeDriverDeliveryModal()">Close</button>
                         </div>
                     `;
                     }

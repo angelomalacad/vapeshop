@@ -7,6 +7,7 @@ use App\Models\BranchInventory;
 use App\Models\Product;
 use App\Models\ProductFlavor;
 use App\Models\Order;
+use App\Models\Delivery;
 use App\Models\OrderItem;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ class PosController extends Controller
 
     // Get cart from session
     $cart = session()->get('pos_cart', []);
-    
+
     // Debug: Log cart contents
     \Log::info('Cart contents in index:', $cart);
 
@@ -50,13 +51,13 @@ class PosController extends Controller
         $price = floatval($item['price'] ?? 0);
         $quantity = intval($item['quantity'] ?? 0);
         $subtotal += $price * $quantity;
-        
+
         // Update subtotal in cart item if needed
         if (isset($cart[$item['inventory_id']])) {
             $cart[$item['inventory_id']]['subtotal'] = $price * $quantity;
         }
     }
-    
+
     $tax = 0; // REMOVED TAX
     $total = $subtotal; // NO TAX ADDED
 
@@ -307,7 +308,7 @@ public function checkout(Request $request)
     if ($request->payment_method === 'gcash') {
         if ($request->hasFile('payment_proof')) {
             $file = $request->file('payment_proof');
-            
+
             // Log file details for debugging
             \Log::info('GCash file received:', [
                 'name' => $file->getClientOriginalName(),
@@ -315,16 +316,16 @@ public function checkout(Request $request)
                 'mime' => $file->getMimeType(),
                 'is_camera' => str_contains($file->getClientOriginalName(), 'captured_photo')
             ]);
-            
+
             // Generate unique filename
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-            
+
             // Store the file
             $proofPath = $file->storeAs('payment_proofs', $filename, 'public');
-            
+
             // Log the saved path
             \Log::info('GCash proof saved at: ' . $proofPath);
-            
+
             // Verify the file was saved
             if (!Storage::disk('public')->exists($proofPath)) {
                 \Log::error('File was NOT saved successfully!');
@@ -474,25 +475,25 @@ public function checkout(Request $request)
 
     } catch (\Exception $e) {
         DB::rollBack();
-        
+
         // Delete uploaded proof if exists and there was an error
         if ($proofPath && Storage::disk('public')->exists($proofPath)) {
             Storage::disk('public')->delete($proofPath);
             \Log::info('Deleted proof file due to error: ' . $proofPath);
         }
-        
+
         // Log the error for debugging
         \Log::error('POS Checkout Error: ' . $e->getMessage());
         \Log::error('Cart data: ' . json_encode($cart));
         \Log::error('Stack trace: ' . $e->getTraceAsString());
-        
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error processing payment: ' . $e->getMessage()
             ], 500);
         }
-        
+
         return redirect()->back()->with('error', 'Error processing payment: ' . $e->getMessage());
     }
 }
@@ -510,50 +511,164 @@ public function checkout(Request $request)
         return view('branch-admin.pos.receipt', compact('receipt'));
     }
 
-    /**
-     * Show purchase history for the branch
-     */
-    public function history(Request $request)
-    {
-        $branchId = Auth::user()->branch_id;
+/**
+ * Show purchase history for the branch
+ */
+public function history(Request $request)
+{
+    $branchId = Auth::user()->branch_id;
 
-        $query = Order::with(['items.product', 'user'])
-            ->where('branch_id', $branchId)
-            ->where('delivery_type', 'pickup')
-            ->orderBy('created_at', 'desc');
+    // ========== POS ORDERS (Pickup) ==========
+    $posQuery = Order::with(['items.product', 'user'])
+        ->where('branch_id', $branchId)
+        ->where('delivery_type', 'pickup')
+        ->orderBy('created_at', 'desc');
 
-        // Filter by date
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        // Filter by customer
-        if ($request->filled('customer')) {
-            $query->where('customer_name', 'like', '%' . $request->customer . '%');
-        }
-
-        $orders = $query->paginate(20);
-
-        // Calculate totals
-        $totalSales = Order::where('branch_id', $branchId)
-            ->where('delivery_type', 'pickup')
-            ->sum('total_amount');
-            
-        $totalOrders = Order::where('branch_id', $branchId)
-            ->where('delivery_type', 'pickup')
-            ->count();
-            
-        $todaySales = Order::where('branch_id', $branchId)
-            ->where('delivery_type', 'pickup')
-            ->whereDate('created_at', today())
-            ->sum('total_amount');
-
-        return view('branch-admin.pos.history', compact('orders', 'totalSales', 'totalOrders', 'todaySales'));
+    if ($request->filled('date_from')) {
+        $posQuery->whereDate('created_at', '>=', $request->date_from);
     }
+
+    if ($request->filled('date_to')) {
+        $posQuery->whereDate('created_at', '<=', $request->date_to);
+    }
+
+    if ($request->filled('customer')) {
+        $posQuery->where('customer_name', 'like', '%' . $request->customer . '%');
+    }
+
+    $orders = $posQuery->paginate(20)->withQueryString();
+
+    // ========== ONLINE ORDERS (Delivery) - FILTERED BY BRANCH ==========
+    $onlineQuery = Order::with(['items.product', 'delivery.driver'])
+        ->where('branch_id', $branchId)
+        ->where('delivery_type', 'delivery')
+        ->orderBy('created_at', 'desc');
+
+    if ($request->filled('date_from')) {
+        $onlineQuery->whereDate('created_at', '>=', $request->date_from);
+    }
+
+    if ($request->filled('date_to')) {
+        $onlineQuery->whereDate('created_at', '<=', $request->date_to);
+    }
+
+    if ($request->filled('status')) {
+        $onlineQuery->where('order_status', $request->status);
+    }
+
+    $onlineOrders = $onlineQuery->paginate(20)->withQueryString();
+
+    // ========== DELIVERIES - FILTERED BY BRANCH ==========
+    // Active Deliveries
+    $activeDeliveries = Delivery::with(['order', 'driver'])
+        ->whereHas('order', function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId);
+        })
+        ->whereIn('status', ['assigned', 'picked_up', 'in_transit'])
+        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    // Completed Deliveries
+    $completedDeliveries = Delivery::with(['order', 'driver'])
+        ->whereHas('order', function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId);
+        })
+        ->where('status', 'delivered')
+        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    // Cancelled/Failed Deliveries
+    $cancelledDeliveries = Delivery::with(['order', 'driver'])
+        ->whereHas('order', function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId);
+        })
+        ->whereIn('status', ['cancelled', 'failed'])
+        ->when($request->filled('date_from'), fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
+        ->when($request->filled('date_to'), fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+        ->when($request->filled('delivery_status'), fn($q) => $q->where('status', $request->delivery_status))
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    // ========== CALCULATE TOTALS ==========
+    $totalSales = Order::where('branch_id', $branchId)
+        ->where('delivery_type', 'pickup')
+        ->sum('total_amount');
+
+    $totalOrders = Order::where('branch_id', $branchId)
+        ->where('delivery_type', 'pickup')
+        ->count();
+
+    $todaySales = Order::where('branch_id', $branchId)
+        ->where('delivery_type', 'pickup')
+        ->whereDate('created_at', today())
+        ->sum('total_amount');
+
+    // Online order totals
+    $totalOnlineOrders = Order::where('branch_id', $branchId)
+        ->where('delivery_type', 'delivery')
+        ->count();
+
+    $pendingOnlineOrders = Order::where('branch_id', $branchId)
+        ->where('delivery_type', 'delivery')
+        ->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready'])
+        ->count();
+
+    // Delivery totals
+    $totalDeliveries = Delivery::whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })->count();
+
+    $activeDeliveriesCount = Delivery::whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })->whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count();
+
+    $completedDeliveriesCount = Delivery::whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })->where('status', 'delivered')->count();
+
+    $cancelledDeliveriesCount = Delivery::whereHas('order', function ($q) use ($branchId) {
+        $q->where('branch_id', $branchId);
+    })->whereIn('status', ['cancelled', 'failed'])->count();
+
+    // Online order status counts
+    $onlinePending = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'pending')->count();
+    $onlineConfirmed = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'confirmed')->count();
+    $onlineProcessing = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'processing')->count();
+    $onlineReady = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'ready')->count();
+    $onlinePickedUp = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'picked_up')->count();
+    $onlineOutForDelivery = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'out_for_delivery')->count();
+    $onlineDelivered = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'delivered')->count();
+
+    return view('branch-admin.pos.history', compact(
+        'orders',
+        'onlineOrders',
+        'activeDeliveries',
+        'completedDeliveries',
+        'cancelledDeliveries',
+        'totalSales',
+        'totalOrders',
+        'todaySales',
+        'totalOnlineOrders',
+        'pendingOnlineOrders',
+        'totalDeliveries',
+        'activeDeliveriesCount',
+        'completedDeliveriesCount',
+        'cancelledDeliveriesCount',
+        'onlinePending',
+        'onlineConfirmed',
+        'onlineProcessing',
+        'onlineReady',
+        'onlinePickedUp',
+        'onlineOutForDelivery',
+        'onlineDelivered'
+    ));
+}
 
     /**
      * Show order receipt/invoice
@@ -599,7 +714,7 @@ public function checkout(Request $request)
 
         return response()->json($products);
     }
-    
+
     /**
      * Upload proof of payment (standalone endpoint for AJAX)
      */
@@ -608,19 +723,19 @@ public function checkout(Request $request)
         $request->validate([
             'payment_proof' => 'required|file|max:5120|mimes:jpg,jpeg,png,gif,pdf'
         ]);
-        
+
         if ($request->hasFile('payment_proof')) {
             $file = $request->file('payment_proof');
             $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
             $path = $file->storeAs('payment_proofs/temp', $filename, 'public');
-            
+
             return response()->json([
                 'success' => true,
                 'path' => $path,
                 'url' => Storage::disk('public')->url($path)
             ]);
         }
-        
+
         return response()->json([
             'success' => false,
             'message' => 'No file uploaded'
