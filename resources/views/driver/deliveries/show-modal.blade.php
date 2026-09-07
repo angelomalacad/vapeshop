@@ -216,6 +216,13 @@
         padding: 0.5rem 1rem;
     }
 
+    /* ✅ NEW: Align totals under TOTAL column */
+    .totals-row.totals-under-total {
+        justify-content: flex-end;
+        gap: 2rem;
+        padding-right: 9.5rem; /* ✅ INCREASE THIS to move numbers LEFT under TOTAL column */
+    }
+
     .totals-label {
         font-size: 0.8rem;
         color: #64748b;
@@ -387,6 +394,41 @@
         background: #10b981;
         transform: none;
     }
+
+    /* ✅ NEW: Stock Info Styles */
+    .stock-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #d97706;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .stock-info-icon {
+        font-size: 1rem;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -400,6 +442,9 @@
                 <p class="order-date">Update delivery status</p>
             </div>
         </div>
+
+        <!-- ✅ NEW: Result Message Container (Shows inside modal) -->
+        <div id="delivery-status-result" class="mb-3"></div>
 
         <div class="row g-3">
             <!-- LEFT COLUMN -->
@@ -417,6 +462,7 @@
                                     <th class="text-center">Qty</th>
                                     <th class="text-end">Price</th>
                                     <th class="text-end">Total</th>
+                                    <th class="text-center">Stock</th>
                                 </tr>
                             </thead>
                             <tbody id="modal-items-list">
@@ -424,13 +470,13 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- ✅ NEW: Subtotal and Total Section -->
+                    <!-- ✅ NEW: Subtotal and Total Section - ALIGNED UNDER TOTAL COLUMN -->
                     <div class="p-3 bg-light">
-                        <div class="totals-row">
+                        <div class="totals-row totals-under-total">
                             <span class="totals-label">Subtotal</span>
                             <span class="totals-value" id="modal-subtotal">₱0.00</span>
                         </div>
-                        <div class="totals-row totals-total">
+                        <div class="totals-row totals-total totals-under-total">
                             <span class="totals-label">Total</span>
                             <span class="totals-value" id="modal-total">₱0.00</span>
                         </div>
@@ -477,18 +523,6 @@
                                 <p class="info-label">City</p>
                                 <p class="info-value" id="modal-customer-city"></p>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Existing Proofs (LEFT - FOURTH) -->
-                <div class="info-card" id="existing-proofs-section" style="display:none;">
-                    <div class="card-header-custom">
-                        <h6><i class="bi bi-images"></i> Existing Proofs</h6>
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="row" id="existing-proofs-container">
-                            <!-- Proofs will be displayed here -->
                         </div>
                     </div>
                 </div>
@@ -582,8 +616,8 @@
                                           placeholder="Enter any notes or reason for status update..."></textarea>
                             </div>
                             
-                            <!-- Submit Button -->
-                            <button type="submit" class="btn btn-success btn-block" id="submitStatusBtn">
+                            <!-- Submit Button - ✅ CHANGED TO BLUE -->
+                            <button type="submit" class="btn-save-tracking" id="submitStatusBtn">
                                 <i class="fas fa-check-circle"></i> Update Delivery Status
                             </button>
                         </form>
@@ -710,12 +744,13 @@ window.showDeliveryStatusModal = function(deliveryData) {
             const productName = item.product ? item.product.name : 'Product';
             const quantity = item.quantity || 0;
             const price = parseFloat(item.price) || 0;
-            const total = quantity * price;
-            subtotal += total;
+            const itemTotal = quantity * price;
+            subtotal += itemTotal;
             
             const productImage = item.product && item.product.image ? item.product.image : null;
             const imageUrl = productImage ? (productImage.startsWith('http') ? productImage : '/storage/' + productImage) : null;
             
+            // ✅ NEW: Stock display - Show "—" placeholder, will be filled by AJAX
             itemsHtml += `
                 <tr>
                     <td>
@@ -723,65 +758,72 @@ window.showDeliveryStatusModal = function(deliveryData) {
                             ${imageUrl ? `<img src="${imageUrl}" alt="${productName}" class="product-image">` : `<div class="product-image bg-light d-flex align-items-center justify-content-center"><i class="bi bi-box-seam text-muted"></i></div>`}
                             <div>
                                 <div class="product-name">${productName}</div>
+                                ${item.flavor ? `<div class="product-flavor">Flavor: ${item.flavor.name}</div>` : ''}
                             </div>
                         </div>
                     </td>
                     <td class="text-center">${quantity}</td>
                     <td class="text-end">₱${price.toFixed(2)}</td>
-                    <td class="text-end">₱${total.toFixed(2)}</td>
+                    <td class="text-end">₱${itemTotal.toFixed(2)}</td>
+                    <td class="text-center" id="stock-cell-${item.id}">
+                        <span class="text-muted">Loading...</span>
+                    </td>
                 </tr>
             `;
         });
     } else {
-        itemsHtml = '<tr><td colspan="4" class="text-center">No items found</td></tr>';
+        itemsHtml = '<tr><td colspan="5" class="text-center">No items found</td></tr>';
     }
     document.getElementById('modal-items-list').innerHTML = itemsHtml;
     
-    // ✅ Update Subtotal and Total
+    // ✅ UPDATE SUBTOTAL AND TOTAL
     document.getElementById('modal-subtotal').textContent = '₱' + subtotal.toFixed(2);
     document.getElementById('modal-total').textContent = '₱' + subtotal.toFixed(2);
     
-    // Show existing proofs
-    document.getElementById('existing-proofs-section').style.display = 'block';
-    let proofsHtml = '';
-    
-    if (deliveryData.delivery_proof) {
-        proofsHtml += `
-            <div class="col-md-4 text-center mb-3">
-                <div class="card">
-                    <div class="card-header">Delivery Proof</div>
-                    <div class="card-body">
-                        <img src="/storage/${deliveryData.delivery_proof}" class="img-fluid" style="max-height: 150px; object-fit: cover;">
-                        <a href="/storage/${deliveryData.delivery_proof}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                            <i class="fas fa-eye"></i> View
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
+    // ✅ FETCH STOCK DATA FOR EACH ITEM
+    const branchId = order.branch_id;
+    if (branchId && order.items) {
+        order.items.forEach(function(item) {
+            const productId = item.product_id;
+            const flavorId = item.flavor_id;
+            const stockCell = document.getElementById(`stock-cell-${item.id}`);
+            
+            // Use the existing API route
+            const url = `/api/branches/${branchId}/products/${productId}/stock` + (flavorId ? `?flavor_id=${flavorId}` : '');
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const available = data.available;
+                    const reserved = data.reserved || 0;
+                    const totalStock = data.quantity || 0;
+                    
+                    let stockClass = 'stock-info-in';
+                    let stockIcon = 'bi-check-circle-fill';
+                    
+                    if (available <= 0) {
+                        stockClass = 'stock-info-out';
+                        stockIcon = 'bi-x-circle-fill';
+                    } else if (available <= 10) {
+                        stockClass = 'stock-info-low';
+                        stockIcon = 'bi-exclamation-triangle-fill';
+                    }
+                    
+                    stockCell.innerHTML = `
+                        <div class="stock-info ${stockClass}">
+                            <i class="bi ${stockIcon} stock-info-icon"></i>
+                            <span><strong>Avail:</strong> ${available}</span>
+                            <span><strong>Reserved:</strong> ${reserved}</span>
+                            <span><strong>Total:</strong> ${totalStock}</span>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching stock:', error);
+                    stockCell.innerHTML = '<span class="text-muted">—</span>';
+                });
+        });
     }
-    
-    if (deliveryData.payment_proof) {
-        proofsHtml += `
-            <div class="col-md-4 text-center mb-3">
-                <div class="card">
-                    <div class="card-header">Payment Proof</div>
-                    <div class="card-body">
-                        <img src="/storage/${deliveryData.payment_proof}" class="img-fluid" style="max-height: 150px; object-fit: cover;">
-                        <a href="/storage/${deliveryData.payment_proof}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                            <i class="fas fa-eye"></i> View
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (proofsHtml === '') {
-        proofsHtml = '<div class="col-12 text-center text-muted">No proofs uploaded yet</div>';
-    }
-    
-    document.getElementById('existing-proofs-container').innerHTML = proofsHtml;
     
     // ✅ FIX: Reset dropdown and show ALL options
     const statusSelect = document.getElementById('status');
@@ -793,7 +835,7 @@ window.showDeliveryStatusModal = function(deliveryData) {
     const elements = form.querySelectorAll('input, select, textarea, button');
     elements.forEach(el => el.disabled = false);
     submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
-    submitBtn.className = 'btn btn-success btn-block';
+    submitBtn.className = 'btn-save-tracking';
     
     // ✅ Show modal using vanilla JavaScript
     const modal = document.getElementById('deliveryStatusModal');
@@ -1007,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show loading
             const submitBtn = document.getElementById('submitStatusBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
             
             // Create FormData
             const formData = new FormData(form);
@@ -1025,18 +1067,27 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message || 'Delivery status updated successfully!');
-                    window.closeDeliveryModal();
-                    location.reload();
+                    // ✅ Show success message INSIDE the modal
+                    const resultDiv = document.getElementById('delivery-status-result');
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery status updated successfully!') + '</div>';
+                    
+                    // Close modal after 1.5 seconds
+                    setTimeout(() => {
+                        window.closeDeliveryModal();
+                        location.reload();
+                    }, 1500);
                 } else {
-                    alert(data.message || 'Failed to update delivery status.');
+                    // Show error message INSIDE the modal
+                    const resultDiv = document.getElementById('delivery-status-result');
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Failed to update delivery status.') + '</div>';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating delivery status: ' + error.message);
-            })
-            .finally(() => {
+                const resultDiv = document.getElementById('delivery-status-result');
+                resultDiv.innerHTML = '<div class="alert alert-danger">Error updating delivery status: ' + error.message + '</div>';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
             });

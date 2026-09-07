@@ -627,17 +627,47 @@ class DeliveryController extends Controller
     }
 
     public function getModalData(Delivery $delivery)
-    {
-        // ✅ LOAD ALL RELATED DATA
-        $delivery->load([
-            'order.items.product', 
-            'order.branch', 
-            'order.customer'
-        ]);
+{
+    // ✅ LOAD ALL RELATED DATA
+    $delivery->load([
+        'order.items.product', 
+        'order.branch', 
+        'order.customer'
+    ]);
+    
+    // ✅ ADD STOCK INFO TO EACH ITEM
+    if ($delivery->order) {
+        $order = $delivery->order;
+        $branchId = $order->branch_id;
         
-        return response()->json([
-            'success' => true,
-            'delivery' => $delivery
-        ]);
+        foreach ($order->items as $item) {
+            // Get branch inventory for this product + flavor
+            $branchInventory = \App\Models\BranchInventory::where('branch_id', $branchId)
+                ->where('product_id', $item->product_id)
+                ->when($item->flavor_id, function($query) use ($item) {
+                    return $query->where('flavor_id', $item->flavor_id);
+                }, function($query) {
+                    return $query->whereNull('flavor_id');
+                })
+                ->first();
+            
+            if ($branchInventory) {
+                $item->stock_available = $branchInventory->available_quantity;
+                $item->stock_reserved = $branchInventory->reserved_quantity ?? 0;
+                $item->stock_total = $branchInventory->quantity;
+                $item->low_stock_threshold = $branchInventory->low_stock_threshold ?? 10;
+            } else {
+                $item->stock_available = 0;
+                $item->stock_reserved = 0;
+                $item->stock_total = 0;
+                $item->low_stock_threshold = 10;
+            }
+        }
     }
+    
+    return response()->json([
+        'success' => true,
+        'delivery' => $delivery
+    ]);
+}
 }

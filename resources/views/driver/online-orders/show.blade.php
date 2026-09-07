@@ -188,6 +188,14 @@
         padding: 0.5rem 1rem;
     }
 
+    /* ✅ Align Subtotal and Total under PRICE column */
+.totals-align-fixed .totals-label {
+    margin-left: 14rem; /* Adjust to move labels right (under PRICE) */
+}
+
+.totals-align-fixed .totals-value {
+    margin-right: 5rem; /* Adjust to move numbers left (under TOTAL) */
+}
     .totals-label {
         font-size: 0.8rem;
         color: #64748b;
@@ -284,6 +292,40 @@
         border-radius: 8px;
         font-size: 0.8rem;
     }
+
+    /* ✅ NEW: Stock Info Styles */
+    .stock-info {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #d97706;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .stock-info-icon {
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -314,24 +356,64 @@
                                     <th class="text-center">Qty</th>
                                     <th class="text-end">Price</th>
                                     <th class="text-end">Total</th>
+                                    <th class="text-center">Stock</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($order->items as $item)
+                                    @php
+                                        $product = $item->product;
+                                        $imageUrl = null;
+                                        if ($product && $product->image) {
+                                            if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                                $imageUrl = $product->image;
+                                            } elseif (Storage::disk('public')->exists($product->image)) {
+                                                $imageUrl = Storage::url($product->image);
+                                            }
+                                        }
+
+                                        // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
+                                        $stockAvailable = 0;
+                                        $stockStatus = 'out_of_stock';
+                                        $stockClass = 'stock-info-out';
+                                        $stockIcon = 'bi-x-circle-fill';
+                                        $stockColor = 'text-danger';
+
+                                        if ($order->branch_id && $product) {
+                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                                ->where('product_id', $product->id)
+                                                ->when($item->flavor_id, function($query) use ($item) {
+                                                    return $query->where('flavor_id', $item->flavor_id);
+                                                }, function($query) {
+                                                    return $query->whereNull('flavor_id');
+                                                })
+                                                ->first();
+
+                                            if ($branchInventory) {
+                                                $stockAvailable = $branchInventory->available_quantity;
+
+                                                if ($stockAvailable <= 0) {
+                                                    $stockStatus = 'out_of_stock';
+                                                    $stockClass = 'stock-info-out';
+                                                    $stockIcon = 'bi-x-circle-fill';
+                                                    $stockColor = 'text-danger';
+                                                } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                                    $stockStatus = 'low_stock';
+                                                    $stockClass = 'stock-info-low';
+                                                    $stockIcon = 'bi-exclamation-triangle-fill';
+                                                    $stockColor = 'text-warning';
+                                                } else {
+                                                    $stockStatus = 'in_stock';
+                                                    $stockClass = 'stock-info-in';
+                                                    $stockIcon = 'bi-check-circle-fill';
+                                                    $stockColor = 'text-success';
+                                                }
+                                            }
+                                        }
+                                    @endphp
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                @php
-                                                    $product = $item->product;
-                                                    $imageUrl = null;
-                                                    if ($product && $product->image) {
-                                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
-                                                            $imageUrl = $product->image;
-                                                        } elseif (Storage::disk('public')->exists($product->image)) {
-                                                            $imageUrl = Storage::url($product->image);
-                                                        }
-                                                    }
-                                                @endphp
                                                 @if ($imageUrl)
                                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
                                                         class="product-image">
@@ -353,17 +435,25 @@
                                         <td class="text-center">{{ $item->quantity }}</td>
                                         <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
                                         <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                        <td class="text-center">
+                                            <div class="stock-info {{ $stockClass }}">
+                                                <i class="bi {{ $stockIcon }} stock-info-icon"></i>
+                                                <span class="fw-semibold">{{ $stockAvailable }}</span>
+                                                <small>({{ $item->quantity }} needed)</small>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
+                    <!-- ✅ FIXED: Subtotal and Total - Aligned under TOTAL column -->
                     <div class="p-3 bg-light">
-                        <div class="totals-row">
+                        <div class="totals-row totals-align-fixed">
                             <span class="totals-label">Subtotal</span>
                             <span class="totals-value">₱{{ number_format($order->subtotal, 2) }}</span>
                         </div>
-                        <div class="totals-row totals-total">
+                        <div class="totals-row totals-total totals-align-fixed">
                             <span class="totals-label">Total</span>
                             <span class="totals-value">₱{{ number_format($order->total_amount, 2) }}</span>
                         </div>
@@ -508,22 +598,22 @@
                         @endif
 
                         <!-- ✅ FIXED: Delivery Date Range (Allow same date) -->
-@if (!in_array($orderStatus, ['delivered', 'delivery_failed']))
-    <div class="mb-3">
-        <label class="info-label">Expected Delivery Date</label>
-        <div class="delivery-date-range">
-            <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
-                value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
-            <span class="text-muted">to</span>
-            <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
-                value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
-        </div>
-        <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
-            onclick="saveDeliveryDate()">
-            Save
-        </button>
-    </div>
-@endif
+                        @if (!in_array($orderStatus, ['delivered', 'delivery_failed']))
+                            <div class="mb-3">
+                                <label class="info-label">Expected Delivery Date</label>
+                                <div class="delivery-date-range">
+                                    <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
+                                        value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
+                                    <span class="text-muted">to</span>
+                                    <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
+                                        value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
+                                    onclick="saveDeliveryDate()">
+                                    Save
+                                </button>
+                            </div>
+                        @endif
 
                         <div id="result" class="mt-3"></div>
                     </div>
@@ -547,37 +637,37 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
-    // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
-    const successMessage = sessionStorage.getItem('delivery_success_message');
-    if (successMessage) {
-        if (typeof showNotification === 'function') {
-            showNotification(successMessage, 'success');
-        }
-        sessionStorage.removeItem('delivery_success_message');
-    }
-
-    // ✅ NEW: Allow same date selection for delivery date range
-    const deliveryDateFrom = document.getElementById('delivery_date_from');
-    const deliveryDateTo = document.getElementById('delivery_date_to');
-
-    if (deliveryDateFrom && deliveryDateTo) {
-        // Set min on From to today
-        deliveryDateFrom.min = new Date().toISOString().split('T')[0];
-        
-        // Update min on To when From changes
-        deliveryDateFrom.addEventListener('change', function() {
-            deliveryDateTo.min = this.value; // ✅ Allow same date as From
-            if (deliveryDateTo.value < this.value) {
-                deliveryDateTo.value = this.value;
+        // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
+        const successMessage = sessionStorage.getItem('delivery_success_message');
+        if (successMessage) {
+            if (typeof showNotification === 'function') {
+                showNotification(successMessage, 'success');
             }
-        });
-        
-        // Set initial min on To to match From
-        if (deliveryDateFrom.value) {
-            deliveryDateTo.min = deliveryDateFrom.value;
+            sessionStorage.removeItem('delivery_success_message');
         }
-    }
-});
+
+        // ✅ NEW: Allow same date selection for delivery date range
+        const deliveryDateFrom = document.getElementById('delivery_date_from');
+        const deliveryDateTo = document.getElementById('delivery_date_to');
+
+        if (deliveryDateFrom && deliveryDateTo) {
+            // Set min on From to today
+            deliveryDateFrom.min = new Date().toISOString().split('T')[0];
+            
+            // Update min on To when From changes
+            deliveryDateFrom.addEventListener('change', function() {
+                deliveryDateTo.min = this.value; // ✅ Allow same date as From
+                if (deliveryDateTo.value < this.value) {
+                    deliveryDateTo.value = this.value;
+                }
+            });
+            
+            // Set initial min on To to match From
+            if (deliveryDateFrom.value) {
+                deliveryDateTo.min = deliveryDateFrom.value;
+            }
+        }
+    });
 
     window.handleStatus = function(action, orderId) {
         const resultDiv = document.getElementById('result');
