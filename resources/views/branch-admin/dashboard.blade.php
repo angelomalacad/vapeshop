@@ -458,35 +458,86 @@
             <div class="col-lg-2">
                 <div class="card sidebar-card">
                     <div class="card-header text-center">
-                        <i class="bi bi-grid me-2"></i> Owner Menu
+                        <i class="bi bi-grid me-2"></i> Staff Menu
                     </div>
                     <div class="list-group list-group-flush">
+                        <!-- Dashboard -->
                         <a href="{{ route('branch-admin.dashboard') }}"
                             class="list-group-item list-group-item-action active">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
+
+                        <!-- Inventory -->
+                        <a href="{{ route('branch-admin.inventory.index') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-box-seam me-2"></i> Inventory
+                        </a>
+
+                        <!-- Stock History -->
+                        <a href="{{ route('branch-admin.inventory.stock-history') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-clock-history me-2"></i> Stock History
+                        </a>
+
+                        <!-- Request Transfer -->
+                        <a href="{{ route('branch-admin.inventory.transfer.form') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-send me-2"></i> Request Transfer
+                        </a>
+
+                        <!-- All Transfers -->
+                        <a href="{{ route('branch-admin.inventory.transfers') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-arrow-left-right me-2"></i> All Transfers
+                        </a>
+
+                        <!-- Catalog -->
+                        <a href="{{ route('branch-admin.products.index') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-tags me-2"></i> Catalog
+                        </a>
+
+                        <!-- New Product -->
+                        <a href="{{ route('branch-admin.products.create') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-plus-lg me-2"></i> New Product
+                        </a>
+
+                        <!-- Warehouse Stock -->
+                        <a href="{{ route('branch-admin.warehouse.index') }}"
+                            class="list-group-item list-group-item-action">
+                            <i class="bi bi-house-door me-2"></i> Warehouse Stock
+                        </a>
+
+                        <!-- Online Orders -->
                         <a href="{{ route('branch-admin.online-orders.index') }}"
                             class="list-group-item list-group-item-action">
                             <i class="bi bi-cart me-2"></i> Online Orders
                         </a>
-                        <a href="{{ route('branch-admin.inventory.index') }}"
-                            class="list-group-item list-group-item-action">
-                            <i class="bi bi-box-seam me-2"></i> Inventory Management
-                        </a>
-                        <a href="{{ route('branch-admin.products.create') }}"
-                            class="list-group-item list-group-item-action">
-                            <i class="bi bi-plus-circle me-2"></i> Add New Product
-                        </a>
+
+                        <!-- Point of Sale -->
                         <a href="{{ route('branch-admin.pos.index') }}" class="list-group-item list-group-item-action">
                             <i class="bi bi-cash-coin me-2"></i> Point of Sale
                         </a>
+
+                        <!-- Sales History -->
                         <a href="{{ route('branch-admin.pos.history') }}"
                             class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Sales History
                         </a>
+
+                        {{-- <!-- Home -->
                         <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
-                            <i class="bi bi-house me-2"></i> Back to Home
+                            <i class="bi bi-house me-2"></i> Home
                         </a>
+
+                        <!-- Logout -->
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="list-group-item list-group-item-action w-100 text-start border-0 bg-transparent">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </button>
+                        </form> --}}
                     </div>
                 </div>
 
