@@ -1,117 +1,219 @@
 <style>
-    .delivery-modal-container {
-        padding: 1.5rem;
-        max-height: 85vh;
-        overflow-y: auto;
-        background: #f8f9fa;
-    }
-
-    .delivery-modal-container::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .delivery-modal-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-
-    .delivery-modal-container::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    .modal-header-minimal {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
+    /* Modern Minimalist Modal Styles */
+    .modal-header-custom {
+        padding: 1.25rem 1.5rem;
         border-bottom: 1px solid #eef2f6;
+        background: white;
     }
 
-    .modal-title {
-        font-size: 1rem;
-        font-weight: 600;
+    .order-number {
+        font-size: 1.25rem;
+        font-weight: 700;
         color: #1a1a2e;
+        margin-bottom: 0.25rem;
+    }
+
+    .order-date {
+        font-size: 0.75rem;
+        color: #64748b;
         margin-bottom: 0;
     }
 
-    .modal-title i {
-        color: #3b82f6;
-        margin-right: 0.5rem;
-    }
-
+    /* Cards */
     .info-card {
-        background: white;
+        border: none;
         border-radius: 16px;
-        border: 1px solid #eef2f6;
-        margin-bottom: 1rem;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.25rem;
         overflow: hidden;
     }
 
-    .card-header-minimal {
+    .card-header-custom {
         padding: 0.875rem 1.25rem;
-        background: white;
         border-bottom: 1px solid #eef2f6;
+        background: white;
     }
 
-    .card-header-minimal h6 {
-        font-size: 0.8rem;
+    .card-header-custom h6 {
+        font-size: 0.875rem;
         font-weight: 600;
         color: #1a1a2e;
         margin-bottom: 0;
     }
 
-    .card-header-minimal h6 i {
-        margin-right: 0.5rem;
+    .card-header-custom i {
         color: #3b82f6;
+        margin-right: 0.5rem;
     }
 
-    .card-body-minimal {
-        padding: 1rem 1.25rem;
+    /* Product Image */
+    .product-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #f8f9fa;
     }
 
-    .info-row {
+    /* Table Styles - FIXED: No horizontal scroll */
+    .order-items-table {
+        margin-bottom: 0;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .order-items-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid #eef2f6;
+        text-align: left;
+    }
+
+    .order-items-table td {
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #eef2f6;
+        font-size: 0.8rem;
+        color: #334155;
+        word-wrap: break-word;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0;
+    }
+
+    .product-flavor {
+        font-size: 0.7rem;
+        color: #64748b;
+    }
+
+    /* Stock Info Styles */
+    .stock-info {
         display: flex;
-        margin-bottom: 0.75rem;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        text-align: center;
     }
 
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #d97706;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .stock-info-icon {
+        font-size: 1rem;
+    }
+
+    /* Customer Info */
     .info-label {
-        width: 100px;
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #64748b;
+        margin-bottom: 0.25rem;
     }
 
     .info-value {
-        flex: 1;
-        font-size: 0.8rem;
+        font-size: 0.875rem;
         color: #1a1a2e;
+        margin-bottom: 0.75rem;
         font-weight: 500;
+        word-wrap: break-word;
     }
 
-    .badge-delivered {
-        background: #d1fae5;
-        color: #059669;
+    /* Alert Styles */
+    .alert-custom {
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
 
-    .badge-in_transit {
-        background: #fef3c7;
-        color: #d97706;
+    .alert-info-custom {
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        color: #1e40af;
     }
 
-    .badge-picked_up {
-        background: #dbeafe;
-        color: #2563eb;
+    .alert-success-custom {
+        background: #ecfdf5;
+        border: 1px solid #d1fae5;
+        color: #065f46;
     }
 
-    .badge-assigned {
-        background: #f1f5f9;
-        color: #475569;
+    /* Totals */
+    .totals-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 1rem;
     }
 
+    .totals-label {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .totals-value {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .totals-total {
+        border-top: 1px solid #eef2f6;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+    }
+
+    .totals-total .totals-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #1a1a2e;
+    }
+
+    .totals-total .totals-value {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #e74c3c;
+    }
+
+    /* Modal Body Scroll */
+    .modal-body-custom {
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 0;
+    }
+
+    .table-responsive {
+        overflow: hidden !important;
+    }
+
+    /* Timeline Styles */
     .timeline-container {
         padding: 0.5rem 0;
     }
@@ -173,12 +275,6 @@
         color: #64748b;
     }
 
-    .timeline-details {
-        font-size: 0.75rem;
-        color: #475569;
-        margin-top: 0.25rem;
-    }
-
     .timeline-line {
         position: absolute;
         left: 20px;
@@ -196,47 +292,45 @@
         display: none;
     }
 
-    .product-image {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 10px;
-        background: #f8f9fa;
+    /* Badge Styles */
+    .badge-secondary {
+        background: #6c757d;
+        color: white;
     }
 
-    .order-items-table {
-        margin-bottom: 0;
+    .badge-info {
+        background: #17a2b8;
+        color: white;
     }
 
-    .order-items-table th {
-        background: #f8f9fa;
-        font-weight: 600;
+    .badge-primary {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .badge-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .badge-success {
+        background: #198754;
+        color: white;
+    }
+
+    .badge-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .badge {
+        padding: 0.35rem 0.65rem;
+        border-radius: 30px;
+        font-weight: 500;
         font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #64748b;
-        padding: 0.75rem;
-        border-bottom: 1px solid #eef2f6;
     }
 
-    .order-items-table td {
-        padding: 0.75rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #eef2f6;
-        font-size: 0.8rem;
-    }
-
-    .product-name {
-        font-weight: 600;
-        color: #1a1a2e;
-        margin-bottom: 0;
-    }
-
-    .product-flavor {
-        font-size: 0.7rem;
-        color: #64748b;
-    }
-
+    /* Proof Images */
     .proof-image {
         width: 100%;
         height: 120px;
@@ -251,25 +345,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-download {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 30px;
-    }
-
-    .alert-minimal {
-        border-radius: 12px;
-        padding: 0.75rem 1rem;
-        font-size: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    .alert-info-minimal {
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
-        color: #2563eb;
-    }
-
+    /* Image Preview Modal */
     .image-preview-modal {
         display: none;
         position: fixed;
@@ -319,363 +395,499 @@
     }
 
     @media (max-width: 768px) {
-        .delivery-modal-container {
-            padding: 1rem;
-        }
-
-        .info-label {
-            width: 80px;
-        }
-
-        .timeline-icon {
-            width: 32px;
-            height: 32px;
-        }
-
-        .timeline-line {
-            left: 16px;
-        }
-
-        .product-image {
-            width: 40px;
-            height: 40px;
-        }
-
-        .order-items-table th,
-        .order-items-table td {
+        .order-table th,
+        .order-table td {
             padding: 0.5rem;
+        }
+
+        .order-table img {
+            width: 40px !important;
+            height: 40px !important;
         }
     }
 </style>
 
-<div class="delivery-modal-container">
-    <div class="modal-header-minimal">
-        <h5 class="modal-title">
-            <i class="bi bi-truck"></i> Delivery Details
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-    </div>
-
-    @if ($delivery->order && $delivery->order->items && $delivery->order->items->count() > 0)
-        <div class="info-card mb-3">
-            <div class="card-header-minimal">
-                <h6><i class="bi bi-receipt"></i> Order Items</h6>
+<div class="modal-body-custom">
+    <div style="padding: 1.5rem;">
+        <!-- Header -->
+        <div class="modal-header-custom" style="padding: 0 0 1rem 0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="order-number"><i class="bi bi-truck text-primary me-2"></i> Delivery Details</h5>
+                    <p class="order-date">Delivery for Order #{{ $delivery->order->order_number ?? 'N/A' }}</p>
+                </div>
+                <button type="button" class="btn-close" onclick="closeAdminDeliveryModal()"></button>
             </div>
-            <div class="card-body-minimal p-0">
-                <div class="table-responsive">
-                    <table class="table order-items-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 60px">Image</th>
-                                <th>Product</th>
-                                <th class="text-center" style="width: 70px">Qty</th>
-                                <th class="text-end" style="width: 100px">Price</th>
-                                <th class="text-end" style="width: 100px">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($delivery->order->items as $item)
-                                @php
-                                    $product = $item->product;
-                                    $imageUrl = null;
-                                    if ($product && $product->image) {
-                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
-                                            $imageUrl = $product->image;
-                                        } elseif (Storage::disk('public')->exists($product->image)) {
-                                            $imageUrl = Storage::url($product->image);
-                                        }
-                                    }
-                                @endphp
+        </div>
+
+        <!-- Order Items Card - FULL WIDTH -->
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-box-seam"></i> Order Items</h6>
+            </div>
+            <div class="card-body p-0">
+                @if ($delivery->order && $delivery->order->items->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table order-items-table">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        @if ($imageUrl)
-                                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
-                                                class="product-image">
-                                        @else
-                                            <div
-                                                class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                <i class="bi bi-box-seam text-muted"></i>
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="product-name">{{ $item->product->name }}</div>
-                                        @if ($item->flavor)
-                                            <div class="product-flavor">Flavor: {{ $item->flavor->name }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                    <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                    <th style="width: 10%">Image</th>
+                                    <th style="width: 30%">Product</th>
+                                    <th class="text-center" style="width: 10%">Qty</th>
+                                    <th class="text-end" style="width: 15%">Price</th>
+                                    <th class="text-end" style="width: 15%">Subtotal</th>
+                                    <th class="text-center" style="width: 20%">Stock</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot class="bg-light">
-                            <tr>
-                                <td colspan="4" class="text-end fw-bold">Total:</td>
-                                <td class="text-end fw-bold text-danger">
-                                    ₱{{ number_format($delivery->order->subtotal, 2) }}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @foreach ($delivery->order->items as $item)
+                                    @php
+                                        $product = $item->product;
+                                        $imageUrl = null;
+                                        if ($product && $product->image) {
+                                            if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                                $imageUrl = $product->image;
+                                            } elseif (Storage::disk('public')->exists($product->image)) {
+                                                $imageUrl = Storage::url($product->image);
+                                            }
+                                        }
+                                        
+                                        // ✅ Inventory Stock Check
+                                        $stockAvailable = 0;
+                                        $stockReserved = 0;
+                                        $stockTotal = 0;
+                                        $stockStatus = 'out_of_stock';
+                                        $stockClass = 'stock-info-out';
+                                        $stockIcon = 'bi-x-circle-fill';
+                                        
+                                        if ($delivery->order->branch_id && $product) {
+                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $delivery->order->branch_id)
+                                                ->where('product_id', $product->id)
+                                                ->when($item->flavor_id, function($query) use ($item) {
+                                                    return $query->where('flavor_id', $item->flavor_id);
+                                                }, function($query) {
+                                                    return $query->whereNull('flavor_id');
+                                                })
+                                                ->first();
+                                            
+                                            if ($branchInventory) {
+                                                $stockTotal = $branchInventory->quantity;
+                                                $stockReserved = $branchInventory->reserved_quantity;
+                                                $stockAvailable = $branchInventory->available_quantity;
+                                                
+                                                if ($stockAvailable <= 0) {
+                                                    $stockStatus = 'out_of_stock';
+                                                    $stockClass = 'stock-info-out';
+                                                    $stockIcon = 'bi-x-circle-fill';
+                                                } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                                    $stockStatus = 'low_stock';
+                                                    $stockClass = 'stock-info-low';
+                                                    $stockIcon = 'bi-exclamation-triangle-fill';
+                                                } else {
+                                                    $stockStatus = 'in_stock';
+                                                    $stockClass = 'stock-info-in';
+                                                    $stockIcon = 'bi-check-circle-fill';
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            @if ($imageUrl)
+                                                <img src="{{ $imageUrl }}"
+                                                    alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                            @else
+                                                <div
+                                                    class="product-image bg-light d-flex align-items-center justify-content-center">
+                                                    <i class="bi bi-image text-muted"
+                                                        style="font-size: 1.2rem;"></i>
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
+                                            @if ($item->flavor)
+                                                <div class="product-flavor">Flavor: {{ $item->flavor->name }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">{{ $item->quantity }}</td>
+                                        <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
+                                        <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                        <td class="text-center">
+                                            <div class="stock-info {{ $stockClass }}">
+                                                <i class="bi {{ $stockIcon }} stock-info-icon"></i>
+                                                <span><strong>Available:</strong> {{ $stockAvailable }}</span>
+                                                <span><strong>Reserved:</strong> {{ $stockReserved }}</span>
+                                                <span><strong>Total:</strong> {{ $stockTotal }}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 bg-light">
+                        <div class="totals-row totals-total">
+                            <span class="totals-label">Total</span>
+                            <span
+                                class="totals-value text-success">₱{{ number_format($delivery->order->subtotal, 2) }}</span>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-center py-3">
+                        <p class="text-muted small mb-0">No items found</p>
+                    </div>
+                @endif
             </div>
         </div>
-    @endif
 
-    <div class="row g-3">
-        <div class="col-md-6">
-            <div class="info-card">
-                <div class="card-header-minimal">
-                    <h6><i class="bi bi-info-circle"></i> Delivery Information</h6>
-                </div>
-                <div class="card-body-minimal">
-                    <div class="info-row">
-                        <div class="info-label">Order #</div>
-                        <div class="info-value">{{ $delivery->order->order_number ?? 'N/A' }}</div>
+        <!-- ROW 1: Delivery Information + Customer Details -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-info-circle"></i> Delivery Information</h6>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Status</div>
-                        <div class="info-value">
-                            <span class="badge badge-{{ $delivery->status }}">
-                                <i
-                                    class="bi bi-{{ $delivery->status == 'delivered' ? 'check-circle-fill' : ($delivery->status == 'in_transit' ? 'truck' : 'clock') }} me-1"></i>
-                                {{ ucfirst($delivery->status) }}
+                    <div class="card-body p-3">
+                        <p class="info-label">Order #</p>
+                        <p class="info-value text-break">{{ $delivery->order->order_number ?? 'N/A' }}</p>
+
+                        <p class="info-label">Status</p>
+                        <p class="info-value">
+                            @php
+                                $statusBadgeClass = match ($delivery->status) {
+                                    'pending' => 'badge-secondary',
+                                    'assigned' => 'badge-info',
+                                    'picked_up' => 'badge-primary',
+                                    'in_transit' => 'badge-warning',
+                                    'delivered' => 'badge-success',
+                                    'failed' => 'badge-danger',
+                                    default => 'badge-secondary',
+                                };
+                                $displayDeliveryStatus = ucfirst(str_replace('_', ' ', $delivery->status));
+                            @endphp
+                            <span class="badge {{ $statusBadgeClass }}">
+                                {{ $displayDeliveryStatus }}
                             </span>
-                        </div>
+                        </p>
+
+                        <!-- ✅ Driver Information -->
+                        <div class="info-label">Driver</div>
+                        <p class="info-value">
+                            @if ($delivery->driver)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->driver->name }}
+                            @elseif ($delivery->notes)
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                {{ $delivery->notes }}
+                            @else
+                                <span class="text-muted">Not Assigned</span>
+                            @endif
+                        </p>
+
+                        @if ($delivery->driver && $delivery->driver->phone)
+                            <div class="info-label">Driver Contact</div>
+                            <p class="info-value">
+                                <i class="bi bi-telephone text-primary me-1"></i>
+                                {{ $delivery->driver->phone }}
+                            </p>
+                        @endif
+
+                        @if ($delivery->picked_up_at)
+                            <p class="info-label">Picked Up</p>
+                            <p class="info-value">
+                                {{ \Carbon\Carbon::parse($delivery->picked_up_at)->format('M d, Y h:i A') }}</p>
+                        @endif
+                        @if ($delivery->delivered_at)
+                            <p class="info-label">Delivered</p>
+                            <p class="info-value">
+                                {{ \Carbon\Carbon::parse($delivery->delivered_at)->format('M d, Y h:i A') }}</p>
+                        @endif
                     </div>
-                    @if ($delivery->picked_up_at)
-                        <div class="info-row">
-                            <div class="info-label">Picked Up</div>
-                            <div class="info-value">{{ $delivery->picked_up_at->format('M d, Y h:i A') }}</div>
-                        </div>
-                    @endif
-                    @if ($delivery->delivered_at)
-                        <div class="info-row">
-                            <div class="info-label">Delivered</div>
-                            <div class="info-value">{{ $delivery->delivered_at->format('M d, Y h:i A') }}</div>
-                        </div>
-                    @endif
                 </div>
             </div>
 
-            <div class="info-card">
-                <div class="card-header-minimal">
-                    <h6><i class="bi bi-person"></i> Customer Details</h6>
-                </div>
-                <div class="card-body-minimal">
-                    <div class="info-row">
-                        <div class="info-label">Name</div>
-                        <div class="info-value">{{ $delivery->recipient_name }}</div>
+            <div class="col-md-6">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-person"></i> Customer Details</h6>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Phone</div>
-                        <div class="info-value">{{ $delivery->recipient_phone }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Address</div>
-                        <div class="info-value">{{ $delivery->delivery_address }}</div>
-                    </div>
-                    @if ($delivery->order)
-                        <div class="info-row">
-                            <div class="info-label">City/Barangay</div>
-                            <div class="info-value">{{ $delivery->order->city ?? 'N/A' }},
-                                {{ $delivery->order->barangay ?? 'N/A' }}</div>
-                        </div>
-                        @if ($delivery->order->landmark)
-                            <div class="info-row">
-                                <div class="info-label">Landmark</div>
-                                <div class="info-value">{{ $delivery->order->landmark }}</div>
-                            </div>
+                    <div class="card-body p-3">
+                        <p class="info-label">Name</p>
+                        <p class="info-value">{{ $delivery->recipient_name }}</p>
+
+                        <p class="info-label">Phone</p>
+                        <p class="info-value">{{ $delivery->recipient_phone }}</p>
+
+                        <p class="info-label">Address</p>
+                        <p class="info-value">{{ $delivery->delivery_address }}</p>
+
+                        @if ($delivery->order)
+                            <p class="info-label">City/Barangay</p>
+                            <p class="info-value">{{ $delivery->order->city ?? 'N/A' }},
+                                {{ $delivery->order->barangay ?? 'N/A' }}</p>
+                            @if ($delivery->order->landmark)
+                                <p class="info-label">Landmark</p>
+                                <p class="info-value">{{ $delivery->order->landmark }}</p>
+                            @endif
                         @endif
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="info-card">
-                <div class="card-header-minimal">
-                    <h6><i class="bi bi-clock-history"></i> Delivery Logs</h6>
-                </div>
-                <div class="card-body-minimal">
-                    <div class="timeline-container">
-                        <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ $delivery->assigned_at || $delivery->driver || $delivery->notes ? 'completed' : 'pending' }}">
-                                <i class="bi bi-person-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">Assigned to Driver</div>
-                                @if ($delivery->assigned_at)
-                                    <div class="timeline-date">{{ $delivery->assigned_at->format('F d, Y h:i A') }}
-                                    </div>
-                                @elseif ($delivery->driver || $delivery->notes)
-                                    <div class="timeline-date">Assigned</div>
-                                @else
-                                    <div class="timeline-date text-muted">Pending</div>
-                                @endif
-                                @if ($delivery->driver)
-                                    <div class="timeline-details" style="display: flex; align-items: center; gap: 5px;">
-                                        <i class="bi bi-person-badge me-1"></i> Driver:
-                                        {{ $delivery->driver->name }}
-                                    </div>
-                                @elseif ($delivery->notes)
-                                    <div class="timeline-details" style="display: flex; align-items: center; gap: 5px;">
-                                        <i class="bi bi-person-badge me-1"></i> Driver:
-                                        {{ $delivery->notes }}
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="timeline-line {{ $delivery->picked_up_at ? 'completed' : '' }}"></div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div class="timeline-icon {{ $delivery->picked_up_at ? 'completed' : 'pending' }}">
-                                <i class="bi bi-box-seam"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">Picked Up</div>
-                                @if ($delivery->picked_up_at)
-                                    <div class="timeline-date">
-                                        {{ $delivery->picked_up_at->format('F d, Y h:i A') }}
-                                    </div>
-                                @else
-                                    <div class="timeline-date text-muted">Waiting for driver to pick up</div>
-                                @endif
-                            </div>
-                            <div
-                                class="timeline-line {{ $delivery->status == 'in_transit' || $delivery->delivered_at ? 'completed' : '' }}">
-                            </div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div
-                                class="timeline-icon {{ $delivery->in_transit_at || $delivery->delivered_at ? 'completed' : 'pending' }}">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">In Transit</div>
-                                @if ($delivery->in_transit_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($delivery->in_transit_at)->format('F d, Y h:i A') }}
-                                    </div>
-                                    <div class="timeline-details">Driver is on the way to customer</div>
-                                @elseif($delivery->delivered_at)
-                                    <div class="timeline-date">
-                                        {{ \Carbon\Carbon::parse($delivery->delivered_at)->format('F d, Y h:i A') }}
-                                    </div>
-                                @else
-                                    <div class="timeline-date text-muted">Not yet in transit</div>
-                                @endif
-                            </div>
-                            <div class="timeline-line {{ $delivery->delivered_at ? 'completed' : '' }}"></div>
-                        </div>
-
-                        <div class="timeline-item">
-                            <div class="timeline-icon {{ $delivery->delivered_at ? 'completed' : 'pending' }}">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-title">Delivered</div>
-                                @if ($delivery->delivered_at)
-                                    <div class="timeline-date">
-                                        {{ $delivery->delivered_at->format('F d, Y h:i A') }}
-                                    </div>
-                                @else
-                                    <div class="timeline-date text-muted">Not yet delivered</div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @if ($delivery->status == 'delivered' && ($delivery->delivery_proof || $delivery->payment_proof))
-                <div class="info-card mt-3">
-                    <div class="card-header-minimal">
-                        <h6><i class="bi bi-image"></i> Proof of Delivery</h6>
+        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery (3 columns, 33% each) -->
+        <div class="row g-3 mt-2">
+            <!-- Delivery Progress -->
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-clock-history"></i> Delivery Progress</h6>
                     </div>
                     <div class="card-body-minimal">
-                        <div class="row g-2">
-                            @if ($delivery->delivery_proof)
-                                <div class="col-md-6">
-                                    <strong class="small text-muted">Delivery Proof</strong>
-                                    <div class="mt-1">
-                                        <img src="{{ Storage::url($delivery->delivery_proof) }}" class="proof-image"
-                                            onclick="showImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
-                                    </div>
-                                    <div class="mt-2 text-center">
-                                        <a href="{{ Storage::url($delivery->delivery_proof) }}" download
-                                            class="btn btn-outline-primary btn-download">
-                                            <i class="bi bi-download"></i> Download
-                                        </a>
-                                    </div>
+                        <div class="timeline-container">
+                            @php
+                                $deliveryStatusOrder = [
+                                    'pending' => 0,
+                                    'assigned' => 1,
+                                    'picked_up' => 2,
+                                    'in_transit' => 3,
+                                    'delivered' => 4,
+                                    'failed' => 99,
+                                ];
+
+                                $currentDeliveryStatus = $delivery->status;
+                                $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
+
+                                $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
+                                    return $currentDeliveryLevel >= $level;
+                                };
+
+                                $formatDate = function ($date) {
+                                    return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
+                                };
+                            @endphp
+
+                            <!-- Assigned to Driver -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-person-check"></i>
                                 </div>
-                            @endif
-                            @if ($delivery->payment_proof)
-                                <div class="col-md-6">
-                                    <strong class="small text-muted">Payment Proof</strong>
-                                    <div class="mt-1">
-                                        <img src="{{ Storage::url($delivery->payment_proof) }}" class="proof-image"
-                                            onclick="showImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
-                                    </div>
-                                    <div class="mt-2 text-center">
-                                        <a href="{{ Storage::url($delivery->payment_proof) }}" download
-                                            class="btn btn-outline-success btn-download">
-                                            <i class="bi bi-download"></i> Download
-                                        </a>
-                                    </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Assigned to Driver</div>
+                                    @if ($delivery->assigned_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->assigned_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(1))
+                                        <div class="timeline-date">Assigned</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Pending</div>
+                                    @endif
+                                    @if ($delivery->driver)
+                                        <div class="timeline-details">
+                                            <i class="bi bi-person-badge me-1"></i> Driver:
+                                            {{ $delivery->driver->name }}
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
+                                <div class="timeline-line {{ $isDeliveryCompleted(2) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- Picked Up -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Picked Up</div>
+                                    @if ($delivery->picked_up_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->picked_up_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(2))
+                                        <div class="timeline-date">Picked Up</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                                <div class="timeline-line {{ $isDeliveryCompleted(3) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- In Transit -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">In Transit</div>
+                                    @if ($delivery->in_transit_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->in_transit_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(3))
+                                        <div class="timeline-date">In Transit</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                                <div class="timeline-line {{ $isDeliveryCompleted(4) ? 'completed' : '' }}"></div>
+                            </div>
+
+                            <!-- Delivered -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : 'pending' }}">
+                                    <i class="bi bi-flag-fill"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Delivered</div>
+                                    @if ($delivery->delivered_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}</div>
+                                    @elseif ($isDeliveryCompleted(4))
+                                        <div class="timeline-date">Delivered</div>
+                                    @else
+                                        <div class="timeline-date text-muted">Waiting</div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
 
-            @if ($delivery->status != 'delivered')
-                <div class="alert-minimal alert-info-minimal mt-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    This delivery is currently <strong>{{ ucfirst($delivery->status) }}</strong>. The driver is
-                    handling the delivery process. You can monitor the progress here.
-                </div>
-            @endif
-        </div>
-    </div>
-</div>
+            <!-- Lalamove Tracking -->
+            <div class="col-md-4">
+                @php
+                    $cityLower = strtolower(trim($delivery->order->city ?? ''));
+                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                    $isLalamoveEligible = !$isCalambaCity;
+                @endphp
 
-<div id="imagePreviewModal" class="image-preview-modal">
-    <div class="image-preview-content">
-        <div class="image-preview-header">
-            <h6 class="mb-0" id="previewTitle">Image Preview</h6>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="image-preview-body">
-            <img id="previewImage" src="">
-        </div>
-        <div class="image-preview-footer">
-            <button type="button" class="btn btn-sm btn-secondary me-2" onclick="closeImagePreview()">Close</button>
-            <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
+                @if ($isLalamoveEligible && !empty($delivery->tracking_number))
+                    <div class="info-card" style="border: 1px solid #0d6efd;">
+                        <div class="card-header-custom bg-primary bg-opacity-10">
+                            <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Tracking</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <p class="info-label">Lalamove Tracking Link</p>
+                            <p class="info-value">
+                                <a href="{{ $delivery->tracking_number }}" target="_blank"
+                                    class="text-primary text-break">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> View Tracking Link
+                                </a>
+                            </p>
+                            @if ($delivery->notes)
+                                <p class="info-label">Lalamove Driver Name</p>
+                                <p class="info-value">{{ $delivery->notes }}</p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Proof of Delivery -->
+            <div class="col-md-4">
+                @if ($delivery->status == 'delivered' && ($delivery->delivery_proof || $delivery->payment_proof))
+                    <div class="info-card">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-image"></i> Proof of Delivery</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="row g-2">
+                                @if ($delivery->delivery_proof)
+                                    <div class="col-md-6">
+                                        <p class="info-label mb-2">Delivery Proof</p>
+                                        <img src="{{ Storage::url($delivery->delivery_proof) }}" class="proof-image"
+                                            onclick="showAdminImagePreview('{{ Storage::url($delivery->delivery_proof) }}', 'Delivery Proof')">
+                                        <div class="mt-2 text-center">
+                                            <a href="{{ Storage::url($delivery->delivery_proof) }}" download
+                                                class="btn btn-sm btn-outline-primary rounded-pill">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
+                                @if ($delivery->payment_proof)
+                                    <div class="col-md-6">
+                                        <p class="info-label mb-2">Payment Proof</p>
+                                        <img src="{{ Storage::url($delivery->payment_proof) }}" class="proof-image"
+                                            onclick="showAdminImagePreview('{{ Storage::url($delivery->payment_proof) }}', 'Payment Proof')">
+                                        <div class="mt-2 text-center">
+                                            <a href="{{ Storage::url($delivery->payment_proof) }}" download
+                                                class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function showImagePreview(imageUrl, title) {
+    // Global close function
+    window.closeAdminDeliveryModal = function() {
+        const modalElement = document.getElementById('adminDeliveryModal');
+        if (modalElement) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) modal.hide();
+        }
+        const container = document.getElementById('adminDeliveryModalContainer');
+        if (container) {
+            setTimeout(() => {
+                container.innerHTML = '';
+                document.body.classList.remove('modal-open');
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+            }, 300);
+        }
+    };
+
+    // Global image preview functions
+    window.showAdminImagePreview = function(imageUrl, title) {
+        let previewModal = document.getElementById('imagePreviewModal');
+        if (!previewModal) {
+            previewModal = document.createElement('div');
+            previewModal.id = 'imagePreviewModal';
+            previewModal.className = 'image-preview-modal';
+            previewModal.innerHTML = `
+                <div class="image-preview-content">
+                    <div class="image-preview-header">
+                        <h6 class="mb-0" id="previewTitle">Image Preview</h6>
+                        <button type="button" class="btn-close" onclick="closeAdminImagePreview()"></button>
+                    </div>
+                    <div class="image-preview-body">
+                        <img id="previewImage" src="">
+                    </div>
+                    <div class="image-preview-footer">
+                        <button type="button" class="btn btn-sm btn-secondary me-2" onclick="closeAdminImagePreview()">Close</button>
+                        <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(previewModal);
+        }
         document.getElementById('previewImage').src = imageUrl;
         document.getElementById('previewTitle').textContent = title;
         document.getElementById('downloadLink').href = imageUrl;
-        document.getElementById('imagePreviewModal').style.display = 'flex';
-    }
+        previewModal.style.display = 'flex';
+    };
 
-    function closeImagePreview() {
-        document.getElementById('imagePreviewModal').style.display = 'none';
-    }
+    window.closeAdminImagePreview = function() {
+        const previewModal = document.getElementById('imagePreviewModal');
+        if (previewModal) {
+            previewModal.style.display = 'none';
+        }
+    };
 
-    document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeImagePreview();
+    document.addEventListener('click', function(e) {
+        const previewModal = document.getElementById('imagePreviewModal');
+        if (previewModal && e.target === previewModal) {
+            window.closeAdminImagePreview();
         }
     });
+
+    function closeAdminDeliveryModal() {
+        window.closeAdminDeliveryModal();
+    }
 </script>

@@ -19,71 +19,71 @@ class OnlineOrderController extends Controller
      * Display all online orders for the branch admin
      */
     public function index(Request $request)
-{
-    $branchId = Auth::user()->branch_id;
-    
-    // ✅ FIX: Show ONLY orders for the current branch
-    $orders = Order::where('branch_id', $branchId)
-        ->where('order_number', 'NOT LIKE', 'POS-%');
+    {
+        $branchId = Auth::user()->branch_id;
 
-    // ✅ Status filter
-    if ($request->filled('status')) {
-        $orders->where('order_status', $request->status);
+        // ✅ FIX: Show ONLY orders for the current branch
+        $orders = Order::where('branch_id', $branchId)
+            ->where('order_number', 'NOT LIKE', 'POS-%');
+
+        // ✅ Status filter
+        if ($request->filled('status')) {
+            $orders->where('order_status', $request->status);
+        }
+
+        // ✅ Date From filter
+        if ($request->filled('date_from')) {
+            $orders->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        // ✅ Date To filter
+        if ($request->filled('date_to')) {
+            $orders->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // ✅ Search by order number
+        if ($request->filled('search')) {
+            $orders->where('order_number', 'LIKE', '%' . $request->search . '%');
+        }
+
+        // ✅ Load relationships
+        $orders = $orders->with([
+                'items.product',
+                'items.inventory.branch',
+                'delivery',
+                'branch'
+            ])
+            ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled')")
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // ✅ Add custom attribute for Staff vs Lalamove
+        $orders->getCollection()->transform(function ($order) {
+            $cityLower = strtolower(trim($order->city ?? ''));
+            $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
+            $order->is_lalamove = !$isCalambaCity;
+
+            // ✅ This is always true now since we only show current branch orders
+            $order->is_current_branch = true;
+
+            return $order;
+        });
+
+        // ✅ Get all branches for filter (but only show current branch's orders)
+        $branches = \App\Models\Branch::where('is_active', true)->get();
+
+        // ✅ Counts for status cards - ONLY for current branch
+        $counts = [
+            'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'processing' => Order::where('branch_id', $branchId)->where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'ready' => Order::where('branch_id', $branchId)->where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'out_for_delivery' => Order::where('branch_id', $branchId)->where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'delivered' => Order::where('branch_id', $branchId)->where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+        ];
+
+        return view('branch-admin.online-orders.index', compact('orders', 'counts', 'branches'));
     }
-
-    // ✅ Date From filter
-    if ($request->filled('date_from')) {
-        $orders->whereDate('created_at', '>=', $request->date_from);
-    }
-
-    // ✅ Date To filter
-    if ($request->filled('date_to')) {
-        $orders->whereDate('created_at', '<=', $request->date_to);
-    }
-
-    // ✅ Search by order number
-    if ($request->filled('search')) {
-        $orders->where('order_number', 'LIKE', '%' . $request->search . '%');
-    }
-
-    // ✅ Load relationships
-    $orders = $orders->with([
-            'items.product',
-            'items.inventory.branch',
-            'delivery',
-            'branch'
-        ])
-        ->orderByRaw("FIELD(order_status, 'pending', 'confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled')")
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
-
-    // ✅ Add custom attribute for Staff vs Lalamove
-    $orders->getCollection()->transform(function ($order) {
-        $cityLower = strtolower(trim($order->city ?? ''));
-        $isCalambaCity = ($cityLower === 'calamba city' || $cityLower === 'calamba');
-        $order->is_lalamove = !$isCalambaCity;
-        
-        // ✅ This is always true now since we only show current branch orders
-        $order->is_current_branch = true;
-        
-        return $order;
-    });
-
-    // ✅ Get all branches for filter (but only show current branch's orders)
-    $branches = \App\Models\Branch::where('is_active', true)->get();
-
-    // ✅ Counts for status cards - ONLY for current branch
-    $counts = [
-        'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'processing' => Order::where('branch_id', $branchId)->where('order_status', 'processing')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'ready' => Order::where('branch_id', $branchId)->where('order_status', 'ready')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'out_for_delivery' => Order::where('branch_id', $branchId)->where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-        'delivered' => Order::where('branch_id', $branchId)->where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
-    ];
-
-    return view('branch-admin.online-orders.index', compact('orders', 'counts', 'branches'));
-}
 
     /**
      * Show a specific online order
@@ -96,24 +96,22 @@ class OnlineOrderController extends Controller
         }
 
         $order->load(['items.product', 'items.inventory.branch', 'branch', 'delivery']);
-        
+
         // Check if this order belongs to the current branch
         $isCurrentBranch = ($order->branch_id === Auth::user()->branch_id);
-        
+
         return view('branch-admin.online-orders.show', compact('order', 'isCurrentBranch'));
     }
 
     /**
      * Confirm order - RESERVE stock (not deduct)
-     * Only the branch that owns the order can confirm
      */
     public function confirm(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can confirm
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'You can only confirm orders for your branch. This order belongs to another branch.'
+                'message' => 'You can only confirm orders for your branch.'
             ], 403);
         }
 
@@ -141,12 +139,10 @@ class OnlineOrderController extends Controller
 
                 $oldQuantity = $inventory->quantity;
                 $oldReserved = $inventory->reserved_quantity;
-                $newQuantity = $oldQuantity; // Quantity stays the same
                 $newReserved = $oldReserved + $item->quantity;
 
                 // Update inventory - reserve stock
                 $inventory->update([
-                    'quantity' => $newQuantity,
                     'reserved_quantity' => $newReserved
                 ]);
 
@@ -168,7 +164,7 @@ class OnlineOrderController extends Controller
                     'product_id' => $item->product_id,
                     'flavor_id' => $item->flavor_id ?? null,
                     'previous_quantity' => $oldQuantity,
-                    'new_quantity' => $newQuantity,
+                    'new_quantity' => $oldQuantity,
                     'quantity_change' => 0,
                     'movement_type' => 'reserve',
                     'reference_type' => 'order',
@@ -200,7 +196,6 @@ class OnlineOrderController extends Controller
      */
     public function markProcessing(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can process
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
@@ -225,11 +220,10 @@ class OnlineOrderController extends Controller
     }
 
     /**
-     * Mark order as ready
+     * Mark order as ready - Reservation STAYS ACTIVE
      */
     public function markReady(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can mark ready
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
@@ -244,11 +238,12 @@ class OnlineOrderController extends Controller
             ]);
         }
 
+        // ✅ Reservation STAYS ACTIVE - do NOT release yet
         $order->update(['order_status' => 'ready']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Order is ready for delivery.',
+            'message' => 'Order is ready for delivery. Stock reservation remains active.',
             'new_status' => 'ready'
         ]);
     }
@@ -258,7 +253,6 @@ class OnlineOrderController extends Controller
      */
     public function markOutForDelivery(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can mark out for delivery
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
@@ -283,11 +277,10 @@ class OnlineOrderController extends Controller
     }
 
     /**
-     * Mark order as delivered - Deduct inventory
+     * Mark order as delivered - DEDUCT QUANTITY and RELEASE RESERVATION
      */
     public function markAsDelivered(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can mark delivered
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
@@ -302,7 +295,7 @@ class OnlineOrderController extends Controller
             ]);
         }
 
-        // Call the deductInventory method
+        // Deduct inventory
         $result = $this->deductInventory($order);
 
         if ($result->getData()->success) {
@@ -341,19 +334,27 @@ class OnlineOrderController extends Controller
                 throw new \Exception('Inventory already deducted for this order.');
             }
 
-            // Release all inventory reservations for this order
+            // ✅ RELEASE ALL ACTIVE RESERVATIONS FOR THIS ORDER
             $reservations = InventoryReservation::where('order_id', $order->id)
                 ->where('status', 'active')
                 ->get();
 
             foreach ($reservations as $reservation) {
+                $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
+
+                if ($inventory) {
+                    $inventory->update([
+                        'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
+                    ]);
+                }
+
                 $reservation->update([
                     'status' => 'converted',
                     'converted_at' => now()
                 ]);
             }
 
-            // Deduct reserved inventory for each item
+            // Deduct inventory for each item
             foreach ($order->items as $item) {
                 $inventory = BranchInventory::where('branch_id', $branchId)
                     ->where('product_id', $item->product_id)
@@ -361,14 +362,11 @@ class OnlineOrderController extends Controller
 
                 if ($inventory) {
                     $oldQuantity = $inventory->quantity;
-                    $oldReserved = $inventory->reserved_quantity;
                     $newQuantity = $oldQuantity - $item->quantity;
-                    $newReserved = max(0, $oldReserved - $item->quantity);
 
                     // Update inventory - deduct stock
                     $inventory->update([
-                        'quantity' => $newQuantity,
-                        'reserved_quantity' => $newReserved
+                        'quantity' => $newQuantity
                     ]);
 
                     // Create stock movement record for actual sale
@@ -406,7 +404,6 @@ class OnlineOrderController extends Controller
      */
     public function cancelOrder(Order $order)
     {
-        // ✅ CHECK: Only the branch that owns the order can cancel
         if ($order->branch_id !== Auth::user()->branch_id) {
             return response()->json([
                 'success' => false,
@@ -414,7 +411,7 @@ class OnlineOrderController extends Controller
             ], 403);
         }
 
-        if (!in_array($order->order_status, ['pending', 'confirmed', 'processing'])) {
+        if (!in_array($order->order_status, ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Order cannot be cancelled at this stage. Current status: ' . $order->order_status
@@ -504,9 +501,10 @@ class OnlineOrderController extends Controller
             'message' => "Expired {$count} order reservations."
         ]);
     }
+
     public function showModal(Order $order)
-{
-    $order->load(['items.product', 'branch', 'delivery.driver']);
-    return view('branch-admin.online-orders.show-modal', compact('order'));
-}
+    {
+        $order->load(['items.product', 'branch', 'delivery.driver']);
+        return view('branch-admin.online-orders.show-modal', compact('order'));
+    }
 }

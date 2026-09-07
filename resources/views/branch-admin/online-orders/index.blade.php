@@ -154,6 +154,31 @@
             font-size: 0.7rem;
         }
 
+        /* Stock Badge Styles */
+        .badge-stock-in {
+            background: #d1fae5;
+            color: #059669;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .badge-stock-low {
+            background: #fef3c7;
+            color: #d97706;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .badge-stock-out {
+            background: #fee2e2;
+            color: #dc2626;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         /* Buttons */
         .btn-manage {
             background: #1a1a2e;
@@ -433,6 +458,7 @@
                                 <th>Total</th>
                                 <th>Branch</th>
                                 <th>Type</th>
+                                <th>Stock Status</th>
                                 <th>Status</th>
                                 <th class="text-end pe-3">Actions</th>
                             </tr>
@@ -468,6 +494,65 @@
                                             $imageUrl = $product->image;
                                         } elseif (Storage::disk('public')->exists($product->image)) {
                                             $imageUrl = Storage::url($product->image);
+                                        }
+                                    }
+
+                                    // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
+                                    $stockStatus = 'in_stock';
+                                    $stockLabel = 'In Stock';
+                                    $stockIcon = 'check-circle-fill';
+                                    $stockClass = 'badge-stock-in';
+                                    $stockAvailable = 0;
+                                    $hasVariantIssue = false;
+
+                                    if ($order->branch_id) {
+                                        foreach ($order->items as $item) {
+                                            $inventoryItem = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                                ->where('product_id', $item->product_id)
+                                                ->when($item->flavor_id, function($query) use ($item) {
+                                                    return $query->where('flavor_id', $item->flavor_id);
+                                                }, function($query) {
+                                                    return $query->whereNull('flavor_id');
+                                                })
+                                                ->first();
+
+                                            if ($inventoryItem) {
+                                                $available = $inventoryItem->available_quantity;
+                                                
+                                                if ($available < $item->quantity) {
+                                                    $hasVariantIssue = true;
+                                                    if ($available <= 0) {
+                                                        $stockStatus = 'out_of_stock';
+                                                        $stockLabel = 'Out of Stock';
+                                                        $stockIcon = 'x-circle-fill';
+                                                        $stockClass = 'badge-stock-out';
+                                                        $stockAvailable = $available;
+                                                    } elseif ($available <= $inventoryItem->low_stock_threshold) {
+                                                        $stockStatus = 'low_stock';
+                                                        $stockLabel = 'Low Stock';
+                                                        $stockIcon = 'exclamation-triangle-fill';
+                                                        $stockClass = 'badge-stock-low';
+                                                        $stockAvailable = $available;
+                                                    } else {
+                                                        $stockStatus = 'in_stock';
+                                                        $stockLabel = 'In Stock';
+                                                        $stockIcon = 'check-circle-fill';
+                                                        $stockClass = 'badge-stock-in';
+                                                        $stockAvailable = $available;
+                                                    }
+                                                    break;
+                                                } else {
+                                                    $stockAvailable = $available;
+                                                }
+                                            } else {
+                                                $hasVariantIssue = true;
+                                                $stockStatus = 'out_of_stock';
+                                                $stockLabel = 'No Stock Record';
+                                                $stockIcon = 'x-circle-fill';
+                                                $stockClass = 'badge-stock-out';
+                                                $stockAvailable = 0;
+                                                break;
+                                            }
                                         }
                                     }
                                 @endphp
@@ -518,6 +603,12 @@
                                         </span>
                                     </td>
                                     <td>
+                                        <span class="badge {{ $stockClass }}">
+                                            <i class="bi bi-{{ $stockIcon }} me-1"></i> {{ $stockLabel }}
+                                            <small class="ms-1">({{ $stockAvailable }})</small>
+                                        </span>
+                                    </td>
+                                    <td>
                                         <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                                     </td>
                                     <td class="text-end pe-3">
@@ -536,7 +627,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="bi bi-inbox display-1 text-muted"></i>
                                         <h5 class="mt-3">No Online Orders</h5>
                                         <p class="text-muted">There are no online orders to process at this time.</p>

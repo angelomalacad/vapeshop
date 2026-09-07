@@ -98,7 +98,7 @@ class DeliveryController extends Controller
         $deliveries = $query->paginate(20)->appends($request->query());
 
         // ================================================================
-        // 3. GET ACTIVE TODAY LIST
+        // 3. GET ACTIVE TODAY LIST (Collection - no pagination)
         // ================================================================
         $activeToday = Delivery::with(['order', 'order.branch', 'driver'])
             ->whereHas('order', function($q) {
@@ -106,6 +106,22 @@ class DeliveryController extends Controller
             })
             ->orderByRaw("FIELD(status, 'assigned', 'picked_up', 'in_transit')")
             ->get();
+
+        // ================================================================
+        // 3.5. GET COMPLETED DELIVERIES (Paginated)
+        // ================================================================
+        $completedDeliveries = Delivery::with(['order', 'order.branch', 'driver'])
+            ->where('status', 'delivered')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)->appends($request->query());
+
+        // ================================================================
+        // 3.6. GET CANCELLED/FAILED DELIVERIES (Paginated)
+        // ================================================================
+        $cancelledDeliveries = Delivery::with(['order', 'order.branch', 'driver'])
+            ->whereIn('status', ['cancelled', 'failed'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)->appends($request->query());
 
         // ================================================================
         // 4. CALCULATE STATS (FIXED: now matches your actual database statuses)
@@ -139,7 +155,16 @@ class DeliveryController extends Controller
         // ================================================================
         // 6. RETURN
         // ================================================================
-        return view('admin.deliveries.index', compact('deliveries', 'drivers', 'branches', 'stats', 'activeToday', 'todayDriverName'));
+        return view('admin.deliveries.index', compact(
+            'deliveries',
+            'drivers',
+            'branches',
+            'stats',
+            'activeToday',
+            'completedDeliveries',
+            'cancelledDeliveries',
+            'todayDriverName'
+        ));
     }
 
     /**

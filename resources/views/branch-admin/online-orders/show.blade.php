@@ -116,6 +116,35 @@
         font-weight: 500;
     }
 
+    /* Stock Info Styles */
+    .stock-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+    }
+
+    .stock-info-icon {
+        font-size: 1.2rem;
+    }
+
     /* Status Buttons */
     .status-btn {
         width: 100%;
@@ -196,6 +225,12 @@
         color: #065f46;
     }
 
+    .alert-danger-custom {
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        color: #dc2626;
+    }
+
     /* Totals */
     .totals-row {
         display: flex;
@@ -258,7 +293,6 @@
         color: #d97706;
     }
 
-    /* ✅ ADDED: picked_up badge */
     .badge-picked_up {
         background: #dbeafe;
         color: #2563eb;
@@ -308,7 +342,7 @@
         background: #94a3b8;
     }
 
-    /* NEW: Branch badge styles */
+    /* Branch badge styles */
     .branch-badge {
         padding: 0.25rem 0.65rem;
         border-radius: 30px;
@@ -363,301 +397,292 @@
             </div>
         </div>
 
-        <div class="row g-3">
-            <!-- LEFT COLUMN - 7 columns -->
-            <div class="col-md-7">
-                <!-- Order Items Card - MOVED TO TOP -->
-                <div class="info-card">
-                    <div class="card-header-custom">
-                        <h6><i class="bi bi-receipt"></i> Order Items</h6>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table order-items-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th class="text-center" style="width: 60px">Qty</th>
-                                    <th class="text-end" style="width: 90px">Price</th>
-                                    <th class="text-end" style="width: 90px">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($order->items as $item)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                @php
-                                                    $product = $item->product;
-                                                    $imageUrl = null;
-                                                    if ($product && $product->image) {
-                                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
-                                                            $imageUrl = $product->image;
-                                                        } elseif (Storage::disk('public')->exists($product->image)) {
-                                                            $imageUrl = Storage::url($product->image);
-                                                        }
-                                                    }
-                                                @endphp
-                                                @if ($imageUrl)
-                                                    <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
-                                                        class="product-image">
-                                                @else
-                                                    <div
-                                                        class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                        <i class="bi bi-box-seam text-muted"></i>
-                                                    </div>
-                                                @endif
-                                                <div>
-                                                    <div class="product-name">{{ $item->product->name }}</div>
-                                                    @if ($item->flavor)
-                                                        <div class="product-flavor">Flavor: {{ $item->flavor->name }}
-                                                        </div>
-                                                    @endif
-                                                </div>
+        <!-- Order Items Card - FULL WIDTH -->
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-receipt"></i> Order Items</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table order-items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center" style="width: 60px">Qty</th>
+                            <th class="text-end" style="width: 90px">Price</th>
+                            <th class="text-end" style="width: 90px">Total</th>
+                            <th class="text-center" style="width: 120px">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($order->items as $item)
+                            @php
+                                $product = $item->product;
+                                $imageUrl = null;
+                                if ($product && $product->image) {
+                                    if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                        $imageUrl = $product->image;
+                                    } elseif (Storage::disk('public')->exists($product->image)) {
+                                        $imageUrl = Storage::url($product->image);
+                                    }
+                                }
+                                
+                                // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
+                                $stockAvailable = 0;
+                                $stockStatus = 'out_of_stock';
+                                $stockClass = 'stock-info-out';
+                                $stockIcon = 'bi-x-circle-fill';
+                                $stockColor = 'text-danger';
+                                
+                                if ($order->branch_id && $product) {
+                                    $branchInventory = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                        ->where('product_id', $product->id)
+                                        ->when($item->flavor_id, function($query) use ($item) {
+                                            return $query->where('flavor_id', $item->flavor_id);
+                                        }, function($query) {
+                                            return $query->whereNull('flavor_id');
+                                        })
+                                        ->first();
+                                    
+                                    if ($branchInventory) {
+                                        $stockAvailable = $branchInventory->available_quantity;
+                                        
+                                        if ($stockAvailable <= 0) {
+                                            $stockStatus = 'out_of_stock';
+                                            $stockClass = 'stock-info-out';
+                                            $stockIcon = 'bi-x-circle-fill';
+                                            $stockColor = 'text-danger';
+                                        } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                            $stockStatus = 'low_stock';
+                                            $stockClass = 'stock-info-low';
+                                            $stockIcon = 'bi-exclamation-triangle-fill';
+                                            $stockColor = 'text-warning';
+                                        } else {
+                                            $stockStatus = 'in_stock';
+                                            $stockClass = 'stock-info-in';
+                                            $stockIcon = 'bi-check-circle-fill';
+                                            $stockColor = 'text-success';
+                                        }
+                                    }
+                                }
+                            @endphp
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if ($imageUrl)
+                                            <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
+                                                class="product-image">
+                                        @else
+                                            <div
+                                                class="product-image bg-light d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-box-seam text-muted"></i>
                                             </div>
-                                        </td>
-                                        <td class="text-center">{{ $item->quantity }}</td>
-                                        <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                        <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="p-3 bg-light">
-                        <div class="totals-row">
-                            <span class="totals-label">Subtotal</span>
-                            <span class="totals-value">₱{{ number_format($order->subtotal, 2) }}</span>
-                        </div>
-                        <div class="totals-row totals-total">
-                            <span class="totals-label">Total</span>
-                            <span class="totals-value">₱{{ number_format($order->total_amount, 2) }}</span>
-                        </div>
-                    </div>
+                                        @endif
+                                        <div>
+                                            <div class="product-name">{{ $item->product->name }}</div>
+                                            @if ($item->flavor)
+                                                <div class="product-flavor">Flavor: {{ $item->flavor->name }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">{{ $item->quantity }}</td>
+                                <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
+                                <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                <td class="text-center">
+                                    <div class="stock-info {{ $stockClass }}">
+                                        <i class="bi {{ $stockIcon }} {{ $stockColor }} stock-info-icon"></i>
+                                        <span class="fw-semibold">{{ $stockAvailable }}</span>
+                                        <small class="ms-1">({{ $item->quantity }} needed)</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-light">
+                <div class="totals-row">
+                    <span class="totals-label">Subtotal</span>
+                    <span class="totals-value">₱{{ number_format($order->subtotal, 2) }}</span>
                 </div>
+                <div class="totals-row totals-total">
+                    <span class="totals-label">Total</span>
+                    <span class="totals-value">₱{{ number_format($order->total_amount, 2) }}</span>
+                </div>
+            </div>
+        </div>
 
-                <!-- Branch Information - MOVED BELOW ORDER ITEMS -->
+        <!-- Order Information, Customer Info, Update Status - ALL IN ONE ROW -->
+        <div class="row g-3">
+            <!-- Order Information (Left) -->
+            <div class="col-md-4">
                 <div class="info-card">
                     <div class="card-header-custom">
-                        <h6><i class="bi bi-shop"></i> Branch Information</h6>
+                        <h6><i class="bi bi-info-circle"></i> Order Information</h6>
                     </div>
                     <div class="card-body p-3">
-                        <div class="row">
-                            <div class="col-12">
-                                <p class="info-label">Branch</p>
-                                <p class="info-value">
-                                    @if($order->branch)
-                                        <span class="branch-badge">
-                                            <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </p>
-                            </div>
-                            @if($order->branch && $order->branch->address)
-                                <div class="col-12">
-                                    <p class="info-label">Branch Address</p>
-                                    <p class="info-value">{{ $order->branch->address }}</p>
-                                </div>
+                        <p class="info-label">Order #</p>
+                        <p class="info-value">{{ $order->order_number }}</p>
+
+                        <p class="info-label">Date Placed</p>
+                        <p class="info-value">{{ $order->created_at->format('M d, Y h:i A') }}</p>
+
+                        <p class="info-label">Branch</p>
+                        <p class="info-value">
+                            @if($order->branch)
+                                <span class="branch-badge">
+                                    <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
+                                </span>
+                            @else
+                                <span class="text-muted">N/A</span>
                             @endif
-                        </div>
+                        </p>
+
+                        <p class="info-label">Payment Method</p>
+                        <p class="info-value">{{ strtoupper($order->payment_method) }}</p>
+
+                        <p class="info-label">Delivery Type</p>
+                        <p class="info-value">{{ ucfirst($order->delivery_type) }}</p>
+
+                        <p class="info-label">Status</p>
+                        <p class="info-value">
+                            @php
+                                $statusClass = match ($order->order_status) {
+                                    'pending' => 'badge-pending',
+                                    'confirmed' => 'badge-confirmed',
+                                    'processing' => 'badge-packing',
+                                    'ready' => 'badge-ready',
+                                    'out_for_delivery' => 'badge-out_for_delivery',
+                                    'picked_up' => 'badge-picked_up',
+                                    'delivered' => 'badge-delivered',
+                                    'cancelled' => 'badge-cancelled',
+                                    default => 'badge-secondary',
+                                };
+                                $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst(str_replace('_', ' ', $order->order_status));
+                            @endphp
+                            <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
+                        </p>
                     </div>
                 </div>
+            </div>
 
-                <!-- Customer Information Card -->
+            <!-- Customer Information (Middle) -->
+            <div class="col-md-4">
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-person"></i> Customer Information</h6>
                     </div>
                     <div class="card-body p-3">
-                        <div class="row">
-                            <div class="col-6">
-                                <p class="info-label">Name</p>
-                                <p class="info-value">{{ $order->customer_name }}</p>
-                                <p class="info-label">Phone</p>
-                                <p class="info-value">{{ $order->customer_phone }}</p>
-                            </div>
-                            <div class="col-6">
-                                <p class="info-label">Email</p>
-                                <p class="info-value">{{ $order->customer_email ?? 'N/A' }}</p>
-                                @if ($order->delivery_type == 'delivery')
-                                    <p class="info-label">Address</p>
-                                    <p class="info-value">{{ $order->delivery_address }}</p>
+                        <p class="info-label">Name</p>
+                        <p class="info-value">{{ $order->customer_name }}</p>
+
+                        <p class="info-label">Phone</p>
+                        <p class="info-value">{{ $order->customer_phone }}</p>
+
+                        <p class="info-label">Email</p>
+                        <p class="info-value">{{ $order->customer_email ?? 'N/A' }}</p>
+
+                        @if ($order->delivery_type == 'delivery')
+                            <p class="info-label">Delivery Address</p>
+                            <p class="info-value">{{ $order->delivery_address }}</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Status (Right) -->
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        @php
+                            $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
+                        @endphp
+
+                        @if($isCurrentBranch)
+                            @if ($order->order_status == 'pending')
+                                <button type="button" class="status-btn btn-confirm"
+                                    onclick="handleStatus('confirm', {{ $order->id }})">
+                                    <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
+                                </button>
+                            @elseif($order->order_status == 'confirmed')
+                                <button type="button" class="status-btn btn-processing"
+                                    onclick="handleStatus('processing', {{ $order->id }})">
+                                    <i class="bi bi-gear me-2"></i> Mark as Packing
+                                </button>
+                            @elseif($order->order_status == 'processing')
+                                <button type="button" class="status-btn btn-ready"
+                                    onclick="handleStatus('ready', {{ $order->id }})">
+                                    <i class="bi bi-box-seam me-2"></i> Mark as Ready
+                                </button>
+                            @elseif($order->order_status == 'ready')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Order is Ready</strong><br>
+                                    <small class="text-muted">Waiting for driver to pick up.</small>
+                                </div>
+                            @elseif($order->order_status == 'out_for_delivery')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-truck me-2"></i>
+                                    <strong>Out for Delivery</strong><br>
+                                    <small class="text-muted">Driver is delivering.</small>
+                                </div>
+                                @if($order->delivery && $order->delivery->driver)
+                                    <div class="alert-custom alert-info-custom mt-2">
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
+                                    </div>
+                                @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
+                                    <div class="alert-custom alert-info-custom mt-2">
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
+                                    </div>
                                 @endif
+                            @elseif($order->order_status == 'picked_up')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-box-seam me-2"></i>
+                                    <strong>Picked Up</strong><br>
+                                    <small class="text-muted">Driver has picked up the order.</small>
+                                </div>
+                                @if($order->delivery && $order->delivery->driver)
+                                    <div class="alert-custom alert-info-custom mt-2">
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
+                                        <br>
+                                        <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
+                                    </div>
+                                @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
+                                    <div class="alert-custom alert-info-custom mt-2">
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
+                                        <br>
+                                        <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
+                                    </div>
+                                @endif
+                            @elseif($order->order_status == 'delivered')
+                                <div class="alert-custom alert-success-custom text-center">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Order Completed</strong><br>
+                                    <small class="text-muted">Delivered on {{ $order->updated_at->format('M d, Y h:i A') }}</small>
+                                </div>
+                            @endif
+                        @else
+                            <div class="locked-alert">
+                                <i class="bi bi-lock-fill"></i>
+                                <h6>Locked Order</h6>
+                                <p>This order belongs to another branch.</p>
                             </div>
-                        </div>
+                        @endif
+
+                        <div id="result" class="mt-3"></div>
                     </div>
                 </div>
             </div>
-
-            <!-- RIGHT COLUMN - 5 columns -->
-<div class="col-md-5">
-    <!-- Update Status Card -->
-    <div class="info-card">
-        <div class="card-header-custom">
-            <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
-        </div>
-        <div class="card-body p-3">
-            @php
-                $statusClass = match ($order->order_status) {
-                    'pending' => 'badge-pending',
-                    'confirmed' => 'badge-confirmed',
-                    'processing' => 'badge-packing',
-                    'ready' => 'badge-ready',
-                    'out_for_delivery' => 'badge-out_for_delivery',
-                    'picked_up' => 'badge-picked_up',
-                    'delivered' => 'badge-delivered',
-                    'cancelled' => 'badge-cancelled',
-                    default => 'badge-secondary',
-                };
-                $displayStatus =
-                    $order->order_status == 'processing'
-                        ? 'Packing'
-                        : ucfirst(str_replace('_', ' ', $order->order_status));
-                
-                $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
-            @endphp
-
-            <div class="mb-3">
-                <p class="info-label">Current Status</p>
-                <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
-            </div>
-
-            @if($isCurrentBranch)
-                @if ($order->order_status == 'pending')
-                    <button type="button" class="status-btn btn-confirm"
-                        onclick="handleStatus('confirm', {{ $order->id }})">
-                        <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
-                    </button>
-                @elseif($order->order_status == 'confirmed')
-                    <button type="button" class="status-btn btn-processing"
-                        onclick="handleStatus('processing', {{ $order->id }})">
-                        <i class="bi bi-gear me-2"></i> Mark as Packing
-                    </button>
-                @elseif($order->order_status == 'processing')
-                    <button type="button" class="status-btn btn-ready"
-                        onclick="handleStatus('ready', {{ $order->id }})">
-                        <i class="bi bi-box-seam me-2"></i> Mark as Ready
-                    </button>
-                @elseif($order->order_status == 'ready')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Order is Ready</strong><br>
-                        <small class="text-muted">Waiting for driver to pick up and start delivery.</small>
-                    </div>
-                @elseif($order->order_status == 'out_for_delivery')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-truck me-2"></i>
-                        <strong>Out for Delivery</strong><br>
-                        <small class="text-muted">Driver is delivering this order.</small>
-                    </div>
-                    @if($order->delivery && $order->delivery->driver)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
-                        </div>
-                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
-                        </div>
-                    @endif
-                @elseif($order->order_status == 'picked_up')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-box-seam me-2"></i>
-                        <strong>Picked Up</strong><br>
-                        <small class="text-muted">Driver has picked up the order.</small>
-                    </div>
-                    @if($order->delivery && $order->delivery->driver)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
-                            <br>
-                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
-                        </div>
-                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
-                            <br>
-                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
-                        </div>
-                    @endif
-                @elseif($order->order_status == 'delivered')
-                    <div class="alert-custom alert-success-custom text-center">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        <strong>Order Completed</strong><br>
-                        <small class="text-muted">Delivered on
-                            {{ $order->updated_at->format('M d, Y h:i A') }}</small>
-                    </div>
-                    @if($order->delivery && $order->delivery->driver)
-                        <div class="alert-custom alert-success-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
-                        </div>
-                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
-                        <div class="alert-custom alert-success-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
-                        </div>
-                    @endif
-                @endif
-            @else
-                <!-- Locked Alert for non-owning branches -->
-                <div class="locked-alert">
-                    <i class="bi bi-lock-fill"></i>
-                    <h6>Locked Order</h6>
-                    <p>
-                        This order belongs to <strong>{{ $order->branch->name ?? 'Another Branch' }}</strong>.
-                        Only that branch can manage this order.
-                    </p>
-                </div>
-            @endif
-
-            <div id="result" class="mt-3"></div>
         </div>
     </div>
-
-    <!-- ✅ LALAMOVE TRACKING & DRIVER INFO CARD -->
-    @php
-        $cityLower = strtolower(trim($order->city ?? ''));
-        $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
-        $isLalamoveEligible = !$isCalambaCity;
-        
-        $lalamoveTracking = $order->delivery->tracking_number ?? null;
-        $lalamoveDriver = $order->delivery->notes ?? null;
-    @endphp
-
-    @if($isLalamoveEligible && ($order->order_status == 'out_for_delivery' || $order->order_status == 'picked_up' || $order->order_status == 'in_transit'))
-        <div class="info-card" style="border: 1px solid #0d6efd;">
-            <div class="card-header-custom bg-primary bg-opacity-10">
-                <h6 class="text-primary"><i class="bi bi-truck"></i> Lalamove Information</h6>
-            </div>
-            <div class="card-body p-3">
-                @if($lalamoveTracking)
-                    <p class="info-label">Tracking Link</p>
-                    <p class="info-value">
-                        <a href="{{ $lalamoveTracking }}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-eye me-1"></i> View Tracking Link
-                        </a>
-                    </p>
-                @else
-                    <p class="info-label">Tracking Link</p>
-                    <p class="info-value text-muted">Not yet provided</p>
-                @endif
-                
-                @if($lalamoveDriver)
-                    <p class="info-label mt-3">Lalamove Driver</p>
-                    <p class="info-value">
-                        <i class="bi bi-person-badge me-2 text-primary"></i> {{ $lalamoveDriver }}
-                    </p>
-                @else
-                    <p class="info-label mt-3">Lalamove Driver</p>
-                    <p class="info-value text-muted">Not yet provided</p>
-                @endif
-            </div>
-        </div>
-    @endif
 </div>
 
 <!-- ✅ JAVASCRIPT DIRECTLY HERE - NO BLADE DIRECTIVES -->

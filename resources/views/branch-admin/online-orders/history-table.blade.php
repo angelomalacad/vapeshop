@@ -477,6 +477,11 @@
                                         $imageUrl = Storage::url($product->image);
                                     }
                                 }
+
+                                // Determine Delivery Type (Staff vs Lalamove)
+                                $cityLower = strtolower(trim($order->city ?? ''));
+                                $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                                $isLalamoveEligible = !$isCalambaCity;
                             @endphp
                             <tr>
                                 <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
@@ -507,8 +512,11 @@
                                 </td>
                                 <td>
                                     <span class="delivery-badge">
-                                        <i class="bi bi-truck me-1"></i>
-                                        Delivery
+                                        @if ($isLalamoveEligible)
+                                            <i class="bi bi-truck me-1 text-primary"></i> Lalamove
+                                        @else
+                                            <i class="bi bi-bicycle me-1 text-success"></i> Staff
+                                        @endif
                                     </span>
                                 </td>
                                 <td>

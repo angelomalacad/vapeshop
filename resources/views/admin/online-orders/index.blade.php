@@ -117,6 +117,23 @@
             cursor: pointer;
         }
 
+        /* Product Thumbnail Styles */
+        .product-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: #f8f9fa;
+        }
+
+        /* Product Name Styles */
+        .product-name-cell {
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 0;
+        }
+
         /* Badge Styles */
         .badge-pending {
             background: #fef3c7;
@@ -179,20 +196,27 @@
             font-size: 0.7rem;
         }
 
-        /* Buttons */
+        /* Buttons - MATCHES BRANCH ADMIN */
         .btn-view {
-            background: #3b82f6;
-            border: none;
-            border-radius: 30px;
-            padding: 0.35rem 1rem;
-            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: auto !important;
+            background: #eff6ff;
+            color: #3b82f6;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 0.4rem 1rem;
+            font-size: 0.7rem;
             font-weight: 500;
             transition: all 0.3s ease;
-            color: white;
         }
 
         .btn-view:hover {
-            background: #2563eb;
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
             transform: translateY(-1px);
         }
 
@@ -220,13 +244,71 @@
             color: white;
         }
 
-        /* Filter Section */
-        .filter-section {
+        /* Filter Section - MATCHES BRANCH ADMIN */
+        .filter-container {
             background: white;
             border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             border: 1px solid #eef2f6;
+        }
+
+        .filter-form .form-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-form .form-control,
+        .filter-form .form-select {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-form .form-control:focus,
+        .filter-form .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .filter-form .btn-filter {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .filter-form .btn-filter:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .filter-form .btn-reset {
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .filter-form .btn-reset:hover {
+            background: #e2e8f0;
+            color: #1a1a2e;
         }
 
         /* Responsive */
@@ -264,46 +346,37 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="filter-section">
-            <form method="GET" action="{{ route('admin.online-orders.index') }}" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small fw-semibold">Status</label>
-                    <select name="status" class="form-select form-select-sm">
+        <div class="filter-container">
+            <form method="GET" action="{{ route('admin.online-orders.index') }}" class="filter-form row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
-                        </option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
-                        </option>
+                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing</option>
                         <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
-                        </option>
-                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out
-                            for Delivery</option>
-                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
-                        </option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
-                        </option>
+                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold">Date From</label>
-                    <input type="date" name="date_from" class="form-control form-control-sm"
-                        value="{{ request('date_from') }}">
+                    <label class="form-label">Date From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold">Date To</label>
-                    <input type="date" name="date_to" class="form-control form-control-sm"
-                        value="{{ request('date_to') }}">
+                    <label class="form-label">Date To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="d-flex gap-2 w-100">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1">
-                            <i class="bi bi-search me-1"></i> Filter
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-filter w-100">
+                            <i class="bi bi-funnel me-1"></i> Filter
                         </button>
-                        <a href="{{ route('admin.online-orders.index') }}"
-                            class="btn btn-secondary btn-sm rounded-pill px-3">
-                            <i class="bi bi-arrow-repeat me-1"></i> Reset
+                        <a href="{{ route('admin.online-orders.index') }}" class="btn-reset w-100">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                         </a>
                     </div>
                 </div>
@@ -403,12 +476,13 @@
                         <thead>
                             <tr>
                                 <th class="ps-4">Order #</th>
+                                <th>Image</th>
+                                <th>Product</th>
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Total</th>
                                 <th>Delivery Type</th>
                                 <th>Status</th>
-                                {{-- <th>Driver</th> --}}
                                 <th class="pe-4">Action</th>
                             </tr>
                         </thead>
@@ -434,12 +508,41 @@
                                         default => ucfirst($order->order_status),
                                     };
 
-                                    $driverName = $order->delivery
-                                        ? $order->delivery->driver->name ?? 'Not Assigned'
-                                        : 'Not Assigned';
+                                    $firstItem = $order->items->first();
+                                    $product = $firstItem ? $firstItem->product : null;
+                                    $productName = $product ? $product->name : 'N/A';
+                                    $itemsCount = $order->items->count();
+                                    $imageUrl = null;
+                                    if ($product && $product->image) {
+                                        if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                            $imageUrl = $product->image;
+                                        } elseif (Storage::disk('public')->exists($product->image)) {
+                                            $imageUrl = Storage::url($product->image);
+                                        }
+                                    }
+
+                                    // Determine Delivery Type (Staff vs Lalamove)
+                                    $cityLower = strtolower(trim($order->city ?? ''));
+                                    $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                                    $isLalamoveEligible = !$isCalambaCity;
                                 @endphp
                                 <tr>
                                     <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
+                                    <td>
+                                        @if ($imageUrl)
+                                            <img src="{{ $imageUrl }}" alt="{{ $productName }}"
+                                                class="product-thumbnail">
+                                        @else
+                                            <div
+                                                class="product-thumbnail bg-light d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="product-name-cell">{{ $productName }}</div>
+                                        <small class="text-muted">{{ $itemsCount }} item(s)</small>
+                                    </td>
                                     <td class="text-nowrap">
                                         {{ $order->created_at->format('M d, Y') }}<br>
                                         <small class="text-muted">{{ $order->created_at->format('h:i A') }}</small>
@@ -448,12 +551,14 @@
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
-                                    <td><strong class="text-success">₱{{ number_format($order->subtotal, 2) }}</strong>
-                                    </td>
+                                    <td><strong class="text-success">₱{{ number_format($order->subtotal, 2) }}</strong></td>
                                     <td>
                                         <span class="delivery-badge">
-                                            <i class="bi bi-truck me-1"></i>
-                                            Delivery
+                                            @if ($isLalamoveEligible)
+                                                <i class="bi bi-truck me-1 text-primary"></i> Lalamove
+                                            @else
+                                                <i class="bi bi-bicycle me-1 text-success"></i> Staff
+                                            @endif
                                         </span>
                                     </td>
                                     <td>
@@ -461,9 +566,6 @@
                                             {{ $displayStatus }}
                                         </span>
                                     </td>
-                                    {{-- <td>
-                                        <small class="text-muted">{{ $driverName }}</small>
-                                    </td> --}}
                                     <td class="pe-4">
                                         <button onclick="openOrderModal({{ $order->id }})" class="btn-view btn-sm">
                                             <i class="bi bi-eye me-1"></i> View
@@ -472,7 +574,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-5">
+                                    <td colspan="9" class="text-center py-5">
                                         <i class="bi bi-inbox display-1 text-muted"></i>
                                         <h5 class="mt-3">No Online Orders</h5>
                                         <p class="text-muted">There are no online orders to display at this time.</p>

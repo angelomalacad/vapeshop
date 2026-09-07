@@ -95,6 +95,40 @@
         color: #64748b;
     }
 
+    /* Stock Info Styles */
+    .stock-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #d97706;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .stock-info-icon {
+        font-size: 1rem;
+    }
+
     /* Customer Info */
     .info-label {
         font-size: 0.7rem;
@@ -387,84 +421,131 @@
             </div>
         </div>
 
-        <div class="row g-3">
-            <!-- LEFT COLUMN -->
-            <div class="col-md-7">
-                <!-- Order Items Card -->
-                <div class="info-card">
-                    <div class="card-header-custom">
-                        <h6><i class="bi bi-box-seam"></i> Order Items</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        @if ($delivery->order && $delivery->order->items->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table order-items-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 15%">Image</th>
-                                            <th style="width: 35%">Product</th>
-                                            <th class="text-center" style="width: 10%">Qty</th>
-                                            <th class="text-end" style="width: 20%">Price</th>
-                                            <th class="text-end" style="width: 20%">Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($delivery->order->items as $item)
-                                            @php
-                                                $product = $item->product;
-                                                $imageUrl = null;
-                                                if ($product && $product->image) {
-                                                    if (filter_var($product->image, FILTER_VALIDATE_URL)) {
-                                                        $imageUrl = $product->image;
-                                                    } elseif (Storage::disk('public')->exists($product->image)) {
-                                                        $imageUrl = Storage::url($product->image);
-                                                    }
+        <!-- Order Items Card - FULL WIDTH -->
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-box-seam"></i> Order Items</h6>
+            </div>
+            <div class="card-body p-0">
+                @if ($delivery->order && $delivery->order->items->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table order-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%">Image</th>
+                                    <th style="width: 30%">Product</th>
+                                    <th class="text-center" style="width: 10%">Qty</th>
+                                    <th class="text-end" style="width: 15%">Price</th>
+                                    <th class="text-end" style="width: 15%">Subtotal</th>
+                                    <th class="text-center" style="width: 20%">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($delivery->order->items as $item)
+                                    @php
+                                        $product = $item->product;
+                                        $imageUrl = null;
+                                        if ($product && $product->image) {
+                                            if (filter_var($product->image, FILTER_VALIDATE_URL)) {
+                                                $imageUrl = $product->image;
+                                            } elseif (Storage::disk('public')->exists($product->image)) {
+                                                $imageUrl = Storage::url($product->image);
+                                            }
+                                        }
+                                        
+                                        // ✅ Inventory Stock Check
+                                        $stockAvailable = 0;
+                                        $stockReserved = 0;
+                                        $stockTotal = 0;
+                                        $stockStatus = 'out_of_stock';
+                                        $stockClass = 'stock-info-out';
+                                        $stockIcon = 'bi-x-circle-fill';
+                                        
+                                        if ($delivery->order->branch_id && $product) {
+                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $delivery->order->branch_id)
+                                                ->where('product_id', $product->id)
+                                                ->when($item->flavor_id, function($query) use ($item) {
+                                                    return $query->where('flavor_id', $item->flavor_id);
+                                                }, function($query) {
+                                                    return $query->whereNull('flavor_id');
+                                                })
+                                                ->first();
+                                            
+                                            if ($branchInventory) {
+                                                $stockTotal = $branchInventory->quantity;
+                                                $stockReserved = $branchInventory->reserved_quantity;
+                                                $stockAvailable = $branchInventory->available_quantity;
+                                                
+                                                if ($stockAvailable <= 0) {
+                                                    $stockStatus = 'out_of_stock';
+                                                    $stockClass = 'stock-info-out';
+                                                    $stockIcon = 'bi-x-circle-fill';
+                                                } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                                    $stockStatus = 'low_stock';
+                                                    $stockClass = 'stock-info-low';
+                                                    $stockIcon = 'bi-exclamation-triangle-fill';
+                                                } else {
+                                                    $stockStatus = 'in_stock';
+                                                    $stockClass = 'stock-info-in';
+                                                    $stockIcon = 'bi-check-circle-fill';
                                                 }
-                                            @endphp
-                                            <tr>
-                                                <td>
-                                                    @if ($imageUrl)
-                                                        <img src="{{ $imageUrl }}"
-                                                            alt="{{ $product->name ?? 'N/A' }}" class="product-image">
-                                                    @else
-                                                        <div
-                                                            class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                            <i class="bi bi-image text-muted"
-                                                                style="font-size: 1.2rem;"></i>
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
-                                                    @if ($item->flavor)
-                                                        <div class="product-flavor">Flavor: {{ $item->flavor->name }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">{{ $item->quantity }}</td>
-                                                <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                                <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="p-3 bg-light">
-                                <div class="totals-row totals-total">
-                                    <span class="totals-label">Total</span>
-                                    <span
-                                        class="totals-value text-success">₱{{ number_format($delivery->order->subtotal, 2) }}</span>
-                                </div>
-                            </div>
-                        @else
-                            <div class="text-center py-3">
-                                <p class="text-muted small mb-0">No items found</p>
-                            </div>
-                        @endif
+                                            }
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            @if ($imageUrl)
+                                                <img src="{{ $imageUrl }}"
+                                                    alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                            @else
+                                                <div
+                                                    class="product-image bg-light d-flex align-items-center justify-content-center">
+                                                    <i class="bi bi-image text-muted"
+                                                        style="font-size: 1.2rem;"></i>
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
+                                            @if ($item->flavor)
+                                                <div class="product-flavor">Flavor: {{ $item->flavor->name }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">{{ $item->quantity }}</td>
+                                        <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
+                                        <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                        <td class="text-center">
+                                            <div class="stock-info {{ $stockClass }}">
+                                                <i class="bi {{ $stockIcon }} stock-info-icon"></i>
+                                                <span><strong>Available:</strong> {{ $stockAvailable }}</span>
+                                                <span><strong>Reserved:</strong> {{ $stockReserved }}</span>
+                                                <span><strong>Total:</strong> {{ $stockTotal }}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                    <div class="p-3 bg-light">
+                        <div class="totals-row totals-total">
+                            <span class="totals-label">Total</span>
+                            <span
+                                class="totals-value text-success">₱{{ number_format($delivery->order->subtotal, 2) }}</span>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-center py-3">
+                        <p class="text-muted small mb-0">No items found</p>
+                    </div>
+                @endif
+            </div>
+        </div>
 
-                <!-- Delivery Information Card -->
+        <!-- ROW 1: Delivery Information + Customer Details -->
+        <div class="row g-3">
+            <div class="col-md-6">
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-info-circle"></i> Delivery Information</h6>
@@ -526,8 +607,9 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
-                <!-- Customer Details Card -->
+            <div class="col-md-6">
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-person"></i> Customer Details</h6>
@@ -554,9 +636,12 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- RIGHT COLUMN - DELIVERY TIMELINE -->
-            <div class="col-md-5">
+        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery (3 columns, 33% each) -->
+        <div class="row g-3 mt-2">
+            <!-- Delivery Progress -->
+            <div class="col-md-4">
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-clock-history"></i> Delivery Progress</h6>
@@ -667,15 +752,16 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
+                                    <!-- Lalamove Tracking -->
+            <div class="col-md-4">
                 @php
-                    // Lalamove Eligibility Check
                     $cityLower = strtolower(trim($delivery->order->city ?? ''));
                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                     $isLalamoveEligible = !$isCalambaCity;
                 @endphp
 
-                <!-- LALAMOVE TRACKING CARD (VIEW ONLY) -->
                 @if ($isLalamoveEligible && !empty($delivery->tracking_number))
                     <div class="info-card" style="border: 1px solid #0d6efd;">
                         <div class="card-header-custom bg-primary bg-opacity-10">
@@ -696,9 +782,11 @@
                         </div>
                     </div>
                 @endif
+            </div>
 
+            <!-- Proof of Delivery -->
+            <div class="col-md-4">
                 @if ($delivery->status == 'delivered' && ($delivery->delivery_proof || $delivery->payment_proof))
-                    <!-- Proof Images -->
                     <div class="info-card">
                         <div class="card-header-custom">
                             <h6><i class="bi bi-image"></i> Proof of Delivery</h6>

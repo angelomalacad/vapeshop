@@ -101,6 +101,40 @@
         padding: 0.25rem 0.65rem;
     }
 
+    /* Stock Info Styles */
+    .stock-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    .stock-info-in {
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        color: #059669;
+    }
+
+    .stock-info-low {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #d97706;
+    }
+
+    .stock-info-out {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .stock-info-icon {
+        font-size: 1rem;
+    }
+
     /* Status Badges */
     .badge-pending {
         background: #fef3c7;
@@ -355,6 +389,7 @@
                                 <th class="text-center" style="width: 70px">Qty</th>
                                 <th class="text-end" style="width: 100px">Price</th>
                                 <th class="text-end" style="width: 100px">Subtotal</th>
+                                <th class="text-center" style="width: 120px">Stock</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -367,6 +402,45 @@
                                             $imageUrl = $product->image;
                                         } elseif (Storage::disk('public')->exists($product->image)) {
                                             $imageUrl = Storage::url($product->image);
+                                        }
+                                    }
+                                    
+                                    // ✅ Inventory Stock Check
+                                    $stockAvailable = 0;
+                                    $stockReserved = 0;
+                                    $stockTotal = 0;
+                                    $stockStatus = 'out_of_stock';
+                                    $stockClass = 'stock-info-out';
+                                    $stockIcon = 'bi-x-circle-fill';
+                                    
+                                    if ($order->branch_id && $product) {
+                                        $branchInventory = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                            ->where('product_id', $product->id)
+                                            ->when($item->flavor_id, function($query) use ($item) {
+                                                return $query->where('flavor_id', $item->flavor_id);
+                                            }, function($query) {
+                                                return $query->whereNull('flavor_id');
+                                            })
+                                            ->first();
+                                        
+                                        if ($branchInventory) {
+                                            $stockTotal = $branchInventory->quantity;
+                                            $stockReserved = $branchInventory->reserved_quantity;
+                                            $stockAvailable = $branchInventory->available_quantity;
+                                            
+                                            if ($stockAvailable <= 0) {
+                                                $stockStatus = 'out_of_stock';
+                                                $stockClass = 'stock-info-out';
+                                                $stockIcon = 'bi-x-circle-fill';
+                                            } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                                $stockStatus = 'low_stock';
+                                                $stockClass = 'stock-info-low';
+                                                $stockIcon = 'bi-exclamation-triangle-fill';
+                                            } else {
+                                                $stockStatus = 'in_stock';
+                                                $stockClass = 'stock-info-in';
+                                                $stockIcon = 'bi-check-circle-fill';
+                                            }
                                         }
                                     }
                                 @endphp
@@ -391,6 +465,14 @@
                                     <td class="text-center">{{ $item->quantity }}</td>
                                     <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
                                     <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                    <td class="text-center">
+                                        <div class="stock-info {{ $stockClass }}">
+                                            <i class="bi {{ $stockIcon }} stock-info-icon"></i>
+                                            <span><strong>Available:</strong> {{ $stockAvailable }}</span>
+                                            <span><strong>Reserved:</strong> {{ $stockReserved }}</span>
+                                            <span><strong>Total:</strong> {{ $stockTotal }}</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -400,6 +482,7 @@
                                 <td class="text-end fw-bold text-danger">
                                     ₱{{ number_format($order->subtotal, 2) }}
                                 </td>
+                                <td></td>
                             </tr>
                         </tfoot>
                     </table>
