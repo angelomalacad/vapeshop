@@ -267,11 +267,11 @@ Route::get('/api/warehouse-stock/{product}', function($productId, Request $reque
         'quantity' => $inventory ? $inventory->quantity : 0
     ]);
 })->name('admin.api.warehouse-stock');
-    // ===== DRIVER SHIFT MANAGEMENT =====
+        // ===== DRIVER SHIFT MANAGEMENT =====
     Route::prefix('driver-shifts')->name('driver-shifts.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\DriverShiftController::class, 'index'])->name('index');
         Route::post('/assign', [App\Http\Controllers\Admin\DriverShiftController::class, 'assign'])->name('assign');
-        Route::delete('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
+        Route::post('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
         Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
     });
 

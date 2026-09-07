@@ -75,20 +75,16 @@
                                     </div>
                                 @endif
 
-                                <!-- Show buttons for today or future dates -->
                                 @if (strtotime($selectedDate->format('Y-m-d')) >= strtotime(date('Y-m-d')))
                                     <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                         data-bs-target="#changeDriverModal">
                                         <i class="bi bi-arrow-repeat"></i> Change Driver
                                     </button>
-                                    <form action="{{ route('admin.driver-shifts.cancel', $activeShift) }}" method="POST"
-                                        class="d-inline" onsubmit="return confirm('Cancel this shift?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="bi bi-x-circle"></i> Cancel Shift
-                                        </button>
-                                    </form>
+                                    
+                                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#cancelShiftModal" data-action="{{ route('admin.driver-shifts.cancel', $activeShift) }}">
+                                        <i class="bi bi-x-circle"></i> Cancel Shift
+                                    </button>
                                 @endif
                             </div>
                         @else
@@ -101,7 +97,6 @@
                     </div>
                 </div>
 
-                <!-- Assign New Driver Form - shows when no active shift AND date is today or future -->
                 @if (!$activeShift && strtotime($selectedDate->format('Y-m-d')) >= strtotime(date('Y-m-d')))
                     <div class="card border-0 shadow-sm mt-4">
                         <div class="card-header bg-white py-3">
@@ -111,7 +106,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('admin.driver-shifts.assign') }}" method="POST">
+                            <form action="{{ route('admin.driver-shifts.assign') }}" method="POST" id="assignDriverForm">
                                 @csrf
                                 <input type="hidden" name="shift_date" value="{{ $selectedDate->format('Y-m-d') }}">
 
@@ -143,7 +138,7 @@
                                     <textarea name="notes" class="form-control" rows="2" placeholder="Special instructions..."></textarea>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary w-100">
+                                <button type="submit" class="btn btn-primary w-100" id="assignDriverBtn">
                                     <i class="bi bi-check-circle"></i> Assign Driver
                                 </button>
                             </form>
@@ -151,7 +146,6 @@
                     </div>
                 @endif
 
-                <!-- Message for past dates (cannot assign) -->
                 @if (strtotime($selectedDate->format('Y-m-d')) < strtotime(date('Y-m-d')) && !$activeShift)
                     <div class="card border-0 shadow-sm mt-4">
                         <div class="card-body text-center py-4">
@@ -209,7 +203,7 @@
             </div>
         </div>
 
-        <!-- Shift History - All assignments in chronological order (newest first) -->
+        <!-- Shift History -->
         <div class="card border-0 shadow-sm mt-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0 fw-semibold">
@@ -232,8 +226,8 @@
                         </thead>
                         <tbody>
                             @forelse($allHistory->sortByDesc(function($shift) {
-        return strtotime($shift->shift_date);
-    }) as $shift)
+                                return strtotime($shift->shift_date);
+                            }) as $shift)
                                 <tr>
                                     <td>
                                         {{ date('M d, Y', strtotime($shift->shift_date)) }}
@@ -247,45 +241,40 @@
                                     </td>
                                     <td>{{ date('h:i A', strtotime($shift->start_time)) }} -
                                         {{ date('h:i A', strtotime($shift->end_time)) }}
-                </div></small>
+                                    </td>
+                                    <td>
+                                        @if ($shift->status == 'active' && strtotime($shift->shift_date) > strtotime(date('Y-m-d')))
+                                            <span class="badge bg-success">Scheduled</span>
+                                        @elseif($shift->status == 'active' && date('Y-m-d', strtotime($shift->shift_date)) == date('Y-m-d'))
+                                            <span class="badge bg-info">Active Today</span>
+                                        @elseif($shift->status == 'completed')
+                                            <span class="badge bg-secondary">Completed</span>
+                                        @elseif($shift->status == 'cancelled')
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($shift->status) }}</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $shift->assigner->name ?? 'System' }}</td>
+                                    <td>{{ Str::limit($shift->notes, 40) ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        No driver assignments found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            </td>
-            <td>
-                @if ($shift->status == 'active' && strtotime($shift->shift_date) > strtotime(date('Y-m-d')))
-                    <span class="badge bg-success">Scheduled</span>
-                @elseif($shift->status == 'active' && date('Y-m-d', strtotime($shift->shift_date)) == date('Y-m-d'))
-                    <span class="badge bg-info">Active Today</span>
-                @elseif($shift->status == 'completed')
-                    <span class="badge bg-secondary">Completed</span>
-                @elseif($shift->status == 'cancelled')
-                    <span class="badge bg-danger">Cancelled</span>
-                @else
-                    <span class="badge bg-secondary">{{ ucfirst($shift->status) }}</span>
-                @endif
-            </td>
-            <td>{{ $shift->assigner->name ?? 'System' }}</small>
-        </div></small></td>
-        <td>{{ Str::limit($shift->notes, 40) ?? '—' }}</small>
-    </div>
-    </td>
-    </tr>
-@empty
-    <tr>
-        <td colspan="6" class="text-center py-4 text-muted">
-            No driver assignments found
-        </td>
-    </tr>
-    @endforelse
-    </tbody>
-    </table>
-    </div>
-    </div>
-    <div class="card-footer bg-white">
-        <div class="d-flex justify-content-center">
-            {{ $allHistory->links() }}
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-center">
+                    {{ $allHistory->links() }}
+                </div>
+            </div>
         </div>
-    </div>
-    </div>
     </div>
 
     <!-- Change Driver Modal -->
@@ -296,7 +285,7 @@
                     <h5 class="modal-title"><i class="bi bi-arrow-repeat"></i> Change Driver</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{{ route('admin.driver-shifts.assign') }}" method="POST">
+                <form action="{{ route('admin.driver-shifts.assign') }}" method="POST" id="changeDriverForm">
                     @csrf
                     <input type="hidden" name="shift_date" value="{{ $selectedDate->format('Y-m-d') }}">
                     <div class="modal-body">
@@ -319,17 +308,197 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning">Change Driver</button>
+                        <button type="submit" class="btn btn-warning" id="changeDriverBtn">Change Driver</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- Custom Cancel Shift Modal -->
+    <div class="modal fade" id="cancelShiftModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Shift</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this shift?</p>
+                    <p class="text-muted small mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> No, Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmCancelShiftBtn">
+                        <i class="bi bi-check-circle"></i> Yes, Cancel Shift
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Auto-submit when date changes
         document.getElementById('dateInput').addEventListener('change', function() {
             document.getElementById('dateForm').submit();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            function handleButtonLoading(btn, isLoading, text) {
+                if (!btn) return;
+                if (isLoading) {
+                    btn.dataset.originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + (text || 'Processing...');
+                } else {
+                    btn.disabled = false;
+                    if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+                }
+            }
+
+            // 1. ASSIGN DRIVER FORM
+            const assignForm = document.getElementById('assignDriverForm');
+            if (assignForm) {
+                assignForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('assignDriverBtn');
+                    handleButtonLoading(btn, true, 'Assigning...');
+                    const formData = new FormData(this);
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message || 'Driver assigned successfully!', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showNotification(data.message || 'Failed to assign driver.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('An error occurred while assigning driver.', 'error');
+                    })
+                    .finally(() => {
+                        handleButtonLoading(btn, false);
+                    });
+                });
+            }
+
+            // 2. CHANGE DRIVER FORM
+            const changeForm = document.getElementById('changeDriverForm');
+            if (changeForm) {
+                changeForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('changeDriverBtn');
+                    handleButtonLoading(btn, true, 'Changing...');
+                    const formData = new FormData(this);
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message || 'Driver changed successfully!', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showNotification(data.message || 'Failed to change driver.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('An error occurred while changing driver.', 'error');
+                    })
+                    .finally(() => {
+                        handleButtonLoading(btn, false);
+                    });
+                });
+            }
+
+            // 3. CANCEL SHIFT - REMOVED _method: 'DELETE' TO FIX 405!
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#confirmCancelShiftBtn')) {
+                    
+                    const cancelBtn = document.querySelector('button[data-bs-target="#cancelShiftModal"]');
+                    const formAction = cancelBtn ? cancelBtn.getAttribute('data-action') : null;
+
+                    if (!formAction) {
+                        showNotification('Shift action not found!', 'error');
+                        return;
+                    }
+
+                    const btn = document.getElementById('confirmCancelShiftBtn');
+                    handleButtonLoading(btn, true, 'Cancelling...');
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                    // Send pure POST, no _method
+                    fetch(formAction, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            _token: csrfToken
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const modalEl = document.getElementById('cancelShiftModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+
+                        if (data.success) {
+                            showNotification(data.message || 'Shift cancelled successfully!', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showNotification(data.message || 'Failed to cancel shift.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        const modalEl = document.getElementById('cancelShiftModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        
+                        showNotification('An error occurred while cancelling shift.', 'error');
+                    })
+                    .finally(() => {
+                        handleButtonLoading(btn, false);
+                    });
+                }
+            });
+
+            // 4. Check for session flash messages
+            @if (session('success'))
+                showNotification('{{ session('success') }}', 'success');
+            @endif
+
+            @if (session('error'))
+                showNotification('{{ session('error') }}', 'error');
+            @endif
+
+            @if (session('warning'))
+                showNotification('{{ session('warning') }}', 'warning');
+            @endif
+
+            @if (session('info'))
+                showNotification('{{ session('info') }}', 'info');
+            @endif
         });
     </script>
 @endsection

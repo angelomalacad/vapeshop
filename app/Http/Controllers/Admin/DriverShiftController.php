@@ -75,6 +75,9 @@ class DriverShiftController extends Controller
         
         // Check if date is in the past
         if ($shiftDate->lt($today)) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Cannot assign driver to past dates.'], 422);
+            }
             return redirect()->back()->with('error', 'Cannot assign driver to past dates.');
         }
 
@@ -82,6 +85,9 @@ class DriverShiftController extends Controller
 
         // Verify this is a driver
         if ($driver->role !== 'driver') {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Only users with driver role can be assigned.'], 422);
+            }
             return redirect()->back()->with('error', 'Only users with driver role can be assigned.');
         }
 
@@ -99,23 +105,33 @@ class DriverShiftController extends Controller
             'assigned_by' => Auth::id(),
         ]);
 
-        return redirect()->back()->with('success', "{$driver->name} assigned as driver for " . $shiftDate->format('M d, Y'));
+        $message = "{$driver->name} assigned as driver for " . $shiftDate->format('M d, Y');
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => $message]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**
      * Cancel a driver shift
      */
-    public function cancel(DriverShift $shift)
-    {
-        if ($shift->shift_date->isPast()) {
-            return redirect()->back()->with('error', 'Cannot cancel past shifts');
-        }
-
-        $driverName = $shift->driver->name;
-        $shift->update(['status' => 'cancelled']);
-
-        return redirect()->back()->with('success', "Shift for {$driverName} on {$shift->shift_date->format('M d, Y')} has been cancelled.");
+    public function cancel(DriverShift $shift, Request $request)
+{
+    // Fix: Allow cancelling if the shift date is today OR in the future
+    // Compare dates using endOfDay() to ensure today is not treated as past
+    if ($shift->shift_date->lt(Carbon::today())) {
+        return response()->json(['success' => false, 'message' => 'Cannot cancel past shifts'], 422);
     }
+
+    $driverName = $shift->driver->name;
+    $shift->update(['status' => 'cancelled']);
+
+    $message = "Shift for {$driverName} on {$shift->shift_date->format('M d, Y')} has been cancelled.";
+
+    return response()->json(['success' => true, 'message' => $message]);
+}
 
     /**
      * Get the active driver for today (API endpoint)
