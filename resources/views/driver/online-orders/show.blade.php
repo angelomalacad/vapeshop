@@ -272,6 +272,18 @@
         align-items: center;
         gap: 0.25rem;
     }
+
+    /* ✅ NEW: Delivery Date Range Styles */
+    .delivery-date-range {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .delivery-date-range .form-control {
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -422,18 +434,36 @@
                     </div>
                     <div class="card-body p-3">
                         @php
-                            $statusClass = match ($order->order_status) {
+                            // ✅ FIXED: Map delivery status to display status
+                            $deliveryStatus = $order->delivery ? $order->delivery->status : null;
+                            $orderStatus = $order->order_status;
+                            
+                            // Map statuses for display
+                            $statusMap = [
+                                'assigned' => 'ready',
+                                'picked_up' => 'picked_up',
+                                'out_for_delivery' => 'out_for_delivery',
+                                'delivered' => 'delivered',
+                                'delivery_failed' => 'delivery_failed'
+                            ];
+                            
+                            if (isset($statusMap[$deliveryStatus])) {
+                                $orderStatus = $statusMap[$deliveryStatus];
+                            }
+                            
+                            $statusClass = match ($orderStatus) {
                                 'ready' => 'badge-ready',
                                 'out_for_delivery' => 'badge-out_for_delivery',
                                 'picked_up' => 'badge-picked_up',
-                                'in_transit' => 'badge-in_transit',
+                                'in_transit' => 'badge-out_for_delivery',
                                 'delivered' => 'badge-delivered',
                                 'delivery_failed' => 'badge-delivery_failed',
                                 'cancelled' => 'badge-cancelled',
                                 default => 'badge-secondary',
                             };
-                            $displayStatus = ucfirst(str_replace('_', ' ', $order->order_status));
-                            if ($order->order_status == 'delivery_failed') {
+                            
+                            $displayStatus = ucfirst(str_replace('_', ' ', $orderStatus));
+                            if ($orderStatus == 'delivery_failed') {
                                 $displayStatus = 'Delivery Failed';
                             }
                         @endphp
@@ -443,12 +473,12 @@
                             <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                         </div>
 
-                        @if ($order->order_status == 'ready')
+                        @if ($orderStatus == 'ready')
                             <button type="button" class="status-btn btn-delivery"
                                 onclick="handleStatus('start-delivery', {{ $order->id }})">
                                 <i class="bi bi-truck me-2"></i> Start Delivery
                             </button>
-                        @elseif(in_array($order->order_status, ['out_for_delivery', 'picked_up', 'in_transit']))
+                        @elseif(in_array($orderStatus, ['picked_up', 'out_for_delivery']))
                             <div class="alert-custom alert-info-custom mb-3">
                                 <i class="bi bi-truck me-2"></i>
                                 <strong>Delivery in Progress</strong><br>
@@ -459,37 +489,41 @@
                             </div>
                             @if ($order->delivery)
                                 <button type="button" class="status-btn btn-delivery"
-    onclick="showDeliveryStatusModal({{ json_encode($order->delivery->load('order.items.product', 'order.branch')) }})">
-    <i class="bi bi-truck me-2"></i> Manage Delivery
-</button>
+                                    onclick="showDeliveryStatusModal({{ json_encode($order->delivery->load('order.items.product', 'order.branch')) }})">
+                                    <i class="bi bi-truck me-2"></i> Manage Delivery
+                                </button>
                             @endif
-                        @elseif($order->order_status == 'delivered')
+                        @elseif($orderStatus == 'delivered')
                             <div class="alert-custom alert-success-custom text-center">
                                 <i class="bi bi-check-circle-fill me-2"></i>
                                 <strong>Order Completed</strong><br>
                                 <small class="text-muted">Delivered on
                                     {{ $order->updated_at->format('M d, Y h:i A') }}</small>
                             </div>
-                        @elseif($order->order_status == 'delivery_failed')
+                        @elseif($orderStatus == 'delivery_failed')
                             <div class="alert-custom alert-warning-custom text-center">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <strong>Delivery Failed</strong>
                             </div>
                         @endif
 
-                        <!-- ✅ FIXED: Delivery Date with Save Button -->
-                        <div class="mb-3">
-                            <label class="info-label">Delivery Date</label>
-                            <div class="d-flex gap-2">
-                                <input type="date" name="delivery_date" id="delivery_date" class="form-control"
-                                    value="{{ $order->delivery_date ? \Carbon\Carbon::parse($order->delivery_date)->format('Y-m-d') : '' }}"
-                                    min="{{ date('Y-m-d') }}">
-                                <button type="button" class="btn btn-primary btn-sm" id="saveDeliveryDateBtn"
-                                    onclick="saveDeliveryDate()">
-                                    Save
-                                </button>
-                            </div>
-                        </div>
+                        <!-- ✅ FIXED: Delivery Date Range (Allow same date) -->
+@if (!in_array($orderStatus, ['delivered', 'delivery_failed']))
+    <div class="mb-3">
+        <label class="info-label">Expected Delivery Date</label>
+        <div class="delivery-date-range">
+            <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
+                value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
+            <span class="text-muted">to</span>
+            <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
+                value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
+        </div>
+        <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
+            onclick="saveDeliveryDate()">
+            Save
+        </button>
+    </div>
+@endif
 
                         <div id="result" class="mt-3"></div>
                     </div>
@@ -512,16 +546,38 @@
         }
     };
 
-    // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
     document.addEventListener('DOMContentLoaded', function() {
-        const successMessage = sessionStorage.getItem('delivery_success_message');
-        if (successMessage) {
-            if (typeof showNotification === 'function') {
-                showNotification(successMessage, 'success');
-            }
-            sessionStorage.removeItem('delivery_success_message');
+    // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
+    const successMessage = sessionStorage.getItem('delivery_success_message');
+    if (successMessage) {
+        if (typeof showNotification === 'function') {
+            showNotification(successMessage, 'success');
         }
-    });
+        sessionStorage.removeItem('delivery_success_message');
+    }
+
+    // ✅ NEW: Allow same date selection for delivery date range
+    const deliveryDateFrom = document.getElementById('delivery_date_from');
+    const deliveryDateTo = document.getElementById('delivery_date_to');
+
+    if (deliveryDateFrom && deliveryDateTo) {
+        // Set min on From to today
+        deliveryDateFrom.min = new Date().toISOString().split('T')[0];
+        
+        // Update min on To when From changes
+        deliveryDateFrom.addEventListener('change', function() {
+            deliveryDateTo.min = this.value; // ✅ Allow same date as From
+            if (deliveryDateTo.value < this.value) {
+                deliveryDateTo.value = this.value;
+            }
+        });
+        
+        // Set initial min on To to match From
+        if (deliveryDateFrom.value) {
+            deliveryDateTo.min = deliveryDateFrom.value;
+        }
+    }
+});
 
     window.handleStatus = function(action, orderId) {
         const resultDiv = document.getElementById('result');
@@ -578,15 +634,24 @@
             });
     };
 
-    // ✅ FIXED: Delivery Date Save Function - Shows message inside modal then refreshes
+    // ✅ FIXED: Delivery Date Save Function - Allows same date for From and To
     function saveDeliveryDate() {
         const orderId = {{ $order->id }};
-        const deliveryDate = document.getElementById('delivery_date').value;
+        const deliveryDateFrom = document.getElementById('delivery_date_from').value;
+        const deliveryDateTo = document.getElementById('delivery_date_to').value;
         const resultDiv = document.getElementById('result');
         
-        if (!deliveryDate) {
+        if (!deliveryDateFrom || !deliveryDateTo) {
             if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Please select a delivery date first.</div>';
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please select both From and To dates.</div>';
+            }
+            return;
+        }
+
+        // ✅ FIXED: Allow same date
+        if (deliveryDateTo < deliveryDateFrom) {
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">To date cannot be before From date.</div>';
             }
             return;
         }
@@ -597,7 +662,7 @@
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
 
         if (resultDiv) {
-            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery date...</div>';
+            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
         }
 
         // ✅ USE ABSOLUTE URL TO ENSURE IT WORKS
@@ -608,7 +673,10 @@
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ delivery_date: deliveryDate })
+            body: JSON.stringify({ 
+                delivery_date_from: deliveryDateFrom,
+                delivery_date_to: deliveryDateTo
+            })
         })
         .then(response => {
             if (!response.ok) {
@@ -623,7 +691,7 @@
             if (data.success) {
                 // ✅ SHOW SUCCESS MESSAGE INSIDE THE MODAL
                 if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery date saved successfully!') + '</div>';
+                    resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery dates saved successfully!') + '</div>';
                 }
                 
                 // ✅ REFRESH PAGE AFTER 1.5 SECONDS TO CLEAR THE MESSAGE
@@ -633,7 +701,7 @@
             } else {
                 // ✅ SHOW ERROR MESSAGE INSIDE THE MODAL
                 if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Error saving delivery date') + '</div>';
+                    resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Error saving delivery dates') + '</div>';
                 }
             }
         })

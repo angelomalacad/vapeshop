@@ -301,9 +301,9 @@
             </div>
         </div>
 
-        <!-- Status Cards -->
+        <!-- Status Cards - FIXED COUNTS -->
         <div class="row g-2 mb-4">
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-success bg-opacity-10">
@@ -316,7 +316,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-info bg-opacity-10">
@@ -329,11 +329,11 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
-                        <div class="status-icon bg-secondary bg-opacity-10">
-                            <i class="bi bi-truck text-secondary"></i>
+                        <div class="status-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-truck text-warning"></i>
                         </div>
                         <div class="status-info">
                             <h2 class="status-number">{{ $counts['out_for_delivery'] ?? 0 }}</h2>
@@ -342,7 +342,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-dark bg-opacity-10">
@@ -355,7 +355,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-2 col-4">
                 <div class="card status-card">
                     <div class="card-body status-card-body">
                         <div class="status-icon bg-danger bg-opacity-10">
@@ -371,39 +371,76 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Filter by Status</label>
-                        <select name="status" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                            <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
-                            <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                            <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>Delivery Failed</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Date From</label>
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Date To</label>
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-funnel me-1"></i> Apply Filters
-                        </button>
-                        <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary ms-2">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                        </a>
-                    </div>
-                </form>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
+            <!-- Order # Search -->
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Order #</label>
+                <input type="text" name="order_number" class="form-control" 
+                       placeholder="Search order #..." value="{{ request('order_number') }}">
             </div>
-        </div>
+            
+            <!-- Status Filter -->
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                    <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+                    <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                    <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                    <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>Delivery Failed</option>
+                </select>
+            </div>
+            
+            <!-- ✅ NEW: Delivery Type Filter -->
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Delivery Type</label>
+                <select name="delivery_type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove</option>
+                    <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
+                </select>
+            </div>
+            
+            <!-- Branch Filter -->
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Branch</label>
+                <select name="branch_id" class="form-select">
+                    <option value="">All Branches</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <!-- Date From -->
+            <div class="col-md-1">
+                <label class="form-label fw-semibold">From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+            </div>
+            
+            <!-- Date To -->
+            <div class="col-md-1">
+                <label class="form-label fw-semibold">To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-1"></i> Filter
+                </button>
+                <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary w-100 mt-2">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 
         <!-- Orders Table -->
         <div class="card modern-card">
@@ -431,19 +468,37 @@
                         <tbody>
                             @forelse($orders as $order)
                                 @php
-                                    $statusClass = match ($order->order_status) {
+                                    // ✅ FIXED: Map delivery status to display status
+                                    $deliveryStatus = $order->delivery ? $order->delivery->status : null;
+                                    $displayStatus = $order->order_status;
+                                    
+                                    // Map statuses for display - in_transit shows as out_for_delivery
+                                    $statusMap = [
+                                        'assigned' => 'ready',
+                                        'picked_up' => 'picked_up',
+                                        'out_for_delivery' => 'out_for_delivery',
+                                        'delivered' => 'delivered',
+                                        'delivery_failed' => 'delivery_failed'
+                                    ];
+                                    
+                                    if (isset($statusMap[$deliveryStatus])) {
+                                        $displayStatus = $statusMap[$deliveryStatus];
+                                    }
+                                    
+                                    $statusClass = match ($displayStatus) {
                                         'ready' => 'badge-ready',
                                         'out_for_delivery' => 'badge-out_for_delivery',
                                         'picked_up' => 'badge-picked_up',
-                                        'in_transit' => 'badge-in_transit',
+                                        'in_transit' => 'badge-out_for_delivery',
                                         'delivered' => 'badge-delivered',
                                         'delivery_failed' => 'badge-delivery_failed',
                                         'cancelled' => 'badge-cancelled',
                                         default => 'badge-secondary',
                                     };
-                                    $displayStatus = ucfirst(str_replace('_', ' ', $order->order_status));
-                                    if ($order->order_status == 'delivery_failed') {
-                                        $displayStatus = 'Delivery Failed';
+                                    
+                                    $displayStatusLabel = ucfirst(str_replace('_', ' ', $displayStatus));
+                                    if ($displayStatus == 'delivery_failed') {
+                                        $displayStatusLabel = 'Delivery Failed';
                                     }
 
                                     $firstItem = $order->items->first();
@@ -482,8 +537,8 @@
                                         <small class="text-muted">{{ $itemsCount }} item(s)</small>
                                     </td>
                                     <td class="text-nowrap">
-                                        {{ $order->created_at->format('M d, Y') }}<br>
-                                        <small class="text-muted">{{ $order->created_at->format('h:i A') }}</small>
+                                        {{ $order->updated_at->format('M d, Y') }}<br>
+                                        <small class="text-muted">{{ $order->updated_at->format('h:i A') }}</small>
                                     </td>
                                     <td>
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
@@ -509,7 +564,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
+                                        <span class="badge {{ $statusClass }}">{{ $displayStatusLabel }}</span>
                                     </td>
                                     <td>
                                         @if ($isLalamoveEligible && $order->delivery && !empty($order->delivery->tracking_number))
@@ -517,7 +572,7 @@
                                                 class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-eye"></i> View Link
                                             </a>
-                                        @elseif($isLalamoveEligible && in_array($order->order_status, ['out_for_delivery', 'picked_up', 'in_transit']))
+                                        @elseif($isLalamoveEligible && in_array($order->order_status, ['out_for_delivery', 'picked_up']))
                                             <span class="text-muted">Awaiting link</span>
                                         @else
                                             <span class="text-muted">—</span>
@@ -549,11 +604,11 @@
                     @if ($orders->onFirstPage())
                         <button class="btn btn-outline-secondary" disabled>Previous</button>
                     @else
-                        <a href="{{ $orders->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                        <a href="{{ $orders->appends(request()->except('page'))->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
                     @endif
 
                     @if ($orders->hasMorePages())
-                        <a href="{{ $orders->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                        <a href="{{ $orders->appends(request()->except('page'))->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
                     @else
                         <button class="btn btn-outline-secondary" disabled>Next</button>
                     @endif

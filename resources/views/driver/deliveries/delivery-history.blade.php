@@ -116,25 +116,40 @@
             border-bottom: none;
         }
 
-        /* Status Badges */
+        /* ✅ FIXED: Status Badges - Matches Online Orders */
         .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.65rem;
+            padding: 0.35rem 0.65rem;
             border-radius: 30px;
-            font-size: 0.7rem;
             font-weight: 500;
+            font-size: 0.7rem;
             gap: 0.25rem;
         }
 
-        .status-badge-active {
+        .status-badge-ready {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge-picked_up {
             background: #dbeafe;
             color: #2563eb;
         }
 
-        .status-badge-completed {
+        .status-badge-out_for_delivery {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge-delivered {
             background: #d1fae5;
             color: #059669;
+        }
+
+        .status-badge-delivery_failed {
+            background: #fee2e2;
+            color: #dc2626;
         }
 
         .status-badge-cancelled {
@@ -145,6 +160,19 @@
         .status-badge-failed {
             background: #fee2e2;
             color: #dc2626;
+        }
+
+        /* Branch Badge */
+        .branch-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         /* Buttons */
@@ -185,19 +213,23 @@
             font-size: 0.7rem;
         }
 
-        /* Pagination */
+        /* ✅ FIXED: Pagination Styles */
         .pagination {
             margin-bottom: 0;
-            margin-top: 1rem;
         }
 
         .pagination .page-link {
             border: none;
             color: #1a1a2e;
-            border-radius: 30px;
+            border-radius: 50%;
             margin: 0 2px;
             padding: 0.5rem 0.75rem;
             font-size: 0.8rem;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .pagination .page-link:hover {
@@ -382,33 +414,53 @@
                     <label class="form-label">Status</label>
                     <select name="status" class="form-select">
                         <option value="">All Status</option>
-                        <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
-                        </option>
-                        <option value="in_transit" {{ request('status') == 'in_transit' ? 'selected' : '' }}>In Transit
-                        </option>
-                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
-                        </option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
-                        </option>
+                        <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
+                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>Delivery Failed</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
                     </select>
                 </div>
 
-                <!-- Date From -->
+                <!-- ✅ NEW: Branch Filter -->
                 <div class="col-md-2">
-                    <label class="form-label">Date From</label>
+                    <label class="form-label">Branch</label>
+                    <select name="branch_id" class="form-select">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Delivery Type Filter -->
+                <div class="col-md-2">
+                    <label class="form-label">Delivery Type</label>
+                    <select name="delivery_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove</option>
+                        <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
+                    </select>
+                </div>
+
+                <!-- Date From -->
+                <div class="col-md-1">
+                    <label class="form-label">From</label>
                     <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                 </div>
 
                 <!-- Date To -->
-                <div class="col-md-2">
-                    <label class="form-label">Date To</label>
+                <div class="col-md-1">
+                    <label class="form-label">To</label>
                     <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                 </div>
 
                 <!-- Buttons -->
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn-filter">
                             <i class="bi bi-funnel me-1"></i> Filter
@@ -428,7 +480,7 @@
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-play-circle-fill text-warning"></i> Active Deliveries
-                        <span class="count-badge">{{ $activeDeliveries->count() }} active</span>
+                        <span class="badge bg-warning text-dark ms-2">{{ $activeCount }} active</span>
                     </h4>
                 </div>
                 <div class="table-wrapper">
@@ -442,6 +494,7 @@
                                 <th>Customer</th>
                                 <th>Contact</th>
                                 <th>Address</th>
+                                <th>Branch</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th class="text-end">Action</th>
@@ -468,11 +521,31 @@
                                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                     $isLalamoveEligible = !$isCalambaCity;
 
+                                    // ✅ FIXED: Status colors matching online orders
                                     $statusClass = match ($delivery->status) {
-                                        'in_transit' => 'status-badge-active',
-                                        'picked_up' => 'status-badge-active',
-                                        'assigned' => 'status-badge-pending',
-                                        default => 'status-badge-pending',
+                                        'assigned' => 'status-badge-ready',
+                                        'picked_up' => 'status-badge-picked_up',
+                                        'out_for_delivery' => 'status-badge-out_for_delivery',
+                                        'in_transit' => 'status-badge-out_for_delivery',
+                                        'delivered' => 'status-badge-delivered',
+                                        'failed' => 'status-badge-failed',
+                                        'cancelled' => 'status-badge-cancelled',
+                                        default => 'status-badge-ready',
+                                    };
+
+                                    $displayStatus = ucfirst(str_replace('_', ' ', $delivery->status));
+                                    if ($delivery->status == 'in_transit') {
+                                        $displayStatus = 'Out for Delivery';
+                                    }
+
+                                    $statusIcon = match ($delivery->status) {
+                                        'assigned' => 'bi-box-seam',
+                                        'picked_up' => 'bi-box-seam',
+                                        'out_for_delivery', 'in_transit' => 'bi-truck',
+                                        'delivered' => 'bi-check-circle-fill',
+                                        'failed' => 'bi-x-circle',
+                                        'cancelled' => 'bi-x-circle',
+                                        default => 'bi-clock',
                                     };
                                 @endphp
                                 <tr>
@@ -498,17 +571,25 @@
                                         <small class="text-muted">{{ $itemsCount }} item(s)</small>
                                     </td>
                                     <td>
-                                        <span
-                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                        <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                                     </td>
                                     <td>{{ $delivery->recipient_name }}</td>
                                     <td>{{ $delivery->recipient_phone }}</td>
                                     <td>
-                                        <div>{{ Str::limit($delivery->delivery_address, 40) }}</div>
+                                        <div>{{ Str::limit($delivery->delivery_address, 30) }}</div>
                                         @if ($delivery->order)
                                             <div class="text-muted small">
                                                 {{ $delivery->order->barangay ?? '' }}, {{ $delivery->order->city ?? '' }}
                                             </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($delivery->order && $delivery->order->branch)
+                                            <span class="branch-badge">
+                                                <i class="bi bi-shop me-1"></i>{{ $delivery->order->branch->name }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
                                     <td>
@@ -522,9 +603,8 @@
                                     </td>
                                     <td>
                                         <span class="status-badge {{ $statusClass }}">
-                                            <i
-                                                class="bi bi-{{ $delivery->status == 'in_transit' ? 'truck' : ($delivery->status == 'picked_up' ? 'box-seam' : 'clock') }}"></i>
-                                            {{ ucfirst(str_replace('_', ' ', $delivery->status)) }}
+                                            <i class="bi {{ $statusIcon }}"></i>
+                                            {{ $displayStatus }}
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -541,7 +621,7 @@
 
                 @if ($activeDeliveries->hasPages())
                     <div class="d-flex justify-content-center mt-4">
-                        {{ $activeDeliveries->links('pagination::bootstrap-5') }}
+                        {{ $activeDeliveries->appends(request()->except(['active_page', 'completed_page', 'cancelled_page']))->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
@@ -553,7 +633,7 @@
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-check-circle-fill text-success"></i> Completed Deliveries
-                        <span class="count-badge">{{ $completedDeliveries->count() }} completed</span>
+                        <span class="badge bg-success ms-2">{{ $completedCount }} completed</span>
                     </h4>
                 </div>
                 <div class="table-wrapper">
@@ -567,6 +647,7 @@
                                 <th>Customer</th>
                                 <th>Contact</th>
                                 <th>Address</th>
+                                <th>Branch</th>
                                 <th>Delivered On</th>
                                 <th>Type</th>
                                 <th>Status</th>
@@ -618,17 +699,25 @@
                                         <small class="text-muted">{{ $itemsCount }} item(s)</small>
                                     </td>
                                     <td>
-                                        <span
-                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                        <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                                     </td>
                                     <td>{{ $delivery->recipient_name }}</td>
                                     <td>{{ $delivery->recipient_phone }}</td>
                                     <td>
-                                        <div>{{ Str::limit($delivery->delivery_address, 40) }}</div>
+                                        <div>{{ Str::limit($delivery->delivery_address, 30) }}</div>
                                         @if ($delivery->order)
                                             <div class="text-muted small">
                                                 {{ $delivery->order->barangay ?? '' }}, {{ $delivery->order->city ?? '' }}
                                             </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($delivery->order && $delivery->order->branch)
+                                            <span class="branch-badge">
+                                                <i class="bi bi-shop me-1"></i>{{ $delivery->order->branch->name }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
                                     <td>
@@ -648,7 +737,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="status-badge status-badge-completed">
+                                        <span class="status-badge status-badge-delivered">
                                             <i class="bi bi-check-circle-fill"></i> Delivered
                                         </span>
                                     </td>
@@ -677,7 +766,7 @@
 
                 @if ($completedDeliveries->hasPages())
                     <div class="d-flex justify-content-center mt-4">
-                        {{ $completedDeliveries->links('pagination::bootstrap-5') }}
+                        {{ $completedDeliveries->appends(request()->except(['active_page', 'completed_page', 'cancelled_page']))->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
@@ -689,7 +778,7 @@
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-x-circle-fill text-danger"></i> Cancelled/Failed Deliveries
-                        <span class="count-badge">{{ $cancelledDeliveries->count() }} cancelled/failed</span>
+                        <span class="badge bg-danger ms-2">{{ $cancelledCount }} cancelled/failed</span>
                     </h4>
                 </div>
                 <div class="table-wrapper">
@@ -703,6 +792,7 @@
                                 <th>Customer</th>
                                 <th>Contact</th>
                                 <th>Address</th>
+                                <th>Branch</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th class="text-end">Action</th>
@@ -732,8 +822,14 @@
                                     $statusClass = match ($delivery->status) {
                                         'cancelled' => 'status-badge-cancelled',
                                         'failed' => 'status-badge-failed',
-                                        default => 'status-badge-pending',
+                                        'delivery_failed' => 'status-badge-delivery_failed',
+                                        default => 'status-badge-failed',
                                     };
+
+                                    $displayStatus = ucfirst(str_replace('_', ' ', $delivery->status));
+                                    if ($delivery->status == 'delivery_failed') {
+                                        $displayStatus = 'Delivery Failed';
+                                    }
                                 @endphp
                                 <tr>
                                     <td>
@@ -758,17 +854,25 @@
                                         <small class="text-muted">{{ $itemsCount }} item(s)</small>
                                     </td>
                                     <td>
-                                        <span
-                                            class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
+                                        <span class="fw-bold text-success">₱{{ number_format($delivery->order->subtotal ?? 0, 2) }}</span>
                                     </td>
                                     <td>{{ $delivery->recipient_name }}</td>
                                     <td>{{ $delivery->recipient_phone }}</td>
                                     <td>
-                                        <div>{{ Str::limit($delivery->delivery_address, 40) }}</div>
+                                        <div>{{ Str::limit($delivery->delivery_address, 30) }}</div>
                                         @if ($delivery->order)
                                             <div class="text-muted small">
                                                 {{ $delivery->order->barangay ?? '' }}, {{ $delivery->order->city ?? '' }}
                                             </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($delivery->order && $delivery->order->branch)
+                                            <span class="branch-badge">
+                                                <i class="bi bi-shop me-1"></i>{{ $delivery->order->branch->name }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
                                     <td>
@@ -783,7 +887,7 @@
                                     <td>
                                         <span class="status-badge {{ $statusClass }}">
                                             <i class="bi bi-x-circle"></i>
-                                            {{ ucfirst(str_replace('_', ' ', $delivery->status)) }}
+                                            {{ $displayStatus }}
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -800,7 +904,7 @@
 
                 @if ($cancelledDeliveries->hasPages())
                     <div class="d-flex justify-content-center mt-4">
-                        {{ $cancelledDeliveries->links('pagination::bootstrap-5') }}
+                        {{ $cancelledDeliveries->appends(request()->except(['active_page', 'completed_page', 'cancelled_page']))->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
@@ -837,51 +941,6 @@
                 }, 300);
             }
         };
-
-        // Global image preview functions
-        window.showImagePreview = function(imageUrl, title) {
-            let previewModal = document.getElementById('imagePreviewModal');
-            if (!previewModal) {
-                previewModal = document.createElement('div');
-                previewModal.id = 'imagePreviewModal';
-                previewModal.className = 'image-preview-modal';
-                previewModal.innerHTML = `
-                    <div class="image-preview-content">
-                        <div class="image-preview-header">
-                            <h6 class="mb-0" id="previewTitle">Image Preview</h6>
-                            <button type="button" class="btn-close" onclick="window.closeImagePreview()"></button>
-                        </div>
-                        <div class="image-preview-body">
-                            <img id="previewImage" src="">
-                        </div>
-                        <div class="image-preview-footer">
-                            <button type="button" class="btn btn-sm btn-secondary me-2" onclick="window.closeImagePreview()">Close</button>
-                            <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(previewModal);
-            }
-
-            document.getElementById('previewImage').src = imageUrl;
-            document.getElementById('previewTitle').textContent = title;
-            document.getElementById('downloadLink').href = imageUrl;
-            previewModal.style.display = 'flex';
-        };
-
-        window.closeImagePreview = function() {
-            const previewModal = document.getElementById('imagePreviewModal');
-            if (previewModal) {
-                previewModal.style.display = 'none';
-            }
-        };
-
-        document.addEventListener('click', function(e) {
-            const previewModal = document.getElementById('imagePreviewModal');
-            if (previewModal && e.target === previewModal) {
-                window.closeImagePreview();
-            }
-        });
 
         // Open delivery modal
         function openDriverDeliveryModal(deliveryId) {

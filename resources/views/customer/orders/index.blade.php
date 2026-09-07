@@ -51,16 +51,40 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Date Column -->
                     <div class="col-md-2">
-                        <small class="text-muted">Date</small>
-                        <div>{{ $order->created_at->format('M d, Y') }}</div>
+                        <small class="text-muted">Date of Order</small>
+                        <div class="fw-semibold">{{ $order->created_at->format('M d, Y') }}</div>
                     </div>
-                    
-                    <!-- ✅ Delivery Date Column -->
-                    <div class="col-md-2">
-                        <small class="text-muted">Delivery Date</small>
-                        <div>{{ $order->delivery_date ? $order->delivery_date->format('M d, Y') : 'Pending' }}</div>
-                    </div>
+
+                    <!-- ✅ Delivery Date Column (Fixed - No Cut Off) -->
+<div class="col-md-2">
+    <small class="text-muted">Delivery Date</small>
+    <div class="fw-semibold" style="white-space: nowrap; font-size: 0.75rem; color: #0d6efd;">
+        @php
+            $deliveryFrom = $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from) : null;
+            $deliveryTo = $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to) : null;
+            
+            if ($deliveryFrom && $deliveryTo) {
+                if ($deliveryFrom->eq($deliveryTo)) {
+                    $deliveryDisplay = $deliveryFrom->format('M d, Y');
+                } else {
+                    $deliveryDisplay = $deliveryFrom->format('M d, Y') . ' – ' . $deliveryTo->format('M d, Y');
+                }
+            } elseif ($deliveryFrom) {
+                $deliveryDisplay = $deliveryFrom->format('M d, Y');
+            } elseif ($deliveryTo) {
+                $deliveryDisplay = $deliveryTo->format('M d, Y');
+            } elseif ($order->delivery_date) {
+                $deliveryDisplay = $order->delivery_date->format('M d, Y');
+            } else {
+                $deliveryDisplay = 'Pending';
+            }
+        @endphp
+        {{ $deliveryDisplay }}
+    </div>
+</div>
+
                     
                     <div class="col-md-2">
                         <small class="text-muted">Total</small>

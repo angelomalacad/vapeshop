@@ -565,18 +565,19 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
         Route::post('/{order}/cancel', [App\Http\Controllers\Driver\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
-
-        // ✅ ADD THIS ROUTE for updating delivery date
         Route::post('/{order}/delivery-date', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateDeliveryDate'])->name('update-delivery-date');
     });
 
     // Delivery Management
-Route::get('/deliveries', [App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
-Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
-Route::get('/deliveries/{delivery}/modal-data', [App\Http\Controllers\Driver\DeliveryController::class, 'getModalData'])->name('deliveries.modal-data');
-Route::post('/deliveries/{delivery}/update-status', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
-Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
-Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
+    Route::get('/deliveries', [App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
+    Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
+    Route::get('/deliveries/{delivery}/modal-data', [App\Http\Controllers\Driver\DeliveryController::class, 'getModalData'])->name('deliveries.modal-data');
+    Route::post('/deliveries/{delivery}/update-status', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
+    Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
+    Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
+    
+    // ✅ ADD THIS ROUTE for updating Lalamove tracking from delivery modal
+    Route::post('/deliveries/{delivery}/update-lalamove', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLalamoveTracking'])->name('deliveries.update-lalamove');
 });
 
 // ===========================================================================

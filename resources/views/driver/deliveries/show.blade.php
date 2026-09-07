@@ -56,7 +56,7 @@
         background: #f8f9fa;
     }
 
-    /* Table Styles - FIXED: No horizontal scroll */
+    /* Table Styles */
     .order-items-table {
         margin-bottom: 0;
         width: 100%;
@@ -95,7 +95,7 @@
         color: #64748b;
     }
 
-    /* Customer Info */
+    /* Info Labels */
     .info-label {
         font-size: 0.7rem;
         font-weight: 600;
@@ -175,11 +175,7 @@
         padding: 0;
     }
 
-    .table-responsive {
-        overflow: hidden !important;
-    }
-
-    /* Timeline Styles */
+    /* ✅ FIXED: DELIVERY PROGRESS TIMELINE STYLES */
     .timeline-container {
         padding: 0.5rem 0;
     }
@@ -206,13 +202,20 @@
         margin-right: 1rem;
         z-index: 1;
         background: white;
-        border: 2px solid;
+        border: 2px solid #cbd5e1;
+        color: #94a3b8;
     }
 
     .timeline-icon.completed {
         background: #10b981;
         border-color: #10b981;
         color: white;
+    }
+
+    .timeline-icon.current {
+        background: #fef3c7;
+        border-color: #d97706;
+        color: #d97706;
     }
 
     .timeline-icon.pending {
@@ -258,44 +261,6 @@
         display: none;
     }
 
-    /* Badge Styles */
-    .badge-secondary {
-        background: #6c757d;
-        color: white;
-    }
-
-    .badge-info {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .badge-primary {
-        background: #0d6efd;
-        color: white;
-    }
-
-    .badge-warning {
-        background: #ffc107;
-        color: #212529;
-    }
-
-    .badge-success {
-        background: #198754;
-        color: white;
-    }
-
-    .badge-danger {
-        background: #dc3545;
-        color: white;
-    }
-
-    .badge {
-        padding: 0.35rem 0.65rem;
-        border-radius: 30px;
-        font-weight: 500;
-        font-size: 0.7rem;
-    }
-
     /* Proof Images */
     .proof-image {
         width: 100%;
@@ -309,68 +274,6 @@
     .proof-image:hover {
         transform: scale(1.02);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Image Preview Modal */
-    .image-preview-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .image-preview-content {
-        background: white;
-        border-radius: 16px;
-        width: 90%;
-        max-width: 600px;
-        overflow: hidden;
-    }
-
-    .image-preview-header {
-        padding: 1rem 1.25rem;
-        background: white;
-        border-bottom: 1px solid #eef2f6;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .image-preview-body {
-        padding: 1.5rem;
-        text-align: center;
-    }
-
-    .image-preview-body img {
-        max-width: 100%;
-        max-height: 400px;
-        border-radius: 12px;
-    }
-
-    .image-preview-footer {
-        padding: 1rem 1.25rem;
-        background: #f8f9fa;
-        border-top: 1px solid #eef2f6;
-        text-align: right;
-    }
-
-    @media (max-width: 768px) {
-
-        .order-table th,
-        .order-table td {
-            padding: 0.5rem;
-        }
-
-        .order-table img {
-            width: 40px !important;
-            height: 40px !important;
-        }
     }
 </style>
 
@@ -476,23 +379,29 @@
                         <p class="info-label">Status</p>
                         <p class="info-value">
                             @php
+                                // ✅ FIXED: Status badge colors matching online orders
                                 $statusBadgeClass = match ($delivery->status) {
                                     'pending' => 'badge-secondary',
-                                    'assigned' => 'badge-info',
-                                    'picked_up' => 'badge-primary',
-                                    'in_transit' => 'badge-warning',
-                                    'delivered' => 'badge-success',
-                                    'failed' => 'badge-danger',
+                                    'assigned' => 'badge-ready',
+                                    'picked_up' => 'badge-picked_up',
+                                    'out_for_delivery' => 'badge-out_for_delivery',
+                                    'in_transit' => 'badge-out_for_delivery',
+                                    'delivered' => 'badge-delivered',
+                                    'failed' => 'badge-delivery_failed',
+                                    'delivery_failed' => 'badge-delivery_failed',
                                     default => 'badge-secondary',
                                 };
                                 $displayDeliveryStatus = ucfirst(str_replace('_', ' ', $delivery->status));
+                                if ($delivery->status == 'in_transit') {
+                                    $displayDeliveryStatus = 'Out for Delivery';
+                                }
                             @endphp
                             <span class="badge {{ $statusBadgeClass }}">
                                 {{ $displayDeliveryStatus }}
                             </span>
                         </p>
 
-                        <!-- ✅ Driver Information -->
+                        <!-- Driver Information -->
                         <div class="info-label">Driver</div>
                         <p class="info-value">
                             @if ($delivery->driver)
@@ -518,6 +427,11 @@
                             <p class="info-label">Picked Up</p>
                             <p class="info-value">
                                 {{ \Carbon\Carbon::parse($delivery->picked_up_at)->format('M d, Y h:i A') }}</p>
+                        @endif
+                        @if ($delivery->out_for_delivery_at || $delivery->in_transit_at)
+                            <p class="info-label">Out for Delivery</p>
+                            <p class="info-value">
+                                {{ \Carbon\Carbon::parse($delivery->out_for_delivery_at ?? $delivery->in_transit_at)->format('M d, Y h:i A') }}</p>
                         @endif
                         @if ($delivery->delivered_at)
                             <p class="info-label">Delivered</p>
@@ -555,22 +469,24 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN - DELIVERY TIMELINE -->
+            <!-- RIGHT COLUMN - DELIVERY PROGRESS -->
             <div class="col-md-5">
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-clock-history"></i> Delivery Progress</h6>
                     </div>
-                    <div class="card-body-minimal">
+                    <div class="card-body p-3">
                         <div class="timeline-container">
                             @php
-                                // Define status progression
+                                // ✅ FIXED: Status progression using out_for_delivery
                                 $deliveryStatusOrder = [
                                     'pending' => 0,
                                     'assigned' => 1,
                                     'picked_up' => 2,
-                                    'in_transit' => 3,
+                                    'out_for_delivery' => 3,
+                                    'in_transit' => 3, // Treat in_transit as out_for_delivery
                                     'delivered' => 4,
+                                    'delivery_failed' => 99,
                                     'failed' => 99,
                                 ];
 
@@ -582,15 +498,20 @@
                                     return $currentDeliveryLevel >= $level;
                                 };
 
+                                // Check if this is the current step
+                                $isCurrentStep = function ($level) use ($currentDeliveryLevel) {
+                                    return $currentDeliveryLevel == $level;
+                                };
+
                                 // Format date helper
                                 $formatDate = function ($date) {
-                                    return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
+                                    return $date ? \Carbon\Carbon::parse($date)->format('M d, Y h:i A') : null;
                                 };
                             @endphp
 
                             <!-- Assigned to Driver -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : 'pending' }}">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : ($isCurrentStep(1) ? 'current' : 'pending') }}">
                                     <i class="bi bi-person-check"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -614,7 +535,7 @@
 
                             <!-- Picked Up -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : 'pending' }}">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : ($isCurrentStep(2) ? 'current' : 'pending') }}">
                                     <i class="bi bi-box-seam"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -630,17 +551,19 @@
                                 <div class="timeline-line {{ $isDeliveryCompleted(3) ? 'completed' : '' }}"></div>
                             </div>
 
-                            <!-- In Transit -->
+                            <!-- ✅ FIXED: Out for Delivery (was In Transit) -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : 'pending' }}">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : ($isCurrentStep(3) ? 'current' : 'pending') }}">
                                     <i class="bi bi-truck"></i>
                                 </div>
                                 <div class="timeline-content">
-                                    <div class="timeline-title">In Transit</div>
-                                    @if ($delivery->in_transit_at)
+                                    <div class="timeline-title">Out for Delivery</div>
+                                    @if ($delivery->out_for_delivery_at)
+                                        <div class="timeline-date">{{ $formatDate($delivery->out_for_delivery_at) }}</div>
+                                    @elseif ($delivery->in_transit_at)
                                         <div class="timeline-date">{{ $formatDate($delivery->in_transit_at) }}</div>
                                     @elseif ($isDeliveryCompleted(3))
-                                        <div class="timeline-date">In Transit</div>
+                                        <div class="timeline-date">Out for Delivery</div>
                                     @else
                                         <div class="timeline-date text-muted">Waiting</div>
                                     @endif
@@ -650,7 +573,7 @@
 
                             <!-- Delivered -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : 'pending' }}">
+                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : ($isCurrentStep(4) ? 'current' : 'pending') }}">
                                     <i class="bi bi-flag-fill"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -739,68 +662,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Global close function
-    window.closeBranchDeliveryModal = function() {
-        const modalElement = document.getElementById('branchDeliveryModal');
-        if (modalElement) {
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) modal.hide();
-        }
-        const container = document.getElementById('branchDeliveryModalContainer');
-        if (container) {
-            setTimeout(() => {
-                container.innerHTML = '';
-                document.body.classList.remove('modal-open');
-                const backdrops = document.querySelectorAll('.modal-backdrop');
-                backdrops.forEach(backdrop => backdrop.remove());
-            }, 300);
-        }
-    };
-
-    // Global image preview functions
-    window.showImagePreview = function(imageUrl, title) {
-        let previewModal = document.getElementById('imagePreviewModal');
-        if (!previewModal) {
-            previewModal = document.createElement('div');
-            previewModal.id = 'imagePreviewModal';
-            previewModal.className = 'image-preview-modal';
-            previewModal.innerHTML = `
-                <div class="image-preview-content">
-                    <div class="image-preview-header">
-                        <h6 class="mb-0" id="previewTitle">Image Preview</h6>
-                        <button type="button" class="btn-close" onclick="window.closeImagePreview()"></button>
-                    </div>
-                    <div class="image-preview-body">
-                        <img id="previewImage" src="">
-                    </div>
-                    <div class="image-preview-footer">
-                        <button type="button" class="btn btn-sm btn-secondary me-2" onclick="window.closeImagePreview()">Close</button>
-                        <a id="downloadLink" href="#" download class="btn btn-sm btn-primary">Download</a>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(previewModal);
-        }
-
-        document.getElementById('previewImage').src = imageUrl;
-        document.getElementById('previewTitle').textContent = title;
-        document.getElementById('downloadLink').href = imageUrl;
-        previewModal.style.display = 'flex';
-    };
-
-    window.closeImagePreview = function() {
-        const previewModal = document.getElementById('imagePreviewModal');
-        if (previewModal) {
-            previewModal.style.display = 'none';
-        }
-    };
-
-    document.addEventListener('click', function(e) {
-        const previewModal = document.getElementById('imagePreviewModal');
-        if (previewModal && e.target === previewModal) {
-            window.closeImagePreview();
-        }
-    });
-</script>

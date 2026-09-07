@@ -241,6 +241,13 @@ class OnlineOrderController extends Controller
         // ✅ Reservation STAYS ACTIVE - do NOT release yet
         $order->update(['order_status' => 'ready']);
 
+        // ✅ Set delivery date range when order becomes ready
+    $order->update([
+        'order_status' => 'ready',
+        'delivery_date_from' => now(), // Today
+        'delivery_date_to' => now()->addDays(3), // Today + 3 days
+    ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Order is ready for delivery. Stock reservation remains active.',

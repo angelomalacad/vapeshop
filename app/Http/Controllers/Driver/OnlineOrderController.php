@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Branch;
 use App\Models\DriverShift;
 use App\Models\BranchInventory;
 use App\Models\Delivery;
@@ -15,10 +16,6 @@ use Illuminate\Support\Facades\Storage;
 
 class OnlineOrderController extends Controller
 {
-    /**
-     * Display online orders for the driver
-     * Shows: all orders that have a delivery record
-     */
     public function index(Request $request)
     {
         $todayShift = DriverShift::where('shift_date', today())
@@ -31,28 +28,71 @@ class OnlineOrderController extends Controller
                 ->with('error', 'You are not assigned for today. Please contact the owner.');
         }
 
-        // ✅ FIX: Show orders based on their DELIVERY status
-        // Include all possible statuses from the deliveries table
+        // ✅ Show ALL orders that are in the delivery process
         $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
-            ->whereHas('delivery', function($query) {
-                $query->whereIn('status', [
-                    'pending', 
-                    'assigned', 
-                    'picked_up', 
-                    'in_transit', 
-                    'delivered', 
-                    'failed'
-                ]);
+            ->where(function($query) {
+                $query->whereHas('delivery', function($q) {
+                    $q->whereIn('status', [
+                        'assigned', 
+                        'picked_up', 
+                        'out_for_delivery', 
+                        'delivered', 
+                        'failed'
+                    ]);
+                })
+                ->orWhere('order_status', 'ready');
             })
-            ->orWhereIn('order_status', [
-                'ready', 
-                'pending'
-            ]);
+            ->where('order_status', '!=', 'pending')
+            ->where('order_status', '!=', 'confirmed')
+            ->where('order_status', '!=', 'processing')
+            ->where('order_status', '!=', 'cancelled');
 
-        // ✅ Status filter (based on delivery status)
+        // ✅ NEW: Search by Order Number
+        if ($request->filled('order_number')) {
+            $search = $request->order_number;
+            $orders->where('order_number', 'LIKE', "%{$search}%");
+        }
+
+        // ✅ NEW: Filter by Branch
+        if ($request->filled('branch_id')) {
+            $orders->where('branch_id', $request->branch_id);
+        }
+
+        // ✅ FIXED: Filter by Delivery Type (Lalamove/Staff)
+        if ($request->filled('delivery_type')) {
+            $deliveryType = $request->delivery_type;
+            if ($deliveryType === 'lalamove') {
+                // ✅ FIXED: Lalamove orders are those NOT in Calamba City
+                // Use whereNotIn or proper AND logic
+                $orders->where(function($q) {
+                    $q->where('city', '!=', 'Calamba')
+                      ->where('city', '!=', 'Calamba City');
+                });
+            } elseif ($deliveryType === 'staff') {
+                // ✅ FIXED: Staff orders are those in Calamba City
+                $orders->where(function($q) {
+                    $q->where('city', 'Calamba')
+                      ->orWhere('city', 'Calamba City');
+                });
+            }
+        }
+
+        // ✅ Status filter
         if ($request->filled('status')) {
-            $orders->whereHas('delivery', function($query) use ($request) {
-                $query->where('status', $request->status);
+            $statusFilter = $request->status;
+            
+            $statusMap = [
+                'ready' => 'assigned',
+                'out_for_delivery' => 'out_for_delivery',
+                'picked_up' => 'picked_up',
+                'delivered' => 'delivered',
+                'delivery_failed' => 'failed'
+            ];
+            
+            $deliveryStatus = $statusMap[$statusFilter] ?? $statusFilter;
+            
+            $orders->whereHas('delivery', function($query) use ($deliveryStatus) {
+                $query->where('status', $deliveryStatus);
             });
         }
 
@@ -73,8 +113,11 @@ class OnlineOrderController extends Controller
                 'branch',
                 'delivery'
             ])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->paginate(5);
+
+        // ✅ Preserve filters in pagination links
+        $orders->appends($request->except('page'));
 
         // Add custom attribute for Staff vs Lalamove
         $orders->getCollection()->transform(function ($order) {
@@ -84,37 +127,27 @@ class OnlineOrderController extends Controller
             return $order;
         });
 
-        // Counts for the driver dashboard
+        // ✅ Counts for status cards
         $counts = [
-            'ready' => Order::where('order_status', 'ready')
-                ->where('order_number', 'NOT LIKE', 'POS-%')
-                ->count(),
-            'picked_up' => Delivery::where('status', 'picked_up')
-                ->count(),
-            'out_for_delivery' => Delivery::where('status', 'in_transit')
-                ->count(),
-            'delivered' => Delivery::where('status', 'delivered')
-                ->count(),
-            'delivery_failed' => Delivery::where('status', 'failed')
-                ->count(),
+            'ready' => Delivery::where('status', 'assigned')->count(),
+            'picked_up' => Delivery::where('status', 'picked_up')->count(),
+            'out_for_delivery' => Delivery::where('status', 'out_for_delivery')->count(),
+            'delivered' => Delivery::where('status', 'delivered')->count(),
+            'delivery_failed' => Delivery::where('status', 'failed')->count(),
         ];
 
-        return view('driver.online-orders.index', compact('orders', 'counts'));
+        // ✅ Get all branches for filter dropdown
+        $branches = Branch::orderBy('name')->get();
+
+        return view('driver.online-orders.index', compact('orders', 'counts', 'branches'));
     }
 
-    /**
-     * Show a specific online order
-     */
     public function show(Order $order)
     {
         $order->load(['items.product', 'branch', 'delivery']);
         return view('driver.online-orders.show', compact('order'));
     }
 
-    /**
-     * Driver starts delivery - order becomes out_for_delivery
-     * Also creates/updates delivery with picked_up status
-     */
     public function startDelivery(Order $order)
     {
         if ($order->order_status != 'ready') {
@@ -127,12 +160,10 @@ class OnlineOrderController extends Controller
         if ($order->delivery_type == 'delivery') {
             $driverId = Auth::id();
 
-            // Check if it's Lalamove
             $cityLower = strtolower(trim($order->city ?? ''));
             $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
             $isLalamoveEligible = !$isCalambaCity;
 
-            // Create or Update Delivery
             $delivery = $order->delivery;
 
             if (!$delivery) {
@@ -163,7 +194,7 @@ class OnlineOrderController extends Controller
             }
 
             $order->update([
-                'order_status' => 'out_for_delivery',
+                'order_status' => 'picked_up',
                 'out_for_delivery_at' => now(),
             ]);
 
@@ -172,11 +203,10 @@ class OnlineOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Delivery started! Order has been picked up.',
-                'new_status' => 'out_for_delivery'
+                'new_status' => 'picked_up'
             ]);
         }
 
-        // For pickup orders
         $order->update(['order_status' => 'out_for_delivery']);
 
         session()->flash('success', 'Order marked as out for delivery.');
@@ -188,9 +218,6 @@ class OnlineOrderController extends Controller
         ]);
     }
 
-    /**
-     * Update Lalamove tracking
-     */
     public function updateLalamove(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
@@ -201,7 +228,6 @@ class OnlineOrderController extends Controller
             'lalamove_driver_name' => 'nullable|string|max:255',
         ]);
 
-        // Shorten the URL if it exceeds 255 characters
         $trackingUrl = $request->tracking_url;
         if (strlen($trackingUrl) > 255) {
             $trackingUrl = substr($trackingUrl, 0, 255);
@@ -213,6 +239,7 @@ class OnlineOrderController extends Controller
                 'tracking_number' => $trackingUrl,
                 'status' => 'picked_up',
                 'assigned_at' => now(),
+                'picked_up_at' => now(),
                 'notes' => $request->lalamove_driver_name ?? null,
             ]
         );
@@ -227,35 +254,29 @@ class OnlineOrderController extends Controller
         }
 
         $order->update([
-            'order_status' => 'out_for_delivery'
+            'order_status' => 'picked_up',
+            'out_for_delivery_at' => now(),
         ]);
 
         return back()->with('success', 'Lalamove tracking link submitted!');
     }
 
-    /**
-     * Update delivery date for an order
-     */
     public function updateDeliveryDate(Request $request, Order $order)
-    {
-        \Log::info('Updating delivery date for order: ' . $order->id);
-        \Log::info('Delivery date received: ' . $request->delivery_date);
-        \Log::info('Order fillable: ' . json_encode($order->getFillable()));
+{
+    $request->validate([
+        'delivery_date_from' => 'required|date',
+        'delivery_date_to' => 'required|date|after_or_equal:delivery_date_from', // ✅ Allows same date
+    ]);
 
-        $request->validate([
-            'delivery_date' => 'required|date',
-        ]);
+    $order->delivery_date_from = $request->delivery_date_from;
+    $order->delivery_date_to = $request->delivery_date_to;
+    $order->save();
 
-        // ✅ Direct update to avoid mass assignment issues
-        $order->delivery_date = $request->delivery_date;
-        $order->save();
-
-        \Log::info('Delivery date after save: ' . $order->fresh()->delivery_date);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Delivery date updated successfully!',
-            'delivery_date' => $order->fresh()->delivery_date
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Delivery dates updated successfully!',
+        'delivery_date_from' => $order->fresh()->delivery_date_from,
+        'delivery_date_to' => $order->fresh()->delivery_date_to
+    ]);
+}
 }

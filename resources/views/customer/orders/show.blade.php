@@ -96,81 +96,81 @@
                         <!-- Main Order Status Timeline -->
                         <div class="status-timeline">
                             <!-- Status Timeline -->
-<div class="status-steps">
-    <!-- Pending -->
-    <div
-        class="status-step {{ $order->order_status == 'pending' ? 'active' : ($order->order_status != 'pending' && $order->order_status != 'cancelled' ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-clock-history"></i></div>
-        <div class="status-label">Pending</div>
-        <div class="status-date">{{ $order->created_at->format('M d, Y') }}</div>
-        <div class="status-time">{{ $order->created_at->format('h:i A') }}</div>
-    </div>
+                            <div class="status-steps">
+                                <!-- Pending -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'pending' ? 'active' : ($order->order_status != 'pending' && $order->order_status != 'cancelled' ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-clock-history"></i></div>
+                                    <div class="status-label">Pending</div>
+                                    <div class="status-date">{{ $order->created_at->format('M d, Y') }}</div>
+                                    <div class="status-time">{{ $order->created_at->format('h:i A') }}</div>
+                                </div>
 
-    <!-- Confirmed -->
-    <div
-        class="status-step {{ $order->order_status == 'confirmed' ? 'active' : (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-check-circle"></i></div>
-        <div class="status-label">Confirmed</div>
-        @if ($statusTimestamps['confirmed'])
-            <div class="status-date">{{ $statusTimestamps['confirmed']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['confirmed']->format('h:i A') }}</div>
-        @endif
-    </div>
+                                <!-- Confirmed -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'confirmed' ? 'active' : (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-check-circle"></i></div>
+                                    <div class="status-label">Confirmed</div>
+                                    @if ($statusTimestamps['confirmed'])
+                                        <div class="status-date">{{ $statusTimestamps['confirmed']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['confirmed']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
 
-    <!-- Processing -->
-    <div
-        class="status-step {{ $order->order_status == 'processing' ? 'active' : (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-box-seam"></i></div>
-        <div class="status-label">Processing</div>
-        @if ($statusTimestamps['packing'])
-            <div class="status-date">{{ $statusTimestamps['packing']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['packing']->format('h:i A') }}</div>
-        @endif
-    </div>
+                                <!-- Processing -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'processing' ? 'active' : (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-box-seam"></i></div>
+                                    <div class="status-label">Processing</div>
+                                    @if ($statusTimestamps['packing'])
+                                        <div class="status-date">{{ $statusTimestamps['packing']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['packing']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
 
-    <!-- Ready -->
-    <div
-        class="status-step {{ $order->order_status == 'ready' ? 'active' : (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
-        <div class="status-label">Ready</div>
-        @if ($statusTimestamps['ready'])
-            <div class="status-date">{{ $statusTimestamps['ready']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['ready']->format('h:i A') }}</div>
-        @endif
-    </div>
+                                <!-- Ready -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'ready' ? 'active' : (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
+                                    <div class="status-label">Ready</div>
+                                    @if ($statusTimestamps['ready'])
+                                        <div class="status-date">{{ $statusTimestamps['ready']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['ready']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
 
-    <!-- Picked Up -->
-    <div
-        class="status-step {{ $order->order_status == 'picked_up' ? 'active' : (in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-box-seam"></i></div>
-        <div class="status-label">Picked Up</div>
-        @if ($statusTimestamps['picked_up'])
-            <div class="status-date">{{ $statusTimestamps['picked_up']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['picked_up']->format('h:i A') }}</div>
-        @endif
-    </div>
+                                <!-- Picked Up -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'picked_up' ? 'active' : (in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-box-seam"></i></div>
+                                    <div class="status-label">Picked Up</div>
+                                    @if ($statusTimestamps['picked_up'])
+                                        <div class="status-date">{{ $statusTimestamps['picked_up']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['picked_up']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
 
-    <!-- Out for Delivery -->
-    <div
-        class="status-step {{ $order->order_status == 'out_for_delivery' ? 'active' : ($order->order_status == 'delivered' ? 'completed' : '') }}">
-        <div class="status-icon"><i class="bi bi-truck"></i></div>
-        <div class="status-label">Out for Delivery</div>
-        @if ($statusTimestamps['out_for_delivery'])
-            <div class="status-date">{{ $statusTimestamps['out_for_delivery']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['out_for_delivery']->format('h:i A') }}</div>
-        @endif
-    </div>
+                                <!-- Out for Delivery -->
+                                <div
+                                    class="status-step {{ $order->order_status == 'out_for_delivery' ? 'active' : ($order->order_status == 'delivered' ? 'completed' : '') }}">
+                                    <div class="status-icon"><i class="bi bi-truck"></i></div>
+                                    <div class="status-label">Out for Delivery</div>
+                                    @if ($statusTimestamps['out_for_delivery'])
+                                        <div class="status-date">{{ $statusTimestamps['out_for_delivery']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['out_for_delivery']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
 
-    <!-- Delivered -->
-    <div class="status-step {{ $order->order_status == 'delivered' ? 'active' : '' }}">
-        <div class="status-icon"><i class="bi bi-flag-fill"></i></div>
-        <div class="status-label">Delivered</div>
-        @if ($statusTimestamps['delivered'])
-            <div class="status-date">{{ $statusTimestamps['delivered']->format('M d, Y') }}</div>
-            <div class="status-time">{{ $statusTimestamps['delivered']->format('h:i A') }}</div>
-        @endif
-    </div>
-</div>
+                                <!-- Delivered -->
+                                <div class="status-step {{ $order->order_status == 'delivered' ? 'active' : '' }}">
+                                    <div class="status-icon"><i class="bi bi-flag-fill"></i></div>
+                                    <div class="status-label">Delivered</div>
+                                    @if ($statusTimestamps['delivered'])
+                                        <div class="status-date">{{ $statusTimestamps['delivered']->format('M d, Y') }}</div>
+                                        <div class="status-time">{{ $statusTimestamps['delivered']->format('h:i A') }}</div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
 
                         @php
@@ -368,9 +368,31 @@
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
                         
-                        <!-- ✅ ADD THIS: Delivery Date (View Only) -->
-                        <p><strong>Delivery Date:</strong></p>
-                        <p>{{ $order->delivery_date ? $order->delivery_date->format('F d, Y') : 'Pending' }}</p>
+                        <!-- ✅ UPDATED: Delivery Date (From – To) - BLUE -->
+<p><strong>Delivery Date:</strong></p>
+<p style="color: #0d6efd; font-weight: 600;">
+    @php
+        $deliveryFrom = $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from) : null;
+        $deliveryTo = $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to) : null;
+        
+        if ($deliveryFrom && $deliveryTo) {
+            if ($deliveryFrom->eq($deliveryTo)) {
+                $deliveryDisplay = $deliveryFrom->format('F d, Y');
+            } else {
+                $deliveryDisplay = $deliveryFrom->format('F d, Y') . ' – ' . $deliveryTo->format('F d, Y');
+            }
+        } elseif ($deliveryFrom) {
+            $deliveryDisplay = $deliveryFrom->format('F d, Y');
+        } elseif ($deliveryTo) {
+            $deliveryDisplay = $deliveryTo->format('F d, Y');
+        } elseif ($order->delivery_date) {
+            $deliveryDisplay = $order->delivery_date->format('F d, Y');
+        } else {
+            $deliveryDisplay = 'Pending';
+        }
+    @endphp
+    {{ $deliveryDisplay }}
+</p>
                         
                         @if ($order->notes)
                             <hr>

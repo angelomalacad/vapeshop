@@ -24,6 +24,8 @@ class Order extends Model
         'delivery_type',
         'delivery_address',
         'delivery_date',
+        'delivery_date_from',  // ✅ Add this
+    'delivery_date_to',    // ✅ Add this
         'customer_name',
         'customer_phone',
         'notes',

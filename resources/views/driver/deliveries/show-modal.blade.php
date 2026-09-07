@@ -318,6 +318,75 @@
         align-items: center;
         gap: 0.25rem;
     }
+
+    /* ✅ NEW: Lalamove Tracking Styles */
+    .lalamove-tracking-section {
+        background: #f0f7ff;
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .lalamove-tracking-section .info-label {
+        color: #1e40af;
+    }
+
+    .lalamove-tracking-input {
+        border-radius: 8px;
+        border: 1px solid #bfdbfe;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        width: 100%;
+        background: white;
+    }
+
+    .lalamove-tracking-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .btn-save-tracking {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-save-tracking:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-save-tracking:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .tracking-link-display {
+        font-size: 0.75rem;
+        word-break: break-all;
+        margin-top: 0.5rem;
+    }
+
+    /* ✅ NEW: Saved state styles */
+    .btn-save-tracking.saved {
+        background: #10b981;
+        cursor: default;
+    }
+
+    .btn-save-tracking.saved:hover {
+        background: #10b981;
+        transform: none;
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -355,6 +424,17 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- ✅ NEW: Subtotal and Total Section -->
+                    <div class="p-3 bg-light">
+                        <div class="totals-row">
+                            <span class="totals-label">Subtotal</span>
+                            <span class="totals-value" id="modal-subtotal">₱0.00</span>
+                        </div>
+                        <div class="totals-row totals-total">
+                            <span class="totals-label">Total</span>
+                            <span class="totals-value" id="modal-total">₱0.00</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Delivery Information (LEFT - SECOND) -->
@@ -367,8 +447,6 @@
                             <div class="col-6">
                                 <p class="info-label">Status</p>
                                 <p class="info-value" id="modal-current-status"></p>
-                                <p class="info-label">Assigned</p>
-                                <p class="info-value" id="modal-assigned-date"></p>
                             </div>
                             <div class="col-6">
                                 <p class="info-label">Order #</p>
@@ -418,6 +496,45 @@
 
             <!-- RIGHT COLUMN -->
             <div class="col-md-5">
+                <!-- ✅ NEW: Lalamove Tracking Section (Only shows for Lalamove) -->
+                <div class="info-card" id="lalamove-tracking-section" style="display:none;">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-truck"></i> Lalamove Tracking</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="lalamove-tracking-section">
+                            <div class="mb-3">
+                                <label class="info-label">Tracking Link</label>
+                                <input type="url" class="lalamove-tracking-input" id="lalamove_tracking_link" 
+                                       placeholder="https://lalamove.com/track/..." value="">
+                                <small class="text-muted d-block mt-1">Paste the Lalamove tracking URL</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="info-label">Lalamove Driver Name</label>
+                                <input type="text" class="lalamove-tracking-input" id="lalamove_driver_name" 
+                                       placeholder="Enter driver name" value="">
+                            </div>
+                            
+                            <button type="button" class="btn-save-tracking" id="saveLalamoveTrackingBtn" onclick="saveLalamoveTracking()">
+                                <i class="bi bi-save me-1"></i> Save Tracking Info
+                            </button>
+                            
+                            <div id="lalamove_tracking_result" class="mt-2"></div>
+                            
+                            <!-- Display existing tracking link if available -->
+                            <div id="existing-tracking-display" style="display:none;" class="mt-3">
+                                <label class="info-label">Current Tracking Link</label>
+                                <div class="tracking-link-display">
+                                    <a href="#" id="existing-tracking-link" target="_blank" class="text-primary">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> View Tracking Link
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Update Delivery Status (RIGHT - FIRST) -->
                 <div class="info-card">
                     <div class="card-header-custom">
@@ -428,13 +545,13 @@
                             @csrf
                             <input type="hidden" id="delivery_id" name="delivery_id">
                             
-                            <!-- Status Selection -->
+                            <!-- Status Selection - ✅ FIXED: Always show ALL options -->
                             <div class="mb-3">
                                 <label class="info-label">Select Status</label>
                                 <select class="form-select" id="status" name="status" required>
                                     <option value="">-- Select Status --</option>
                                     <option value="picked_up">Picked Up</option>
-                                    <option value="in_transit">In Transit</option>
+                                    <option value="out_for_delivery">Out for Delivery</option>
                                     <option value="delivered">Delivered</option>
                                     <option value="failed">Failed</option>
                                 </select>
@@ -479,8 +596,10 @@
                         <h6><i class="bi bi-clock-history"></i> Delivery Timeline</h6>
                     </div>
                     <div class="card-body p-3">
-                        <p class="info-label">In Transit</p>
-                        <p class="info-value" id="modal-in-transit-date"></p>
+                        <p class="info-label">Picked Up</p>
+                        <p class="info-value" id="modal-picked-up-date"></p>
+                        <p class="info-label">Out for Delivery</p>
+                        <p class="info-value" id="modal-out-for-delivery-date"></p>
                         <p class="info-label">Delivered</p>
                         <p class="info-value" id="modal-delivered-date"></p>
                     </div>
@@ -509,7 +628,8 @@ window.showDeliveryStatusModal = function(deliveryData) {
         'pending': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#f1f5f9; color:#475569; text-transform:capitalize;">Pending</span>',
         'assigned': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#e0f2fe; color:#0369a1; text-transform:capitalize;">Assigned</span>',
         'picked_up': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#dbeafe; color:#2563eb; text-transform:capitalize;">Picked Up</span>',
-        'in_transit': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#e0e7ff; color:#4f46e5; text-transform:capitalize;">In Transit</span>',
+        'out_for_delivery': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#fef3c7; color:#d97706; text-transform:capitalize;">Out for Delivery</span>',
+        'in_transit': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#fef3c7; color:#d97706; text-transform:capitalize;">Out for Delivery</span>',
         'delivered': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#d1fae5; color:#059669; text-transform:capitalize;">Delivered</span>',
         'failed': '<span style="display:inline-block; padding:4px 10px; border-radius:30px; font-weight:600; font-size:0.7rem; background-color:#fee2e2; color:#dc2626; text-transform:capitalize;">Failed</span>'
     };
@@ -524,9 +644,8 @@ window.showDeliveryStatusModal = function(deliveryData) {
         });
     }
     
-    document.getElementById('modal-assigned-date').textContent = formatDate(deliveryData.assigned_at);
     document.getElementById('modal-picked-up-date').textContent = formatDate(deliveryData.picked_up_at);
-    document.getElementById('modal-in-transit-date').textContent = formatDate(deliveryData.in_transit_at);
+    document.getElementById('modal-out-for-delivery-date').textContent = formatDate(deliveryData.out_for_delivery_at || deliveryData.in_transit_at);
     document.getElementById('modal-delivered-date').textContent = formatDate(deliveryData.delivered_at);
     
     // Customer info
@@ -536,14 +655,64 @@ window.showDeliveryStatusModal = function(deliveryData) {
     document.getElementById('modal-customer-address').textContent = order.delivery_address || 'N/A';
     document.getElementById('modal-customer-city').textContent = order.city || 'N/A';
     
-    // Populate items with images
+    // ✅ NEW: Check if Lalamove delivery - Show tracking section only for Lalamove
+    const isLalamove = deliveryData.is_lalamove || (order.city && order.city !== 'Calamba' && order.city !== 'Calamba City');
+    const lalamoveTrackingSection = document.getElementById('lalamove-tracking-section');
+    
+    if (isLalamove) {
+        lalamoveTrackingSection.style.display = 'block';
+        
+        // Populate tracking fields with existing data
+        document.getElementById('lalamove_tracking_link').value = deliveryData.tracking_number || '';
+        document.getElementById('lalamove_driver_name').value = deliveryData.notes || '';
+        
+        // Check if tracking already exists - change button state
+        const saveBtn = document.getElementById('saveLalamoveTrackingBtn');
+        const existingTrackingDisplay = document.getElementById('existing-tracking-display');
+        const existingTrackingLink = document.getElementById('existing-tracking-link');
+        const hasTracking = deliveryData.tracking_number && deliveryData.tracking_number.startsWith('http');
+        
+        if (hasTracking) {
+            // ✅ Already has tracking - show "Update Tracking Info" and enable button
+            saveBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Update Tracking Info';
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('saved');
+            
+            // ✅ Show tracking link as clickable (data is saved)
+            existingTrackingDisplay.style.display = 'block';
+            existingTrackingLink.href = deliveryData.tracking_number;
+            existingTrackingLink.style.pointerEvents = 'auto';
+            existingTrackingLink.style.opacity = '1';
+        } else {
+            // No tracking yet - show "Save Tracking Info"
+            saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Tracking Info';
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('saved');
+            
+            // ✅ Hide tracking link (no data yet - NOT clickable)
+            existingTrackingDisplay.style.display = 'none';
+            existingTrackingLink.style.pointerEvents = 'none';
+            existingTrackingLink.style.opacity = '0.5';
+        }
+        
+        // Reset result message
+        document.getElementById('lalamove_tracking_result').innerHTML = '';
+    } else {
+        lalamoveTrackingSection.style.display = 'none';
+    }
+    
+    // ✅ Populate items with images AND calculate subtotal/total
     let itemsHtml = '';
+    let subtotal = 0;
+    
     if (order.items && order.items.length > 0) {
         order.items.forEach(function(item) {
             const productName = item.product ? item.product.name : 'Product';
             const quantity = item.quantity || 0;
-            const price = item.price || 0;
+            const price = parseFloat(item.price) || 0;
             const total = quantity * price;
+            subtotal += total;
+            
             const productImage = item.product && item.product.image ? item.product.image : null;
             const imageUrl = productImage ? (productImage.startsWith('http') ? productImage : '/storage/' + productImage) : null;
             
@@ -558,8 +727,8 @@ window.showDeliveryStatusModal = function(deliveryData) {
                         </div>
                     </td>
                     <td class="text-center">${quantity}</td>
-                    <td class="text-end">₱${parseFloat(price).toFixed(2)}</td>
-                    <td class="text-end">₱${parseFloat(total).toFixed(2)}</td>
+                    <td class="text-end">₱${price.toFixed(2)}</td>
+                    <td class="text-end">₱${total.toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -567,6 +736,10 @@ window.showDeliveryStatusModal = function(deliveryData) {
         itemsHtml = '<tr><td colspan="4" class="text-center">No items found</td></tr>';
     }
     document.getElementById('modal-items-list').innerHTML = itemsHtml;
+    
+    // ✅ Update Subtotal and Total
+    document.getElementById('modal-subtotal').textContent = '₱' + subtotal.toFixed(2);
+    document.getElementById('modal-total').textContent = '₱' + subtotal.toFixed(2);
     
     // Show existing proofs
     document.getElementById('existing-proofs-section').style.display = 'block';
@@ -610,23 +783,17 @@ window.showDeliveryStatusModal = function(deliveryData) {
     
     document.getElementById('existing-proofs-container').innerHTML = proofsHtml;
     
-    // Disable status update if delivered or failed
+    // ✅ FIX: Reset dropdown and show ALL options
+    const statusSelect = document.getElementById('status');
+    statusSelect.value = ''; // Reset to default
+    
+    // Enable all form elements
     const form = document.getElementById('statusUpdateForm');
     const submitBtn = document.getElementById('submitStatusBtn');
-    
-    if (deliveryData.status === 'delivered' || deliveryData.status === 'failed') {
-        // Disable all form elements
-        const elements = form.querySelectorAll('input, select, textarea, button');
-        elements.forEach(el => el.disabled = true);
-        submitBtn.innerHTML = '<i class="fas fa-lock"></i> Delivery Completed';
-        submitBtn.className = 'btn btn-secondary btn-block';
-    } else {
-        // Enable all form elements
-        const elements = form.querySelectorAll('input, select, textarea, button');
-        elements.forEach(el => el.disabled = false);
-        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
-        submitBtn.className = 'btn btn-success btn-block';
-    }
+    const elements = form.querySelectorAll('input, select, textarea, button');
+    elements.forEach(el => el.disabled = false);
+    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
+    submitBtn.className = 'btn btn-success btn-block';
     
     // ✅ Show modal using vanilla JavaScript
     const modal = document.getElementById('deliveryStatusModal');
@@ -634,6 +801,82 @@ window.showDeliveryStatusModal = function(deliveryData) {
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
     }
+};
+
+// ✅ NEW: Save/Update Lalamove Tracking Info
+window.saveLalamoveTracking = function() {
+    const deliveryId = document.getElementById('delivery_id').value;
+    const trackingLink = document.getElementById('lalamove_tracking_link').value.trim();
+    const driverName = document.getElementById('lalamove_driver_name').value.trim();
+    const resultDiv = document.getElementById('lalamove_tracking_result');
+    const saveBtn = document.getElementById('saveLalamoveTrackingBtn');
+    
+    // Validate tracking link
+    if (!trackingLink) {
+        resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">Please enter a tracking link.</div>';
+        return;
+    }
+    
+    // Validate URL format
+    if (!trackingLink.startsWith('http://') && !trackingLink.startsWith('https://')) {
+        resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">Please enter a valid URL (must start with http:// or https://).</div>';
+        return;
+    }
+    
+    // Show loading
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+    resultDiv.innerHTML = '<div class="alert alert-info alert-minimal mt-2">Saving tracking info...</div>';
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('tracking_number', trackingLink);
+    formData.append('lalamove_driver_name', driverName);
+    
+    // Send AJAX request
+    fetch(`/driver/deliveries/${deliveryId}/update-lalamove`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = '<div class="alert alert-success alert-minimal mt-2">' + (data.message || 'Tracking info saved successfully!') + '</div>';
+            
+            // ✅ Make tracking link clickable after saving
+            const existingTrackingDisplay = document.getElementById('existing-tracking-display');
+            const existingTrackingLink = document.getElementById('existing-tracking-link');
+            existingTrackingDisplay.style.display = 'block';
+            existingTrackingLink.href = trackingLink;
+            existingTrackingLink.style.pointerEvents = 'auto';
+            existingTrackingLink.style.opacity = '1';
+            
+            // ✅ Change button to "Update Tracking Info" and make it enabled
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Update Tracking Info';
+            saveBtn.classList.remove('saved');
+            
+            // Reload page after 1.5 seconds to update table
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">' + (data.message || 'Failed to save tracking info.') + '</div>';
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Tracking Info';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">Network error. Please try again.</div>';
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Tracking Info';
+    });
 };
 
 // ✅ ADD THIS FUNCTION - Called from online-orders/show.blade.php
