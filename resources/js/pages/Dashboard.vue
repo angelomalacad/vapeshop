@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -46,4 +46,4 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
         </div>
     </AppLayout>
-</template>
+</template> -->
