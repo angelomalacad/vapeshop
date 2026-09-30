@@ -656,8 +656,7 @@
                 <i class="bi bi-receipt{{ request()->routeIs('customer.orders.*') ? '-cutoff' : '' }}"></i>
                 <span>Orders</span>
             </a>
-            <a href="#" class="nav-item-link {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}"
-                data-bs-toggle="dropdown" aria-expanded="false">
+            <a href="#" class="nav-item-link" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-person-circle"></i>
                 <span>Account</span>
             </a>
