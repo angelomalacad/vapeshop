@@ -63,8 +63,13 @@
                                 <div class="card product-card h-100">
                                     <div class="position-relative">
                                         @if ($bestVariant['image'])
-                                            <img src="{{ Storage::url($bestVariant['image']) }}" class="product-img"
-                                                alt="{{ $bestProduct->name }}">
+                                            <img src="{{ $bestVariant['image'] }}" class="product-img"
+                                                alt="{{ $bestProduct->name }}"
+                                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="product-img bg-light align-items-center justify-content-center"
+                                                style="display: none;">
+                                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                            </div>
                                         @else
                                             <div
                                                 class="product-img bg-light d-flex align-items-center justify-content-center">
@@ -135,8 +140,13 @@
                             @php $firstVariant = $variants->first(); @endphp
 
                             @if ($firstVariant['image'])
-                                <img src="{{ Storage::url($firstVariant['image']) }}" class="product-img"
-                                    alt="{{ $productName }}">
+                                <img src="{{ $firstVariant['image'] }}" class="product-img"
+                                    alt="{{ $productName }}"
+                                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="product-img bg-light align-items-center justify-content-center"
+                                    style="display: none;">
+                                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                </div>
                             @else
                                 <div class="product-img bg-light d-flex align-items-center justify-content-center">
                                     <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
@@ -183,18 +193,18 @@
             <div class="modal-content mobile-modal">
                 <!-- Mobile-friendly drag handle -->
                 <div class="modal-drag-handle d-md-none"></div>
-                
+
                 <div class="modal-header-mobile">
                     <h5 class="modal-title-mobile"><i class="bi bi-box-seam"></i> Select Item</h5>
                     <button type="button" class="btn-close-mobile" data-bs-dismiss="modal">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
-                
+
                 <form action="{{ route('customer.cart.add') }}" method="POST" id="itemCartForm">
                     @csrf
                     <input type="hidden" name="inventory_id" id="itemInventoryId">
-                    
+
                     <div class="modal-body-mobile">
                         <!-- Product Image Section -->
                         <div class="product-image-section">
@@ -209,12 +219,12 @@
                         <!-- Product Info Section -->
                         <div class="product-info-section">
                             <h4 id="itemProductName" class="product-name-mobile">Product Name</h4>
-                            
+
                             <!-- Product Description -->
                             <div id="modalProductDescription" class="product-description-mobile">
                                 <!-- Description will be loaded here -->
                             </div>
-                            
+
                             <!-- Product Details (Brand, Category, etc.) -->
                             <div id="modalProductDetails" class="product-details-mobile">
                                 <!-- Details will be loaded here -->
@@ -255,7 +265,7 @@
                             <div id="fulfilledBranchDisplay" class="branch-display-mobile"></div>
                         </div>
                     </div>
-                    
+
                     <div class="modal-footer-mobile">
                         <button type="button" class="btn-cancel-mobile" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn-add-mobile">
@@ -899,31 +909,31 @@
 
                             // Set product details (brand, category, nicotine, etc.)
                             let detailsHtml = '';
-                            
+
                             if (productInfo.brand) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-award"></i> ${productInfo.brand}</span>`;
                             }
-                            
+
                             if (productInfo.category) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-tag"></i> ${productInfo.category}</span>`;
                             }
-                            
+
                             if (productInfo.nicotine_strength) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-droplet"></i> ${productInfo.nicotine_strength}</span>`;
                             }
-                            
+
                             if (productInfo.puff_count) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-cloud"></i> ${parseInt(productInfo.puff_count).toLocaleString()} puffs</span>`;
                             }
-                            
+
                             if (productInfo.battery_capacity) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-battery-full"></i> ${productInfo.battery_capacity}mAh</span>`;
                             }
-                            
+
                             if (productInfo.liquid_capacity) {
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-cup-straw"></i> ${productInfo.liquid_capacity}ml</span>`;
                             }
-                            
+
                             if (productInfo.type) {
                                 const typeFormatted = productInfo.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-grid"></i> ${typeFormatted}</span>`;

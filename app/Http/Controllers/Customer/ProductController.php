@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\BranchInventory;
 use App\Models\Product;
+use App\Helpers\GoogleDriveHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,17 @@ class ProductController extends Controller
             if (!isset($groupedProducts[$productName])) {
                 $groupedProducts[$productName] = collect();
             }
+
+            // ✅ Build the correct image URL — supports Google Drive URL OR local storage file
+            $imageUrl = null;
+            if ($inv->product) {
+                if (!empty($inv->product->image_url)) {
+                    $imageUrl = GoogleDriveHelper::getDirectImageUrl($inv->product->image_url);
+                } elseif (!empty($inv->product->image)) {
+                    $imageUrl = Storage::url($inv->product->image);
+                }
+            }
+
             $groupedProducts[$productName]->push([
                 'inventory_id' => $inv->id,
                 'product_id' => $inv->product_id,
@@ -41,7 +53,7 @@ class ProductController extends Controller
                 'flavor_id' => $inv->flavor->id ?? null,
                 'price' => $inv->product->price,
                 'available_quantity' => $inv->available_quantity,
-                'image' => $inv->product->image ?? null,
+                'image' => $imageUrl,   // ✅ full URL, ready for <img src="">
                 'category' => $inv->product->category,
             ]);
         }
@@ -60,7 +72,7 @@ class ProductController extends Controller
         $bestSellers = collect();
         if (!empty($bestSellerIdArray)) {
             $bestSellers = Product::whereIn('id', $bestSellerIdArray)->get();
-            $bestSellers = $bestSellers->sortBy(function($product) use ($bestSellerIdArray) {
+            $bestSellers = $bestSellers->sortBy(function ($product) use ($bestSellerIdArray) {
                 $key = array_search($product->id, $bestSellerIdArray);
                 return $key !== false ? $key : PHP_INT_MAX;
             });
@@ -102,7 +114,7 @@ class ProductController extends Controller
             $finalVariants = [];
             foreach ($allVariants as $inventory) {
                 $flavorName = $inventory->flavor->name ?? 'Standard';
-                
+
                 // If we haven't added this flavor yet, add it
                 if (!isset($finalVariants[$flavorName])) {
                     $finalVariants[$flavorName] = [
@@ -133,13 +145,13 @@ class ProductController extends Controller
                             'available_quantity' => $inventory->available_quantity,
                             'user_branch_id' => $userBranchId,
                         ];
-                    } 
+                    }
                     // If they both have stock, compare proximity to the user's assigned branch.
                     elseif ($current['available_quantity'] > 0 && $inventory->available_quantity > 0) {
                         // Check if we have a proximity map for the user
                         if ($userBranchId && isset($proximityMap[$userBranchId])) {
                             $priorityList = $proximityMap[$userBranchId];
-                            
+
                             // Find index of current branch and new branch in the priority list
                             $currentPriority = array_search($currentBranchId, $priorityList);
                             $newPriority = array_search($newBranchId, $priorityList);
@@ -165,23 +177,17 @@ class ProductController extends Controller
             // 5. Calculate Total Unique Flavors for the Frontend
             $uniqueFlavorCount = count($finalVariants);
 
-            // 6. Build product image URL
+            // 6. Build product image URL (Google Drive OR local storage)
             $imageUrl = null;
-            if ($product->image_url) {
-                // Check if it's a Google Drive URL (using the helper if available)
-                if (class_exists('\App\Helpers\GoogleDriveHelper')) {
-                    $imageUrl = \App\Helpers\GoogleDriveHelper::getDirectImageUrl($product->image_url);
-                } else {
-                    $imageUrl = $product->image_url;
-                }
-            } elseif ($product->image) {
+            if (!empty($product->image_url)) {
+                $imageUrl = GoogleDriveHelper::getDirectImageUrl($product->image_url);
+            } elseif (!empty($product->image)) {
                 $imageUrl = Storage::url($product->image);
             }
 
             // 7. Build product description (fallback if empty)
             $description = $product->description;
             if (empty($description)) {
-                // Build a simple auto-description from available attributes
                 $parts = [];
                 if ($product->brand) $parts[] = $product->brand;
                 if ($product->category) $parts[] = $product->category;
