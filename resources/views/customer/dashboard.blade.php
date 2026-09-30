@@ -9,10 +9,11 @@
         body {
             background: #f5f7fb;
             min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* ===== ANIMATIONS ===== */
-
         @keyframes slideDown {
             from {
                 transform: translateY(-100%);
@@ -310,6 +311,7 @@
         /* Table Responsive Container */
         .table-responsive {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Branch Cards */
@@ -320,9 +322,11 @@
             background: white;
             margin-bottom: 0.75rem;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .branch-card:hover {
+        .branch-card:hover,
+        .branch-card.active {
             border-color: #e74c3c;
             transform: translateX(8px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -367,6 +371,7 @@
             max-height: 250px;
             overflow-y: auto;
             overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Custom Scrollbar */
@@ -392,28 +397,419 @@
             color: #6c757d;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
+        /* ===== MOBILE APP-LIKE ENHANCEMENTS ===== */
+        @media (max-width: 767.98px) {
+            body {
+                background: #f5f7fb;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .container {
+                padding-left: 14px;
+                padding-right: 14px;
+                padding-top: 8px;
+            }
+
+            /* Welcome Banner - Mobile App Style */
+            .welcome-banner {
+                border-radius: 18px;
+                padding: 1.1rem 1.1rem 1.15rem;
+                margin-bottom: 1rem;
+                position: relative;
+            }
+
+            .welcome-banner h4 {
+                font-size: 1.05rem;
+                line-height: 1.35;
+                margin-bottom: 0.4rem !important;
+            }
+
+            .welcome-banner p {
+                font-size: 0.78rem;
+                line-height: 1.45;
+            }
+
+            .welcome-banner .col-md-4 {
+                margin-top: 0.85rem;
+                text-align: left !important;
+            }
+
+            .welcome-banner .d-inline-block {
+                display: inline-flex !important;
+                align-items: center;
+                padding: 0.4rem 0.85rem !important;
+                font-size: 0.72rem;
+                border-radius: 12px !important;
+            }
+
+            .welcome-banner .d-inline-block i,
+            .welcome-banner .d-inline-block span {
+                font-size: 0.72rem;
+            }
+
+            /* Stats Cards - 2x2 Grid Mobile Style */
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 0.7rem;
+                margin-bottom: 1.1rem;
             }
 
+            .stat-card {
+                border-radius: 16px;
+                transition: transform 0.15s ease;
+            }
+
+            .stat-card:active {
+                transform: scale(0.97);
+            }
+
+            .stat-card .card-body {
+                padding: 0.85rem 0.9rem;
+            }
+
+            .stat-card h6 {
+                font-size: 0.68rem !important;
+                margin-bottom: 0.15rem !important;
+                font-weight: 500;
+                letter-spacing: 0.2px;
+            }
+
+            .stat-card h3 {
+                font-size: 1.35rem;
+                line-height: 1;
+                margin-bottom: 0 !important;
+            }
+
+            .stat-card .p-2 {
+                padding: 0.45rem !important;
+            }
+
+            .stat-card .fs-4 {
+                font-size: 1.05rem !important;
+            }
+
+            /* Quick Action Cards - Mobile Friendly */
             .action-card {
-                margin-bottom: 1rem;
+                border-radius: 16px;
+                transition: transform 0.15s ease;
+                margin-bottom: 0 !important;
             }
 
-            .welcome-banner {
+            .action-card:active {
+                transform: scale(0.98);
+            }
+
+            .action-card .card-body {
+                padding: 1rem;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.85rem;
+            }
+
+            .action-card .card-icon {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                margin-bottom: 0 !important;
+                border-radius: 12px;
+            }
+
+            .action-card .card-icon i {
+                font-size: 1.15rem !important;
+            }
+
+            .action-card .card-title {
+                font-size: 0.92rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .action-card .card-text {
+                font-size: 0.72rem !important;
+                margin-bottom: 0 !important;
+                line-height: 1.4;
+            }
+
+            .action-card .btn {
+                display: none;
+            }
+
+            /* Make the card body clickable appearance */
+            .action-card .card-body > div:not(.card-icon) {
+                flex: 1;
+                min-width: 0;
+            }
+
+            /* Row gap for mobile action cards */
+            .row.g-4.mb-4 > [class*="col-"] {
+                margin-bottom: 0.7rem;
+            }
+
+            /* Modern Cards */
+            .modern-card {
+                border-radius: 18px;
+                margin-bottom: 0.85rem;
+            }
+
+            .card-header-modern {
+                padding: 0.85rem 1rem;
+                font-size: 0.92rem;
+                border-radius: 18px 18px 0 0 !important;
+            }
+
+            .card-header-modern .btn-link {
+                font-size: 0.75rem;
+            }
+
+            /* Orders Table - Card-like Rows on Mobile */
+            .table-responsive {
+                border-radius: 0;
+            }
+
+            .order-table thead {
+                display: none;
+            }
+
+            .order-table tbody tr {
+                display: block;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+            }
+
+            .order-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .order-table tbody tr:hover {
+                background: transparent;
+            }
+
+            .order-table tbody tr:active {
+                background: #f8f9fa;
+            }
+
+            .order-table td {
+                display: block;
+                padding: 0.15rem 0;
+                border: none;
+                font-size: 0.8rem;
+                text-align: left !important;
+            }
+
+            .order-table td:first-child {
+                padding-bottom: 0.35rem;
+            }
+
+            .order-table td:first-child code {
+                font-size: 0.82rem;
+                color: #1a1a2e;
+            }
+
+            .order-table td:nth-child(2) {
+                display: inline-block;
+                font-size: 0.72rem;
+                color: #64748b;
+                padding-right: 0.5rem;
+            }
+
+            .order-table td:nth-child(3) {
+                display: inline-block;
+                font-size: 0.82rem;
+                padding-right: 0.5rem;
+            }
+
+            .order-table td:nth-child(4) {
+                display: inline-block;
+            }
+
+            .order-table td:last-child {
+                position: absolute;
+                top: 0.85rem;
+                right: 1rem;
+                padding: 0;
+            }
+
+            .order-table td:last-child .btn {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.75rem;
+            }
+
+            /* Map Container - Mobile */
+            .map-container {
+                height: 200px;
+                border-radius: 14px;
+                margin-bottom: 0.85rem;
+            }
+
+            /* Branch Cards - Mobile */
+            .branch-card {
+                border-radius: 14px;
+                padding: 0.75rem !important;
+                margin-bottom: 0.6rem;
+            }
+
+            .branch-card:hover,
+            .branch-card.active {
+                transform: translateX(4px);
+            }
+
+            .branch-card:active {
+                background: #fef9f5;
+                transform: scale(0.98);
+            }
+
+            .branch-card strong {
+                font-size: 0.85rem;
+            }
+
+            .branch-card small {
+                font-size: 0.72rem;
+                line-height: 1.35;
+            }
+
+            .branch-card .badge {
+                font-size: 0.62rem;
+                padding: 2px 7px;
+            }
+
+            .branch-card .btn-sm {
+                font-size: 0.68rem !important;
+                padding: 0.3rem 0.55rem !important;
+                border-radius: 10px !important;
+            }
+
+            .branch-card .bi-building {
+                font-size: 1.05rem !important;
+            }
+
+            .branch-list-container {
+                max-height: 280px;
+                padding-right: 2px;
+            }
+
+            /* Badge Modern */
+            .badge-modern {
+                font-size: 0.62rem;
+                padding: 0.28rem 0.55rem;
+            }
+
+            /* Footer */
+            .footer-custom {
+                margin-top: 1.25rem;
+                padding-top: 0.85rem;
+                text-align: center;
+            }
+
+            .footer-custom .col-md-6 {
+                margin-bottom: 0.4rem;
+            }
+
+            .footer-custom small {
+                font-size: 0.7rem;
+                line-height: 1.5;
+                display: block;
+            }
+
+            /* Empty state */
+            .modern-card .text-center.py-5 {
+                padding: 2rem 1rem !important;
+            }
+
+            .modern-card .text-center.py-5 .fs-1 {
+                font-size: 2.5rem !important;
+            }
+
+            .modern-card .text-center.py-5 p {
+                font-size: 0.82rem;
+            }
+
+            .modern-card .text-center.py-5 .btn {
+                padding: 0.5rem 1.25rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .welcome-banner h4 {
+                font-size: 0.98rem;
+            }
+
+            .stat-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .stat-card h6 {
+                font-size: 0.62rem !important;
+            }
+
+            .action-card .card-title {
+                font-size: 0.85rem !important;
+            }
+
+            .action-card .card-text {
+                font-size: 0.68rem !important;
+            }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.85rem;
+            }
+
+            .stat-card .card-body {
                 padding: 1rem;
             }
 
-            .order-table th,
-            .order-table td {
-                padding: 0.5rem;
+            .stat-card h3 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Smooth scroll for touch devices */
+        html {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Better touch targets */
+        @media (hover: none) {
+            .branch-card:hover {
+                transform: none;
             }
 
-            .badge-modern {
-                font-size: 0.6rem;
-                padding: 0.25rem 0.5rem;
+            .branch-card:active {
+                transform: scale(0.98);
+                border-color: #e74c3c;
+            }
+
+            .modern-card:hover {
+                transform: none;
+            }
+
+            .stat-card:hover {
+                transform: none;
+            }
+
+            .stat-card:active {
+                transform: scale(0.97);
+            }
+
+            .action-card:hover {
+                transform: none;
+            }
+
+            .action-card:active {
+                transform: scale(0.98);
+            }
+        }
+
+        /* Safe area for iPhone notch */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
             }
         }
     </style>
@@ -499,46 +895,58 @@
         <!-- Quick Action Cards -->
         <div class="row g-4 mb-4">
             <div class="col-md-4">
-                <div class="card action-card">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-shop fs-4"></i>
+                <a href="{{ route('customer.products.index') }}" class="text-decoration-none">
+                    <div class="card action-card">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-shop fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-semibold fs-6 mb-2">Browse Products</h5>
+                                <p class="card-text text-muted small mb-3">View all available vape products from our collection.</p>
+                                <span class="btn rounded-pill">
+                                    Shop Now <i class="bi bi-arrow-right ms-1"></i>
+                                </span>
+                            </div>
                         </div>
-                        <h5 class="card-title fw-semibold fs-6 mb-2">Browse Products</h5>
-                        <p class="card-text text-muted small mb-3">View all available vape products from our collection.</p>
-                        <a href="{{ route('customer.products.index') }}" class="btn rounded-pill">
-                            Shop Now <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-4">
-                <div class="card action-card">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-cart fs-4"></i>
+                <a href="{{ route('customer.cart.index') }}" class="text-decoration-none">
+                    <div class="card action-card">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-cart fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-semibold fs-6 mb-2">My Cart</h5>
+                                <p class="card-text text-muted small mb-3">View and manage your shopping cart items.</p>
+                                <span class="btn rounded-pill">
+                                    View Cart <i class="bi bi-arrow-right ms-1"></i>
+                                </span>
+                            </div>
                         </div>
-                        <h5 class="card-title fw-semibold fs-6 mb-2">My Cart</h5>
-                        <p class="card-text text-muted small mb-3">View and manage your shopping cart items.</p>
-                        <a href="{{ route('customer.cart.index') }}" class="btn rounded-pill">
-                            View Cart <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-md-4">
-                <div class="card action-card">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-truck fs-4"></i>
+                <a href="{{ route('customer.orders.index') }}" class="text-decoration-none">
+                    <div class="card action-card">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-truck fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-semibold fs-6 mb-2">Track Orders</h5>
+                                <p class="card-text text-muted small mb-3">Monitor your order status and delivery progress.</p>
+                                <span class="btn rounded-pill">
+                                    Track Now <i class="bi bi-arrow-right ms-1"></i>
+                                </span>
+                            </div>
                         </div>
-                        <h5 class="card-title fw-semibold fs-6 mb-2">Track Orders</h5>
-                        <p class="card-text text-muted small mb-3">Monitor your order status and delivery progress.</p>
-                        <a href="{{ route('customer.orders.index') }}" class="btn rounded-pill">
-                            Track Now <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 

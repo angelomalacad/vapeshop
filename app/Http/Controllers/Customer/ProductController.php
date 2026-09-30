@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -37,7 +38,7 @@ class ProductController extends Controller
                 'branch_id' => $inv->branch_id,
                 'branch_name' => $inv->branch->name,
                 'flavor' => $inv->flavor->name ?? null,
-                'flavor_id' => $inv->flavor->id ?? null, // <--- ADDED THIS LINE
+                'flavor_id' => $inv->flavor->id ?? null,
                 'price' => $inv->product->price,
                 'available_quantity' => $inv->available_quantity,
                 'image' => $inv->product->image ?? null,
@@ -112,6 +113,7 @@ class ProductController extends Controller
                         'flavor' => $flavorName,
                         'price' => $inventory->product->price,
                         'available_quantity' => $inventory->available_quantity,
+                        'user_branch_id' => $userBranchId,
                     ];
                 } else {
                     // We already have this flavor. Check if the NEW one is a closer backup.
@@ -129,6 +131,7 @@ class ProductController extends Controller
                             'flavor' => $flavorName,
                             'price' => $inventory->product->price,
                             'available_quantity' => $inventory->available_quantity,
+                            'user_branch_id' => $userBranchId,
                         ];
                     } 
                     // If they both have stock, compare proximity to the user's assigned branch.
@@ -151,6 +154,7 @@ class ProductController extends Controller
                                     'flavor' => $flavorName,
                                     'price' => $inventory->product->price,
                                     'available_quantity' => $inventory->available_quantity,
+                                    'user_branch_id' => $userBranchId,
                                 ];
                             }
                         }
@@ -161,11 +165,48 @@ class ProductController extends Controller
             // 5. Calculate Total Unique Flavors for the Frontend
             $uniqueFlavorCount = count($finalVariants);
 
+            // 6. Build product image URL
+            $imageUrl = null;
+            if ($product->image_url) {
+                // Check if it's a Google Drive URL (using the helper if available)
+                if (class_exists('\App\Helpers\GoogleDriveHelper')) {
+                    $imageUrl = \App\Helpers\GoogleDriveHelper::getDirectImageUrl($product->image_url);
+                } else {
+                    $imageUrl = $product->image_url;
+                }
+            } elseif ($product->image) {
+                $imageUrl = Storage::url($product->image);
+            }
+
+            // 7. Build product description (fallback if empty)
+            $description = $product->description;
+            if (empty($description)) {
+                // Build a simple auto-description from available attributes
+                $parts = [];
+                if ($product->brand) $parts[] = $product->brand;
+                if ($product->category) $parts[] = $product->category;
+                if ($product->type) $parts[] = ucfirst(str_replace('-', ' ', $product->type));
+                $description = !empty($parts) ? implode(' • ', $parts) : null;
+            }
+
             return response()->json([
                 'success' => true,
                 'variants' => array_values($finalVariants),
                 'product_name' => $product->name,
-                'unique_flavor_count' => $uniqueFlavorCount
+                'unique_flavor_count' => $uniqueFlavorCount,
+                'product_info' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => $imageUrl,
+                    'description' => $description,
+                    'brand' => $product->brand ?? null,
+                    'category' => $product->category ?? null,
+                    'type' => $product->type ?? null,
+                    'nicotine_strength' => $product->nicotine_strength ?? null,
+                    'puff_count' => $product->puff_count ?? null,
+                    'battery_capacity' => $product->battery_capacity ?? null,
+                    'liquid_capacity' => $product->liquid_capacity ?? null,
+                ],
             ]);
 
         } catch (\Exception $e) {
