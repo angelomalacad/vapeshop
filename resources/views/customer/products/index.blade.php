@@ -26,7 +26,6 @@
                             <span class="btn btn-sm btn-success rounded-pill">
                                 <i class="bi bi-check-circle"></i>
                                 {{ Auth::user()->city ?? '' }} -
-                                {{-- FORCE DISPLAY: If barangay is 'Other', force the display of other_barangay --}}
                                 @if (Auth::user()->barangay === 'Other')
                                     {{ Auth::user()->other_barangay ?: 'Unknown Area' }}
                                 @else
@@ -48,7 +47,7 @@
             </div>
         </div>
 
-        <!-- Best Sellers Section (Using EXACT same card structure) -->
+        <!-- Best Sellers Section -->
         @if ($bestSellers && $bestSellers->count() > 0)
             <div class="mb-5">
                 <h4 class="mb-3 fw-bold"><i class="bi bi-star-fill text-warning"></i> Best Sellers</h4>
@@ -78,7 +77,6 @@
                                         @endif
 
                                         @php
-                                            // Check if this specific product is globally out of stock across all branches
                                             $globalOutOfStock = $groupedProducts[$bestProduct->name]->every(
                                                 fn($v) => $v['available_quantity'] <= 0,
                                             );
@@ -187,11 +185,10 @@
         </div>
     </div>
 
-    <!-- Product Selection Modal - Enhanced Mobile Version -->
+    <!-- Product Selection Modal -->
     <div class="modal fade" id="itemModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content mobile-modal">
-                <!-- Mobile-friendly drag handle -->
                 <div class="modal-drag-handle d-md-none"></div>
 
                 <div class="modal-header-mobile">
@@ -206,7 +203,6 @@
                     <input type="hidden" name="inventory_id" id="itemInventoryId">
 
                     <div class="modal-body-mobile">
-                        <!-- Product Image Section -->
                         <div class="product-image-section">
                             <div class="product-image-wrapper">
                                 <img id="modalProductImage" src="" alt="Product Image" class="modal-product-img">
@@ -216,22 +212,14 @@
                             </div>
                         </div>
 
-                        <!-- Product Info Section -->
                         <div class="product-info-section">
                             <h4 id="itemProductName" class="product-name-mobile">Product Name</h4>
 
-                            <!-- Product Description -->
-                            <div id="modalProductDescription" class="product-description-mobile">
-                                <!-- Description will be loaded here -->
-                            </div>
+                            <div id="modalProductDescription" class="product-description-mobile"></div>
 
-                            <!-- Product Details (Brand, Category, etc.) -->
-                            <div id="modalProductDetails" class="product-details-mobile">
-                                <!-- Details will be loaded here -->
-                            </div>
+                            <div id="modalProductDetails" class="product-details-mobile"></div>
                         </div>
 
-                        <!-- Variant Selection -->
                         <div class="variant-section">
                             <label class="form-label-mobile">
                                 <i class="bi bi-tag"></i> Variant / Flavor:
@@ -241,7 +229,6 @@
                             </select>
                         </div>
 
-                        <!-- Quantity Section -->
                         <div class="quantity-section">
                             <label class="form-label-mobile">
                                 <i class="bi bi-123"></i> Quantity
@@ -259,7 +246,6 @@
                             <small class="stock-info-mobile" id="itemStockInfo"></small>
                         </div>
 
-                        <!-- Price Display -->
                         <div class="price-section-mobile">
                             <div id="itemPriceDisplay" class="price-display-mobile"></div>
                             <div id="fulfilledBranchDisplay" class="branch-display-mobile"></div>
@@ -303,8 +289,8 @@
             object-fit: cover;
             object-position: center;
             border-radius: 16px 16px 0 0;
-            display: block;           /* ✅ no inline gap */
-            background: #f1f5f9;      /* ✅ soft bg behind transparent PNGs */
+            display: block;
+            background: #f1f5f9;
         }
 
         .btn-add-cart {
@@ -398,7 +384,6 @@
             border-radius: 4px;
         }
 
-        /* Product Image Section */
         .product-image-section {
             display: flex;
             justify-content: center;
@@ -437,7 +422,6 @@
             font-size: 2.5rem;
         }
 
-        /* Product Info Section */
         .product-info-section {
             text-align: center;
             margin-bottom: 1.25rem;
@@ -485,7 +469,6 @@
             font-size: 0.7rem;
         }
 
-        /* Variant Section */
         .variant-section {
             margin-bottom: 1rem;
         }
@@ -518,7 +501,6 @@
             box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
         }
 
-        /* Quantity Section */
         .quantity-section {
             margin-bottom: 1rem;
         }
@@ -583,7 +565,6 @@
             color: #64748b;
         }
 
-        /* Price Section */
         .price-section-mobile {
             background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
             border-radius: 16px;
@@ -603,7 +584,6 @@
             margin-top: 0.25rem;
         }
 
-        /* Footer */
         .modal-footer-mobile {
             display: flex;
             gap: 0.75rem;
@@ -664,9 +644,16 @@
                 padding-right: 12px;
             }
 
-            /* ✅ Mobile product image — shorter height, cover fit, centered */
+            /* Reduce grid gap so cards have more width for images */
+            #bestSellerGrid,
+            #productGrid {
+                --bs-gutter-x: 0.75rem;
+                --bs-gutter-y: 0.75rem;
+            }
+
+            /* Mobile product image */
             .product-img {
-                height: 130px;
+                height: 120px;
                 width: 100%;
                 object-fit: cover;
                 object-position: center;
@@ -674,41 +661,55 @@
                 background: #f1f5f9;
             }
 
-            /* ✅ Fallback placeholder fills the same area */
+            /* ✅ FIXED: Fallback placeholder — do NOT force display:flex here.
+               Let the inline style (or JS swap) control visibility. */
             .product-img.bg-light {
-                display: flex !important;
                 align-items: center;
                 justify-content: center;
             }
 
             .product-img.bg-light i {
-                font-size: 2rem !important;
+                font-size: 1.8rem !important;
             }
 
+            /* Card body */
             .product-card .card-body {
-                padding: 0.75rem;
+                padding: 0.65rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                min-height: 92px;
             }
 
             .product-card .card-title {
-                font-size: 0.85rem;
-                line-height: 1.3;
+                font-size: 0.82rem;
+                line-height: 1.25;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
+                min-height: 2.5em;
+                margin-bottom: 0.3rem;
             }
 
             .product-price {
-                font-size: 0.95rem;
+                font-size: 0.92rem;
+                margin-top: auto;
             }
 
             .product-card .small {
-                font-size: 0.7rem;
+                font-size: 0.68rem;
+                margin-top: 0.15rem !important;
+            }
+
+            .product-card .card-footer {
+                padding: 0 0.65rem 0.65rem !important;
             }
 
             .btn-add-cart {
-                padding: 0.5rem;
-                font-size: 0.8rem;
+                padding: 0.45rem 0.5rem;
+                font-size: 0.76rem;
+                border-radius: 10px;
             }
 
             .category-badge {
@@ -749,6 +750,26 @@
             }
         }
 
+        /* Extra small phones */
+        @media (max-width: 360px) {
+            .product-img {
+                height: 105px;
+            }
+
+            .product-card .card-title {
+                font-size: 0.78rem;
+            }
+
+            .product-price {
+                font-size: 0.85rem;
+            }
+
+            .btn-add-cart {
+                font-size: 0.72rem;
+                padding: 0.4rem 0.4rem;
+            }
+        }
+
         @media (min-width: 768px) {
             .modal-dialog {
                 max-width: 480px;
@@ -767,14 +788,12 @@
             }
         }
 
-        /* Safe area for iPhone notch */
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .modal-footer-mobile {
                 padding-bottom: calc(0.875rem + env(safe-area-inset-bottom));
             }
         }
 
-        /* Smooth animations */
         .modal.fade .modal-dialog {
             transform: translateY(100%);
             transition: transform 0.3s ease-out;
@@ -834,7 +853,6 @@
                     const decreaseQty = document.getElementById('decreaseQty');
                     const increaseQty = document.getElementById('increaseQty');
 
-                    // Quantity controls
                     if (decreaseQty) {
                         decreaseQty.addEventListener('click', function() {
                             let value = parseInt(itemQuantity.value) || 1;
@@ -899,10 +917,8 @@
                             const variants = data.variants;
                             const productInfo = data.product_info || {};
 
-                            // Set product name
                             document.getElementById('itemProductName').innerText = productName;
 
-                            // Set product image
                             if (productInfo.image) {
                                 modalProductImage.src = productInfo.image;
                                 modalProductImage.onload = function() {
@@ -918,7 +934,6 @@
                                 modalImagePlaceholder.style.display = 'flex';
                             }
 
-                            // Set product description
                             if (productInfo.description) {
                                 modalProductDescription.innerHTML = productInfo.description;
                                 modalProductDescription.style.display = 'block';
@@ -926,7 +941,6 @@
                                 modalProductDescription.style.display = 'none';
                             }
 
-                            // Set product details (brand, category, nicotine, etc.)
                             let detailsHtml = '';
 
                             if (productInfo.brand) {
@@ -960,7 +974,6 @@
 
                             modalProductDetails.innerHTML = detailsHtml;
 
-                            // Populate variants
                             itemSelect.innerHTML = '<option value="">Select variant...</option>';
                             variants.forEach(function(variant) {
                                 const option = document.createElement('option');
@@ -983,7 +996,6 @@
                                 itemSelect.appendChild(option);
                             });
 
-                            // Reset quantity
                             itemQuantity.value = 1;
                             itemQuantity.disabled = true;
                             itemStockInfo.innerText = '';
