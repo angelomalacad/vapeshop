@@ -256,7 +256,7 @@
                         @endif
 
                         <!-- Login Form -->
-                        <form method="POST" action="{{ route('login') }}">
+                        <form method="POST" action="{{ route('login.store') }}">
                             @csrf
                             <div class="mb-3">
                                 <label for="email" class="form-label">
@@ -305,7 +305,7 @@
                         
                         <!-- Register Link -->
                         <div class="text-center mb-3">
-                            <a href="{{ route('register') }}" class="btn btn-outline-reset w-100">
+                            <a href="{{ route('register.show') }}" class="btn btn-outline-reset w-100">
                                 <i class="bi bi-person-plus me-2"></i>Create New Account
                             </a>
                         </div>

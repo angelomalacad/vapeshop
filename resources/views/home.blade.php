@@ -802,10 +802,10 @@
                     @else
                         <!-- ADDED: Register Button before Login -->
                         <li class="nav-item ms-lg-2">
-                            <a class="nav-link btn-nav-register" href="{{ route('register') }}">Register</a>
+                            <a class="nav-link btn-nav-register" href="{{ route('register.show') }}">Register</a>
                         </li>
                         <li class="nav-item ms-lg-2">
-                            <a class="nav-link btn-nav-login" href="{{ route('login') }}">Login</a>
+                            <a class="nav-link btn-nav-login" href="{{ route('login.show') }}">Login</a>
                         </li>
                     @endauth
                 </ul>
@@ -968,7 +968,7 @@
                             </div>
                             <h5>{{ $product['name'] }}</h5>
                             <p>{{ $product['desc'] }}</p>
-                            <a href="{{ route('login') }}" class="product-btn">Shop Now</a>
+                            <a href="{{ route('login.show') }}" class="product-btn">Shop Now</a>
                         </div>
                     </div>
                 @endforeach
@@ -1255,7 +1255,7 @@
             <p>Visit any of our 5 branches today and discover your next favorite vape.</p>
 
             @guest
-                <a href="{{ route('login') }}" class="btn">Login to Find Your Nearest Branch</a>
+                <a href="{{ route('login.show') }}" class="btn">Login to Find Your Nearest Branch</a>
             @else
                 <a href="#branches" class="btn">Find Your Nearest Branch</a>
             @endguest
