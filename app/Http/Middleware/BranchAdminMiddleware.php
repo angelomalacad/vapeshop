@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class SuperAdminMiddleware
+class BranchAdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -15,8 +15,8 @@ class SuperAdminMiddleware
             return redirect()->route('login')->with('error', 'Please login first.');
         }
 
-        if (Auth::user()->role !== 'super_admin') {
-            return redirect()->route('home')->with('error', 'Access denied. Super admin only.');
+        if (!in_array(Auth::user()->role, ['branch_admin', 'super_admin'])) {
+            return redirect()->route('home')->with('error', 'Access denied. Branch admin only.');
         }
 
         return $next($request);
