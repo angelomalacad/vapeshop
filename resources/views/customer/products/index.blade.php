@@ -303,6 +303,8 @@
             object-fit: cover;
             object-position: center;
             border-radius: 16px 16px 0 0;
+            display: block;           /* ✅ no inline gap */
+            background: #f1f5f9;      /* ✅ soft bg behind transparent PNGs */
         }
 
         .btn-add-cart {
@@ -662,8 +664,25 @@
                 padding-right: 12px;
             }
 
+            /* ✅ Mobile product image — shorter height, cover fit, centered */
             .product-img {
-                height: 150px;
+                height: 130px;
+                width: 100%;
+                object-fit: cover;
+                object-position: center;
+                display: block;
+                background: #f1f5f9;
+            }
+
+            /* ✅ Fallback placeholder fills the same area */
+            .product-img.bg-light {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .product-img.bg-light i {
+                font-size: 2rem !important;
             }
 
             .product-card .card-body {

@@ -100,13 +100,13 @@
                         <div class="col-md-6 d-none d-md-block">
                             <!-- Empty -->
                         </div>
-                        
+
                         <!-- Right Side: Action Buttons -->
                         <div class="col-md-6 col-12 text-md-end">
                             <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3 cart-actions">
                                 <h4 class="mb-0 selected-total-label">Selected Total: <span id="selectedTotal" class="text-danger">₱0.00</span>
                                 </h4>
-                                
+
                                 <!-- Checkout Selected -->
                                 <button type="submit" form="checkoutSelectedForm" id="checkoutSelectedBtn"
                                     class="btn btn-primary rounded-pill px-4 checkout-selected-btn" style="display: none;">
@@ -117,7 +117,7 @@
                                 <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill px-4 checkout-all-btn">
                                     Checkout All <i class="bi bi-cart-check"></i>
                                 </a>
-                                
+
                                 <button type="button" id="clearCartBtn" class="btn btn-outline-danger rounded-pill clear-cart-btn"
                                     onclick="confirmClearCart()">
                                     <i class="bi bi-trash3"></i> Clear Cart
@@ -336,7 +336,7 @@
             /* Product cell */
             .cart-table td[data-label="Product"] {
                 padding-bottom: 0.6rem;
-                padding-right: 2.5rem;
+                padding-right: 3.5rem;
                 border-bottom: 1px solid #f1f5f9;
                 margin-bottom: 0.5rem;
             }
@@ -411,13 +411,14 @@
                 font-size: 0.68rem;
             }
 
-            /* Action cell - absolute position */
+            /* Action cell - absolute position (top-right, below the checkbox) */
             .cart-table td[data-label="Action"] {
                 position: absolute;
-                bottom: 0.85rem;
+                top: 2.85rem;
                 right: 1rem;
                 padding: 0;
                 width: auto;
+                z-index: 2;
             }
 
             .cart-table .remove-item-btn {
