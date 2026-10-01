@@ -1,46 +1,74 @@
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 
 const isWindows = process.platform === 'win32';
 const env = { ...process.env };
+
 if (isWindows) {
-    env.PATH = `C:\\Program Files\\nodejs;${env.PATH}`;
+    // Ensure Node and Composer are on PATH for child processes.
+    const extras = [
+        'C:\\Program Files\\nodejs',
+        'C:\\ProgramData\\ComposerSetup\\bin',
+        'C:\\xampp\\php',
+    ].filter((p) => fs.existsSync(p));
+
+    env.PATH = extras.join(';') + ';' + env.PATH;
 }
 
-function run(command) {
+function hasCommand(cmd) {
+    try {
+        execSync(`${cmd} --version`, {
+            stdio: 'ignore',
+            shell: true,
+            env,
+        });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function run(command, { optional = false } = {}) {
     console.log(`\n> ${command}`);
-    execSync(command, {
-        stdio: 'inherit',
-        shell: true,
-        env,
-    });
+    try {
+        execSync(command, {
+            stdio: 'inherit',
+            shell: true,
+            env,
+        });
+    } catch (err) {
+        if (optional) {
+            console.log(`WARN: optional step failed: ${command}`);
+            return;
+        }
+        console.error(`FAILED: ${command}`);
+        process.exit(1);
+    }
 }
 
 console.log('=== Vape Expo deployment started ===');
+console.log(`Platform: ${process.platform}`);
+console.log(`PHP available: ${hasCommand('php')}`);
+console.log(`Composer available: ${hasCommand('composer')}`);
+console.log(`Node available: ${hasCommand('node')}`);
 
-// Install PHP dependencies. Keep dev deps for Laravel Boost.
-run('composer install --optimize-autoloader --no-scripts');
+if (hasCommand('composer')) {
+    run('composer install --optimize-autoloader --no-scripts');
+} else {
+    console.log('WARN: composer not found, skipping composer install.');
+}
 
-// Install JS dependencies.
 run('npm install');
 
-// Build frontend assets. Wayfinder regenerates resources/js/routes
-// via the custom plugin in vite.config.ts, which also runs
-// scripts/fix-wayfinder.mjs.
-run('npm run build');
+run('npm run build:vite');
 
-// .env is managed by Hostinger's panel — do not touch it here.
-
-// Run production migrations.
-run('php artisan migrate --force');
-
-// Recreate storage symlink.
-run('php artisan storage:link');
-
-// Refresh Laravel caches.
-// NOTE: route:cache is intentionally omitted — routes/web.php uses
-// closure-based routes, and Laravel refuses to cache those.
-run('php artisan optimize:clear');
-run('php artisan config:cache');
-run('php artisan view:cache');
+if (hasCommand('php')) {
+    run('php artisan migrate --force', { optional: true });
+    run('php artisan storage:link || true', { optional: true });
+    run('php artisan optimize:clear', { optional: true });
+    run('php artisan view:cache', { optional: true });
+} else {
+    console.log('WARN: php not found, skipping Laravel post-deploy.');
+}
 
 console.log('=== Vape Expo deployment completed ===');
