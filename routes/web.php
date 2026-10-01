@@ -27,13 +27,13 @@ Route::get('/reset-password/{token}', function ($token) {
 
 // ===== AUTHENTICATION ROUTES WITH EMAIL VERIFICATION =====
 // Disable default register routes since we have custom registration
-Auth::routes(['verify' => true, 'register' => false]);
+
 // ===== END OF AUTH ROUTES =====
 
 // ===== CUSTOM LOGIN ROUTE =====
 Route::get('/login', function () {
     return view('auth.login');
-})->name('login');
+})->name('login.show');
 
 Route::post('/login', function () {
     $credentials = request()->only('email', 'password');
@@ -67,7 +67,7 @@ Route::post('/login', function () {
     return back()->withErrors([
         'email' => 'The provided credentials do not match our records.',
     ]);
-})->name('login');
+})->name('login.store');
 // ===== END OF CUSTOM LOGIN ROUTE =====
 
 // ===== LOGOUT ROUTE =====
@@ -82,7 +82,7 @@ Route::post('/logout', function () {
 // ===== CUSTOM REGISTRATION ROUTE WITH EMAIL VERIFICATION =====
 Route::get('/register', function () {
     return view('auth.register');
-})->name('register');
+})->name('register.show');
 
 Route::post('/register', function () {
     $validated = request()->validate([
@@ -129,7 +129,7 @@ Route::post('/register', function () {
 
     // Redirect to verification notice
     return redirect()->route('verification.notice');
-})->name('register');
+})->name('register.store');
 // ===== END OF CUSTOM REGISTRATION ROUTE =====
 
 // ===== VERIFICATION NOTICE ROUTE =====
@@ -153,7 +153,7 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
 Route::post('/email/verification-notification', function () {
     request()->user()->sendEmailVerificationNotification();
     return back()->with('resent', true);
-})->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 // ===== END OF VERIFICATION HANDLER ROUTES =====
 
 // ===========================================================================

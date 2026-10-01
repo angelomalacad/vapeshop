@@ -1,8 +1,36 @@
-import { wayfinder } from '@laravel/vite-plugin-wayfinder';
+import { execFileSync } from 'node:child_process';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
+
+function generateWayfinderRoutes() {
+    return {
+        name: 'generate-wayfinder-routes',
+
+        buildStart() {
+            console.log('\n[Wayfinder] Generating routes...');
+
+            execFileSync(
+                process.platform === 'win32' ? 'php.exe' : 'php',
+                ['artisan', 'wayfinder:generate', '--with-form'],
+                {
+                    stdio: 'inherit',
+                },
+            );
+
+            console.log('[Wayfinder] Patching duplicate routes...');
+
+            execFileSync(
+                process.platform === 'win32' ? 'node.exe' : 'node',
+                ['./scripts/fix-wayfinder.mjs'],
+                {
+                    stdio: 'inherit',
+                },
+            );
+        },
+    };
+}
 
 export default defineConfig({
     plugins: [
@@ -11,16 +39,15 @@ export default defineConfig({
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
+
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
+
+        generateWayfinderRoutes(),
+
         vue({
-            template: {
-                transformAssetUrls: {
-                    base: null,
-                    includeAbsolute: false,
-                },
+            transformAssetUrls: {
+                base: null,
+                includeAbsolute: false,
             },
         }),
     ],
