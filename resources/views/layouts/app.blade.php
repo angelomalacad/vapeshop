@@ -30,10 +30,10 @@
                     <ul class="navbar-nav ms-auto">
                         @guest
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">Login</a>
+                                <a class="nav-link" href="{{ route('login.show') }}">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">Register</a>
+                                <a class="nav-link" href="{{ route('register.show') }}">Register</a>
                             </li>
                         @else
                             <li class="nav-item dropdown">
@@ -101,8 +101,8 @@
                         <h5>Quick Links</h5>
                         <ul class="list-unstyled">
                             <li><a href="{{ route('home') }}" class="text-white-50 text-decoration-none">Home</a></li>
-                            <li><a href="{{ route('login') }}" class="text-white-50 text-decoration-none">Login</a></li>
-                            <li><a href="{{ route('register') }}" class="text-white-50 text-decoration-none">Register</a></li>
+                            <li><a href="{{ route('login.show') }}" class="text-white-50 text-decoration-none">Login</a></li>
+                            <li><a href="{{ route('register.show') }}" class="text-white-50 text-decoration-none">Register</a></li>
                         </ul>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
 
 import NavFooter from '@/components/NavFooter.vue';
@@ -14,15 +14,44 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+
+import { dashboard as adminDashboard } from '@/routes/admin';
+import { dashboard as branchAdminDashboard } from '@/routes/branch-admin';
+import { dashboard as customerDashboard } from '@/routes/customer';
+import { dashboard as driverDashboard } from '@/routes/driver';
+
 import { type NavItem } from '@/types';
 
 import AppLogo from './AppLogo.vue';
 
+const page = usePage();
+
+const user = page.props.auth.user as {
+    role?: string;
+};
+
+const dashboardUrl = (() => {
+    switch (user.role) {
+    case 'super_admin':
+    case 'admin':
+        return adminDashboard().url;
+
+    case 'branch_admin':
+        return branchAdminDashboard().url;
+
+    case 'driver':
+        return driverDashboard().url;
+
+    case 'customer':
+    default:
+        return customerDashboard().url;
+}
+})();
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboardUrl,
         icon: LayoutGrid,
     },
 ];
@@ -47,7 +76,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="dashboardUrl">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

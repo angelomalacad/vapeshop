@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\BranchInventory;
 use App\Models\Product;
+use App\Helpers\GoogleDriveHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -31,16 +33,27 @@ class ProductController extends Controller
             if (!isset($groupedProducts[$productName])) {
                 $groupedProducts[$productName] = collect();
             }
+
+            // ✅ Build the correct image URL — supports Google Drive URL OR local storage file
+            $imageUrl = null;
+            if ($inv->product) {
+                if (!empty($inv->product->image_url)) {
+                    $imageUrl = GoogleDriveHelper::getDirectImageUrl($inv->product->image_url);
+                } elseif (!empty($inv->product->image)) {
+                    $imageUrl = Storage::url($inv->product->image);
+                }
+            }
+
             $groupedProducts[$productName]->push([
                 'inventory_id' => $inv->id,
                 'product_id' => $inv->product_id,
                 'branch_id' => $inv->branch_id,
                 'branch_name' => $inv->branch->name,
                 'flavor' => $inv->flavor->name ?? null,
-                'flavor_id' => $inv->flavor->id ?? null, // <--- ADDED THIS LINE
+                'flavor_id' => $inv->flavor->id ?? null,
                 'price' => $inv->product->price,
                 'available_quantity' => $inv->available_quantity,
-                'image' => $inv->product->image ?? null,
+                'image' => $imageUrl,   // ✅ full URL, ready for <img src="">
                 'category' => $inv->product->category,
             ]);
         }
@@ -59,7 +72,7 @@ class ProductController extends Controller
         $bestSellers = collect();
         if (!empty($bestSellerIdArray)) {
             $bestSellers = Product::whereIn('id', $bestSellerIdArray)->get();
-            $bestSellers = $bestSellers->sortBy(function($product) use ($bestSellerIdArray) {
+            $bestSellers = $bestSellers->sortBy(function ($product) use ($bestSellerIdArray) {
                 $key = array_search($product->id, $bestSellerIdArray);
                 return $key !== false ? $key : PHP_INT_MAX;
             });
@@ -101,7 +114,7 @@ class ProductController extends Controller
             $finalVariants = [];
             foreach ($allVariants as $inventory) {
                 $flavorName = $inventory->flavor->name ?? 'Standard';
-                
+
                 // If we haven't added this flavor yet, add it
                 if (!isset($finalVariants[$flavorName])) {
                     $finalVariants[$flavorName] = [
@@ -112,6 +125,7 @@ class ProductController extends Controller
                         'flavor' => $flavorName,
                         'price' => $inventory->product->price,
                         'available_quantity' => $inventory->available_quantity,
+                        'user_branch_id' => $userBranchId,
                     ];
                 } else {
                     // We already have this flavor. Check if the NEW one is a closer backup.
@@ -129,14 +143,15 @@ class ProductController extends Controller
                             'flavor' => $flavorName,
                             'price' => $inventory->product->price,
                             'available_quantity' => $inventory->available_quantity,
+                            'user_branch_id' => $userBranchId,
                         ];
-                    } 
+                    }
                     // If they both have stock, compare proximity to the user's assigned branch.
                     elseif ($current['available_quantity'] > 0 && $inventory->available_quantity > 0) {
                         // Check if we have a proximity map for the user
                         if ($userBranchId && isset($proximityMap[$userBranchId])) {
                             $priorityList = $proximityMap[$userBranchId];
-                            
+
                             // Find index of current branch and new branch in the priority list
                             $currentPriority = array_search($currentBranchId, $priorityList);
                             $newPriority = array_search($newBranchId, $priorityList);
@@ -151,6 +166,7 @@ class ProductController extends Controller
                                     'flavor' => $flavorName,
                                     'price' => $inventory->product->price,
                                     'available_quantity' => $inventory->available_quantity,
+                                    'user_branch_id' => $userBranchId,
                                 ];
                             }
                         }
@@ -161,11 +177,42 @@ class ProductController extends Controller
             // 5. Calculate Total Unique Flavors for the Frontend
             $uniqueFlavorCount = count($finalVariants);
 
+            // 6. Build product image URL (Google Drive OR local storage)
+            $imageUrl = null;
+            if (!empty($product->image_url)) {
+                $imageUrl = GoogleDriveHelper::getDirectImageUrl($product->image_url);
+            } elseif (!empty($product->image)) {
+                $imageUrl = Storage::url($product->image);
+            }
+
+            // 7. Build product description (fallback if empty)
+            $description = $product->description;
+            if (empty($description)) {
+                $parts = [];
+                if ($product->brand) $parts[] = $product->brand;
+                if ($product->category) $parts[] = $product->category;
+                if ($product->type) $parts[] = ucfirst(str_replace('-', ' ', $product->type));
+                $description = !empty($parts) ? implode(' • ', $parts) : null;
+            }
+
             return response()->json([
                 'success' => true,
                 'variants' => array_values($finalVariants),
                 'product_name' => $product->name,
-                'unique_flavor_count' => $uniqueFlavorCount
+                'unique_flavor_count' => $uniqueFlavorCount,
+                'product_info' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => $imageUrl,
+                    'description' => $description,
+                    'brand' => $product->brand ?? null,
+                    'category' => $product->category ?? null,
+                    'type' => $product->type ?? null,
+                    'nicotine_strength' => $product->nicotine_strength ?? null,
+                    'puff_count' => $product->puff_count ?? null,
+                    'battery_capacity' => $product->battery_capacity ?? null,
+                    'liquid_capacity' => $product->liquid_capacity ?? null,
+                ],
             ]);
 
         } catch (\Exception $e) {

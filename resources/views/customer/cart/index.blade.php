@@ -1,17 +1,17 @@
 @extends('layouts.customer')
 
 @section('content')
-    <div class="container">
-        <!-- ADDED: Header with Title and Continue Shopping Button (Just like Back button) -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-cart"></i> Shopping Cart</h2>
-            <a href="{{ route('customer.products.index') }}" class="btn btn-outline-secondary rounded-pill">
-                <i class="bi bi-arrow-left"></i> Continue Shopping
+    <div class="container cart-container">
+        <!-- Header with Title and Continue Shopping Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4 cart-header">
+            <h2 class="cart-title"><i class="bi bi-cart"></i> Shopping Cart</h2>
+            <a href="{{ route('customer.products.index') }}" class="btn btn-outline-secondary rounded-pill continue-shopping-btn">
+                <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Continue Shopping</span><span class="d-sm-none">Back</span>
             </a>
         </div>
 
         @if (count($items) > 0)
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0 cart-card">
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <form method="POST" action="{{ route('customer.cart.checkout-selected') }}" id="checkoutSelectedForm">
@@ -41,7 +41,7 @@
                                             </td>
                                             <td data-label="Product">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <div class="bg-light rounded p-1"
+                                                    <div class="bg-light rounded p-1 cart-product-img"
                                                         style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                         @if (isset($item['product_image']) && $item['product_image'])
                                                             <img src="{{ $item['product_image'] }}"
@@ -94,31 +94,31 @@
                         </form>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-0 py-3">
-                    <div class="row align-items-center">
+                <div class="card-footer bg-white border-0 py-3 cart-footer">
+                    <div class="row align-items-center g-3">
                         <!-- Left Side: Empty (Button moved to Header) -->
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none d-md-block">
                             <!-- Empty -->
                         </div>
-                        
+
                         <!-- Right Side: Action Buttons -->
-                        <div class="col-md-6 text-md-end">
-                            <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3">
-                                <h4 class="mb-0">Selected Total: <span id="selectedTotal" class="text-danger">₱0.00</span>
+                        <div class="col-md-6 col-12 text-md-end">
+                            <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3 cart-actions">
+                                <h4 class="mb-0 selected-total-label">Selected Total: <span id="selectedTotal" class="text-danger">₱0.00</span>
                                 </h4>
-                                
+
                                 <!-- Checkout Selected -->
                                 <button type="submit" form="checkoutSelectedForm" id="checkoutSelectedBtn"
-                                    class="btn btn-primary rounded-pill px-4" style="display: none;">
+                                    class="btn btn-primary rounded-pill px-4 checkout-selected-btn" style="display: none;">
                                     Checkout Selected <i class="bi bi-arrow-right"></i>
                                 </button>
 
                                 <!-- Checkout All -->
-                                <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill px-4">
+                                <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill px-4 checkout-all-btn">
                                     Checkout All <i class="bi bi-cart-check"></i>
                                 </a>
-                                
-                                <button type="button" id="clearCartBtn" class="btn btn-outline-danger rounded-pill"
+
+                                <button type="button" id="clearCartBtn" class="btn btn-outline-danger rounded-pill clear-cart-btn"
                                     onclick="confirmClearCart()">
                                     <i class="bi bi-trash3"></i> Clear Cart
                                 </button>
@@ -162,7 +162,7 @@
                 proceeding to checkout.
             </div>
         @else
-            <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm empty-cart">
                 <i class="bi bi-cart-x display-1 text-muted"></i>
                 <h3 class="mt-3">Your cart is empty</h3>
                 <p class="text-muted">Looks like you haven't added any items yet.</p>
@@ -174,6 +174,7 @@
     </div>
 
     <style>
+        /* ===== BASE STYLES ===== */
         .cart-table tbody tr {
             vertical-align: middle;
         }
@@ -201,6 +202,12 @@
             border-color: #0d6efd;
         }
 
+        .cart-table .form-check-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
         tr.selected-row {
             background-color: rgba(13, 110, 253, 0.05);
         }
@@ -224,41 +231,386 @@
             animation: fadeOut 1s ease-out;
         }
 
-        @media (max-width: 768px) {
+        /* ===== MOBILE STYLES ===== */
+        @media (max-width: 767.98px) {
+            .cart-container {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* Header */
+            .cart-header {
+                margin-bottom: 1rem !important;
+                gap: 0.75rem;
+            }
+
+            .cart-title {
+                font-size: 1.15rem;
+                margin-bottom: 0;
+            }
+
+            .cart-title i {
+                color: #0d6efd;
+            }
+
+            .continue-shopping-btn {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.78rem;
+                white-space: nowrap;
+            }
+
+            /* Card */
+            .cart-card {
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+            }
+
+            /* Hide table header */
             .cart-table thead {
                 display: none;
             }
 
+            /* Each row becomes a card */
             .cart-table tbody tr {
                 display: block;
-                margin-bottom: 1rem;
-                border-bottom: 1px solid #dee2e6;
+                padding: 0.85rem 1rem;
+                margin-bottom: 0;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+                transition: background 0.2s ease;
             }
 
+            .cart-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .cart-table tbody tr:active {
+                background: #f8fafc;
+            }
+
+            .cart-table tbody tr.selected-row {
+                background: rgba(13, 110, 253, 0.05);
+                border-left: 3px solid #0d6efd;
+                padding-left: calc(1rem - 3px);
+            }
+
+            /* Cells */
             .cart-table td {
+                display: block;
+                padding: 0.3rem 0;
+                border: none;
+                text-align: left !important;
+                font-size: 0.82rem;
+                color: #475569;
+            }
+
+            /* Remove default data-label pseudo for cleaner look */
+            .cart-table td:before {
+                content: none;
+            }
+
+            /* Checkbox cell - top of card */
+            .cart-table td[data-label="Select"] {
+                position: absolute;
+                top: 0.85rem;
+                right: 1rem;
+                padding: 0;
+                width: auto;
+                z-index: 2;
+            }
+
+            .cart-table td[data-label="Select"] .form-check-input {
+                width: 22px;
+                height: 22px;
+                cursor: pointer;
+                border: 2px solid #cbd5e1;
+                transition: all 0.2s ease;
+            }
+
+            .cart-table td[data-label="Select"] .form-check-input:checked {
+                border-color: #0d6efd;
+                transform: scale(1.05);
+            }
+
+            /* Product cell */
+            .cart-table td[data-label="Product"] {
+                padding-bottom: 0.6rem;
+                padding-right: 3.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 0.5rem;
+            }
+
+            .cart-table td[data-label="Product"] strong {
+                font-size: 0.92rem;
+                color: #1a1a2e;
+                display: block;
+                line-height: 1.35;
+                margin-bottom: 0.2rem;
+            }
+
+            .cart-table td[data-label="Product"] .cart-product-img {
+                width: 56px !important;
+                height: 56px !important;
+                border-radius: 10px !important;
+                flex-shrink: 0;
+            }
+
+            .cart-table td[data-label="Product"] .d-flex {
+                gap: 0.7rem !important;
+            }
+
+            .cart-table td[data-label="Product"] small {
+                font-size: 0.7rem;
+            }
+
+            /* Info cells (Flavor, Price, Quantity, Total) - inline style */
+            .cart-table td[data-label="Flavor"],
+            .cart-table td[data-label="Price"],
+            .cart-table td[data-label="Quantity"],
+            .cart-table td[data-label="Total"] {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0.75rem;
-                border: none;
+                padding: 0.4rem 0;
+                font-size: 0.82rem;
             }
 
-            .cart-table td:before {
+            .cart-table td[data-label="Flavor"]::before,
+            .cart-table td[data-label="Price"]::before,
+            .cart-table td[data-label="Quantity"]::before,
+            .cart-table td[data-label="Total"]::before {
                 content: attr(data-label);
                 font-weight: 600;
-                width: 40%;
+                color: #64748b;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
             }
 
-            .cart-table td:first-child {
-                display: block;
+            .cart-table td[data-label="Total"] strong {
+                color: #e74c3c;
+                font-size: 0.95rem;
             }
 
-            .cart-table td:first-child:before {
-                display: none;
+            /* Quantity input mobile */
+            .cart-table td[data-label="Quantity"] .d-flex {
+                gap: 0.4rem !important;
             }
 
-            .cart-table td:first-child .d-flex {
-                justify-content: space-between;
+            .cart-table .quantity-input {
+                width: 65px !important;
+                height: 36px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border-radius: 10px;
+                padding: 0.25rem;
+            }
+
+            .cart-table .quantity-feedback small {
+                font-size: 0.68rem;
+            }
+
+            /* Action cell - absolute position (top-right, below the checkbox) */
+            .cart-table td[data-label="Action"] {
+                position: absolute;
+                top: 2.85rem;
+                right: 1rem;
+                padding: 0;
+                width: auto;
+                z-index: 2;
+            }
+
+            .cart-table .remove-item-btn {
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                border: 1.5px solid #fecaca;
+                transition: all 0.2s ease;
+            }
+
+            .cart-table .remove-item-btn:active {
+                background: #fee2e2;
+                transform: scale(0.94);
+            }
+
+            /* Footer */
+            .cart-footer {
+                padding: 1rem !important;
+                border-top: 1px solid #eef2f6;
+            }
+
+            .cart-actions {
+                gap: 0.65rem !important;
+            }
+
+            .selected-total-label {
+                font-size: 1rem;
+                font-weight: 600;
+                width: 100%;
+                text-align: center;
+                margin-bottom: 0.25rem !important;
+                color: #1a1a2e;
+            }
+
+            .selected-total-label span {
+                font-size: 1.15rem;
+            }
+
+            .checkout-selected-btn,
+            .checkout-all-btn,
+            .clear-cart-btn {
+                width: 100%;
+                padding: 0.7rem 1rem;
+                font-size: 0.88rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+            }
+
+            .checkout-selected-btn:active,
+            .checkout-all-btn:active,
+            .clear-cart-btn:active {
+                transform: scale(0.98);
+            }
+
+            /* Summary Card */
+            #selectedSummaryCard {
+                border-radius: 16px;
+                margin-top: 1rem !important;
+            }
+
+            #selectedSummaryCard .card-header {
+                padding: 0.85rem 1rem;
+                font-size: 0.88rem;
+                border-radius: 16px 16px 0 0;
+            }
+
+            #selectedSummaryCard .card-body {
+                padding: 1rem;
+            }
+
+            #selectedSummaryCard .row {
+                gap: 0;
+            }
+
+            #selectedSummaryCard .col-md-6 {
+                text-align: left !important;
+            }
+
+            #selectedSummaryCard .col-md-6.text-end {
+                text-align: left !important;
+                margin-top: 0.5rem;
+            }
+
+            #selectedSummaryCard hr {
+                margin: 0.4rem 0;
+            }
+
+            #selectedSummaryCard h5 {
+                font-size: 1rem;
+            }
+
+            #selectedSummaryCard p {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem !important;
+            }
+
+            #selectedSummaryCard .alert {
+                font-size: 0.72rem;
+                padding: 0.6rem 0.75rem;
+                border-radius: 10px;
+            }
+
+            /* Info alert */
+            .cart-container > .alert-info {
+                font-size: 0.78rem;
+                padding: 0.7rem 0.85rem;
+                border-radius: 12px;
+                margin-top: 0.75rem;
+            }
+
+            /* Empty cart */
+            .empty-cart {
+                padding: 3rem 1.25rem !important;
+                border-radius: 16px !important;
+            }
+
+            .empty-cart i.display-1 {
+                font-size: 3rem !important;
+            }
+
+            .empty-cart h3 {
+                font-size: 1.15rem;
+            }
+
+            .empty-cart p {
+                font-size: 0.85rem;
+            }
+
+            .empty-cart .btn {
+                padding: 0.6rem 1.35rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .cart-title {
+                font-size: 1.05rem;
+            }
+
+            .continue-shopping-btn {
+                font-size: 0.72rem;
+                padding: 0.35rem 0.65rem;
+            }
+
+            .cart-table td[data-label="Product"] strong {
+                font-size: 0.85rem;
+            }
+
+            .cart-table td[data-label="Product"] .cart-product-img {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            .selected-total-label {
+                font-size: 0.92rem;
+            }
+
+            .selected-total-label span {
+                font-size: 1.05rem;
+            }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .cart-table td {
+                padding: 0.85rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .cart-table th {
+                font-size: 0.75rem;
+                padding: 0.6rem;
+            }
+
+            .cart-product-img {
+                width: 60px !important;
+                height: 60px !important;
+            }
+        }
+
+        /* Touch device: remove hover transforms */
+        @media (hover: none) {
+            .remove-item-btn:hover {
+                background: transparent;
             }
         }
     </style>

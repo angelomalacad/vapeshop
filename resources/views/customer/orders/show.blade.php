@@ -1,10 +1,10 @@
 @extends('layouts.customer')
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Order #{{ $order->order_number }}</h2>
-            <a href="{{ route('customer.orders.index') }}" class="btn btn-outline-secondary rounded-pill">
+    <div class="container order-detail-container">
+        <div class="d-flex justify-content-between align-items-center mb-4 order-detail-header">
+            <h2 class="order-detail-title">Order #{{ $order->order_number }}</h2>
+            <a href="{{ route('customer.orders.index') }}" class="btn btn-outline-secondary rounded-pill back-btn">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
@@ -12,13 +12,13 @@
         <div class="row g-4">
             <div class="col-lg-8">
                 <!-- Order Items Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white fw-semibold">
+                <div class="card shadow-sm border-0 mb-4 detail-card">
+                    <div class="card-header bg-white fw-semibold detail-card-header">
                         <i class="bi bi-receipt me-2"></i> Order Items
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table mb-0">
+                            <table class="table mb-0 order-items-table">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Product</th>
@@ -31,7 +31,7 @@
                                     @foreach ($order->items as $item)
                                         <tr>
                                             <td>
-                                                <div class="d-flex align-items-center">
+                                                <div class="d-flex align-items-center order-item-product">
                                                     @php
                                                         $inventory = \App\Models\BranchInventory::with('product')->find(
                                                             $item->inventory_id,
@@ -45,18 +45,20 @@
                                                             $imageUrl = \Storage::url($inventory->product->image);
                                                         }
                                                     @endphp
-                                                    <div class="flex-shrink-0 me-3">
+                                                    <div class="flex-shrink-0 me-3 order-item-img-wrapper">
                                                         @if ($imageUrl)
                                                             <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}"
+                                                                class="order-item-img"
                                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                                         @else
                                                             <div
+                                                                class="order-item-img order-item-img-placeholder"
                                                                 style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
                                                                 <i class="bi bi-image"></i>
                                                             </div>
                                                         @endif
                                                     </div>
-                                                    <div>
+                                                    <div class="order-item-info">
                                                         <div class="fw-semibold">{{ $item->product->name }}</div>
                                                         @if ($item->flavor)
                                                             <div class="small text-muted">Variant: {{ $item->flavor->name }}
@@ -65,9 +67,9 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                            <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
+                                            <td class="text-center order-item-qty">{{ $item->quantity }}</td>
+                                            <td class="text-end order-item-price">₱{{ number_format($item->price, 2) }}</td>
+                                            <td class="text-end order-item-subtotal">₱{{ number_format($item->subtotal, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -88,8 +90,8 @@
                 </div>
 
                 <!-- Status Timeline Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white fw-semibold">
+                <div class="card shadow-sm border-0 mb-4 detail-card">
+                    <div class="card-header bg-white fw-semibold detail-card-header">
                         <i class="bi bi-clock-history me-2"></i> Order Status Timeline
                     </div>
                     <div class="card-body">
@@ -266,7 +268,7 @@
                                 @if ($isLalamoveEligible)
                                     <div class="mt-3">
                                         <div
-                                            class="d-flex align-items-center justify-content-between bg-white border rounded p-2 shadow-sm">
+                                            class="d-flex align-items-center justify-content-between bg-white border rounded p-2 shadow-sm lalamove-tracking-box">
                                             <div>
                                                 <div class="d-flex align-items-center">
                                                     <i class="bi bi-truck text-primary me-1"
@@ -283,7 +285,7 @@
                                             </div>
                                             @if ($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
                                                 <a href="{{ $order->delivery->tracking_number }}" target="_blank"
-                                                    class="btn btn-primary btn-sm px-3" style="font-size: 0.85rem;"><i
+                                                    class="btn btn-primary btn-sm px-3 track-btn" style="font-size: 0.85rem;"><i
                                                         class="bi bi-eye me-1"></i> Track</a>
                                             @endif
                                         </div>
@@ -296,8 +298,8 @@
 
                 <!-- Delivery Details Card with Proof Images -->
                 @if ($order->delivery_type == 'delivery' && $order->delivery)
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-white fw-semibold">
+                    <div class="card shadow-sm border-0 detail-card">
+                        <div class="card-header bg-white fw-semibold detail-card-header">
                             <i class="bi bi-geo-alt me-2"></i> Delivery Address
                         </div>
                         <div class="card-body">
@@ -350,15 +352,15 @@
                         </div>
                     </div>
                 @endif
-            </div> <!-- ✅ ADDED: THIS CLOSES col-lg-8 -->
+            </div>
 
             <div class="col-lg-4">
                 <!-- Order Information Card -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white fw-semibold">
+                <div class="card shadow-sm border-0 detail-card">
+                    <div class="card-header bg-white fw-semibold detail-card-header">
                         <i class="bi bi-info-circle me-2"></i> Order Information
                     </div>
-                    <div class="card-body">
+                    <div class="card-body order-info-body">
                         <p><strong>Order Number:</strong></p>
                         <p><code>{{ $order->order_number }}</code></p>
                         <p><strong>Date placed:</strong></p>
@@ -368,31 +370,31 @@
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
                         
-                        <!-- ✅ UPDATED: Delivery Date (From – To) - BLUE -->
-<p><strong>Delivery Date:</strong></p>
-<p style="color: #0d6efd; font-weight: 600;">
-    @php
-        $deliveryFrom = $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from) : null;
-        $deliveryTo = $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to) : null;
-        
-        if ($deliveryFrom && $deliveryTo) {
-            if ($deliveryFrom->eq($deliveryTo)) {
-                $deliveryDisplay = $deliveryFrom->format('F d, Y');
-            } else {
-                $deliveryDisplay = $deliveryFrom->format('F d, Y') . ' – ' . $deliveryTo->format('F d, Y');
-            }
-        } elseif ($deliveryFrom) {
-            $deliveryDisplay = $deliveryFrom->format('F d, Y');
-        } elseif ($deliveryTo) {
-            $deliveryDisplay = $deliveryTo->format('F d, Y');
-        } elseif ($order->delivery_date) {
-            $deliveryDisplay = $order->delivery_date->format('F d, Y');
-        } else {
-            $deliveryDisplay = 'Pending';
-        }
-    @endphp
-    {{ $deliveryDisplay }}
-</p>
+                        <!-- Delivery Date (From – To) - BLUE -->
+                        <p><strong>Delivery Date:</strong></p>
+                        <p class="order-delivery-date" style="color: #0d6efd; font-weight: 600;">
+                            @php
+                                $deliveryFrom = $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from) : null;
+                                $deliveryTo = $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to) : null;
+                                
+                                if ($deliveryFrom && $deliveryTo) {
+                                    if ($deliveryFrom->eq($deliveryTo)) {
+                                        $deliveryDisplay = $deliveryFrom->format('F d, Y');
+                                    } else {
+                                        $deliveryDisplay = $deliveryFrom->format('F d, Y') . ' – ' . $deliveryTo->format('F d, Y');
+                                    }
+                                } elseif ($deliveryFrom) {
+                                    $deliveryDisplay = $deliveryFrom->format('F d, Y');
+                                } elseif ($deliveryTo) {
+                                    $deliveryDisplay = $deliveryTo->format('F d, Y');
+                                } elseif ($order->delivery_date) {
+                                    $deliveryDisplay = $order->delivery_date->format('F d, Y');
+                                } else {
+                                    $deliveryDisplay = 'Pending';
+                                }
+                            @endphp
+                            {{ $deliveryDisplay }}
+                        </p>
                         
                         @if ($order->notes)
                             <hr>
@@ -403,14 +405,14 @@
                 </div>
 
                 <!-- Need Help Card -->
-                <div class="card shadow-sm border-0 mt-4">
-                    <div class="card-header bg-white fw-semibold">
+                <div class="card shadow-sm border-0 mt-4 detail-card">
+                    <div class="card-header bg-white fw-semibold detail-card-header">
                         <i class="bi bi-question-circle me-2"></i> Need Help?
                     </div>
-                    <div class="card-body text-center">
+                    <div class="card-body text-center need-help-body">
                         <i class="bi bi-headset display-4 text-primary mb-3 d-block"></i>
                         <p>Have questions about your order?</p>
-                        <button class="btn btn-outline-primary rounded-pill" onclick="openGmail()">
+                        <button class="btn btn-outline-primary rounded-pill contact-support-btn" onclick="openGmail()">
                             <i class="bi bi-envelope me-1"></i> Contact Support
                         </button>
                     </div>
@@ -446,7 +448,7 @@
                         </div>
                     </div>
                 </div>
-            </div> <!-- ✅ THIS CLOSES col-lg-4 -->
+            </div>
         </div>
     </div>
 
@@ -670,31 +672,504 @@
             padding: 4px 12px !important;
         }
 
-        @media (max-width: 768px) {
-            .status-steps {
-                flex-direction: column;
-                gap: 20px;
+        /* ===== MOBILE APP-LIKE STYLES ===== */
+        @media (max-width: 767.98px) {
+            .order-detail-container {
+                padding-left: 14px;
+                padding-right: 14px;
             }
 
-            .status-step:not(:last-child):before {
+            /* Header */
+            .order-detail-header {
+                margin-bottom: 1rem !important;
+                gap: 0.6rem;
+                flex-wrap: wrap;
+            }
+
+            .order-detail-title {
+                font-size: 1.05rem;
+                margin-bottom: 0;
+                word-break: break-all;
+                line-height: 1.3;
+            }
+
+            .back-btn {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.78rem;
+                white-space: nowrap;
+            }
+
+            /* Detail Cards */
+            .detail-card {
+                border-radius: 16px !important;
+                overflow: hidden;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+            }
+
+            .detail-card-header {
+                padding: 0.85rem 1rem;
+                font-size: 0.88rem;
+                border-radius: 16px 16px 0 0 !important;
+            }
+
+            .detail-card .card-body:not(.p-0) {
+                padding: 1rem;
+            }
+
+            /* Order Items Table - Card-like rows */
+            .order-items-table thead {
                 display: none;
             }
 
-            .status-step {
+            .order-items-table tbody tr {
+                display: block;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+            }
+
+            .order-items-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .order-items-table td {
+                display: block;
+                padding: 0.25rem 0;
+                border: none;
+                text-align: left !important;
+                font-size: 0.82rem;
+            }
+
+            .order-items-table td:first-child {
+                padding-bottom: 0.6rem;
+                padding-right: 0;
+            }
+
+            .order-item-product {
+                gap: 0.7rem !important;
+            }
+
+            .order-item-img,
+            .order-item-img-placeholder {
+                width: 52px !important;
+                height: 52px !important;
+                border-radius: 10px !important;
+                flex-shrink: 0;
+            }
+
+            .order-item-info {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .order-item-info .fw-semibold {
+                font-size: 0.88rem;
+                color: #1a1a2e;
+                line-height: 1.3;
+                word-break: break-word;
+            }
+
+            .order-item-info .small {
+                font-size: 0.72rem;
+            }
+
+            /* Inline qty/price/total */
+            .order-items-table td.order-item-qty,
+            .order-items-table td.order-item-price,
+            .order-items-table td.order-item-subtotal {
+                display: inline-block;
+                width: auto;
+                padding-right: 0.75rem;
+                font-size: 0.78rem;
+                color: #475569;
+            }
+
+            .order-items-table td.order-item-qty::before {
+                content: 'Qty: ';
+                font-weight: 600;
+                color: #94a3b8;
+            }
+
+            .order-items-table td.order-item-price::before {
+                content: '@ ';
+                font-weight: 500;
+                color: #94a3b8;
+            }
+
+            .order-items-table td.order-item-subtotal {
+                float: right;
+                padding-right: 0;
+                font-weight: 600;
+                color: #e74c3c;
+                font-size: 0.88rem;
+            }
+
+            /* Table footer (subtotal & total) */
+            .order-items-table tfoot tr {
                 display: flex;
-                align-items: center;
+                justify-content: space-between;
+                padding: 0.6rem 1rem;
+                background: #f8fafc;
+                border-top: 1px solid #eef2f6;
+            }
+
+            .order-items-table tfoot td {
+                padding: 0 !important;
+                border: none;
+                font-size: 0.82rem;
+            }
+
+            .order-items-table tfoot td:first-child {
+                text-align: left !important;
+            }
+
+            .order-items-table tfoot tr:last-child {
+                background: #fff5f5;
+                padding: 0.75rem 1rem;
+            }
+
+            .order-items-table tfoot tr:last-child td {
+                font-size: 1rem !important;
+            }
+
+            /* Status Timeline - Vertical Mobile Style */
+            .status-steps {
+                flex-direction: column;
+                gap: 0;
+                position: relative;
+                padding-left: 0.5rem;
+            }
+
+            /* Vertical connector line */
+            .status-steps::before {
+                content: '';
+                position: absolute;
+                left: 27px;
+                top: 30px;
+                bottom: 30px;
+                width: 3px;
+                background: #e9ecef;
+                border-radius: 2px;
+                z-index: 0;
+            }
+
+            .status-step {
+                display: flex !important;
+                align-items: flex-start;
                 text-align: left;
-                gap: 15px;
+                gap: 0.85rem;
+                padding: 0.5rem 0;
+                min-width: 0;
+                flex: none;
+                position: relative;
+                z-index: 1;
+            }
+
+            .status-step:not(:last-child):before {
+                display: none !important;
             }
 
             .status-icon {
-                margin: 0;
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                margin: 0 !important;
+                font-size: 1.05rem;
+                background: #f1f5f9;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
             }
 
-            .status-label,
+            .status-step.completed .status-icon,
+            .status-step.active .status-icon {
+                background: #28a745;
+                color: white;
+                box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            }
+
+            .status-step.active .status-icon {
+                animation: pulseStatus 1.5s ease-in-out infinite;
+            }
+
+            @keyframes pulseStatus {
+                0%, 100% {
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3), 0 0 0 0 rgba(40, 167, 69, 0.4);
+                }
+                50% {
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3), 0 0 0 8px rgba(40, 167, 69, 0);
+                }
+            }
+
+            /* Status content layout */
+            .status-step > div:not(.status-icon) {
+                flex: 1;
+                padding-top: 0.4rem;
+            }
+
+            .status-label {
+                font-size: 0.88rem;
+                margin-bottom: 0.15rem;
+                text-align: left;
+                color: #1a1a2e;
+            }
+
+            .status-step.completed .status-label,
+            .status-step.active .status-label {
+                color: #28a745;
+            }
+
             .status-date,
             .status-time {
+                font-size: 0.72rem;
                 text-align: left;
+                display: inline-block;
+                color: #94a3b8;
+            }
+
+            .status-time {
+                margin-left: 0.4rem;
+            }
+
+            /* Delivery Logs */
+            .delivery-logs {
+                padding: 0.85rem;
+                border-radius: 14px;
+            }
+
+            .delivery-logs h6 {
+                font-size: 0.88rem;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .delivery-log-item {
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .delivery-log-item:not(:last-child):before {
+                left: 19px;
+                top: 36px;
+                bottom: -18px;
+            }
+
+            .delivery-log-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 0.88rem;
+            }
+
+            .delivery-log-title {
+                font-size: 0.85rem;
+            }
+
+            .delivery-log-date,
+            .delivery-log-time {
+                font-size: 0.7rem;
+            }
+
+            .delivery-log-note {
+                font-size: 0.72rem;
+            }
+
+            /* Driver Info */
+            .driver-info {
+                padding: 0.85rem !important;
+            }
+
+            .driver-avatar i {
+                font-size: 2rem !important;
+            }
+
+            .driver-info strong {
+                font-size: 0.85rem;
+            }
+
+            .driver-info small {
+                font-size: 0.72rem;
+            }
+
+            /* Lalamove Tracking */
+            .lalamove-tracking-box {
+                padding: 0.75rem !important;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .lalamove-tracking-box .track-btn {
+                width: 100%;
+                padding: 0.55rem 1rem !important;
+                font-size: 0.82rem !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Delivery Address section */
+            .detail-card .card-body p {
+                font-size: 0.85rem;
+                margin-bottom: 0.35rem;
+                line-height: 1.5;
+            }
+
+            .detail-card .card-body strong {
+                font-size: 0.82rem;
+                color: #374151;
+            }
+
+            .detail-card .card-body hr {
+                margin: 0.75rem 0;
+            }
+
+            /* Proof images */
+            .proof-thumbnail {
+                max-height: 200px !important;
+            }
+
+            /* Order Info Body */
+            .order-info-body p {
+                font-size: 0.85rem;
+                margin-bottom: 0.4rem;
+                line-height: 1.5;
+            }
+
+            .order-info-body p strong {
+                font-size: 0.8rem;
+                color: #374151;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                font-weight: 600;
+            }
+
+            .order-info-body code {
+                font-size: 0.82rem;
+                word-break: break-all;
+                background: #f1f5f9;
+                padding: 0.35rem 0.55rem;
+                border-radius: 8px;
+                display: inline-block;
+                color: #0d6efd;
+                font-weight: 600;
+            }
+
+            .order-info-body hr {
+                margin: 0.85rem 0;
+            }
+
+            .order-delivery-date {
+                font-size: 0.88rem;
+                line-height: 1.4;
+            }
+
+            /* Need Help Card */
+            .need-help-body {
+                padding: 1.25rem 1rem !important;
+            }
+
+            .need-help-body i.display-4 {
+                font-size: 2.5rem !important;
+            }
+
+            .need-help-body p {
+                font-size: 0.85rem;
+                margin-bottom: 0.85rem;
+            }
+
+            .contact-support-btn {
+                padding: 0.6rem 1.25rem;
+                font-size: 0.85rem;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .contact-support-btn:active {
+                transform: scale(0.98);
+            }
+
+            /* Image preview modal mobile */
+            #imagePreviewModal > div {
+                width: 94% !important;
+                border-radius: 14px !important;
+                margin: 1rem;
+            }
+
+            #imagePreviewModal #previewImage {
+                max-height: 55vh !important;
+            }
+
+            #imagePreviewModal .btn {
+                font-size: 0.78rem;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .order-detail-title {
+                font-size: 0.95rem;
+            }
+
+            .back-btn {
+                font-size: 0.72rem;
+                padding: 0.35rem 0.65rem;
+            }
+
+            .order-item-info .fw-semibold {
+                font-size: 0.82rem;
+            }
+
+            .status-icon {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                font-size: 0.95rem;
+            }
+
+            .status-steps::before {
+                left: 24px;
+            }
+
+            .status-label {
+                font-size: 0.82rem;
+            }
+
+            .detail-card-header {
+                font-size: 0.82rem;
+                padding: 0.75rem 0.9rem;
+            }
+        }
+
+        /* Tablet */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .status-step {
+                min-width: 85px;
+            }
+
+            .status-icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .status-label {
+                font-size: 12px;
+            }
+
+            .status-date,
+            .status-time {
+                font-size: 10px;
+            }
+        }
+
+        /* Touch device */
+        @media (hover: none) {
+            .proof-thumbnail:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .proof-thumbnail:active {
+                transform: scale(0.98);
             }
         }
     </style>
