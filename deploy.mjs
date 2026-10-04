@@ -37,7 +37,7 @@ function run(command, { optional = false } = {}) {
             shell: true,
             env,
         });
-    } catch (err) {
+    } catch {
         if (optional) {
             console.log(`WARN: optional step failed: ${command}`);
             return;
@@ -64,42 +64,72 @@ function ensureEnvFile() {
 
     const keys = [
         // App
-        'APP_NAME', 'APP_ENV', 'APP_KEY', 'APP_DEBUG', 'APP_URL',
-        'APP_TIMEZONE', 'APP_LOCALE', 'APP_FALLBACK_LOCALE', 'APP_FAKER_LOCALE',
+        'APP_NAME',
+        'APP_ENV',
+        'APP_KEY',
+        'APP_DEBUG',
+        'APP_URL',
+        'APP_TIMEZONE',
+        'APP_LOCALE',
+        'APP_FALLBACK_LOCALE',
+        'APP_FAKER_LOCALE',
         'APP_MAINTENANCE_DRIVER',
 
         // Security
         'BCRYPT_ROUNDS',
 
         // Logging
-        'LOG_CHANNEL', 'LOG_STACK', 'LOG_DEPRECATIONS_CHANNEL', 'LOG_LEVEL',
+        'LOG_CHANNEL',
+        'LOG_STACK',
+        'LOG_DEPRECATIONS_CHANNEL',
+        'LOG_LEVEL',
 
         // Database
-        'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE',
-        'DB_USERNAME', 'DB_PASSWORD',
+        'DB_CONNECTION',
+        'DB_HOST',
+        'DB_PORT',
+        'DB_DATABASE',
+        'DB_USERNAME',
+        'DB_PASSWORD',
 
         // Session
-        'SESSION_DRIVER', 'SESSION_LIFETIME', 'SESSION_ENCRYPT',
-        'SESSION_PATH', 'SESSION_DOMAIN',
+        'SESSION_DRIVER',
+        'SESSION_LIFETIME',
+        'SESSION_ENCRYPT',
+        'SESSION_PATH',
+        'SESSION_DOMAIN',
 
         // Drivers
-        'BROADCAST_CONNECTION', 'FILESYSTEM_DISK', 'QUEUE_CONNECTION',
+        'BROADCAST_CONNECTION',
+        'FILESYSTEM_DISK',
+        'QUEUE_CONNECTION',
         'CACHE_STORE',
 
         // Memcached / Redis
-        'MEMCACHED_HOST', 'REDIS_CLIENT', 'REDIS_HOST',
-        'REDIS_PASSWORD', 'REDIS_PORT',
+        'MEMCACHED_HOST',
+        'REDIS_CLIENT',
+        'REDIS_HOST',
+        'REDIS_PASSWORD',
+        'REDIS_PORT',
 
         // Mail
-        'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME',
-        'MAIL_PASSWORD', 'MAIL_ENCRYPTION', 'MAIL_FROM_ADDRESS',
+        'MAIL_MAILER',
+        'MAIL_HOST',
+        'MAIL_PORT',
+        'MAIL_USERNAME',
+        'MAIL_PASSWORD',
+        'MAIL_ENCRYPTION',
+        'MAIL_FROM_ADDRESS',
         'MAIL_FROM_NAME',
 
         // AWS
-        'AWS_DEFAULT_REGION', 'AWS_USE_PATH_STYLE_ENDPOINT',
+        'AWS_DEFAULT_REGION',
+        'AWS_USE_PATH_STYLE_ENDPOINT',
 
         // Pusher (only if you use them)
-        'PUSHER_APP_ID', 'PUSHER_APP_KEY', 'PUSHER_APP_SECRET',
+        'PUSHER_APP_ID',
+        'PUSHER_APP_KEY',
+        'PUSHER_APP_SECRET',
         'PUSHER_APP_CLUSTER',
 
         // Vite
@@ -114,7 +144,9 @@ function ensureEnvFile() {
         // Quote if the value has spaces or shell-special chars.
         // Important: your DB_PASSWORD contains "^", which needs quoting.
         const needsQuoting = /[\s^$#!&*()<>|"'`\\]/.test(String(value));
-        const escaped = String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        const escaped = String(value)
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"');
         const formatted = needsQuoting ? `"${escaped}"` : value;
 
         lines.push(`${key}=${formatted}`);

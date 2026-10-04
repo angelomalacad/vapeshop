@@ -14,12 +14,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { dashboard as branchAdminDashboard } from '@/routes/branch-admin';
 import { dashboard as customerDashboard } from '@/routes/customer';
 import { dashboard as driverDashboard } from '@/routes/driver';
-
 import { type NavItem } from '@/types';
 
 import AppLogo from './AppLogo.vue';

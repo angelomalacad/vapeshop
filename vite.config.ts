@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';

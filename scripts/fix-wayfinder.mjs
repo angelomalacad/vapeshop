@@ -1,13 +1,17 @@
+// scripts/fix-wayfinder.mjs
+//
+// LOCAL DEV UTILITY ONLY.
+// This script is run manually to strip duplicate `export const` blocks
+// from Wayfinder-generated route files. It is NOT part of the build and
+// does NOT run on Hostinger (or any production host).
+
 import fs from 'node:fs';
 import path from 'node:path';
 
 const routesDirectory = 'resources/js/routes';
 
-// Directories we NEVER touch — Vue pages import exact names from these.
-const PROTECTED_DIRS = [
-    'verification',
-    'password',
-];
+// Directories we NEVER touch - Vue pages import exact names from these.
+const PROTECTED_DIRS = ['verification', 'password'];
 
 function findExportBlocks(content) {
     const regex = /^export const (\w+) =/gm;
@@ -31,9 +35,7 @@ function findExportBlocks(content) {
 }
 
 function processFile(filePath) {
-    const rel = path
-        .relative(routesDirectory, filePath)
-        .replace(/\\/g, '/');
+    const rel = path.relative(routesDirectory, filePath).replace(/\\/g, '/');
 
     for (const dir of PROTECTED_DIRS) {
         if (rel === dir || rel.startsWith(dir + '/')) {
@@ -54,7 +56,8 @@ function processFile(filePath) {
 
     const toRemove = [];
 
-    for (const [name, items] of grouped) {
+    // Only `items` is used here, so we skip the Map key entirely.
+    for (const [, items] of grouped) {
         if (items.length <= 1) continue;
         for (const dup of items.slice(1)) {
             toRemove.push(dup);
@@ -66,11 +69,10 @@ function processFile(filePath) {
     toRemove.sort((a, b) => b.start - a.start);
 
     for (const dup of toRemove) {
-        content =
-            content.slice(0, dup.start) + content.slice(dup.end);
+        content = content.slice(0, dup.start) + content.slice(dup.end);
 
         console.log(
-            `Removed duplicate export "${dup.name}" from ${path.relative(process.cwd(), filePath)}`
+            `Removed duplicate export "${dup.name}" from ${path.relative(process.cwd(), filePath)}`,
         );
     }
 
@@ -87,10 +89,7 @@ function walk(directory) {
 
         if (entry.isDirectory()) {
             walk(fullPath);
-        } else if (
-            entry.isFile() &&
-            entry.name.endsWith('.ts')
-        ) {
+        } else if (entry.isFile() && entry.name.endsWith('.ts')) {
             processFile(fullPath);
         }
     }
