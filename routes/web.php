@@ -689,8 +689,7 @@ Route::get('/test-db-connection', function() {
     return response()->json([
         'connection_name' => DB::connection()->getName(),
         'database_name' => DB::connection()->getDatabaseName(),
-        'table_exists' => Schema::hasTable('warehouse_inventories'),
-        'products_table_exists' => Schema::hasTable('products'),
+        'products_table_exists' => Schema::hasTable('product
     ]);
 });
 // =============================================
