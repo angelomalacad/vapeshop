@@ -142,18 +142,36 @@ Route::get('/email/verify', function () {
 Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     $user = \App\Models\User::findOrFail($id);
 
-    // Mark as verified immediately
-    $user->email_verified_at = now();
-    $user->save();
+    // ✅ FIX: Validate the signed hash to prevent fake verification links
+    if (! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
+        return redirect()->route('login.show')
+            ->with('error', 'Invalid or expired verification link.');
+    }
 
-    return redirect()->route('login')->with('success', 'Email verified! You can now login.');
+    // Mark as verified
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+        event(new \Illuminate\Auth\Events\Verified($user));
+
+        return redirect()->route('login.show')
+            ->with('success', 'Email verified! You can now login.');
+    }
+
+    return redirect()->route('login.show')
+        ->with('info', 'Email already verified.');
 })->name('verification.verify');
 
-// Resend verification email
+// Resend verification email (verification.send)
 Route::post('/email/verification-notification', function () {
     request()->user()->sendEmailVerificationNotification();
     return back()->with('resent', true);
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// ✅ FIX: Alias route for verification.resend — fixes "Route [verification.resend] not defined" error
+Route::post('/email/verification-notification', function () {
+    request()->user()->sendEmailVerificationNotification();
+    return back()->with('resent', true);
+})->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
 // ===== END OF VERIFICATION HANDLER ROUTES =====
 
 // ===========================================================================
@@ -575,7 +593,7 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
     Route::post('/deliveries/{delivery}/update-status', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
     Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
     Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
-    
+
     // ✅ ADD THIS ROUTE for updating Lalamove tracking from delivery modal
     Route::post('/deliveries/{delivery}/update-lalamove', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLalamoveTracking'])->name('deliveries.update-lalamove');
 });
@@ -680,3 +698,4 @@ Route::get('/test-db-connection', function() {
 Route::fallback(function () {
     return redirect()->route('home')->with('error', 'Page not found.');
 });
+
