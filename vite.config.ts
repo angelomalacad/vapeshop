@@ -19,16 +19,6 @@ function generateWayfinderRoutes() {
                     stdio: 'inherit',
                 },
             );
-
-            console.log('[Wayfinder] Patching duplicate routes...');
-
-            execFileSync(
-                process.platform === 'win32' ? 'node.exe' : 'node',
-                ['./scripts/fix-wayfinder.mjs'],
-                {
-                    stdio: 'inherit',
-                },
-            );
         },
     };
 }

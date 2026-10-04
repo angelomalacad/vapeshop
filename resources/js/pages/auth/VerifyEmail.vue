@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { logout } from '@/routes';
-import { send } from '@/routes/verification';
+import { resend } from '@/routes/verification';
 
 defineProps<{
     status?: string;
@@ -29,7 +29,7 @@ defineProps<{
         </div>
 
         <Form
-            v-bind="send.form()"
+            v-bind="resend.form()"
             class="space-y-6 text-center"
             v-slot="{ processing }"
         >

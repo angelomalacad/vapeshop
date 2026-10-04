@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { show as login } from '@/routes/login';
 import { email } from '@/routes/password';
 
-import { show as login } from '@/routes/login';
 
 defineProps<{
     status?: string;
