@@ -33,7 +33,7 @@ Route::get('/reset-password/{token}', function ($token) {
 // ===== CUSTOM LOGIN ROUTE =====
 Route::get('/login', function () {
     return view('auth.login');
-})->name('login');
+})->name('login.show');
 
 Route::post('/login', function () {
     $credentials = request()->only('email', 'password');
@@ -144,7 +144,7 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
 
     // Validate the signed hash to prevent fake verification links
     if (! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
-        return redirect()->route('login')
+        return redirect()->route('login.show')
             ->with('error', 'Invalid or expired verification link.');
     }
 
@@ -153,11 +153,11 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
         $user->markEmailAsVerified();
         event(new \Illuminate\Auth\Events\Verified($user));
 
-        return redirect()->route('login')
+        return redirect()->route('login.show')
             ->with('success', 'Email verified! You can now login.');
     }
 
-    return redirect()->route('login')
+    return redirect()->route('login.show')
         ->with('info', 'Email already verified.');
 })->name('verification.verify');
 

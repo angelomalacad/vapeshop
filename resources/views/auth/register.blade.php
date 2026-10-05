@@ -585,7 +585,7 @@
                         
                         <!-- Login Link -->
                         <div class="text-center mb-3">
-                            <a href="{{ route('login') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('login.show') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In Instead
                             </a>
                         </div>

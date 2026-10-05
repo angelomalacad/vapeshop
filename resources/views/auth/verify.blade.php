@@ -189,7 +189,7 @@
 
                         <div class="row g-3">
                             <div class="col-6">
-                                <a href="{{ route('login') }}" class="btn btn-outline-secondary w-100">
+                                <a href="{{ route('login.show') }}" class="btn btn-outline-secondary w-100">
                                     <i class="bi bi-box-arrow-in-right me-2"></i>Login
                                 </a>
                             </div>
@@ -203,7 +203,7 @@
                         <!-- Alternative: Stacked buttons if you prefer -->
                         <!-- 
                         <div class="d-grid gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('login.show') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Go to Login
                             </a>
                             <a href="{{ route('home') }}" class="btn btn-outline-secondary">

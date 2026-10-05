@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -233,7 +233,7 @@
                         </form>
 
                         <div class="text-center mt-4">
-                            <a href="{{ route('login') }}" class="back-link">
+                            <a href="{{ route('login.show') }}" class="back-link">
                                 <i class="bi bi-arrow-left me-1"></i>Back to Login
                             </a>
                         </div>
