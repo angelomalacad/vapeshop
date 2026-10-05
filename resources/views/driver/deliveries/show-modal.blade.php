@@ -220,7 +220,7 @@
     .totals-row.totals-under-total {
         justify-content: flex-end;
         gap: 2rem;
-        padding-right: 9.5rem; /* ✅ INCREASE THIS to move numbers LEFT under TOTAL column */
+        padding-right: 9.5rem;
     }
 
     .totals-label {
@@ -429,6 +429,403 @@
     .stock-info-icon {
         font-size: 1rem;
     }
+
+    /* ============================================================ */
+    /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+    /* ============================================================ */
+    @media (max-width: 767.98px) {
+
+        /* ---------- Modal = Bottom Sheet ---------- */
+        #deliveryStatusModal {
+            align-items: flex-end;
+            padding: 0;
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        #deliveryStatusModal .modal-body-custom {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 94vh !important;
+            border-radius: 24px 24px 0 0 !important;
+            animation: deliverySheetUp 0.3s ease-out;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        @keyframes deliverySheetUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* ---------- Modal Body Padding ---------- */
+        #deliveryStatusModal .modal-body-custom > div {
+            padding: 1.25rem 1rem !important;
+        }
+
+        /* ---------- Drag Handle ---------- */
+        #deliveryStatusModal .modal-body-custom::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 4px;
+            background: #cbd5e1;
+            border-radius: 2px;
+            margin: 10px auto 4px;
+        }
+
+        /* ---------- Close Button ---------- */
+        .btn-close-modal {
+            top: 16px;
+            right: 14px;
+            font-size: 26px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close-modal:active {
+            background: #e2e8f0;
+            transform: scale(0.94);
+        }
+
+        /* ---------- Modal Header ---------- */
+        .modal-header-custom {
+            padding: 0 0 0.75rem 0 !important;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+
+        .order-number {
+            font-size: 1.05rem;
+            line-height: 1.3;
+            padding-right: 2.5rem;
+        }
+
+        .order-date {
+            font-size: 0.72rem;
+        }
+
+        /* ---------- Cards ---------- */
+        .info-card {
+            border-radius: 14px;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-header-custom {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-header-custom h6 {
+            font-size: 0.82rem;
+        }
+
+        .info-card .card-body,
+        .info-card > .p-3 {
+            padding: 0.9rem !important;
+        }
+
+        /* ---------- Order Items Table → Card List ---------- */
+        .order-items-table thead {
+            display: none;
+        }
+
+        .order-items-table tbody tr {
+            display: block;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #eef2f6;
+            position: relative;
+        }
+
+        .order-items-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .order-items-table td {
+            display: block;
+            padding: 0.2rem 0;
+            border: none;
+            font-size: 0.82rem;
+            text-align: left !important;
+        }
+
+        /* Product cell */
+        .order-items-table td:nth-child(1) {
+            padding-bottom: 0.5rem;
+            padding-right: 0;
+        }
+
+        .order-items-table .d-flex {
+            gap: 0.7rem !important;
+        }
+
+        .product-image {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 10px !important;
+            flex-shrink: 0;
+        }
+
+        .product-name {
+            font-size: 0.88rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .product-flavor {
+            font-size: 0.7rem;
+        }
+
+        /* Qty / Price / Total - inline row */
+        .order-items-table td:nth-child(2),
+        .order-items-table td:nth-child(3),
+        .order-items-table td:nth-child(4) {
+            display: inline-block;
+            width: auto;
+            padding-right: 0.75rem;
+            font-size: 0.78rem;
+            color: #475569;
+        }
+
+        .order-items-table td:nth-child(2)::before {
+            content: 'Qty: ';
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(3)::before {
+            content: '@ ';
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(4) {
+            float: right;
+            padding-right: 0;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 0.85rem;
+        }
+
+        /* Stock cell */
+        .order-items-table td:nth-child(5) {
+            padding-top: 0.5rem;
+            text-align: left !important;
+        }
+
+        .order-items-table td:nth-child(5) .stock-info {
+            display: inline-flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 0.5rem;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.7rem;
+            margin-top: 0.15rem;
+        }
+
+        .order-items-table td:nth-child(5) .stock-info span {
+            white-space: nowrap;
+        }
+
+        /* ---------- Totals ---------- */
+        .info-card .p-3.bg-light {
+            padding: 0.75rem 1rem !important;
+        }
+
+        .totals-row.totals-under-total {
+            padding-right: 0 !important;
+            justify-content: space-between !important;
+            gap: 0 !important;
+        }
+
+        .totals-row {
+            padding: 0.35rem 0 !important;
+        }
+
+        .totals-label {
+            font-size: 0.82rem;
+        }
+
+        .totals-value {
+            font-size: 0.82rem;
+        }
+
+        .totals-total {
+            margin-top: 0.4rem;
+            padding-top: 0.4rem;
+        }
+
+        .totals-total .totals-label,
+        .totals-total .totals-value {
+            font-size: 0.95rem;
+        }
+
+        /* ---------- Info Rows ---------- */
+        .info-label {
+            font-size: 0.68rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .info-value {
+            font-size: 0.82rem;
+            margin-bottom: 0.65rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Customer info: stack columns */
+        .info-card .row > .col-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        /* ---------- Status Buttons ---------- */
+        .status-btn {
+            padding: 0.85rem;
+            font-size: 0.88rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-btn:active {
+            transform: scale(0.98);
+            box-shadow: none;
+        }
+
+        /* ---------- Alerts ---------- */
+        .alert-custom {
+            padding: 0.85rem 1rem;
+            font-size: 0.82rem;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        /* ---------- Form Controls ---------- */
+        #deliveryStatusModal .form-control,
+        #deliveryStatusModal .form-select,
+        #deliveryStatusModal .lalamove-tracking-input {
+            border-radius: 10px;
+            font-size: 16px !important; /* Prevents iOS zoom */
+            padding: 0.6rem 0.75rem;
+            border: 1.5px solid #e2e8f0;
+            min-height: 42px;
+        }
+
+        #deliveryStatusModal .form-control:focus,
+        #deliveryStatusModal .form-select:focus,
+        #deliveryStatusModal .lalamove-tracking-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        #deliveryStatusModal textarea.form-control {
+            font-size: 16px !important;
+            min-height: 80px;
+        }
+
+        /* ---------- Lalamove Tracking Section ---------- */
+        .lalamove-tracking-section {
+            padding: 0.85rem;
+            border-radius: 12px;
+        }
+
+        /* ---------- Save / Submit Buttons ---------- */
+        .btn-save-tracking {
+            padding: 0.7rem 1rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 12px;
+            min-height: 44px;
+        }
+
+        .btn-save-tracking:active {
+            transform: scale(0.98);
+        }
+
+        /* ---------- Result Messages ---------- */
+        #delivery-status-result .alert,
+        #lalamove_tracking_result .alert {
+            font-size: 0.8rem;
+            padding: 0.7rem 0.9rem;
+            border-radius: 10px;
+            margin-bottom: 0;
+        }
+
+        .tracking-link-display {
+            font-size: 0.78rem;
+        }
+
+        /* ---------- File Inputs ---------- */
+        #deliveryStatusModal input[type="file"].form-control {
+            padding: 0.5rem;
+            font-size: 0.8rem !important;
+            min-height: 42px;
+        }
+
+        /* ---------- Notes textarea ---------- */
+        #deliveryStatusModal textarea {
+            font-size: 16px !important;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 380px) {
+        .order-number {
+            font-size: 0.95rem;
+        }
+
+        .product-image {
+            width: 42px !important;
+            height: 42px !important;
+        }
+
+        .product-name {
+            font-size: 0.82rem;
+        }
+
+        .info-value {
+            font-size: 0.78rem;
+        }
+
+        .status-btn {
+            font-size: 0.82rem;
+            padding: 0.75rem;
+        }
+
+        .btn-save-tracking {
+            font-size: 0.82rem;
+            padding: 0.65rem 0.85rem;
+        }
+    }
+
+    /* Touch device — remove hover */
+    @media (hover: none) {
+        .status-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-save-tracking:hover {
+            transform: none;
+        }
+
+        .btn-close-modal:hover {
+            background: #f1f5f9;
+        }
+    }
+
+    /* iPhone safe area */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        @media (max-width: 767.98px) {
+            #deliveryStatusModal .modal-body-custom {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -470,7 +867,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- ✅ NEW: Subtotal and Total Section - ALIGNED UNDER TOTAL COLUMN -->
+                    <!-- ✅ Subtotal and Total Section -->
                     <div class="p-3 bg-light">
                         <div class="totals-row totals-under-total">
                             <span class="totals-label">Subtotal</span>
@@ -530,7 +927,7 @@
 
             <!-- RIGHT COLUMN -->
             <div class="col-md-5">
-                <!-- ✅ NEW: Lalamove Tracking Section (Only shows for Lalamove) -->
+                <!-- Lalamove Tracking Section (Only shows for Lalamove) -->
                 <div class="info-card" id="lalamove-tracking-section" style="display:none;">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-truck"></i> Lalamove Tracking</h6>
@@ -579,7 +976,7 @@
                             @csrf
                             <input type="hidden" id="delivery_id" name="delivery_id">
                             
-                            <!-- Status Selection - ✅ FIXED: Always show ALL options -->
+                            <!-- Status Selection -->
                             <div class="mb-3">
                                 <label class="info-label">Select Status</label>
                                 <select class="form-select" id="status" name="status" required>
@@ -616,7 +1013,7 @@
                                           placeholder="Enter any notes or reason for status update..."></textarea>
                             </div>
                             
-                            <!-- Submit Button - ✅ CHANGED TO BLUE -->
+                            <!-- Submit Button -->
                             <button type="submit" class="btn-save-tracking" id="submitStatusBtn">
                                 <i class="fas fa-check-circle"></i> Update Delivery Status
                             </button>
@@ -707,29 +1104,24 @@ window.showDeliveryStatusModal = function(deliveryData) {
         const hasTracking = deliveryData.tracking_number && deliveryData.tracking_number.startsWith('http');
         
         if (hasTracking) {
-            // ✅ Already has tracking - show "Update Tracking Info" and enable button
             saveBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Update Tracking Info';
             saveBtn.disabled = false;
             saveBtn.classList.remove('saved');
             
-            // ✅ Show tracking link as clickable (data is saved)
             existingTrackingDisplay.style.display = 'block';
             existingTrackingLink.href = deliveryData.tracking_number;
             existingTrackingLink.style.pointerEvents = 'auto';
             existingTrackingLink.style.opacity = '1';
         } else {
-            // No tracking yet - show "Save Tracking Info"
             saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Tracking Info';
             saveBtn.disabled = false;
             saveBtn.classList.remove('saved');
             
-            // ✅ Hide tracking link (no data yet - NOT clickable)
             existingTrackingDisplay.style.display = 'none';
             existingTrackingLink.style.pointerEvents = 'none';
             existingTrackingLink.style.opacity = '0.5';
         }
         
-        // Reset result message
         document.getElementById('lalamove_tracking_result').innerHTML = '';
     } else {
         lalamoveTrackingSection.style.display = 'none';
@@ -750,7 +1142,6 @@ window.showDeliveryStatusModal = function(deliveryData) {
             const productImage = item.product && item.product.image ? item.product.image : null;
             const imageUrl = productImage ? (productImage.startsWith('http') ? productImage : '/storage/' + productImage) : null;
             
-            // ✅ NEW: Stock display - Show "—" placeholder, will be filled by AJAX
             itemsHtml += `
                 <tr>
                     <td>
@@ -788,7 +1179,6 @@ window.showDeliveryStatusModal = function(deliveryData) {
             const flavorId = item.flavor_id;
             const stockCell = document.getElementById(`stock-cell-${item.id}`);
             
-            // Use the existing API route
             const url = `/api/branches/${branchId}/products/${productId}/stock` + (flavorId ? `?flavor_id=${flavorId}` : '');
             
             fetch(url)
@@ -827,7 +1217,7 @@ window.showDeliveryStatusModal = function(deliveryData) {
     
     // ✅ FIX: Reset dropdown and show ALL options
     const statusSelect = document.getElementById('status');
-    statusSelect.value = ''; // Reset to default
+    statusSelect.value = '';
     
     // Enable all form elements
     const form = document.getElementById('statusUpdateForm');
@@ -837,7 +1227,7 @@ window.showDeliveryStatusModal = function(deliveryData) {
     submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Update Delivery Status';
     submitBtn.className = 'btn-save-tracking';
     
-    // ✅ Show modal using vanilla JavaScript
+    // ✅ Show modal
     const modal = document.getElementById('deliveryStatusModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -853,29 +1243,24 @@ window.saveLalamoveTracking = function() {
     const resultDiv = document.getElementById('lalamove_tracking_result');
     const saveBtn = document.getElementById('saveLalamoveTrackingBtn');
     
-    // Validate tracking link
     if (!trackingLink) {
         resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">Please enter a tracking link.</div>';
         return;
     }
     
-    // Validate URL format
     if (!trackingLink.startsWith('http://') && !trackingLink.startsWith('https://')) {
         resultDiv.innerHTML = '<div class="alert alert-danger alert-minimal mt-2">Please enter a valid URL (must start with http:// or https://).</div>';
         return;
     }
     
-    // Show loading
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
     resultDiv.innerHTML = '<div class="alert alert-info alert-minimal mt-2">Saving tracking info...</div>';
     
-    // Prepare form data
     const formData = new FormData();
     formData.append('tracking_number', trackingLink);
     formData.append('lalamove_driver_name', driverName);
     
-    // Send AJAX request
     fetch(`/driver/deliveries/${deliveryId}/update-lalamove`, {
         method: 'POST',
         headers: {
@@ -890,7 +1275,6 @@ window.saveLalamoveTracking = function() {
         if (data.success) {
             resultDiv.innerHTML = '<div class="alert alert-success alert-minimal mt-2">' + (data.message || 'Tracking info saved successfully!') + '</div>';
             
-            // ✅ Make tracking link clickable after saving
             const existingTrackingDisplay = document.getElementById('existing-tracking-display');
             const existingTrackingLink = document.getElementById('existing-tracking-link');
             existingTrackingDisplay.style.display = 'block';
@@ -898,12 +1282,10 @@ window.saveLalamoveTracking = function() {
             existingTrackingLink.style.pointerEvents = 'auto';
             existingTrackingLink.style.opacity = '1';
             
-            // ✅ Change button to "Update Tracking Info" and make it enabled
             saveBtn.disabled = false;
             saveBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Update Tracking Info';
             saveBtn.classList.remove('saved');
             
-            // Reload page after 1.5 seconds to update table
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
@@ -923,12 +1305,10 @@ window.saveLalamoveTracking = function() {
 
 // ✅ ADD THIS FUNCTION - Called from online-orders/show.blade.php
 window.openDeliveryModal = function(deliveryId) {
-    // Hide the order modal first
     if (typeof window.closeModal === 'function') {
         window.closeModal();
     }
     
-    // Fetch delivery data
     fetch(`/driver/deliveries/${deliveryId}/modal-data`)
         .then(response => {
             if (!response.ok) {
@@ -938,7 +1318,6 @@ window.openDeliveryModal = function(deliveryId) {
         })
         .then(data => {
             if (data.success) {
-                // Call showDeliveryStatusModal with the delivery data
                 showDeliveryStatusModal(data.delivery);
             } else {
                 alert(data.message || 'Failed to load delivery data.');
@@ -961,23 +1340,19 @@ window.closeDeliveryModal = function() {
 
 // ✅ Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Status change handler
     const statusSelect = document.getElementById('status');
     if (statusSelect) {
         statusSelect.addEventListener('change', function() {
             const status = this.value;
             
-            // Reset all sections
             document.getElementById('delivery-proof-section').style.display = 'none';
             document.getElementById('payment-proof-section').style.display = 'none';
             
-            // Show relevant sections based on status
             if (status === 'delivered') {
                 document.getElementById('delivery-proof-section').style.display = 'block';
                 document.getElementById('payment-proof-section').style.display = 'block';
             }
             
-            // Update notes placeholder based on status
             const notes = document.getElementById('notes');
             if (status === 'failed') {
                 notes.placeholder = 'Please provide reason for failed delivery...';
@@ -989,7 +1364,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Close button click
     const closeBtn = document.querySelector('#deliveryStatusModal .close');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
@@ -997,7 +1371,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Click outside to close
     const modal = document.getElementById('deliveryStatusModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
@@ -1007,7 +1380,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Form submission
     const form = document.getElementById('statusUpdateForm');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -1016,13 +1388,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const deliveryId = document.getElementById('delivery_id').value;
             const status = document.getElementById('status').value;
             
-            // Validate status selection
             if (!status) {
                 alert('Please select a status.');
                 return;
             }
             
-            // Validate required proofs for delivered status
             if (status === 'delivered') {
                 const hasDeliveryProof = document.getElementById('delivery_proof').files.length > 0;
                 const hasPaymentProof = document.getElementById('payment_proof').files.length > 0;
@@ -1037,7 +1407,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Validate reason for failed status
             if (status === 'failed') {
                 const notes = document.getElementById('notes').value;
                 if (!notes) {
@@ -1046,15 +1415,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Show loading
             const submitBtn = document.getElementById('submitStatusBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
             
-            // Create FormData
             const formData = new FormData(form);
             
-            // AJAX request
             fetch(`/driver/deliveries/${deliveryId}/update-status`, {
                 method: 'POST',
                 headers: {
@@ -1067,17 +1433,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // ✅ Show success message INSIDE the modal
                     const resultDiv = document.getElementById('delivery-status-result');
                     resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery status updated successfully!') + '</div>';
                     
-                    // Close modal after 1.5 seconds
                     setTimeout(() => {
                         window.closeDeliveryModal();
                         location.reload();
                     }, 1500);
                 } else {
-                    // Show error message INSIDE the modal
                     const resultDiv = document.getElementById('delivery-status-result');
                     resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Failed to update delivery status.') + '</div>';
                     submitBtn.disabled = false;

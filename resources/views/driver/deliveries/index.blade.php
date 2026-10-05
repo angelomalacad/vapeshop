@@ -251,7 +251,7 @@
         z-index: 1040;
         overflow: hidden;
         padding-bottom: 20px;
-        margin-top: 80px; /* Adjust this if your navbar is taller/shorter */
+        margin-top: 80px;
     }
     
     .sidebar-header {
@@ -309,16 +309,458 @@
         margin-left: 4px;
         padding-left: 13px;
     }
+
+    /* ============================================================ */
+    /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+    /* ============================================================ */
+    @media (max-width: 767.98px) {
+
+        /* ---------- Hide sidebar on mobile (bottom nav handles it) ---------- */
+        .app-sidebar {
+            display: none !important;
+        }
+
+        /* ---------- Container padding ---------- */
+        .container {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        /* ---------- Page Header ---------- */
+        .page-header {
+            margin-bottom: 1rem !important;
+            gap: 0.75rem !important;
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .page-title {
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .page-title i {
+            font-size: 1.15rem;
+        }
+
+        /* ---------- Stats Badges (2 per row, scrollable fallback) ---------- */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
+            width: 100%;
+            margin-top: 0.25rem;
+        }
+
+        .stat-badge {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.68rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-badge i {
+            font-size: 0.72rem;
+        }
+
+        /* ---------- Section Headers ---------- */
+        .section-header {
+            margin-bottom: 0.85rem;
+        }
+
+        .section-title {
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex-wrap: wrap;
+        }
+
+        .section-title i {
+            font-size: 0.95rem;
+            margin-right: 0;
+        }
+
+        /* ---------- Table Wrapper ---------- */
+        .table-wrapper {
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        /* ---------- Delivery Table → Card List ---------- */
+        .delivery-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .delivery-table thead {
+            display: none;
+        }
+
+        .delivery-table tbody tr {
+            display: block;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eef2f6;
+            position: relative;
+            transition: background 0.2s ease;
+        }
+
+        .delivery-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .delivery-table tbody tr:active {
+            background: #f8fafc;
+        }
+
+        .delivery-table td {
+            display: block;
+            padding: 0.2rem 0;
+            border: none;
+            font-size: 0.82rem;
+            text-align: left !important;
+        }
+
+        /* Order # (col 1) — top of card */
+        .delivery-table td:nth-child(1) {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.1rem;
+        }
+
+        .delivery-table td:nth-child(1) .fw-semibold {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .delivery-table td:nth-child(1) i {
+            font-size: 0.75rem;
+        }
+
+        /* Image (col 2) — float right */
+        .delivery-table td:nth-child(2) {
+            position: absolute;
+            top: 0.9rem;
+            right: 1rem;
+            padding: 0;
+            width: auto;
+        }
+
+        .delivery-table td:nth-child(2) img,
+        .delivery-table td:nth-child(2) > div {
+            width: 56px !important;
+            height: 56px !important;
+            border-radius: 10px !important;
+        }
+
+        /* Product (col 3) */
+        .delivery-table td:nth-child(3) {
+            padding-right: 4.5rem;
+            padding-bottom: 0.55rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 0.4rem;
+        }
+
+        .delivery-table td:nth-child(3) div:first-child {
+            font-size: 0.9rem;
+            color: #1a1a2e;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 0.15rem;
+        }
+
+        .delivery-table td:nth-child(3) small {
+            font-size: 0.72rem;
+        }
+
+        /* Amount (col 4) — inline row */
+        .delivery-table td:nth-child(4) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .delivery-table td:nth-child(4)::before {
+            content: 'Amount';
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .delivery-table td:nth-child(4) .fw-bold {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        /* Customer (col 5) — inline row */
+        .delivery-table td:nth-child(5) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .delivery-table td:nth-child(5)::before {
+            content: 'Customer';
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Contact (col 6) — inline row */
+        .delivery-table td:nth-child(6) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .delivery-table td:nth-child(6)::before {
+            content: 'Contact';
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Address (col 7) — stacked block */
+        .delivery-table td:nth-child(7) {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8fafc;
+            line-height: 1.4;
+        }
+
+        .delivery-table td:nth-child(7)::before {
+            content: 'Address';
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.25rem;
+        }
+
+        .delivery-table td:nth-child(7) .small {
+            font-size: 0.72rem;
+        }
+
+        /* Assigned (col 8) — inline row */
+        .delivery-table td:nth-child(8) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .delivery-table td:nth-child(8)::before {
+            content: 'Assigned';
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Status (col 9) — inline row */
+        .delivery-table td:nth-child(9) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0 0.25rem;
+        }
+
+        .delivery-table td:nth-child(9)::before {
+            content: 'Status';
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Completed table has 10 columns — adjust */
+        #completed-section .delivery-table td:nth-child(9)::before {
+            content: 'Status';
+        }
+
+        #completed-section .delivery-table td:nth-child(9) {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        /* Delivered On (col 8 for completed table) — rename label */
+        #completed-section .delivery-table td:nth-child(8)::before {
+            content: 'Delivered On';
+        }
+
+        /* Action (col 10 for completed table) — full width bottom */
+        #completed-section .delivery-table td:nth-child(10) {
+            padding-top: 0.65rem;
+            margin-top: 0.25rem;
+            text-align: center;
+        }
+
+        #completed-section .delivery-table .btn-view {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #completed-section .delivery-table .btn-view:active {
+            transform: scale(0.98);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            font-size: 0.68rem;
+            padding: 0.28rem 0.6rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.75rem;
+        }
+
+        .pagination .page-link {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.65rem;
+            border-radius: 10px !important;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 2.5rem 1rem;
+            border-radius: 14px;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+        }
+
+        .empty-state h5 {
+            font-size: 0.95rem;
+        }
+
+        .empty-state p {
+            font-size: 0.78rem;
+        }
+
+        /* Modal — bottom sheet */
+        .modal-dialog {
+            margin: 0 !important;
+            align-items: flex-end;
+            min-height: calc(100% - 20px);
+        }
+
+        .modal-content {
+            border-radius: 24px 24px 0 0 !important;
+            border: none;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 380px) {
+        .page-title {
+            font-size: 1.02rem;
+        }
+
+        .stat-badge {
+            font-size: 0.6rem;
+            padding: 0.4rem 0.5rem;
+        }
+
+        .stat-badge i {
+            font-size: 0.65rem;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+        }
+
+        .delivery-table td:nth-child(3) div:first-child {
+            font-size: 0.82rem;
+        }
+
+        .delivery-table td:nth-child(4) .fw-bold {
+            font-size: 0.88rem;
+        }
+
+        #completed-section .delivery-table .btn-view {
+            font-size: 0.75rem;
+            padding: 0.55rem 0.85rem;
+        }
+    }
+
+    /* Touch device — remove hover */
+    @media (hover: none) {
+        .delivery-table tbody tr:hover {
+            background: transparent;
+        }
+
+        .btn-view:hover {
+            background: #eff6ff;
+            color: #3b82f6;
+            border-color: #dbeafe;
+            transform: none;
+        }
+
+        .btn-update:hover {
+            transform: none;
+            box-shadow: none;
+        }
+    }
+
+    /* iPhone safe area */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        @media (max-width: 767.98px) {
+            .modal-content {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    }
 </style>
 
 <!-- 1. THE DRIVER MENU SIDEBAR (Floats on the left, clears header) -->
 <div class="app-sidebar">
-    <!-- Dark Blue Header -->
     <div class="sidebar-header">
         <h6><i class="bi bi-grid-3x3-gap-fill"></i> Driver Menu</h6>
     </div>
     
-    <!-- Menu Links -->
     <div class="sidebar-menu">
         <a href="{{ route('driver.dashboard') }}" class="menu-item {{ request()->routeIs('driver.dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Dashboard
@@ -329,12 +771,12 @@
         </a>
         
         <a href="{{ route('driver.delivery-history') }}" class="menu-item {{ request()->routeIs('driver.delivery-history') ? 'active' : '' }}">
-            <i class="bi bi-clock-history"></i>Delivery History
+            <i class="bi bi-clock-history"></i> Delivery History
         </a>
     </div>
 </div>
 
-<!-- 2. YOUR ORIGINAL CONTENT (100% UNTOUCHED - Layout, paddings, margins, and containers are EXACTLY as you wrote them) -->
+<!-- 2. YOUR ORIGINAL CONTENT -->
 <div class="container">
     <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -441,7 +883,6 @@
             </table>
         </div>
         
-        <!-- Pagination for Active Deliveries -->
         @if($activeDeliveries->hasPages())
         <div class="d-flex justify-content-center mt-4">
             {{ $activeDeliveries->links() }}
@@ -450,9 +891,9 @@
     </div>
     @endif
 
-       <!-- Completed Deliveries Section -->
+    <!-- Completed Deliveries Section -->
     @if($completedDeliveries->count() > 0)
-    <div class="mb-4">
+    <div class="mb-4" id="completed-section">
         <div class="section-header">
             <h4 class="section-title">
                 <i class="bi bi-check-circle-fill text-success"></i> Completed Deliveries
@@ -542,7 +983,6 @@
             </table>
         </div>
         
-        <!-- Pagination for Completed Deliveries -->
         @if($completedDeliveries->hasPages())
         <div class="d-flex justify-content-center mt-4">
             {{ $completedDeliveries->links() }}

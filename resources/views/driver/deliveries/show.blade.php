@@ -141,11 +141,11 @@
 
     /* ✅ NEW: Align totals under TOTAL column */
     .totals-align-fixed .totals-label {
-        margin-left: 25rem; /* Adjust to move labels right (under PRICE) */
+        margin-left: 25rem;
     }
 
     .totals-align-fixed .totals-value {
-        margin-right: 6rem; /* Adjust to move numbers left (under TOTAL) */
+        margin-right: 6rem;
     }
 
     .totals-label {
@@ -365,6 +365,340 @@
         text-transform: capitalize;
         line-height: 1;
     }
+
+    /* ============================================================ */
+    /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+    /* ============================================================ */
+    @media (max-width: 767.98px) {
+
+        /* ---------- Modal Body Padding ---------- */
+        .modal-body-custom {
+            max-height: 88vh;
+        }
+
+        .modal-body-custom > div {
+            padding: 1.25rem 1rem !important;
+        }
+
+        /* ---------- Header ---------- */
+        .modal-header-custom {
+            padding: 0 0 0.75rem 0 !important;
+        }
+
+        .order-number {
+            font-size: 1.05rem;
+            line-height: 1.3;
+            padding-right: 2rem;
+        }
+
+        .order-date {
+            font-size: 0.72rem;
+        }
+
+        /* ---------- Cards ---------- */
+        .info-card {
+            border-radius: 14px;
+            margin-bottom: 0.85rem !important;
+        }
+
+        .card-header-custom {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-header-custom h6 {
+            font-size: 0.82rem;
+        }
+
+        .info-card .card-body,
+        .info-card > .p-3 {
+            padding: 0.9rem !important;
+        }
+
+        /* ---------- Order Items Table → Card List ---------- */
+        .order-items-table {
+            table-layout: auto;
+        }
+
+        .order-items-table thead {
+            display: none;
+        }
+
+        .order-items-table tbody tr {
+            display: block;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #eef2f6;
+            position: relative;
+        }
+
+        .order-items-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .order-items-table td {
+            display: block;
+            padding: 0.2rem 0;
+            border: none;
+            font-size: 0.82rem;
+            text-align: left !important;
+            width: auto !important;
+        }
+
+        /* Image cell (col 1) */
+        .order-items-table td:nth-child(1) {
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 0.75rem;
+            padding: 0;
+            width: auto !important;
+        }
+
+        .order-items-table td:nth-child(1) .product-image {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 10px !important;
+        }
+
+        /* Product name (col 2) */
+        .order-items-table td:nth-child(2) {
+            display: inline-block;
+            vertical-align: top;
+            width: calc(100% - 60px) !important;
+            padding: 0 0 0.5rem 0;
+            margin-bottom: 0.4rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .order-items-table td:nth-child(2) .product-name {
+            font-size: 0.88rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .order-items-table td:nth-child(2) .product-flavor {
+            font-size: 0.7rem;
+        }
+
+        /* Qty / Price / Subtotal (cols 3,4,5) - inline rows */
+        .order-items-table td:nth-child(3),
+        .order-items-table td:nth-child(4),
+        .order-items-table td:nth-child(5) {
+            display: inline-block;
+            width: auto !important;
+            padding: 0.3rem 0.75rem 0.3rem 0;
+            font-size: 0.78rem;
+            color: #475569;
+        }
+
+        .order-items-table td:nth-child(3)::before {
+            content: 'Qty: ';
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(4)::before {
+            content: '@ ';
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(5) {
+            float: right;
+            padding-right: 0;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 0.85rem;
+        }
+
+        /* Stock cell (col 6) */
+        .order-items-table td:nth-child(6) {
+            display: block;
+            padding-top: 0.4rem;
+            text-align: left !important;
+        }
+
+        .order-items-table td:nth-child(6) .stock-info {
+            display: inline-flex;
+            flex-direction: row;
+            gap: 0.5rem;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.7rem;
+            margin-top: 0.15rem;
+        }
+
+        /* ---------- Totals ---------- */
+        .info-card .p-3.bg-light {
+            padding: 0.75rem 1rem !important;
+        }
+
+        .totals-align-fixed .totals-label,
+        .totals-align-fixed .totals-value {
+            margin: 0 !important;
+        }
+
+        .totals-row {
+            padding: 0.35rem 0 !important;
+        }
+
+        .totals-label {
+            font-size: 0.82rem;
+        }
+
+        .totals-value {
+            font-size: 0.82rem;
+        }
+
+        .totals-total {
+            margin-top: 0.4rem;
+            padding-top: 0.4rem;
+        }
+
+        .totals-total .totals-label,
+        .totals-total .totals-value {
+            font-size: 0.95rem;
+        }
+
+        /* ---------- Info Rows ---------- */
+        .info-label {
+            font-size: 0.68rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .info-value {
+            font-size: 0.82rem;
+            margin-bottom: 0.65rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Delivery Info + Customer Details — stack columns */
+        .row.g-3 > .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        /* ---------- Timeline ---------- */
+        .timeline-container {
+            padding: 0.5rem 0;
+        }
+
+        .timeline-item {
+            margin-bottom: 1.25rem;
+        }
+
+        .timeline-icon {
+            width: 36px;
+            height: 36px;
+            margin-right: 0.85rem;
+        }
+
+        .timeline-icon i {
+            font-size: 0.9rem;
+        }
+
+        .timeline-line {
+            left: 18px;
+            top: 36px;
+        }
+
+        .timeline-title {
+            font-size: 0.82rem;
+        }
+
+        .timeline-date {
+            font-size: 0.68rem;
+        }
+
+        /* ---------- Proof Images ---------- */
+        .proof-image {
+            height: 140px;
+            border-radius: 12px;
+        }
+
+        /* Proof image download buttons */
+        .info-card .btn-outline-primary,
+        .info-card .btn-outline-success {
+            font-size: 0.72rem;
+            padding: 0.35rem 0.75rem;
+            width: 100%;
+        }
+
+        /* ---------- Lalamove Tracking Card ---------- */
+        .info-card[style*="border: 1px solid #0d6efd"] {
+            border-radius: 14px;
+        }
+
+        .info-card[style*="border: 1px solid #0d6efd"] .info-value a {
+            font-size: 0.78rem;
+        }
+
+        /* ---------- Badges ---------- */
+        .badge {
+            font-size: 0.68rem;
+            padding: 0.3rem 0.6rem;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 380px) {
+        .order-number {
+            font-size: 0.95rem;
+        }
+
+        .order-date {
+            font-size: 0.68rem;
+        }
+
+        .order-items-table td:nth-child(1) .product-image {
+            width: 42px !important;
+            height: 42px !important;
+        }
+
+        .order-items-table td:nth-child(2) {
+            width: calc(100% - 54px) !important;
+        }
+
+        .order-items-table td:nth-child(2) .product-name {
+            font-size: 0.82rem;
+        }
+
+        .info-value {
+            font-size: 0.78rem;
+        }
+
+        .timeline-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .timeline-icon i {
+            font-size: 0.8rem;
+        }
+
+        .timeline-line {
+            left: 16px;
+            top: 32px;
+        }
+
+        .timeline-title {
+            font-size: 0.78rem;
+        }
+
+        .proof-image {
+            height: 120px;
+        }
+    }
+
+    /* Touch device — remove hover */
+    @media (hover: none) {
+        .proof-image:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .proof-image:active {
+            transform: scale(0.98);
+        }
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -380,7 +714,7 @@
             </div>
         </div>
 
-        <!-- ✅ FIXED: Order Items - FULL WIDTH -->
+        <!-- Order Items - FULL WIDTH -->
         <div class="info-card">
             <div class="card-header-custom">
                 <h6><i class="bi bi-box-seam"></i> Order Items</h6>
@@ -474,7 +808,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- ✅ FIXED: Subtotal and Total - Aligned under TOTAL column -->
+                    <!-- ✅ Subtotal and Total -->
                     <div class="p-3 bg-light">
                         <div class="totals-row totals-align-fixed">
                             <span class="totals-label">Subtotal</span>
@@ -493,7 +827,7 @@
             </div>
         </div>
 
-        <!-- ✅ FIXED: Delivery Information + Customer Details - ONE ROW -->
+        <!-- Delivery Information + Customer Details - ONE ROW -->
         <div class="row g-3">
             <!-- Delivery Information (Left) -->
             <div class="col-md-6">
@@ -508,7 +842,6 @@
                         <p class="info-label">Status</p>
                         <p class="info-value">
                             @php
-                                // ✅ FIXED: Status badge colors matching online orders
                                 $statusBadgeClass = match ($delivery->status) {
                                     'pending' => 'badge-pending',
                                     'assigned' => 'badge-ready',
@@ -585,7 +918,7 @@
             </div>
         </div>
 
-        <!-- ✅ FIXED: Delivery Progress + Lalamove Tracking - ONE ROW -->
+        <!-- Delivery Progress + Lalamove Tracking - ONE ROW -->
         <div class="row g-3">
             <!-- Delivery Progress (Left) -->
             <div class="col-md-6">
@@ -596,7 +929,6 @@
                     <div class="card-body p-3">
                         <div class="timeline-container">
                             @php
-                                // ✅ FIXED: Status progression using out_for_delivery
                                 $deliveryStatusOrder = [
                                     'pending' => 0,
                                     'assigned' => 1,
@@ -611,17 +943,14 @@
                                 $currentDeliveryStatus = $delivery->status;
                                 $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
 
-                                // Helper function
                                 $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
                                     return $currentDeliveryLevel >= $level;
                                 };
 
-                                // Check if this is the current step
                                 $isCurrentStep = function ($level) use ($currentDeliveryLevel) {
                                     return $currentDeliveryLevel == $level;
                                 };
 
-                                // Format date helper
                                 $formatDate = function ($date) {
                                     return $date ? \Carbon\Carbon::parse($date)->format('M d, Y h:i A') : null;
                                 };
@@ -669,7 +998,7 @@
                                 <div class="timeline-line {{ $isDeliveryCompleted(3) ? 'completed' : '' }}"></div>
                             </div>
 
-                            <!-- ✅ FIXED: Out for Delivery (was In Transit) -->
+                            <!-- Out for Delivery -->
                             <div class="timeline-item">
                                 <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : ($isCurrentStep(3) ? 'current' : 'pending') }}">
                                     <i class="bi bi-truck"></i>
@@ -713,7 +1042,6 @@
             <!-- Lalamove Tracking / Proofs (Right) -->
             <div class="col-md-6">
                 @php
-                    // Lalamove Eligibility Check
                     $cityLower = strtolower(trim($delivery->order->city ?? ''));
                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                     $isLalamoveEligible = !$isCalambaCity;

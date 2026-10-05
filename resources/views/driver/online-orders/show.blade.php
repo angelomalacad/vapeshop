@@ -189,13 +189,14 @@
     }
 
     /* ✅ Align Subtotal and Total under PRICE column */
-.totals-align-fixed .totals-label {
-    margin-left: 14rem; /* Adjust to move labels right (under PRICE) */
-}
+    .totals-align-fixed .totals-label {
+        margin-left: 14rem;
+    }
 
-.totals-align-fixed .totals-value {
-    margin-right: 5rem; /* Adjust to move numbers left (under TOTAL) */
-}
+    .totals-align-fixed .totals-value {
+        margin-right: 5rem;
+    }
+
     .totals-label {
         font-size: 0.8rem;
         color: #64748b;
@@ -281,7 +282,7 @@
         gap: 0.25rem;
     }
 
-    /* ✅ NEW: Delivery Date Range Styles */
+    /* Delivery Date Range Styles */
     .delivery-date-range {
         display: flex;
         gap: 0.5rem;
@@ -293,7 +294,7 @@
         font-size: 0.8rem;
     }
 
-    /* ✅ NEW: Stock Info Styles */
+    /* Stock Info Styles */
     .stock-info {
         display: flex;
         align-items: center;
@@ -325,6 +326,329 @@
 
     .stock-info-icon {
         font-size: 0.9rem;
+    }
+
+    /* ============================================================ */
+    /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+    /* ============================================================ */
+    @media (max-width: 767.98px) {
+
+        /* ---------- Modal Body Padding ---------- */
+        .modal-body-custom {
+            max-height: 88vh;
+        }
+
+        .modal-body-custom > div {
+            padding: 1.25rem 1rem !important;
+        }
+
+        /* ---------- Close Button (larger touch target) ---------- */
+        .btn-close-modal {
+            top: 14px;
+            right: 14px;
+            font-size: 28px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close-modal:active {
+            background: #e2e8f0;
+            transform: scale(0.94);
+        }
+
+        /* ---------- Header ---------- */
+        .modal-header-custom {
+            padding: 0 0 0.75rem 0 !important;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+
+        .order-number {
+            font-size: 1.05rem;
+            line-height: 1.3;
+            word-break: break-all;
+            padding-right: 2.5rem;
+        }
+
+        .order-date {
+            font-size: 0.72rem;
+        }
+
+        /* ---------- Cards ---------- */
+        .info-card {
+            border-radius: 14px;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-header-custom {
+            padding: 0.75rem 1rem;
+        }
+
+        .card-header-custom h6 {
+            font-size: 0.82rem;
+        }
+
+        .info-card .card-body,
+        .info-card > .p-3 {
+            padding: 0.9rem !important;
+        }
+
+        /* ---------- Order Items Table → Card List ---------- */
+        .order-items-table thead {
+            display: none;
+        }
+
+        .order-items-table tbody tr {
+            display: block;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #eef2f6;
+            position: relative;
+        }
+
+        .order-items-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .order-items-table td {
+            display: block;
+            padding: 0.2rem 0;
+            border: none;
+            font-size: 0.82rem;
+            text-align: left !important;
+        }
+
+        /* Product cell */
+        .order-items-table td:nth-child(1) {
+            padding-bottom: 0.5rem;
+            padding-right: 0;
+        }
+
+        .order-items-table .d-flex {
+            gap: 0.7rem !important;
+        }
+
+        .product-image {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 10px !important;
+            flex-shrink: 0;
+        }
+
+        .product-name {
+            font-size: 0.88rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .product-flavor {
+            font-size: 0.7rem;
+        }
+
+        /* Qty / Price / Total - inline row */
+        .order-items-table td:nth-child(2),
+        .order-items-table td:nth-child(3),
+        .order-items-table td:nth-child(4) {
+            display: inline-block;
+            width: auto;
+            padding-right: 0.75rem;
+            font-size: 0.78rem;
+            color: #475569;
+        }
+
+        .order-items-table td:nth-child(2)::before {
+            content: 'Qty: ';
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(3)::before {
+            content: '@ ';
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .order-items-table td:nth-child(4) {
+            float: right;
+            padding-right: 0;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 0.85rem;
+        }
+
+        /* Stock cell */
+        .order-items-table td:nth-child(5) {
+            padding-top: 0.5rem;
+            text-align: left !important;
+        }
+
+        .order-items-table td:nth-child(5) .stock-info {
+            display: inline-flex;
+            justify-content: flex-start;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.72rem;
+            margin-top: 0.15rem;
+        }
+
+        /* ---------- Totals ---------- */
+        .info-card .p-3.bg-light {
+            padding: 0.75rem 1rem !important;
+        }
+
+        .totals-align-fixed .totals-label,
+        .totals-align-fixed .totals-value {
+            margin: 0 !important;
+        }
+
+        .totals-row {
+            padding: 0.35rem 0 !important;
+        }
+
+        .totals-label {
+            font-size: 0.82rem;
+        }
+
+        .totals-value {
+            font-size: 0.82rem;
+        }
+
+        .totals-total {
+            margin-top: 0.4rem;
+            padding-top: 0.4rem;
+        }
+
+        .totals-total .totals-label,
+        .totals-total .totals-value {
+            font-size: 0.95rem;
+        }
+
+        /* ---------- Info Rows (Branch, Customer) ---------- */
+        .info-label {
+            font-size: 0.68rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .info-value {
+            font-size: 0.82rem;
+            margin-bottom: 0.65rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Customer info columns → stack on mobile */
+        .info-card .row > .col-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        /* ---------- Status Buttons ---------- */
+        .status-btn {
+            padding: 0.85rem;
+            font-size: 0.88rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-btn:active {
+            transform: scale(0.98);
+            box-shadow: none;
+        }
+
+        /* ---------- Alerts ---------- */
+        .alert-custom {
+            padding: 0.85rem 1rem;
+            font-size: 0.82rem;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        /* ---------- Delivery Date Range ---------- */
+        .delivery-date-range {
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .delivery-date-range .form-control {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.78rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 10px;
+            min-height: 40px;
+        }
+
+        .delivery-date-range > span {
+            font-size: 0.72rem;
+            color: #94a3b8;
+        }
+
+        #saveDeliveryDateBtn {
+            width: 100%;
+            padding: 0.65rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 10px;
+            margin-top: 0.6rem !important;
+        }
+
+        #saveDeliveryDateBtn:active {
+            transform: scale(0.98);
+        }
+
+        /* ---------- Result alerts ---------- */
+        #result .alert {
+            font-size: 0.8rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 380px) {
+        .order-number {
+            font-size: 0.95rem;
+        }
+
+        .order-date {
+            font-size: 0.68rem;
+        }
+
+        .product-image {
+            width: 42px !important;
+            height: 42px !important;
+        }
+
+        .product-name {
+            font-size: 0.82rem;
+        }
+
+        .info-value {
+            font-size: 0.78rem;
+        }
+
+        .status-btn {
+            font-size: 0.82rem;
+            padding: 0.75rem;
+        }
+
+        .totals-total .totals-label,
+        .totals-total .totals-value {
+            font-size: 0.88rem;
+        }
+    }
+
+    /* Touch devices — remove hover */
+    @media (hover: none) {
+        .status-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
     }
 </style>
 

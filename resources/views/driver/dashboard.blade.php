@@ -135,7 +135,6 @@
                         </div>
                         <h5 class="mb-1 fw-semibold">My Delivery History</h5>
                         <p class="text-muted mb-3 small">Track delivered Items</p>
-                        <!-- ✅ This link points to driver.delivery-history -->
                         <a href="{{ route('driver.delivery-history') }}"
                             class="btn btn-outline-success rounded-pill px-3 py-1 btn-sm">
                             View History <i class="bi bi-arrow-right ms-1"></i>
@@ -145,7 +144,7 @@
             </div>
         </div>
 
-        <!-- ✅ NEW: Recent Activity with Tabs -->
+        <!-- ✅ Recent Activity with Tabs -->
         <div class="card border-0 shadow-sm modern-card">
             <div class="card-header bg-white py-3 border-0">
                 <h5 class="mb-0 fw-semibold">
@@ -523,6 +522,510 @@
         ::-webkit-scrollbar-thumb {
             background: #1a1a2e;
             border-radius: 10px;
+        }
+
+        /* ============================================================ */
+        /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+        /* ============================================================ */
+        @media (max-width: 767.98px) {
+
+            /* ---------- Container Padding ---------- */
+            .container-fluid {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* ---------- Welcome Banner ---------- */
+            .welcome-banner {
+                border-radius: 16px;
+            }
+
+            .welcome-banner .card-body {
+                padding: 1.1rem 1rem !important;
+            }
+
+            .welcome-banner .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.75rem;
+            }
+
+            .welcome-banner h2 {
+                font-size: 1.15rem;
+                line-height: 1.3;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+
+            .welcome-banner h2 i {
+                font-size: 1.15rem;
+            }
+
+            .welcome-banner p {
+                font-size: 0.78rem !important;
+            }
+
+            .welcome-banner .badge {
+                font-size: 0.72rem !important;
+                padding: 0.4rem 0.8rem !important;
+                align-self: flex-start;
+            }
+
+            /* ---------- Stats Grid (2 per row) ---------- */
+            .row.g-4.mb-4 > .col-sm-6.col-xl-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            .row.g-4.mb-4 {
+                --bs-gutter-x: 0.75rem;
+                --bs-gutter-y: 0.75rem;
+                margin-bottom: 1rem !important;
+            }
+
+            .stat-card {
+                border-radius: 14px;
+                transition: transform 0.15s ease;
+            }
+
+            .stat-card:active {
+                transform: scale(0.97);
+            }
+
+            .stat-card .card-body {
+                padding: 0.85rem 0.9rem;
+            }
+
+            .stat-card .card-body > .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 0.5rem;
+            }
+
+            .stat-card .text-uppercase {
+                font-size: 0.62rem !important;
+                letter-spacing: 0.3px;
+                line-height: 1.2;
+            }
+
+            .stat-card h2 {
+                font-size: 1.35rem !important;
+                line-height: 1;
+                margin-top: 0.2rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .stat-card small.text-muted {
+                font-size: 0.68rem;
+                line-height: 1.3;
+            }
+
+            .stat-icon-wrapper {
+                width: 38px;
+                height: 38px;
+                border-radius: 10px;
+            }
+
+            .stat-icon-wrapper i {
+                font-size: 1.1rem !important;
+            }
+
+            /* ---------- Action Cards (horizontal on mobile) ---------- */
+            .row.g-4.mb-4 > .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .action-card {
+                border-radius: 14px;
+                transition: transform 0.15s ease;
+            }
+
+            .action-card:active {
+                transform: scale(0.98);
+            }
+
+            .action-card .card-body {
+                padding: 0.95rem 1rem !important;
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                text-align: left !important;
+            }
+
+            .action-icon-wrapper {
+                margin-bottom: 0 !important;
+                flex-shrink: 0;
+            }
+
+            .action-icon-wrapper i {
+                font-size: 1.9rem !important;
+            }
+
+            .action-card h5 {
+                font-size: 0.92rem !important;
+                margin-bottom: 0.15rem !important;
+            }
+
+            .action-card p {
+                font-size: 0.72rem !important;
+                margin-bottom: 0.35rem !important;
+                line-height: 1.4;
+            }
+
+            .action-card .btn {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.75rem;
+                margin-top: 0.25rem;
+            }
+
+            /* Make action card body layout work — icon + text stacked properly */
+            .action-card .card-body > *:not(.action-icon-wrapper) {
+                flex: 1;
+                min-width: 0;
+            }
+
+            /* ---------- Tabs (scrollable on mobile) ---------- */
+            .nav-tabs {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-tabs .nav-link {
+                font-size: 0.78rem;
+                padding: 0.5rem 0.75rem;
+                white-space: nowrap;
+                border: none;
+                color: #64748b;
+            }
+
+            .nav-tabs .nav-link.active {
+                color: #0d6efd;
+                background: transparent;
+                border-bottom: 2px solid #0d6efd;
+                font-weight: 600;
+            }
+
+            .nav-tabs .nav-link i {
+                font-size: 0.85rem;
+            }
+
+            /* ---------- Modern Card Header ---------- */
+            .modern-card .card-header {
+                padding: 0.85rem 1rem !important;
+                border-radius: 14px 14px 0 0;
+            }
+
+            .modern-card .card-header h5 {
+                font-size: 0.92rem;
+            }
+
+            /* ---------- Tables → Card List ---------- */
+            .table-responsive {
+                overflow-x: visible;
+                border: none;
+            }
+
+            .table {
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tbody tr {
+                display: block;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+                transition: background 0.2s ease;
+            }
+
+            .table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .table tbody tr:active {
+                background: #f8fafc;
+            }
+
+            .table td {
+                display: block;
+                padding: 0.25rem 0;
+                border: none;
+                font-size: 0.82rem;
+                text-align: left !important;
+            }
+
+            /* Recent Orders Table — 6 columns */
+            .table td.ps-4 {
+                padding-left: 0 !important;
+            }
+
+            /* Order # / Tracking # (col 1) */
+            .table td:nth-child(1) {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #1a1a2e;
+                margin-bottom: 0.1rem;
+            }
+
+            .table td:nth-child(1) code {
+                font-size: 0.85rem;
+                background: #f1f5f9;
+                padding: 0.2rem 0.55rem;
+                border-radius: 6px;
+                color: #0d6efd;
+                font-weight: 700;
+            }
+
+            /* Date / Order # (col 2) */
+            .table td:nth-child(2) {
+                font-size: 0.72rem;
+                color: #64748b;
+                white-space: normal !important;
+                margin-bottom: 0.4rem;
+            }
+
+            /* Customer (col 3) */
+            .table td:nth-child(3) {
+                padding-bottom: 0.5rem;
+                border-bottom: 1px dashed #f1f5f9;
+                margin-bottom: 0.4rem;
+            }
+
+            .table td:nth-child(3) .fw-semibold {
+                font-size: 0.85rem;
+                color: #1a1a2e;
+                display: block;
+            }
+
+            .table td:nth-child(3) small {
+                font-size: 0.72rem;
+                color: #64748b;
+            }
+
+            /* Total (col 4) — inline row */
+            .table td:nth-child(4) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .table td:nth-child(4)::before {
+                content: 'Total';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .table td:nth-child(4) strong {
+                color: #10b981;
+                font-size: 0.92rem;
+                font-weight: 700;
+            }
+
+            /* Delivery Type / Status (col 5) — inline row */
+            .table td:nth-child(5) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .table td:nth-child(5)::before {
+                content: 'Type';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Deliveries tab col 5 = Updated */
+            #deliveries .table td:nth-child(5)::before {
+                content: 'Updated';
+            }
+
+            /* Status (col 6 for orders, col 4 for deliveries) — inline row */
+            .table td:nth-child(6) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+            }
+
+            .table td:nth-child(6)::before {
+                content: 'Status';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Deliveries table specific — 5 columns */
+            #deliveries .table td:nth-child(4) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+            }
+
+            #deliveries .table td:nth-child(4)::before {
+                content: 'Status';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Badges */
+            .table .badge {
+                font-size: 0.68rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            /* Empty state */
+            .table td[colspan] {
+                padding: 2.5rem 1rem !important;
+                font-size: 0.85rem;
+                text-align: center;
+            }
+
+            .table td[colspan] .display-1 {
+                font-size: 2.75rem !important;
+            }
+
+            .table td[colspan] h5 {
+                font-size: 1rem;
+            }
+
+            .table td[colspan] p {
+                font-size: 0.82rem;
+            }
+
+            /* Footer note */
+            .modern-card .bg-white.text-center.py-2 {
+                padding: 0.65rem 1rem !important;
+            }
+
+            .modern-card .bg-white.text-center.py-2 small {
+                font-size: 0.72rem;
+            }
+
+            /* Loading screen — smaller logo */
+            .loading-logo {
+                padding: 16px;
+                border-radius: 26px;
+            }
+
+            .loading-logo img {
+                width: 55px !important;
+            }
+
+            .loading-title {
+                font-size: 1.5rem;
+            }
+
+            .loading-spinner {
+                width: 34px;
+                height: 34px;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .welcome-banner h2 {
+                font-size: 1.02rem;
+            }
+
+            .welcome-banner p {
+                font-size: 0.72rem !important;
+            }
+
+            .stat-card h2 {
+                font-size: 1.2rem !important;
+            }
+
+            .stat-card .text-uppercase {
+                font-size: 0.58rem !important;
+            }
+
+            .stat-icon-wrapper {
+                width: 34px;
+                height: 34px;
+            }
+
+            .stat-icon-wrapper i {
+                font-size: 0.95rem !important;
+            }
+
+            .action-card h5 {
+                font-size: 0.85rem !important;
+            }
+
+            .action-card p {
+                font-size: 0.68rem !important;
+            }
+
+            .nav-tabs .nav-link {
+                font-size: 0.72rem;
+                padding: 0.45rem 0.6rem;
+            }
+
+            .table td:nth-child(1) code {
+                font-size: 0.8rem;
+            }
+
+            .loading-logo img {
+                width: 48px !important;
+            }
+
+            .loading-title {
+                font-size: 1.35rem;
+            }
+        }
+
+        /* Touch device — remove hover */
+        @media (hover: none) {
+            .stat-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .action-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .modern-card:hover {
+                box-shadow: none;
+            }
+
+            .btn-outline-primary:hover,
+            .btn-outline-success:hover {
+                background: transparent;
+                color: #1a1a2e;
+                border-color: #e2e8f0;
+            }
         }
     </style>
 

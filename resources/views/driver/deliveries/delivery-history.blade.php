@@ -116,7 +116,7 @@
             border-bottom: none;
         }
 
-        /* ✅ FIXED: Status Badges - Matches Online Orders */
+        /* Status Badges */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -213,7 +213,7 @@
             font-size: 0.7rem;
         }
 
-        /* ✅ FIXED: Pagination Styles */
+        /* Pagination */
         .pagination {
             margin-bottom: 0;
         }
@@ -352,6 +352,635 @@
                 margin-top: 0.5rem;
             }
         }
+
+        /* ============================================================ */
+        /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+        /* ============================================================ */
+        @media (max-width: 767.98px) {
+
+            /* ---------- Hide sidebar on mobile (bottom nav handles it) ---------- */
+            .app-sidebar {
+                display: none !important;
+            }
+
+            /* ---------- Container padding ---------- */
+            .container-fluid {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* ---------- Page Header ---------- */
+            .page-header {
+                margin-bottom: 1rem !important;
+                gap: 0.75rem !important;
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .page-title {
+                font-size: 1.15rem;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                margin-bottom: 0.35rem;
+            }
+
+            .page-title i {
+                font-size: 1.15rem;
+            }
+
+            /* ---------- Stats Badges (2 per row grid) ---------- */
+            .stats-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.4rem;
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+
+            .stat-badge {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.68rem;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.25rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .stat-badge i {
+                font-size: 0.72rem;
+            }
+
+            /* ---------- Filter Container ---------- */
+            .filter-container {
+                border-radius: 14px;
+                padding: 1rem;
+                margin-bottom: 1rem !important;
+            }
+
+            .filter-form .form-label {
+                font-size: 0.65rem;
+                letter-spacing: 0.3px;
+                margin-bottom: 0.2rem;
+            }
+
+            .filter-form .form-control,
+            .filter-form .form-select {
+                border-radius: 10px;
+                font-size: 0.82rem;
+                padding: 0.5rem 0.7rem;
+                border: 1.5px solid #e2e8f0;
+                min-height: 40px;
+            }
+
+            .filter-form .form-control:focus,
+            .filter-form .form-select:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+            /* Filter columns: 2 per row */
+            .filter-form.row.g-3 > [class*="col-md-"] {
+                flex: 0 0 50%;
+                width: 50%;
+            }
+
+            /* Buttons row: full width */
+            .filter-form .col-md-2:last-child {
+                flex: 0 0 100%;
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+
+            .filter-form .col-md-2:last-child .d-flex {
+                gap: 0.5rem !important;
+                flex-direction: row;
+            }
+
+            .filter-form .btn-filter,
+            .filter-form .btn-reset {
+                flex: 1;
+                padding: 0.6rem 0.75rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                border-radius: 10px;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* ---------- Section Headers ---------- */
+            .section-header {
+                margin-bottom: 0.85rem;
+            }
+
+            .section-title {
+                font-size: 0.92rem;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                flex-wrap: wrap;
+            }
+
+            .section-title i {
+                font-size: 0.95rem;
+                margin-right: 0;
+            }
+
+            .section-title .badge {
+                font-size: 0.65rem !important;
+                padding: 0.25rem 0.55rem !important;
+                margin-left: 0.4rem !important;
+            }
+
+            /* ---------- Table Wrapper ---------- */
+            .table-wrapper {
+                border-radius: 14px;
+                overflow: hidden;
+            }
+
+            /* ---------- Delivery Table → Card List ---------- */
+            .delivery-table {
+                border-collapse: separate;
+                border-spacing: 0;
+                table-layout: auto;
+            }
+
+            .delivery-table thead {
+                display: none;
+            }
+
+            .delivery-table tbody tr {
+                display: block;
+                padding: 0.9rem 1rem;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+                transition: background 0.2s ease;
+            }
+
+            .delivery-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .delivery-table tbody tr:active {
+                background: #f8fafc;
+            }
+
+            .delivery-table td {
+                display: block;
+                padding: 0.2rem 0;
+                border: none;
+                font-size: 0.82rem;
+                text-align: left !important;
+            }
+
+            /* Order # (col 1) */
+            .delivery-table td:nth-child(1) {
+                font-size: 0.88rem;
+                font-weight: 700;
+                color: #1a1a2e;
+                margin-bottom: 0.1rem;
+            }
+
+            .delivery-table td:nth-child(1) .fw-semibold {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.3rem;
+            }
+
+            /* Image (col 2) — float right */
+            .delivery-table td:nth-child(2) {
+                position: absolute;
+                top: 0.9rem;
+                right: 1rem;
+                padding: 0;
+                width: auto;
+            }
+
+            .delivery-table td:nth-child(2) img,
+            .delivery-table td:nth-child(2) > div {
+                width: 56px !important;
+                height: 56px !important;
+                border-radius: 10px !important;
+            }
+
+            /* Product (col 3) */
+            .delivery-table td:nth-child(3) {
+                padding-right: 4.5rem;
+                padding-bottom: 0.55rem;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 0.4rem;
+            }
+
+            .delivery-table td:nth-child(3) div:first-child {
+                font-size: 0.9rem;
+                color: #1a1a2e;
+                font-weight: 500;
+                line-height: 1.3;
+                margin-bottom: 0.15rem;
+            }
+
+            .delivery-table td:nth-child(3) small {
+                font-size: 0.72rem;
+            }
+
+            /* Amount (col 4) — inline row */
+            .delivery-table td:nth-child(4) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(4)::before {
+                content: 'Amount';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .delivery-table td:nth-child(4) .fw-bold {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #10b981;
+            }
+
+            /* Customer (col 5) — inline row */
+            .delivery-table td:nth-child(5) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(5)::before {
+                content: 'Customer';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Contact (col 6) — inline row */
+            .delivery-table td:nth-child(6) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(6)::before {
+                content: 'Contact';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Address (col 7) — stacked block */
+            .delivery-table td:nth-child(7) {
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #f8fafc;
+                line-height: 1.4;
+            }
+
+            .delivery-table td:nth-child(7)::before {
+                content: 'Address';
+                display: block;
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                margin-bottom: 0.25rem;
+            }
+
+            .delivery-table td:nth-child(7) .small {
+                font-size: 0.72rem;
+            }
+
+            /* Branch (col 8) — inline row */
+            .delivery-table td:nth-child(8) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(8)::before {
+                content: 'Branch';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* ============ ACTIVE TABLE (11 cols) ============ */
+            /* col 9 = Type */
+            .delivery-table td:nth-child(9) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(9)::before {
+                content: 'Type';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 10 = Status */
+            .delivery-table td:nth-child(10) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .delivery-table td:nth-child(10)::before {
+                content: 'Status';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 11 = Action (active table) */
+            .delivery-table td:nth-child(11) {
+                padding-top: 0.75rem;
+                margin-top: 0.25rem;
+                text-align: center;
+            }
+
+            .delivery-table td:nth-child(11) .btn-view {
+                width: 100%;
+                padding: 0.6rem 1rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* ============ COMPLETED TABLE (13 cols) ============ */
+            /* Completed has: Order, Image, Product, Amount, Customer, Contact, Address, Branch, Delivered On, Type, Status, Lalamove, Action */
+
+            /* Reset nth-child rules for completed section */
+            #completed-section .delivery-table td:nth-child(8)::before {
+                content: 'Branch';
+            }
+
+            /* col 9 = Delivered On */
+            #completed-section .delivery-table td:nth-child(9) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            #completed-section .delivery-table td:nth-child(9)::before {
+                content: 'Delivered On';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 10 = Type */
+            #completed-section .delivery-table td:nth-child(10) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            #completed-section .delivery-table td:nth-child(10)::before {
+                content: 'Type';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 11 = Status */
+            #completed-section .delivery-table td:nth-child(11) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            #completed-section .delivery-table td:nth-child(11)::before {
+                content: 'Status';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 12 = Lalamove */
+            #completed-section .delivery-table td:nth-child(12) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            #completed-section .delivery-table td:nth-child(12)::before {
+                content: 'Lalamove';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* col 13 = Action (completed table) */
+            #completed-section .delivery-table td:nth-child(13) {
+                padding-top: 0.75rem;
+                margin-top: 0.25rem;
+                text-align: center;
+            }
+
+            #completed-section .delivery-table td:nth-child(13) .btn-view {
+                width: 100%;
+                padding: 0.6rem 1rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Status Badges */
+            .status-badge {
+                font-size: 0.68rem;
+                padding: 0.28rem 0.6rem;
+            }
+
+            .branch-badge,
+            .delivery-badge {
+                font-size: 0.68rem;
+                padding: 0.22rem 0.55rem;
+            }
+
+            /* Buttons in completed table (Lalamove Link) */
+            .delivery-table td .btn-primary {
+                font-size: 0.72rem !important;
+                padding: 0.25rem 0.6rem !important;
+                border-radius: 8px !important;
+                white-space: nowrap;
+            }
+
+            /* Pagination */
+            .pagination {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+                margin-top: 0.75rem;
+            }
+
+            .pagination .page-link {
+                font-size: 0.78rem;
+                padding: 0.4rem 0.6rem;
+                width: 34px;
+                height: 34px;
+                border-radius: 10px !important;
+            }
+
+            /* Empty state */
+            .empty-state {
+                padding: 2.5rem 1rem;
+                border-radius: 14px;
+            }
+
+            .empty-state i {
+                font-size: 2.5rem;
+            }
+
+            .empty-state h5 {
+                font-size: 0.95rem;
+            }
+
+            .empty-state p {
+                font-size: 0.78rem;
+            }
+
+            /* Modal — bottom sheet */
+            #modalContainer .modal-dialog {
+                margin: 0 !important;
+                align-items: flex-end;
+                min-height: calc(100% - 20px);
+                max-width: 100%;
+            }
+
+            #modalContainer .modal-content {
+                border-radius: 24px 24px 0 0 !important;
+                border: none;
+                max-height: 92vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                animation: driverSheetUp 0.3s ease-out;
+            }
+
+            @keyframes driverSheetUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .page-title {
+                font-size: 1.02rem;
+            }
+
+            .stat-badge {
+                font-size: 0.6rem;
+                padding: 0.4rem 0.5rem;
+            }
+
+            .stat-badge i {
+                font-size: 0.65rem;
+            }
+
+            .section-title {
+                font-size: 0.85rem;
+            }
+
+            .delivery-table td:nth-child(3) div:first-child {
+                font-size: 0.82rem;
+            }
+
+            .delivery-table td:nth-child(4) .fw-bold {
+                font-size: 0.88rem;
+            }
+
+            .delivery-table td:nth-child(11) .btn-view,
+            #completed-section .delivery-table td:nth-child(13) .btn-view {
+                font-size: 0.75rem;
+                padding: 0.55rem 0.85rem;
+            }
+        }
+
+        /* Touch device — remove hover */
+        @media (hover: none) {
+            .delivery-table tbody tr:hover {
+                background: transparent;
+            }
+
+            .btn-view:hover {
+                background: #eff6ff;
+                color: #3b82f6;
+                border-color: #dbeafe;
+                transform: none;
+            }
+
+            .filter-form .btn-filter:hover,
+            .filter-form .btn-reset:hover {
+                transform: none;
+            }
+        }
+
+        /* iPhone safe area */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            @media (max-width: 767.98px) {
+                #modalContainer .modal-content {
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
+            }
+        }
     </style>
 
     <!-- SIDEBAR -->
@@ -424,7 +1053,7 @@
                     </select>
                 </div>
 
-                <!-- ✅ NEW: Branch Filter -->
+                <!-- Branch Filter -->
                 <div class="col-md-2">
                     <label class="form-label">Branch</label>
                     <select name="branch_id" class="form-select">
@@ -521,7 +1150,7 @@
                                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                     $isLalamoveEligible = !$isCalambaCity;
 
-                                    // ✅ FIXED: Status colors matching online orders
+                                    // Status colors matching online orders
                                     $statusClass = match ($delivery->status) {
                                         'assigned' => 'status-badge-ready',
                                         'picked_up' => 'status-badge-picked_up',
@@ -629,7 +1258,7 @@
 
         <!-- Completed Deliveries Section -->
         @if ($completedDeliveries->count() > 0)
-            <div class="mb-4">
+            <div class="mb-4" id="completed-section">
                 <div class="section-header">
                     <h4 class="section-title">
                         <i class="bi bi-check-circle-fill text-success"></i> Completed Deliveries

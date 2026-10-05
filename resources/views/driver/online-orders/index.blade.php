@@ -266,6 +266,545 @@
             position: relative;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
+
+        /* ============================================================ */
+        /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
+        /* ============================================================ */
+
+        /* Bottom sheet modal on mobile */
+        @media (max-width: 767.98px) {
+            #customModal {
+                align-items: flex-end;
+                background: rgba(0, 0, 0, 0.55);
+            }
+
+            #customModalContent {
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: 92vh;
+                border-radius: 24px 24px 0 0 !important;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                animation: sheetSlideUp 0.3s ease-out;
+            }
+
+            @keyframes sheetSlideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            /* ---------- Layout ---------- */
+            .container-fluid {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            /* ---------- Page Header ---------- */
+            .page-header {
+                margin-bottom: 1rem !important;
+            }
+
+            .page-title {
+                font-size: 1.15rem;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+
+            .page-title i {
+                font-size: 1.15rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.78rem;
+            }
+
+            /* ---------- Status Cards (2 per row) ---------- */
+            .status-card {
+                border-radius: 14px;
+                padding: 0.5rem 0.7rem;
+                transition: transform 0.15s ease;
+            }
+
+            .status-card:active {
+                transform: scale(0.97);
+            }
+
+            .status-card-body {
+                gap: 0.5rem;
+            }
+
+            .status-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+            }
+
+            .status-icon i {
+                font-size: 0.95rem;
+            }
+
+            .status-number {
+                font-size: 1.05rem;
+            }
+
+            .status-label {
+                font-size: 0.55rem;
+                letter-spacing: 0.2px;
+            }
+
+            /* 2-column grid for status cards */
+            .row.g-2.mb-4 > [class*="col-"] {
+                flex: 0 0 auto;
+                width: 50%;
+            }
+
+            .row.g-2.mb-4 > .col-md-2.col-4 {
+                margin-bottom: 0.5rem;
+            }
+
+            /* ---------- Filter Card ---------- */
+            .card.border-0.shadow-sm.mb-4 {
+                border-radius: 16px;
+                margin-bottom: 1rem !important;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .card-body {
+                padding: 1rem;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .form-label {
+                font-size: 0.72rem !important;
+                font-weight: 600 !important;
+                color: #64748b;
+                margin-bottom: 0.3rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .form-control,
+            .card.border-0.shadow-sm.mb-4 .form-select {
+                border-radius: 10px;
+                font-size: 0.82rem;
+                padding: 0.55rem 0.75rem;
+                border: 1.5px solid #e2e8f0;
+                min-height: 40px;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .form-control:focus,
+            .card.border-0.shadow-sm.mb-4 .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+            }
+
+            .card.border-0.shadow-sm.mb-4 .btn {
+                border-radius: 10px;
+                padding: 0.55rem 0.75rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                min-height: 40px;
+            }
+
+            /* Filter buttons side by side */
+            .card.border-0.shadow-sm.mb-4 .col-md-2:last-child {
+                flex: 0 0 100%;
+                width: 100%;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .col-md-2:last-child .btn {
+                width: 100%;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .col-md-2:last-child .btn.mt-2 {
+                margin-top: 0.5rem !important;
+            }
+
+            /* Filter columns: 2 per row on mobile */
+            .card.border-0.shadow-sm.mb-4 .row.g-3 > [class*="col-md-"] {
+                flex: 0 0 50%;
+                width: 50%;
+            }
+
+            .card.border-0.shadow-sm.mb-4 .row.g-3 > .col-md-2:last-child {
+                flex: 0 0 100%;
+                width: 100%;
+            }
+
+            /* ---------- Orders Card ---------- */
+            .modern-card {
+                border-radius: 16px;
+            }
+
+            .card-header-modern {
+                padding: 0.85rem 1rem;
+                border-radius: 16px 16px 0 0;
+            }
+
+            .card-header-modern h5 {
+                font-size: 0.92rem;
+            }
+
+            /* ---------- Table → Card List ---------- */
+            .table-responsive {
+                overflow-x: visible;
+            }
+
+            .order-table {
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+
+            .order-table thead {
+                display: none;
+            }
+
+            .order-table tbody tr {
+                display: block;
+                padding: 0.9rem 1rem;
+                margin: 0;
+                border-bottom: 1px solid #eef2f6;
+                position: relative;
+                transition: background 0.2s ease;
+            }
+
+            .order-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .order-table tbody tr:active {
+                background: #f8fafc;
+            }
+
+            .order-table td {
+                display: block;
+                padding: 0.2rem 0;
+                border: none;
+                font-size: 0.82rem;
+                text-align: left !important;
+            }
+
+            /* Order number + status at top */
+            .order-table td:nth-child(1) {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #1a1a2e;
+                margin-bottom: 0.15rem;
+            }
+
+            .order-table td:nth-child(1) code {
+                font-size: 0.9rem;
+                background: #f1f5f9;
+                padding: 0.2rem 0.5rem;
+                border-radius: 6px;
+                color: #0d6efd;
+                font-weight: 700;
+            }
+
+            /* Image cell (col 2) - float right */
+            .order-table td:nth-child(2) {
+                position: absolute;
+                top: 0.9rem;
+                right: 1rem;
+                padding: 0;
+                width: auto;
+            }
+
+            .order-table td:nth-child(2) img,
+            .order-table td:nth-child(2) > div {
+                width: 56px !important;
+                height: 56px !important;
+                border-radius: 10px !important;
+            }
+
+            /* Product name (col 3) */
+            .order-table td:nth-child(3) {
+                padding-right: 4.5rem;
+                padding-bottom: 0.6rem;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 0.4rem;
+            }
+
+            .order-table td:nth-child(3) .fw-semibold {
+                font-size: 0.9rem;
+                color: #1a1a2e;
+                line-height: 1.3;
+                display: block;
+                margin-bottom: 0.15rem;
+            }
+
+            .order-table td:nth-child(3) small {
+                font-size: 0.72rem;
+            }
+
+            /* Date (col 4) */
+            .order-table td:nth-child(4) {
+                font-size: 0.78rem;
+                color: #64748b;
+                white-space: normal !important;
+                margin-bottom: 0.3rem;
+            }
+
+            /* Customer (col 5) */
+            .order-table td:nth-child(5) {
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 0.4rem;
+            }
+
+            .order-table td:nth-child(5) .fw-semibold {
+                font-size: 0.85rem;
+                color: #1a1a2e;
+                display: block;
+            }
+
+            .order-table td:nth-child(5) small {
+                font-size: 0.72rem;
+                color: #64748b;
+            }
+
+            /* Total (col 6) - inline row */
+            .order-table td:nth-child(6) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .order-table td:nth-child(6)::before {
+                content: 'Total';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .order-table td:nth-child(6) strong {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #10b981;
+            }
+
+            /* Branch (col 7) - inline row */
+            .order-table td:nth-child(7) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .order-table td:nth-child(7)::before {
+                content: 'Branch';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Delivery Type (col 8) - inline row */
+            .order-table td:nth-child(8) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .order-table td:nth-child(8)::before {
+                content: 'Type';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Status (col 9) - inline row */
+            .order-table td:nth-child(9) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+
+            .order-table td:nth-child(9)::before {
+                content: 'Status';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            /* Lalamove Info (col 10) - inline row */
+            .order-table td:nth-child(10) {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.35rem 0;
+                border-bottom: 1px solid #f8fafc;
+                font-size: 0.78rem;
+            }
+
+            .order-table td:nth-child(10)::before {
+                content: 'Lalamove';
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .order-table td:nth-child(10) .btn {
+                font-size: 0.72rem !important;
+                padding: 0.25rem 0.6rem !important;
+                border-radius: 8px !important;
+                white-space: nowrap;
+            }
+
+            /* Actions (col 11) - full width at bottom */
+            .order-table td:nth-child(11) {
+                padding-top: 0.75rem;
+                margin-top: 0.4rem;
+                text-align: center;
+            }
+
+            .order-table .btn-manage {
+                width: 100%;
+                padding: 0.65rem 1rem;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+            }
+
+            .order-table .btn-manage:active {
+                transform: scale(0.98);
+            }
+
+            /* Empty state */
+            .order-table td[colspan="11"] {
+                padding: 2.5rem 1rem !important;
+                font-size: 0.85rem;
+            }
+
+            .order-table td[colspan="11"] .display-1 {
+                font-size: 2.75rem !important;
+            }
+
+            .order-table td[colspan="11"] h5 {
+                font-size: 1rem;
+            }
+
+            .order-table td[colspan="11"] p {
+                font-size: 0.82rem;
+            }
+
+            /* Badges */
+            .badge {
+                font-size: 0.68rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .branch-badge,
+            .delivery-badge {
+                font-size: 0.68rem;
+                padding: 0.22rem 0.55rem;
+            }
+
+            /* Pagination */
+            .simple-pagination {
+                padding: 0.85rem 1rem;
+                gap: 0.5rem;
+            }
+
+            .simple-pagination .btn {
+                flex: 1;
+                padding: 0.6rem 1rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                border-radius: 10px;
+            }
+
+            .simple-pagination .btn:active {
+                transform: scale(0.98);
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .page-title {
+                font-size: 1.02rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.72rem;
+            }
+
+            .status-number {
+                font-size: 0.95rem;
+            }
+
+            .status-label {
+                font-size: 0.5rem;
+            }
+
+            .status-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .status-icon i {
+                font-size: 0.85rem;
+            }
+
+            .order-table td:nth-child(1) code {
+                font-size: 0.82rem;
+            }
+
+            .order-table td:nth-child(3) .fw-semibold {
+                font-size: 0.82rem;
+            }
+
+            .order-table .btn-manage {
+                font-size: 0.78rem;
+                padding: 0.6rem 0.85rem;
+            }
+
+            .simple-pagination .btn {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Touch device — no hover transforms */
+        @media (hover: none) {
+            .status-card:hover {
+                transform: none;
+            }
+
+            .btn-manage:hover {
+                transform: none;
+            }
+        }
+
+        /* iPhone safe area */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            @media (max-width: 767.98px) {
+                #customModalContent {
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
+            }
+        }
     </style>
 
     <!-- SIDEBAR -->
