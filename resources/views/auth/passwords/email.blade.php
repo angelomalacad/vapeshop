@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Forgot Password - Vape Expo')
 
@@ -60,7 +60,7 @@
                                 <i class="bi bi-send me-2"></i>Send Password Reset Link
                             </button>
                             
-                            <a href="{{ route('login.show') }}" class="btn btn-outline-secondary py-2">
+                            <a href="{{ route('login') }}" class="btn btn-outline-secondary py-2">
                                 <i class="bi bi-arrow-left me-2"></i>Back to Login
                             </a>
                         </div>

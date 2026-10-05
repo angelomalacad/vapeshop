@@ -126,7 +126,7 @@
             <p>After verifying your email, you can log in to the system using your email and the password provided above.</p>
             
             <div style="text-align: center;">
-                <a href="{{ route('login.show') }}" class="button">Login to Your Account →</a>
+                <a href="{{ route('login') }}" class="button">Login to Your Account →</a>
             </div>
             
             <p>Once logged in, you will be able to:</p>

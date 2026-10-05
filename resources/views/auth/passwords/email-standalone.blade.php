@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -235,7 +235,7 @@
                         
                         <!-- Back to Login -->
                         <div class="text-center mb-3">
-                            <a href="{{ route('login.show') }}" class="btn btn-outline-reset w-100">
+                            <a href="{{ route('login') }}" class="btn btn-outline-reset w-100">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Back to Login
                             </a>
                         </div>
