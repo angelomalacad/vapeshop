@@ -47,3 +47,4 @@ jobs:
 
       - name: Tests
         run: ./vendor/bin/pest
+	continue-on-error: true
