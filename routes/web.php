@@ -51,8 +51,8 @@ Route::post('/login', function () {
         // Check if email is verified
         if (is_null($user->email_verified_at)) {
             Auth::logout();
-            return redirect()->route('verification.notice')
-                ->with('error', 'Please verify your email before logging in.');
+            return redirect()->route('login.show')
+                ->with('error', 'Your email is not yet verified. Please check your inbox and verify your email before logging in.');
         }
 
         // Redirect based on role
@@ -143,41 +143,104 @@ Route::get('/email/verify', function () {
 })->middleware('auth')->name('verification.notice');
 // ===== END OF VERIFICATION NOTICE ROUTE =====
 
-// ===== SIMPLE VERIFICATION HANDLER THAT DEFINITELY WORKS =====
+// ===== ✅ VERIFICATION HANDLER (supports pending email change) =====
 Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     $user = \App\Models\User::findOrFail($id);
 
-    // Validate the signed hash to prevent fake verification links
-    if (! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
+    // ✅ If there's a pending email, the hash was signed with it
+    $emailForVerification = $user->getEmailForVerification();
+
+    if (! hash_equals(sha1($emailForVerification), (string) $hash)) {
         return redirect()->route('login.show')
             ->with('error', 'Invalid or expired verification link.');
     }
 
-    // Mark as verified
+    // ✅ PENDING EMAIL CHANGE FLOW
+    // Triggers only when the user is CHANGING their email (not fresh registration).
+    if ($user->pending_email && $user->pending_email === $emailForVerification) {
+        $user->update([
+            'email' => $user->pending_email,
+            'pending_email' => null,
+            'email_verified_at' => now(),
+        ]);
+        event(new \Illuminate\Auth\Events\Verified($user));
+
+        // If they're logged in as this user, send to profile; else to login
+        if (Auth::check() && Auth::id() === $user->id) {
+            return redirect()->route('customer.profile.index')
+                ->with('success', 'Email updated and verified successfully!');
+        }
+
+        return redirect()->route('login.show')
+            ->with('success', 'Email updated and verified! You can now login with your new email.');
+    }
+
+    // ✅ FRESH REGISTRATION FLOW — always redirect to LOGIN
     if (! $user->hasVerifiedEmail()) {
         $user->markEmailAsVerified();
         event(new \Illuminate\Auth\Events\Verified($user));
 
+        // Force logout so they see a clean login screen
+        if (Auth::check() && Auth::id() === $user->id) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
+
         return redirect()->route('login.show')
-            ->with('success', 'Email verified! You can now login.');
+            ->with('success', 'Email verified successfully! Please log in to continue.');
     }
 
     return redirect()->route('login.show')
-        ->with('info', 'Email already verified.');
+        ->with('info', 'Email already verified. You can log in.');
 })->name('verification.verify');
+// ===== END OF VERIFICATION HANDLER =====
 
-// Resend verification email (verification.send)
+// ===== ✅ GENERAL RESEND VERIFICATION (customer / non-admin) =====
 Route::post('/email/verification-notification', function () {
     request()->user()->sendEmailVerificationNotification();
     return back()->with('resent', true);
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-// Alias route for verification.resend — fixes "Route [verification.resend] not defined" error
-Route::post('/email/verification-notification', function () {
+// ✅ Alias — uses a UNIQUE URI so it doesn't overwrite verification.send
+Route::post('/email/verification-notification-resend', function () {
     request()->user()->sendEmailVerificationNotification();
     return back()->with('resent', true);
 })->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
-// ===== END OF VERIFICATION HANDLER ROUTES =====
+// ===== END OF GENERAL RESEND VERIFICATION =====
+
+// ===== ✅ PUBLIC RESEND VERIFICATION (no auth required) =====
+Route::post('/email/resend-verification', function (\Illuminate\Http\Request $request) {
+    $request->validate(['email' => 'required|email']);
+
+    $user = \App\Models\User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return back()->with('error', 'No account found with that email.');
+    }
+
+    if ($user->hasVerifiedEmail() && !$user->pending_email) {
+        return back()->with('info', 'This email is already verified. You can log in.');
+    }
+
+    $user->sendEmailVerificationNotification();
+
+    return back()->with('success', 'Verification email sent! Please check your inbox.');
+})->middleware('throttle:6,1')->name('verification.public-resend');
+// ===== END OF PUBLIC RESEND VERIFICATION =====
+
+// ===========================================================================
+// ✅ CUSTOMER PROFILE (accessible even to unverified users)
+// ===========================================================================
+Route::middleware(['auth'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/profile', [App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [App\Http\Controllers\Customer\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/resend-verification', [App\Http\Controllers\Customer\ProfileController::class, 'resendVerification'])->name('profile.resend-verification');
+    Route::post('/profile/cancel-pending-email', [App\Http\Controllers\Customer\ProfileController::class, 'cancelPendingEmail'])->name('profile.cancel-pending-email');
+});
+// ===========================================================================
+// END OF CUSTOMER PROFILE ROUTES
+// ===========================================================================
 
 // ===========================================================================
 // CUSTOMER ROUTES (Online Ordering)
@@ -254,7 +317,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         return redirect()->route('admin.login')->with('info', 'Email already verified.');
     })->name('verification.verify');
 
-    Route::post('/email/verification-notification', function () {
+    // ✅ Admin resend — unique URI
+    Route::post('/email/verification-notification-admin', function () {
         if (request()->user()->hasVerifiedEmail()) {
             return redirect()->route('admin.dashboard');
         }
@@ -523,13 +587,11 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/transfers/{transfer}/complete', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'completeTransfer'])->name('transfers.complete');
         Route::post('/transfers/{transfer}/cancel', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'cancelTransfer'])->name('transfers.cancel');
 
-        // MOVED THESE BEFORE THE PARAMETERIZED ROUTES
         Route::get('/transfer-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'transferModal'])->name('transfer-modal');
         Route::get('/check-availability', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'checkAvailability'])->name('check-availability');
 
-        // ADD THE NEW ROUTE HERE - After the other transfer routes, before the parameterized routes
         Route::get('/transfers/{transfer}/details', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'getTransferDetails'])->name('transfers.details');
-        // PARAMETERIZED ROUTES - KEEP THESE AT THE BOTTOM
+
         Route::get('/{inventory}/edit-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'editModal'])->name('edit-modal');
         Route::get('/{inventory}/add-stock-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addStockModal'])->name('add-stock-modal');
         Route::get('/{inventory}/show-modal', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'showModal'])->name('show-modal');
@@ -603,7 +665,6 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
     Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
     Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
 
-    // ADD THIS ROUTE for updating Lalamove tracking from delivery modal
     Route::post('/deliveries/{delivery}/update-lalamove', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLalamoveTracking'])->name('deliveries.update-lalamove');
 });
 
@@ -637,7 +698,6 @@ Route::prefix('api')->group(function () {
         ]);
     })->name('api.stock.check');
 
-    // ADD THIS - Warehouse availability check API
     Route::get('/warehouse/check', function(\Illuminate\Http\Request $request) {
         $query = \App\Models\WarehouseInventory::where('product_id', $request->product_id)
             ->where('quantity', '>', 0);
@@ -655,7 +715,6 @@ Route::prefix('api')->group(function () {
     })->name('api.warehouse.check');
 });
 
-// Temporary test route
 Route::get('/test-archive-route', function () {
     return 'Routes are working!';
 });
@@ -666,10 +725,8 @@ Route::get('/test-archive-route', function () {
 Route::get('/test-warehouse-query', function() {
     DB::enableQueryLog();
 
-    // Test 1: Simple count
     $count = DB::table('warehouse_inventories')->where('quantity', '>', 0)->count();
 
-    // Test 2: Get products
     $products = DB::table('warehouse_inventories')
         ->join('products', 'warehouse_inventories.product_id', '=', 'products.id')
         ->where('warehouse_inventories.quantity', '>', 0)
@@ -678,7 +735,6 @@ Route::get('/test-warehouse-query', function() {
         ->distinct()
         ->get();
 
-    // Test 3: Raw SQL
     $rawProducts = DB::select("
         SELECT DISTINCT p.id, p.name
         FROM warehouse_inventories wi
@@ -687,7 +743,6 @@ Route::get('/test-warehouse-query', function() {
         AND p.is_active = 1
     ");
 
-    // Test 4: Check if products table has data
     $allProducts = DB::table('products')->where('is_active', 1)->get();
 
     return response()->json([

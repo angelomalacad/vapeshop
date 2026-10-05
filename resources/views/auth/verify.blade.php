@@ -13,6 +13,7 @@
             display: flex;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 15px;
         }
         .verify-card {
             max-width: 500px;
@@ -68,6 +69,33 @@
             background: #0d6efd;
             color: #ffffff;
         }
+        .btn-outline-warning {
+            background: transparent;
+            border: 1px solid #f59e0b;
+            color: #b45309;
+            font-weight: 500;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-outline-warning:hover {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+        .btn-outline-danger {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            font-weight: 500;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-outline-danger:hover {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
         .btn-outline-light {
             border: 1px solid #0d6efd;
             color: #0d6efd;
@@ -80,6 +108,18 @@
             background-color: #d1e7dd;
             border-color: #badbcc;
             color: #0f5132;
+            border-radius: 8px;
+        }
+        .alert-info {
+            background-color: #cff4fc;
+            border-color: #b6effb;
+            color: #055160;
+            border-radius: 8px;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
             border-radius: 8px;
         }
         .shop-badge {
@@ -98,6 +138,28 @@
             font-size: 4rem;
             color: #0d6efd;
             margin-bottom: 1.5rem;
+        }
+        .email-badge {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            word-break: break-all;
+            margin: 0.5rem 0 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        .info-box {
+            background: #eff6ff;
+            border-left: 3px solid #0d6efd;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #1e40af;
+            margin-bottom: 1.25rem;
+            text-align: left;
         }
         .btn-group-vertical {
             gap: 0.5rem;
@@ -134,6 +196,14 @@
         .btn-close {
             filter: none;
         }
+        .pending-hint {
+            font-size: 0.82rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        .pending-hint strong {
+            color: #212529;
+        }
     </style>
 </head>
 <body>
@@ -155,32 +225,96 @@
                             <i class="bi bi-envelope-check-fill"></i>
                         </div>
 
+                        {{-- Success / Info / Error alerts --}}
+                        @if(session('success'))
+                            <div class="alert alert-success alert-dismissible fade show text-start" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        @if(session('info'))
+                            <div class="alert alert-info alert-dismissible fade show text-start" role="alert">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                {{ session('info') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        @if(session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show text-start" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+
                         @if(session('resent'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <div class="alert alert-success alert-dismissible fade show text-start" role="alert">
                                 <i class="bi bi-check-circle-fill me-2"></i>
                                 A fresh verification link has been sent to your email address.
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
 
-                        <p class="mb-4" style="color: #212529;">
-                            Thank you for registering with <strong class="text-primary-custom">Vape Expo</strong>!
-                        </p>
+                        {{-- Welcome text — differs for registration vs pending change --}}
+                        @if(!Auth::user()->pending_email)
+                            <p class="mb-2" style="color: #212529;">
+                                Thank you for registering with <strong class="text-primary-custom">Vape Expo</strong>!
+                            </p>
+                            <p class="mb-2" style="color: #6c757d;">We sent a verification link to</p>
+                        @else
+                            <p class="mb-2" style="color: #212529;">
+                                <strong class="text-primary-custom">Email change requested</strong>
+                            </p>
+                            <p class="mb-2" style="color: #6c757d;">We sent a verification link to</p>
+                        @endif
 
-                        <p class="mb-4" style="color: #6c757d;">
-                            Before proceeding, please check your email for a verification link.
-                            If you did not receive the email, click the button below.
-                        </p>
+                        {{-- Email badge — shows pending email if a change is awaiting verification --}}
+                        <div class="email-badge">
+                            {{ Auth::user()->pending_email ?: Auth::user()->email }}
+                        </div>
+
+                        {{-- Hint when this is a pending change --}}
+                        @if(Auth::user()->pending_email)
+                            <div class="pending-hint">
+                                Verifying a change from <strong>{{ Auth::user()->email }}</strong>
+                            </div>
+                        @endif
+
+                        {{-- Info box --}}
+                        <div class="info-box">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <strong>Please check your inbox</strong> (and spam folder) and click the verification link to activate your account.
+                        </div>
 
                         <!-- Resend Button -->
                         <div class="d-grid gap-3 mb-4">
-                            <form method="POST" action="{{ route('verification.resend') }}">
+                            <form method="POST" action="{{ route('verification.send') }}">
                                 @csrf
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-send me-2"></i>Resend Verification Email
                                 </button>
                             </form>
                         </div>
+
+                        {{-- Cancel pending email change — only when a pending change exists --}}
+                        @if(Auth::user()->pending_email)
+                            <div class="divider">
+                                <span>OR</span>
+                            </div>
+
+                            <div class="d-grid gap-3 mb-4">
+                                <form method="POST" action="{{ route('customer.profile.cancel-pending-email') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-warning w-100">
+                                        <i class="bi bi-x-circle me-2"></i>
+                                        Cancel change to: {{ Auth::user()->pending_email }}
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
 
                         <!-- Navigation Buttons -->
                         <div class="divider">
@@ -189,7 +323,7 @@
 
                         <div class="row g-3">
                             <div class="col-6">
-                                <a href="{{ route('login.show') }}" class="btn btn-outline-secondary w-100">
+                                <a href="{{ route('login') }}" class="btn btn-outline-secondary w-100">
                                     <i class="bi bi-box-arrow-in-right me-2"></i>Login
                                 </a>
                             </div>
@@ -200,17 +334,17 @@
                             </div>
                         </div>
 
-                        <!-- Alternative: Stacked buttons if you prefer -->
-                        <!-- 
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('login.show') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Go to Login
-                            </a>
-                            <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-house me-2"></i>Back to Home
-                            </a>
-                        </div>
-                        -->
+                        {{-- Logout — only shows when there's a pending email change (escape hatch) --}}
+                        @if(Auth::user()->pending_email)
+                            <div class="mt-3">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
 
                         <hr class="my-4">
 

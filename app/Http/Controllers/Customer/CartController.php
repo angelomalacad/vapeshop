@@ -57,9 +57,12 @@ class CartController extends Controller
                     'product_image' => $imageUrl,
                 ];
                 $subtotal += $item['price'] * $item['quantity'];
-            } else {
-                CartHelper::removeItem($key);
             }
+            // ✅ FIX: Do NOT auto-remove items from the DB when stock is temporarily
+            // insufficient. Silently removing them was causing the bug where checking
+            // out one item would wipe other items still in the cart (because their
+            // inventory changed slightly after the order). Instead, just skip them
+            // in this view — they stay in the DB and cart helper.
         }
 
         return view('customer.cart.index', compact('items', 'subtotal'));

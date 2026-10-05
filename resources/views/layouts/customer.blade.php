@@ -193,7 +193,7 @@
             border-radius: 30px;
         }
 
-        /* Cart Badge */
+        /* Cart Badge — kept for backwards compatibility but no longer used */
         .cart-icon-wrapper {
             position: relative;
             display: inline-block;
@@ -211,6 +211,35 @@
             font-weight: bold;
             min-width: 18px;
             text-align: center;
+        }
+
+        /* ✅ NEW: Avatar styles (small circle profile picture in nav) */
+        .nav-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center;
+            display: inline-block;
+            vertical-align: middle;
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            background: #f1f5f9;
+        }
+
+        .nav-avatar-mobile {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            border: 1.5px solid rgba(148, 163, 184, 0.4);
+            background: #f1f5f9;
+        }
+
+        /* When Account tab is active, avatar border becomes red */
+        .nav-item-link.active .nav-avatar-mobile {
+            border-color: #e74c3c;
         }
 
         /* Footer */
@@ -525,6 +554,11 @@
 </head>
 
 <body>
+    @php
+        $cartCount = \App\Helpers\CartHelper::getItemCount();
+        $processingOrderCount = \App\Helpers\OrderHelper::getProcessingCount();
+    @endphp
+
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
             <a class="navbar-brand text-white fw-bold" href="{{ route('home') }}">
@@ -545,32 +579,33 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <div class="cart-icon-wrapper">
-                            <a href="{{ route('customer.cart.index') }}"
-                                class="btn btn-outline-light btn-sm rounded-pill">
-                                <i class="bi bi-cart"></i> Cart
-                            </a>
-                            @php
-                                $cartCount = \App\Helpers\CartHelper::getItemCount();
-                            @endphp
-                            @if ($cartCount > 0)
-                                <span class="cart-badge">{{ $cartCount }}</span>
-                            @endif
-                        </div>
+                        {{-- ✅ Desktop Cart: count shown in parentheses --}}
+                        <a href="{{ route('customer.cart.index') }}"
+                            class="btn btn-outline-light btn-sm rounded-pill">
+                            <i class="bi bi-cart"></i> Cart{{ $cartCount > 0 ? ' (' . $cartCount . ')' : '' }}
+                        </a>
                     </li>
                     <li class="nav-item">
+                        {{-- ✅ Desktop Orders: count shown in parentheses --}}
                         <a href="{{ route('customer.orders.index') }}"
                             class="btn btn-outline-light btn-sm rounded-pill">
-                            <i class="bi bi-receipt"></i> Orders
+                            <i class="bi bi-receipt"></i> Orders{{ $processingOrderCount > 0 ? ' (' . $processingOrderCount . ')' : '' }}
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" role="button"
-                            data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
+                        <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#"
+                            role="button" data-bs-toggle="dropdown">
+                            {{-- ✅ Desktop avatar: show picture if available, else icon --}}
+                            @if (Auth::user()->profile_picture)
+                                <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
+                                    alt="{{ Auth::user()->name }}" class="nav-avatar">
+                            @else
+                                <i class="bi bi-person-circle"></i>
+                            @endif
+                            {{ Auth::user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('customer.dashboard') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ route('customer.profile.index') }}">Edit Profile</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -643,37 +678,59 @@
                 <i class="bi bi-shop{{ request()->routeIs('customer.products.*') ? '-window' : '' }}"></i>
                 <span>Shop</span>
             </a>
+            {{-- ✅ Mobile Cart: count shown in parentheses --}}
             <a href="{{ route('customer.cart.index') }}"
-                class="nav-item-link cart-nav-wrapper {{ request()->routeIs('customer.cart.*') ? 'active' : '' }}">
+                class="nav-item-link {{ request()->routeIs('customer.cart.*') ? 'active' : '' }}">
                 <i class="bi bi-cart{{ request()->routeIs('customer.cart.*') ? '-fill' : '' }}"></i>
-                @if ($cartCount > 0)
-                    <span class="cart-nav-badge">{{ $cartCount }}</span>
-                @endif
-                <span>Cart</span>
+                <span>Cart{{ $cartCount > 0 ? ' (' . $cartCount . ')' : '' }}</span>
             </a>
+            {{-- ✅ Mobile Orders: count shown in parentheses --}}
             <a href="{{ route('customer.orders.index') }}"
                 class="nav-item-link {{ request()->routeIs('customer.orders.*') ? 'active' : '' }}">
                 <i class="bi bi-receipt{{ request()->routeIs('customer.orders.*') ? '-cutoff' : '' }}"></i>
-                <span>Orders</span>
+                <span>Orders{{ $processingOrderCount > 0 ? ' (' . $processingOrderCount . ')' : '' }}</span>
             </a>
-            <a href="#" class="nav-item-link" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle"></i>
+            {{-- ✅ Mobile Account: dropdown with picture if available --}}
+            <a href="#" class="nav-item-link {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                {{-- ✅ Mobile avatar: show picture if available, else icon --}}
+                @if (Auth::user()->profile_picture)
+                    <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
+                        alt="{{ Auth::user()->name }}" class="nav-avatar-mobile">
+                @else
+                    <i class="bi bi-person-circle"></i>
+                @endif
                 <span>Account</span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end" style="position: fixed; bottom: 80px; right: 12px;">
+            <ul class="dropdown-menu dropdown-menu-end account-dropdown-mobile" style="position: fixed; bottom: 80px; right: 12px; min-width: 220px;">
                 <li>
-                    <h6 class="dropdown-header">{{ Auth::user()->name }}</h6>
+                    <h6 class="dropdown-header d-flex align-items-center gap-2">
+                        @if (Auth::user()->profile_picture)
+                            <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
+                                alt="{{ Auth::user()->name }}" class="nav-avatar-mobile">
+                        @else
+                            <i class="bi bi-person-circle"></i>
+                        @endif
+                        {{ Auth::user()->name }}
+                    </h6>
                 </li>
                 <li>
                     <hr class="dropdown-divider">
                 </li>
-                <li><a class="dropdown-item" href="{{ route('customer.dashboard') }}"><i
-                            class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('customer.profile.index') }}">
+                        <i class="bi bi-person-gear me-2"></i>Edit Profile
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="dropdown-item text-danger" type="submit"><i
-                                class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                        <button class="dropdown-item text-danger" type="submit">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
                     </form>
                 </li>
             </ul>

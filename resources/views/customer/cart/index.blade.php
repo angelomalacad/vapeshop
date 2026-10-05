@@ -41,13 +41,16 @@
                                             </td>
                                             <td data-label="Product">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <div class="bg-light rounded p-1 cart-product-img"
+                                                    <div class="bg-light rounded cart-product-img"
                                                         style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                         @if (isset($item['product_image']) && $item['product_image'])
                                                             <img src="{{ $item['product_image'] }}"
                                                                 alt="{{ $item['product_name'] }}"
-                                                                style="width: 100%; height: 100%; object-fit: cover;"
-                                                                onerror="this.onerror=null; this.src='https://via.placeholder.com/70x70?text=No+Image';">
+                                                                style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;"
+                                                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                            <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8;">
+                                                                <i class="bi bi-box-seam" style="font-size: 1.5rem;"></i>
+                                                            </div>
                                                         @else
                                                             <i class="bi bi-box-seam fs-2 text-muted"></i>
                                                         @endif
@@ -94,7 +97,8 @@
                         </form>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-0 py-3 cart-footer">
+                <!-- ✅ DESKTOP ONLY FOOTER: Action buttons shown here on desktop -->
+                <div class="card-footer bg-white border-0 py-3 cart-footer cart-footer-desktop">
                     <div class="row align-items-center g-3">
                         <!-- Left Side: Empty (Button moved to Header) -->
                         <div class="col-md-6 d-none d-md-block">
@@ -155,6 +159,30 @@
                 </div>
             </div>
 
+            <!-- ✅ MOBILE ONLY FOOTER: Action buttons moved to the bottom (below summary) -->
+            <div class="cart-footer cart-footer-mobile">
+                <div class="cart-actions-mobile">
+                    <h4 class="mb-0 selected-total-label-mobile">Selected Total: <span id="selectedTotalMobile" class="text-danger">₱0.00</span>
+                    </h4>
+
+                    <!-- Checkout Selected -->
+                    <button type="submit" form="checkoutSelectedForm" id="checkoutSelectedBtnMobile"
+                        class="btn btn-primary rounded-pill checkout-selected-btn-mobile" style="display: none;">
+                        Checkout Selected <i class="bi bi-arrow-right"></i>
+                    </button>
+
+                    <!-- Checkout All -->
+                    <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill checkout-all-btn-mobile">
+                        Checkout All <i class="bi bi-cart-check"></i>
+                    </a>
+
+                    <button type="button" id="clearCartBtnMobile" class="btn btn-outline-danger rounded-pill clear-cart-btn-mobile"
+                        onclick="confirmClearCart()">
+                        <i class="bi bi-trash3"></i> Clear Cart
+                    </button>
+                </div>
+            </div>
+
             <!-- Delivery Information Note -->
             <div class="alert alert-info mt-3">
                 <i class="bi bi-info-circle-fill me-2"></i>
@@ -173,6 +201,30 @@
         @endif
     </div>
 
+    <!-- ✅ NEW: Clear Cart Confirmation Modal (replaces browser confirm) -->
+    <div class="modal fade" id="clearCartModal" tabindex="-1" aria-labelledby="clearCartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="border-bottom: 1px solid #eef2f6; padding: 1.25rem 1.5rem;">
+                    <h5 class="modal-title fw-bold" id="clearCartModalLabel" style="color: #dc3545;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Clear Cart
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <p class="mb-0">Are you sure you want to clear your entire cart?</p>
+                    <p class="text-muted small mt-2 mb-0">This will remove all items from your cart. This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmClearCartBtn">
+                        <i class="bi bi-trash3 me-1"></i>Yes, Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         /* ===== BASE STYLES ===== */
         .cart-table tbody tr {
@@ -181,6 +233,21 @@
 
         .cart-table td {
             padding: 1rem 0.75rem;
+        }
+
+        /* ✅ Base image wrapper — clean display everywhere */
+        .cart-product-img {
+            padding: 0 !important;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+
+        .cart-product-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
         }
 
         .quantity-input {
@@ -231,6 +298,11 @@
             animation: fadeOut 1s ease-out;
         }
 
+        /* ✅ NEW: Hide mobile footer on desktop, show desktop footer on desktop */
+        .cart-footer-mobile {
+            display: none;
+        }
+
         /* ===== MOBILE STYLES ===== */
         @media (max-width: 767.98px) {
             .cart-container {
@@ -264,6 +336,59 @@
                 border-radius: 16px;
                 overflow: hidden;
                 box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+            }
+
+            /* ✅ Hide the desktop footer on mobile */
+            .cart-footer-desktop {
+                display: none !important;
+            }
+
+            /* ✅ Show the mobile footer on mobile */
+            .cart-footer-mobile {
+                display: block;
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            }
+
+            .cart-actions-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.65rem;
+            }
+
+            .selected-total-label-mobile {
+                font-size: 1rem;
+                font-weight: 600;
+                width: 100%;
+                text-align: center;
+                margin-bottom: 0.25rem !important;
+                color: #1a1a2e;
+            }
+
+            .selected-total-label-mobile span {
+                font-size: 1.15rem;
+            }
+
+            .checkout-selected-btn-mobile,
+            .checkout-all-btn-mobile,
+            .clear-cart-btn-mobile {
+                width: 100%;
+                padding: 0.7rem 1rem;
+                font-size: 0.88rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+            }
+
+            .checkout-selected-btn-mobile:active,
+            .checkout-all-btn-mobile:active,
+            .clear-cart-btn-mobile:active {
+                transform: scale(0.98);
             }
 
             /* Hide table header */
@@ -349,11 +474,34 @@
                 margin-bottom: 0.2rem;
             }
 
+            /* ✅ Mobile image wrapper — perfect fit, no clipping */
             .cart-table td[data-label="Product"] .cart-product-img {
                 width: 56px !important;
                 height: 56px !important;
                 border-radius: 10px !important;
                 flex-shrink: 0;
+                padding: 0 !important;
+                overflow: hidden;
+                background: #f1f5f9 !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #eef2f6;
+            }
+
+            /* ✅ Image fills the entire box */
+            .cart-table td[data-label="Product"] .cart-product-img img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover;
+                object-position: center;
+                display: block;
+            }
+
+            /* ✅ Fallback icon sizing */
+            .cart-table td[data-label="Product"] .cart-product-img i {
+                font-size: 1.5rem !important;
+                color: #94a3b8;
             }
 
             .cart-table td[data-label="Product"] .d-flex {
@@ -436,48 +584,6 @@
             .cart-table .remove-item-btn:active {
                 background: #fee2e2;
                 transform: scale(0.94);
-            }
-
-            /* Footer */
-            .cart-footer {
-                padding: 1rem !important;
-                border-top: 1px solid #eef2f6;
-            }
-
-            .cart-actions {
-                gap: 0.65rem !important;
-            }
-
-            .selected-total-label {
-                font-size: 1rem;
-                font-weight: 600;
-                width: 100%;
-                text-align: center;
-                margin-bottom: 0.25rem !important;
-                color: #1a1a2e;
-            }
-
-            .selected-total-label span {
-                font-size: 1.15rem;
-            }
-
-            .checkout-selected-btn,
-            .checkout-all-btn,
-            .clear-cart-btn {
-                width: 100%;
-                padding: 0.7rem 1rem;
-                font-size: 0.88rem;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.4rem;
-            }
-
-            .checkout-selected-btn:active,
-            .checkout-all-btn:active,
-            .clear-cart-btn:active {
-                transform: scale(0.98);
             }
 
             /* Summary Card */
@@ -575,16 +681,19 @@
                 font-size: 0.85rem;
             }
 
+            /* ✅ Smaller image wrapper for tiny phones */
             .cart-table td[data-label="Product"] .cart-product-img {
                 width: 48px !important;
                 height: 48px !important;
+                padding: 0 !important;
+                border-radius: 8px !important;
             }
 
-            .selected-total-label {
+            .selected-total-label-mobile {
                 font-size: 0.92rem;
             }
 
-            .selected-total-label span {
+            .selected-total-label-mobile span {
                 font-size: 1.05rem;
             }
         }
@@ -604,6 +713,8 @@
             .cart-product-img {
                 width: 60px !important;
                 height: 60px !important;
+                padding: 0 !important;
+                border-radius: 10px !important;
             }
         }
 
@@ -621,6 +732,7 @@
             const selectAllCheckbox = document.getElementById('selectAll');
             const itemCheckboxes = document.querySelectorAll('.item-checkbox');
             const checkoutSelectedBtn = document.getElementById('checkoutSelectedBtn');
+            const checkoutSelectedBtnMobile = document.getElementById('checkoutSelectedBtnMobile');
             const selectedSummaryCard = document.getElementById('selectedSummaryCard');
 
             // Update selected total and summary
@@ -642,16 +754,31 @@
 
                 const selectedGrandTotal = selectedSubtotal;
 
-                // Update display
+                // Update display — desktop
                 document.getElementById('selectedTotal').textContent = '₱' + selectedGrandTotal.toFixed(2);
+                // ✅ Update display — mobile
+                const selectedTotalMobileEl = document.getElementById('selectedTotalMobile');
+                if (selectedTotalMobileEl) {
+                    selectedTotalMobileEl.textContent = '₱' + selectedGrandTotal.toFixed(2);
+                }
+
                 document.getElementById('selectedSubtotal').textContent = '₱' + selectedSubtotal.toFixed(2);
                 document.getElementById('selectedGrandTotal').textContent = '₱' + selectedGrandTotal.toFixed(2);
 
-                // Show/hide checkout selected button based on selection
+                // Show/hide checkout selected button based on selection (desktop)
                 if (selectedCount > 0) {
                     checkoutSelectedBtn.style.display = 'inline-flex';
                 } else {
                     checkoutSelectedBtn.style.display = 'none';
+                }
+
+                // ✅ Show/hide checkout selected button based on selection (mobile)
+                if (checkoutSelectedBtnMobile) {
+                    if (selectedCount > 0) {
+                        checkoutSelectedBtnMobile.style.display = 'flex';
+                    } else {
+                        checkoutSelectedBtnMobile.style.display = 'none';
+                    }
                 }
 
                 // Show/hide selected summary card
@@ -828,41 +955,54 @@
                 });
             });
 
-            // Clear cart with confirmation
-            window.confirmClearCart = async function() {
-                if (confirm('Are you sure you want to clear your entire cart?')) {
-                    var clearBtn = document.getElementById('clearCartBtn');
-                    var originalBtnHtml = clearBtn.innerHTML;
-
-                    clearBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-                    clearBtn.disabled = true;
-
-                    try {
-                        var response = await fetch('{{ route('customer.cart.clear') }}', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        var data = await response.json();
-
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert(data.message || 'Error clearing cart');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Error clearing cart');
-                    } finally {
-                        clearBtn.innerHTML = originalBtnHtml;
-                        clearBtn.disabled = false;
-                    }
-                }
+            // ✅ Clear cart — now opens a Bootstrap modal instead of browser confirm()
+            window.confirmClearCart = function() {
+                var modalElement = document.getElementById('clearCartModal');
+                var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.show();
             };
+
+            // ✅ Handle the modal's "Yes, Clear Cart" button
+            document.addEventListener('DOMContentLoaded', function() {
+                var confirmBtn = document.getElementById('confirmClearCartBtn');
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', async function() {
+                        var modalElement = document.getElementById('clearCartModal');
+                        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+                        var originalBtnHtml = this.innerHTML;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                        this.disabled = true;
+
+                        try {
+                            var response = await fetch('{{ route('customer.cart.clear') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                }
+                            });
+
+                            var data = await response.json();
+
+                            if (data.success) {
+                                modal.hide();
+                                location.reload();
+                            } else {
+                                alert(data.message || 'Error clearing cart');
+                                this.innerHTML = originalBtnHtml;
+                                this.disabled = false;
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error clearing cart');
+                            this.innerHTML = originalBtnHtml;
+                            this.disabled = false;
+                        }
+                    });
+                }
+            });
 
             // Select All functionality
             if (selectAllCheckbox) {

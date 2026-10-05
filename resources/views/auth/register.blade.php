@@ -168,12 +168,56 @@
         }
         .password-requirements p {
             color: #6c757d;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
             font-size: clamp(0.75rem, 2vw, 0.85rem);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s ease;
+        }
+        .password-requirements p:last-child {
+            margin-bottom: 0;
         }
         .password-requirements i {
-            color: #0d6efd;
-            width: 20px;
+            width: 18px;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+        /* ✅ NEW: Color states for requirement items */
+        .password-requirements p.requirement-met {
+            color: #198754;
+            font-weight: 500;
+        }
+        .password-requirements p.requirement-met i {
+            color: #198754 !important;
+        }
+        .password-requirements p.requirement-unmet {
+            color: #6c757d;
+        }
+        .password-requirements p.requirement-unmet i {
+            color: #adb5bd !important;
+        }
+        .password-requirements p.requirement-failed {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .password-requirements p.requirement-failed i {
+            color: #dc3545 !important;
+        }
+        /* ✅ Password match indicator */
+        .password-match-indicator {
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
+            margin-top: 0.35rem;
+            display: none;
+        }
+        .password-match-indicator.show {
+            display: block;
+        }
+        .password-match-indicator.match {
+            color: #198754;
+        }
+        .password-match-indicator.no-match {
+            color: #dc3545;
         }
         .invalid-feedback {
             color: #dc3545;
@@ -366,7 +410,7 @@
                         @endif
                         
                         <!-- Registration Form -->
-                        <form method="POST" action="{{ route('register.store') }}">
+                        <form method="POST" action="{{ route('register.store') }}" id="registerForm">
                             @csrf
                             
                             <!-- Personal Information -->
@@ -544,14 +588,25 @@
                                     <input type="password" class="form-control" 
                                            id="password_confirmation" name="password_confirmation" 
                                            placeholder="Confirm password" required>
+                                    <!-- ✅ Password match indicator -->
+                                    <div class="password-match-indicator" id="passwordMatchIndicator"></div>
                                 </div>
                             </div>
 
-                            <!-- Password Requirements -->
-                            <div class="password-requirements">
-                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> Minimum 8 characters</p>
-                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> At least one uppercase letter</p>
-                                <p><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> At least one number</p>
+                            <!-- ✅ Enhanced Password Requirements with live validation -->
+                            <div class="password-requirements" id="passwordRequirements">
+                                <p class="requirement-unmet" data-requirement="length">
+                                    <i class="bi bi-circle"></i> Minimum 8 characters
+                                </p>
+                                <p class="requirement-unmet" data-requirement="uppercase">
+                                    <i class="bi bi-circle"></i> At least one uppercase letter
+                                </p>
+                                <p class="requirement-unmet" data-requirement="number">
+                                    <i class="bi bi-circle"></i> At least one number
+                                </p>
+                                <p class="requirement-unmet" data-requirement="special">
+                                    <i class="bi bi-circle"></i> At least one special character (!@#$%^&*)
+                                </p>
                             </div>
 
                             <!-- Terms and Conditions with Modals -->
@@ -573,7 +628,7 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <button type="submit" class="btn btn-register">
+                            <button type="submit" class="btn btn-register" id="submitBtn">
                                 <i class="bi bi-person-plus me-2"></i>Create Account
                             </button>
                         </form>
@@ -802,6 +857,116 @@
             // Run on page load
             const initialCity = citySelect.value;
             updateBarangayField(initialCity);
+
+            // ============================================================
+            // ✅ LIVE PASSWORD VALIDATION
+            // ============================================================
+            const passwordInput = document.getElementById('password');
+            const confirmInput = document.getElementById('password_confirmation');
+            const requirements = document.querySelectorAll('#passwordRequirements p');
+            const matchIndicator = document.getElementById('passwordMatchIndicator');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Requirement checks
+            function validatePassword(pw) {
+                return {
+                    length: pw.length >= 8,
+                    uppercase: /[A-Z]/.test(pw),
+                    number: /[0-9]/.test(pw),
+                    special: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;'`~]/.test(pw)
+                };
+            }
+
+            // Update requirement indicators
+            function updateRequirements(pw) {
+                const checks = validatePassword(pw);
+                let allMet = true;
+
+                requirements.forEach(function(el) {
+                    const key = el.dataset.requirement;
+                    const icon = el.querySelector('i');
+
+                    el.classList.remove('requirement-met', 'requirement-unmet', 'requirement-failed');
+
+                    if (checks[key]) {
+                        el.classList.add('requirement-met');
+                        icon.className = 'bi bi-check-circle-fill';
+                    } else {
+                        el.classList.add('requirement-unmet');
+                        icon.className = 'bi bi-circle';
+                        // If user has typed something but this requirement isn't met, show red
+                        if (pw.length > 0) {
+                            el.classList.add('requirement-failed');
+                            el.classList.remove('requirement-unmet');
+                            icon.className = 'bi bi-x-circle-fill';
+                        }
+                        allMet = false;
+                    }
+                });
+
+                return allMet;
+            }
+
+            // Update password match indicator
+            function updateMatchIndicator() {
+                const pw = passwordInput.value;
+                const confirm = confirmInput.value;
+
+                if (confirm.length === 0) {
+                    matchIndicator.classList.remove('show', 'match', 'no-match');
+                    matchIndicator.textContent = '';
+                    return;
+                }
+
+                matchIndicator.classList.add('show');
+                if (pw === confirm) {
+                    matchIndicator.classList.remove('no-match');
+                    matchIndicator.classList.add('match');
+                    matchIndicator.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Passwords match';
+                } else {
+                    matchIndicator.classList.remove('match');
+                    matchIndicator.classList.add('no-match');
+                    matchIndicator.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Passwords do not match';
+                }
+            }
+
+            // Real-time password validation
+            passwordInput.addEventListener('input', function() {
+                updateRequirements(this.value);
+                updateMatchIndicator();
+            });
+
+            // Confirm password validation
+            confirmInput.addEventListener('input', function() {
+                updateMatchIndicator();
+            });
+
+            // Block form submission if password doesn't meet requirements
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                const pw = passwordInput.value;
+                const checks = validatePassword(pw);
+                const allMet = Object.values(checks).every(v => v === true);
+
+                if (!allMet) {
+                    e.preventDefault();
+                    // Focus on the password field
+                    passwordInput.focus();
+                    // Highlight missing requirements
+                    updateRequirements(pw);
+                    alert('Please make sure your password meets all the requirements before continuing.');
+                    return false;
+                }
+
+                if (pw !== confirmInput.value) {
+                    e.preventDefault();
+                    confirmInput.focus();
+                    alert('Passwords do not match.');
+                    return false;
+                }
+            });
+
+            // Initial state
+            updateRequirements('');
         });
     </script>
     

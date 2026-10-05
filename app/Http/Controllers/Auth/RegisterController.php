@@ -38,26 +38,39 @@ class RegisterController extends Controller
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
-    {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^(09|\+639)\d{9}$/'],
-            'address' => ['required', 'string', 'max:500'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
-            'zip_code' => ['nullable', 'string', 'max:10'],
-            'birthdate' => ['nullable', 'date', 'before:'.now()->subYears(18)->format('Y-m-d')],
-            'terms' => ['required', 'accepted'],
-            'gender' => ['nullable', 'string', 'in:male,female'],
-            'barangay' => ['required', 'string', 'max:255'],
-        ], [
-            'phone.regex' => 'Please enter a valid Philippine mobile number (e.g., 09123456789)',
-            'birthdate.before' => 'You must be at least 18 years old to register',
-            'terms.accepted' => 'You must agree to the terms and conditions',
-        ]);
-    }
+{
+    return Validator::make($data, [
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        // ✅ ENHANCED PASSWORD RULES
+        'password' => [
+            'required',
+            'string',
+            'min:8',                  // Minimum 8 characters
+            'confirmed',              // Must match password_confirmation
+            'regex:/[A-Z]/',          // At least one uppercase letter
+            'regex:/[0-9]/',          // At least one number
+            'regex:/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\\\/;\'`~]/', // At least one special character
+        ],
+        'phone' => ['required', 'string', 'max:20', 'regex:/^(09|\+639)\d{9}$/'],
+        'address' => ['required', 'string', 'max:500'],
+        'city' => ['nullable', 'string', 'max:100'],
+        'province' => ['nullable', 'string', 'max:100'],
+        'zip_code' => ['nullable', 'string', 'max:10'],
+        'birthdate' => ['nullable', 'date', 'before:'.now()->subYears(18)->format('Y-m-d')],
+        'terms' => ['required', 'accepted'],
+        'gender' => ['nullable', 'string', 'in:male,female'],
+        'barangay' => ['required', 'string', 'max:255'],
+    ], [
+        'phone.regex' => 'Please enter a valid Philippine mobile number (e.g., 09123456789)',
+        'birthdate.before' => 'You must be at least 18 years old to register',
+        'terms.accepted' => 'You must agree to the terms and conditions',
+        // ✅ Custom password error messages
+        'password.min' => 'Password must be at least 8 characters long.',
+        'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character.',
+        'password.confirmed' => 'Password confirmation does not match.',
+    ]);
+}
 
     /**
      * Create a new user instance after a valid registration.

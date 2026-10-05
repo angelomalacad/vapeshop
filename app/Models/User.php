@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
     'name',
     'email',
+    'pending_email',    // ✅ ADDED for pending email change
     'password',
     'role',
     'branch_id',
@@ -40,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
     'is_active',
     'last_login_at',
     'last_login_ip',
+    'profile_picture',  // ✅ ADDED for profile picture upload
 ];
 
     /**
@@ -155,6 +157,57 @@ class User extends Authenticatable implements MustVerifyEmail
         ]);
 
         return implode(', ', $parts);
+    }
+
+    /**
+     * ✅ ADDED: Get the profile picture URL (or null if none).
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        return $this->profile_picture ? \Storage::url($this->profile_picture) : null;
+    }
+
+    /**
+     * ✅ ADDED: Get the email address that should receive verification.
+     * If a pending email exists, use it — otherwise use the current email.
+     */
+    public function getEmailForVerification()
+    {
+        return $this->pending_email ?: $this->email;
+    }
+
+    /**
+     * ✅ ADDED: Send the email verification notification to the correct address.
+     * When a pending email is set, temporarily swap it in so the framework's
+     * notification goes to the new address AND signs the URL with it.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        if ($this->pending_email && $this->pending_email !== $this->email) {
+            $originalEmail = $this->email;
+            $originalVerifiedAt = $this->email_verified_at;
+
+            // Temporarily swap so the notification targets the new address
+            $this->email = $this->pending_email;
+            $this->email_verified_at = null;
+
+            parent::sendEmailVerificationNotification();
+
+            // Restore without saving
+            $this->email = $originalEmail;
+            $this->email_verified_at = $originalVerifiedAt;
+            $this->syncOriginal();
+        } else {
+            parent::sendEmailVerificationNotification();
+        }
+    }
+
+    /**
+     * ✅ ADDED: Check if there's a pending email change.
+     */
+    public function hasPendingEmailChange(): bool
+    {
+        return !empty($this->pending_email);
     }
 
     /**

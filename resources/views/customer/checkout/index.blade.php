@@ -203,7 +203,8 @@
                                 <textarea name="notes" class="form-control" rows="2" placeholder="Special delivery instructions..."></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn">
+                            <!-- ✅ DESKTOP Place Order button (unchanged, hidden on mobile via CSS) -->
+                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-desktop">
                                 <i class="bi bi-check-circle"></i> Place Order
                             </button>
                         </form>
@@ -269,6 +270,13 @@
                             <span class="text-danger">₱{{ number_format($total, 2) }}</span>
                         </div>
                     </div>
+
+                    <!-- ✅ MOBILE ONLY: Place Order button moved here (below Order Summary) -->
+                    <div class="card-footer bg-white border-0 order-summary-footer-mobile">
+                        <button type="submit" form="checkoutForm" class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-mobile">
+                            <i class="bi bi-check-circle"></i> Place Order
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -283,6 +291,11 @@
             background-color: #0d6efd;
             color: white;
             border-color: #0d6efd;
+        }
+
+        /* ✅ Hide mobile Place Order button by default (desktop view) */
+        .order-summary-footer-mobile {
+            display: none;
         }
 
         /* ===== MOBILE APP-LIKE STYLES ===== */
@@ -421,18 +434,30 @@
                 font-size: 0.88rem;
             }
 
-            /* Place Order Button */
-            .place-order-btn {
+            /* ✅ HIDE desktop Place Order button on mobile */
+            .place-order-btn-desktop {
+                display: none !important;
+            }
+
+            /* ✅ SHOW mobile Place Order button on mobile */
+            .order-summary-footer-mobile {
+                display: block !important;
+                padding: 1rem;
+                border-top: 1px solid #eef2f6;
+                background: #fff;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .place-order-btn-mobile {
                 padding: 0.85rem 1rem;
                 font-size: 0.95rem;
                 font-weight: 600;
                 border-radius: 14px !important;
-                margin-top: 0.5rem;
                 box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
                 transition: all 0.2s ease;
             }
 
-            .place-order-btn:active {
+            .place-order-btn-mobile:active {
                 transform: scale(0.98);
                 box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
             }
@@ -542,7 +567,7 @@
                 padding: 0.65rem 0.8rem;
             }
 
-            .place-order-btn {
+            .place-order-btn-mobile {
                 font-size: 0.88rem;
             }
         }

@@ -85,13 +85,66 @@
             margin-top: 0.5rem;
         }
         .password-requirements p {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
             font-size: 0.875rem;
             color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s ease;
+        }
+        .password-requirements p:last-child {
+            margin-bottom: 0;
         }
         .password-requirements i {
+            width: 18px;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+            margin-right: 0;
+        }
+        /* ✅ Color states for requirement items */
+        .password-requirements p.requirement-met {
             color: #198754;
-            margin-right: 0.5rem;
+            font-weight: 500;
+        }
+        .password-requirements p.requirement-met i {
+            color: #198754 !important;
+        }
+        .password-requirements p.requirement-unmet {
+            color: #6c757d;
+        }
+        .password-requirements p.requirement-unmet i {
+            color: #adb5bd !important;
+        }
+        .password-requirements p.requirement-failed {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .password-requirements p.requirement-failed i {
+            color: #dc3545 !important;
+        }
+        /* ✅ Password match indicator */
+        .password-match-indicator {
+            font-size: 0.85rem;
+            margin-top: 0.35rem;
+            display: none;
+        }
+        .password-match-indicator.show {
+            display: block;
+        }
+        .password-match-indicator.match {
+            color: #198754;
+        }
+        .password-match-indicator.no-match {
+            color: #dc3545;
+        }
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 1.5rem;
+            }
+            .card-header {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -117,7 +170,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('password.update') }}">
+                        <form method="POST" action="{{ route('password.update') }}" id="resetPasswordForm">
                             @csrf
 
                             <input type="hidden" name="token" value="{{ $token }}">
@@ -163,18 +216,28 @@
                                        name="password_confirmation" 
                                        placeholder="Confirm new password"
                                        required>
+                                <!-- ✅ Password match indicator -->
+                                <div class="password-match-indicator" id="passwordMatchIndicator"></div>
                             </div>
 
-                            <!-- Password Requirements -->
-                            <div class="password-requirements">
-                                <p><i class="bi bi-check-circle-fill"></i> Minimum 8 characters</p>
-                                <p><i class="bi bi-check-circle-fill"></i> At least one uppercase letter</p>
-                                <p><i class="bi bi-check-circle-fill"></i> At least one number</p>
-                                <p class="mb-0"><i class="bi bi-info-circle-fill text-info"></i> Choose a strong password</p>
+                            <!-- ✅ Enhanced Password Requirements with live validation -->
+                            <div class="password-requirements" id="passwordRequirements">
+                                <p class="requirement-unmet" data-requirement="length">
+                                    <i class="bi bi-circle"></i> Minimum 8 characters
+                                </p>
+                                <p class="requirement-unmet" data-requirement="uppercase">
+                                    <i class="bi bi-circle"></i> At least one uppercase letter
+                                </p>
+                                <p class="requirement-unmet" data-requirement="number">
+                                    <i class="bi bi-circle"></i> At least one number
+                                </p>
+                                <p class="requirement-unmet" data-requirement="special">
+                                    <i class="bi bi-circle"></i> At least one special character (!@#$%^&*)
+                                </p>
                             </div>
 
                             <div class="d-grid gap-3 mt-4">
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success" id="submitBtn">
                                     <i class="bi bi-check-circle me-2"></i>Reset Password
                                 </button>
                                 
@@ -198,5 +261,111 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ Live Password Validation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const confirmInput = document.getElementById('password-confirm');
+            const requirements = document.querySelectorAll('#passwordRequirements p');
+            const matchIndicator = document.getElementById('passwordMatchIndicator');
+            const form = document.getElementById('resetPasswordForm');
+
+            // Requirement checks
+            function validatePassword(pw) {
+                return {
+                    length: pw.length >= 8,
+                    uppercase: /[A-Z]/.test(pw),
+                    number: /[0-9]/.test(pw),
+                    special: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;'`~]/.test(pw)
+                };
+            }
+
+            // Update requirement indicators
+            function updateRequirements(pw) {
+                const checks = validatePassword(pw);
+
+                requirements.forEach(function(el) {
+                    const key = el.dataset.requirement;
+                    const icon = el.querySelector('i');
+
+                    el.classList.remove('requirement-met', 'requirement-unmet', 'requirement-failed');
+
+                    if (checks[key]) {
+                        el.classList.add('requirement-met');
+                        icon.className = 'bi bi-check-circle-fill';
+                    } else {
+                        // If user has typed something but this requirement isn't met, show red
+                        if (pw.length > 0) {
+                            el.classList.add('requirement-failed');
+                            icon.className = 'bi bi-x-circle-fill';
+                        } else {
+                            el.classList.add('requirement-unmet');
+                            icon.className = 'bi bi-circle';
+                        }
+                    }
+                });
+            }
+
+            // Update password match indicator
+            function updateMatchIndicator() {
+                const pw = passwordInput.value;
+                const confirm = confirmInput.value;
+
+                if (confirm.length === 0) {
+                    matchIndicator.classList.remove('show', 'match', 'no-match');
+                    matchIndicator.textContent = '';
+                    return;
+                }
+
+                matchIndicator.classList.add('show');
+                if (pw === confirm) {
+                    matchIndicator.classList.remove('no-match');
+                    matchIndicator.classList.add('match');
+                    matchIndicator.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Passwords match';
+                } else {
+                    matchIndicator.classList.remove('match');
+                    matchIndicator.classList.add('no-match');
+                    matchIndicator.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Passwords do not match';
+                }
+            }
+
+            // Real-time password validation
+            passwordInput.addEventListener('input', function() {
+                updateRequirements(this.value);
+                updateMatchIndicator();
+            });
+
+            // Confirm password validation
+            confirmInput.addEventListener('input', function() {
+                updateMatchIndicator();
+            });
+
+            // Block form submission if password doesn't meet requirements
+            form.addEventListener('submit', function(e) {
+                const pw = passwordInput.value;
+                const checks = validatePassword(pw);
+                const allMet = Object.values(checks).every(v => v === true);
+
+                if (!allMet) {
+                    e.preventDefault();
+                    passwordInput.focus();
+                    updateRequirements(pw);
+                    alert('Please make sure your password meets all the requirements before continuing.');
+                    return false;
+                }
+
+                if (pw !== confirmInput.value) {
+                    e.preventDefault();
+                    confirmInput.focus();
+                    alert('Passwords do not match.');
+                    return false;
+                }
+            });
+
+            // Initial state
+            updateRequirements('');
+        });
+    </script>
 </body>
 </html>

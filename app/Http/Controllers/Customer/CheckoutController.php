@@ -255,8 +255,15 @@ class CheckoutController extends Controller
                 'notes' => $request->notes . ($isInsideCalamba ? '' : ' [LALAMOVE REQUIRED]'),
             ]);
 
-            // 6. Clear cart
-            CartHelper::clearCart();
+            // 6. ✅ FIX: Remove ONLY the purchased items from the cart.
+            //    Previously this used CartHelper::clearCart() which wiped the ENTIRE
+            //    cart — even items the customer did NOT select for this order.
+            //    Now we loop through only the items that were part of this order
+            //    ($cart contains only those) and remove them one by one, leaving
+            //    any unselected items still in the cart.
+            foreach ($cart as $inventoryId => $item) {
+                CartHelper::removeItem($inventoryId);
+            }
 
             DB::commit();
 
