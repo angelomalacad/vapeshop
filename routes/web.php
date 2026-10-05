@@ -35,6 +35,11 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login.show');
 
+Route::get('/login-alias', function () {
+    return redirect()->route('login.show');
+})->name('login');
+// ===== END OF CUSTOM LOGIN ROUTE =====
+
 Route::post('/login', function () {
     $credentials = request()->only('email', 'password');
 
