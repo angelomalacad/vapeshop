@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Branch;
+use App\Models\Cart; // <-- ADDED: change to your cart model name if different (e.g. CartItem)
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,9 +36,14 @@ class DashboardController extends Controller
             ->where('order_status', 'delivered')
             ->sum('total_amount');
 
+        // ADDED: Get cart items count for the logged-in customer
+        // sum('quantity') = total pieces (2x A + 3x B = 5)
+        // For number of different products instead (= 2), use ->count()
+        $cartCount = (int) Cart::where('user_id', Auth::id())->sum('quantity');
+
         // Get branches for map
         $branches = Branch::where('is_active', true)->get();
 
-        return view('customer.dashboard', compact('user', 'recentOrders', 'orderCounts', 'totalSpent', 'branches'));
+        return view('customer.dashboard', compact('user', 'recentOrders', 'orderCounts', 'totalSpent', 'branches', 'cartCount'));
     }
 }

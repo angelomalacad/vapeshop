@@ -121,6 +121,8 @@
                                         <label>Province</label>
                                         <!-- Displayed as static text, not editable -->
                                         <div class="form-control bg-light text-muted" style="cursor: default;">Laguna</div>
+                                        <!-- Sent to the controller (it validates new_province when using a new address) -->
+                                        <input type="hidden" name="new_province" value="Laguna">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label>City/Municipality *</label>
@@ -141,7 +143,11 @@
                                         <label>Barangay *</label>
                                         <select class="form-select" name="new_barangay" id="new_barangay">
                                             <option value="">Select Barangay</option>
-                                            @foreach (['Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'] as $barangayOption)
+                                            @php
+                                                $calambaBarangays = ['Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'];
+                                                natcasesort($calambaBarangays); // alphabetical, "Barangay 2" before "Barangay 10"
+                                            @endphp
+                                            @foreach ($calambaBarangays as $barangayOption)
                                                 <option value="{{ $barangayOption }}">{{ $barangayOption }}</option>
                                             @endforeach
                                             <option value="Other">Other</option>
@@ -152,7 +158,7 @@
                                     <div class="col-md-6 mb-3" id="otherBarangayContainer" style="display: none;">
                                         <label for="other_barangay" class="form-label">Specify Barangay</label>
                                         <input type="text" class="form-control" id="other_barangay"
-                                            name="other_barangay" placeholder="Enter your barangay name">
+                                            name="new_other_barangay" placeholder="Enter your barangay name">
                                     </div>
 
                                     <div class="col-md-6 mb-3">
@@ -784,6 +790,45 @@
                     }
                 });
             }
+        });
+    </script>
+
+    {{-- ADDED: Switch the barangay list depending on the selected city.
+         Calamba City = alphabetical barangay list. Any other city = only "Other",
+         so the customer types their own barangay. Existing script above is untouched. --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const citySelect = document.getElementById('new_city');
+            const barangaySelect = document.getElementById('new_barangay');
+            if (!citySelect || !barangaySelect) return;
+
+            // Remember the Calamba (alphabetical) options so we can restore them
+            const calambaOptionsHtml = barangaySelect.innerHTML;
+
+            function syncBarangayOptions() {
+                const city = citySelect.value.trim().toLowerCase();
+                const isCalamba = city === '' || city === 'calamba city' || city === 'calamba';
+                const showingOnlyOther = barangaySelect.dataset.mode === 'other';
+
+                if (isCalamba && showingOnlyOther) {
+                    // Back to Calamba: restore the full barangay list
+                    barangaySelect.innerHTML = calambaOptionsHtml;
+                    barangaySelect.value = '';
+                    barangaySelect.dataset.mode = 'calamba';
+                } else if (!isCalamba && !showingOnlyOther) {
+                    // Other city: only "Other" so the user types their barangay
+                    barangaySelect.innerHTML = '<option value="Other" selected>Other</option>';
+                    barangaySelect.value = 'Other';
+                    barangaySelect.dataset.mode = 'other';
+                } else {
+                    return;
+                }
+
+                // Triggers your existing toggle that shows/hides the "Specify Barangay" input
+                barangaySelect.dispatchEvent(new Event('change'));
+            }
+
+            citySelect.addEventListener('change', syncBarangayOptions);
         });
     </script>
 @endsection

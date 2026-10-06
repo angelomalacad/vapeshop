@@ -1172,6 +1172,45 @@
                 transform: scale(0.98);
             }
         }
+
+        /* ===== DESKTOP/LAPTOP FIX: keep all 7 timeline steps on one row ===== */
+        @media (min-width: 768px) {
+            .status-steps {
+                flex-wrap: nowrap;
+                gap: 0;
+            }
+
+            .status-step {
+                flex: 1 1 0;
+                min-width: 0;
+                padding: 0 2px;
+            }
+
+            .status-label {
+                line-height: 1.25;
+            }
+        }
+
+        /* Slightly smaller text on laptop-width screens so labels fit under each icon */
+        @media (min-width: 768px) and (max-width: 1199.98px) {
+            .status-icon {
+                width: 46px;
+                height: 46px;
+            }
+
+            .status-step:not(:last-child):before {
+                top: 22px;
+            }
+
+            .status-label {
+                font-size: 12px;
+            }
+
+            .status-date,
+            .status-time {
+                font-size: 10px;
+            }
+        }
     </style>
 
     @php
