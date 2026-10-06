@@ -402,6 +402,54 @@
         width: 30%;
         padding-right: 9rem !important; /* ✅ Add this to move numbers LEFT */
     }
+
+    /* ✅ NEW: Delivery Date Range (Expected Delivery Date) - stacked to fit the narrow card */
+    .delivery-date-range {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    .delivery-date-range .form-control {
+        width: 100%;
+        min-width: 0;
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
+
+    .delivery-date-range > span {
+        text-align: center;
+        font-size: 0.72rem;
+        color: #94a3b8;
+        line-height: 1;
+    }
+
+    #saveDeliveryDateBtn {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 767.98px) {
+        .delivery-date-range .form-control {
+            font-size: 0.78rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 10px;
+            min-height: 40px;
+        }
+
+        #saveDeliveryDateBtn {
+            padding: 0.65rem;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            margin-top: 0.6rem !important;
+        }
+
+        #saveDeliveryDateBtn:active {
+            transform: scale(0.98);
+        }
+    }
 </style>
 
 <div class="modal-body-custom">
@@ -691,6 +739,24 @@
                         <small class="text-muted">Delivered on {{ $order->updated_at->format('M d, Y h:i A') }}</small>
                     </div>
                 @endif
+
+                {{-- ✅ NEW: Expected Delivery Date adjustment (From – To), same as the driver side --}}
+                @if (!in_array($order->order_status, ['delivered', 'cancelled']))
+                    <div class="mb-3 mt-3">
+                        <label class="info-label">Expected Delivery Date</label>
+                        <div class="delivery-date-range">
+                            <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
+                                value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
+                            <span class="text-muted">to</span>
+                            <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
+                                value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
+                            onclick="saveDeliveryDate()">
+                            Save
+                        </button>
+                    </div>
+                @endif
             @else
                 <div class="locked-alert">
                     <i class="bi bi-lock-fill"></i>
@@ -861,5 +927,108 @@
         // Clear container
         const container = document.getElementById('modalContainer');
         if (container) container.innerHTML = '';
+    }
+
+    // ✅ NEW: Delivery date range - allow the same date for From and To.
+    // Runs immediately (not on DOMContentLoaded) because this view is loaded inside a modal.
+    (function initDeliveryDateRange() {
+        const deliveryDateFrom = document.getElementById('delivery_date_from');
+        const deliveryDateTo = document.getElementById('delivery_date_to');
+
+        if (!deliveryDateFrom || !deliveryDateTo) return;
+
+        // From cannot be in the past (unless an earlier date is already saved)
+        const today = new Date().toISOString().split('T')[0];
+        if (!deliveryDateFrom.value || deliveryDateFrom.value >= today) {
+            deliveryDateFrom.min = today;
+        }
+
+        // To must be the same as or after From
+        if (deliveryDateFrom.value) {
+            deliveryDateTo.min = deliveryDateFrom.value;
+        }
+
+        deliveryDateFrom.addEventListener('change', function() {
+            deliveryDateTo.min = this.value;
+            if (deliveryDateTo.value && deliveryDateTo.value < this.value) {
+                deliveryDateTo.value = this.value;
+            }
+        });
+    })();
+
+    // ✅ NEW: Save the delivery date range
+    function saveDeliveryDate() {
+        const orderId = {{ $order->id }};
+        const deliveryDateFrom = document.getElementById('delivery_date_from').value;
+        const deliveryDateTo = document.getElementById('delivery_date_to').value;
+        const resultDiv = document.getElementById('result');
+
+        if (!deliveryDateFrom || !deliveryDateTo) {
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Please select both From and To dates.</div>';
+            }
+            return;
+        }
+
+        // Same date is allowed
+        if (deliveryDateTo < deliveryDateFrom) {
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">To date cannot be before From date.</div>';
+            }
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveDeliveryDateBtn');
+        const originalBtnText = 'Save';
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        if (resultDiv) {
+            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
+        }
+
+        fetch(`{{ url('/branch-admin/online-orders') }}/${orderId}/delivery-date`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    delivery_date_from: deliveryDateFrom,
+                    delivery_date_to: deliveryDateTo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+
+                if (data.success) {
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
+                            'Delivery dates saved successfully!') + '</div>';
+                    }
+
+                    // Refresh so the customer-facing dates and this page stay in sync
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                            'Error saving delivery dates') + '</div>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
+                }
+            });
     }
 </script>

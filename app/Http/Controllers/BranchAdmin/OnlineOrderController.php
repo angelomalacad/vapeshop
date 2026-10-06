@@ -256,6 +256,42 @@ class OnlineOrderController extends Controller
     }
 
     /**
+     * ✅ NEW: Update the expected delivery date range (branch admin)
+     */
+    public function updateDeliveryDate(Request $request, Order $order)
+    {
+        if ($order->branch_id !== Auth::user()->branch_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only update delivery dates for your branch.'
+            ], 403);
+        }
+
+        if (in_array($order->order_status, ['delivered', 'cancelled'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Delivery dates can no longer be changed for this order.'
+            ], 422);
+        }
+
+        $request->validate([
+            'delivery_date_from' => 'required|date',
+            'delivery_date_to' => 'required|date|after_or_equal:delivery_date_from', // ✅ Allows same date
+        ]);
+
+        $order->delivery_date_from = $request->delivery_date_from;
+        $order->delivery_date_to = $request->delivery_date_to;
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Delivery dates updated successfully!',
+            'delivery_date_from' => $order->fresh()->delivery_date_from,
+            'delivery_date_to' => $order->fresh()->delivery_date_to
+        ]);
+    }
+
+    /**
      * Mark order as out for delivery
      */
     public function markOutForDelivery(Order $order)

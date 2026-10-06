@@ -526,7 +526,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::get('/pos', function () { return "Point of Sale - To be implemented"; })->name('pos');
     }
 
-    // Online Orders Management
+        // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'index'])->name('index');
         Route::get('/{order}/modal', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'showModal'])->name('modal');
@@ -535,6 +535,7 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
         Route::post('/{order}/reject', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'reject'])->name('reject');
         Route::post('/{order}/processing', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markProcessing'])->name('processing');
         Route::post('/{order}/ready', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markReady'])->name('ready');
+        Route::post('/{order}/delivery-date', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateDeliveryDate'])->name('delivery-date'); // ✅ NEW
         Route::post('/{order}/cancel', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/{order}/assign-driver', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'assignDriver'])->name('assign-driver');
         Route::post('/{order}/delivered', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markDelivered'])->name('delivered');
