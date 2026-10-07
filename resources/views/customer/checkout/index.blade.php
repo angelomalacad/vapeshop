@@ -324,12 +324,12 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2 summary-row">
                             <span>Delivery Fee</span>
-                            <span id="deliveryFeeDisplay">₱0.00</span>
+                            <span id="deliveryFeeDisplay">₱{{ number_format($deliveryFee ?? 0, 2) }}</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between fw-bold fs-5 summary-total-row">
                             <span>Total Amount</span>
-                            <span class="text-danger">₱{{ number_format($total, 2) }}</span>
+                            <span class="text-danger" id="grandTotalDisplay">₱{{ number_format($total, 2) }}</span>
                         </div>
                     </div>
 
@@ -686,6 +686,9 @@
             const otherBarangayInput = document.getElementById('other_barangay');
             const checkoutForm = document.getElementById('checkoutForm');
             const mobilePlaceOrderBtn = document.getElementById('mobilePlaceOrderBtn');
+            const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+            const SUBTOTAL = {{ (float) ($subtotal ?? 0) }};
+            const CALAMBA_FEE = {{ (float) ($deliveryFee ?? 50) }};
 
             // 1. Toggle Address Sections
             function toggleAddressSections() {
@@ -736,7 +739,7 @@
             paymentMethod.addEventListener('change', toggleGcashField);
             toggleGcashField();
 
-            // 3. Delivery Method Alert
+            // 3. Delivery Method Alert + live fee/total update
             function checkCityForDelivery(city) {
                 const trimmedCity = city.trim().toLowerCase();
                 if (trimmedCity === 'calamba city' || trimmedCity === 'calamba') {
@@ -744,9 +747,13 @@
                     deliveryAlertIcon.className = 'bi bi-bicycle me-2';
                     deliveryAlertTitle.innerText = 'Handled by our Branch Admin/Driver:';
                     deliveryAlertText.innerHTML =
-                        'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>';
+                        'Your order will be delivered by our in-house team.<br>• Delivery hours: 9:00 AM - 8:00 PM daily<br>• Our rider will contact you before delivery<br>• A flat ₱50 delivery fee applies within Calamba City';
                     deliveryAlert.style.display = 'block';
-                    deliveryFeeDisplay.innerHTML = '₱0.00';
+
+                    deliveryFeeDisplay.innerHTML = '₱' + CALAMBA_FEE.toFixed(2);
+                    if (grandTotalDisplay) {
+                        grandTotalDisplay.textContent = '₱' + (SUBTOTAL + CALAMBA_FEE).toFixed(2);
+                    }
                 } else if (trimmedCity !== '') {
                     deliveryAlert.className = 'alert alert-primary mb-3';
                     deliveryAlertIcon.className = 'bi bi-truck me-2';
@@ -754,10 +761,18 @@
                     deliveryAlertText.innerHTML =
                         'Your order will be fulfilled via <strong>Lalamove</strong> courier service.<br>• You will receive a tracking link by via clicking view details in my orders information<br>• Delivery fee is calculated and paid directly to the Lalamove driver';
                     deliveryAlert.style.display = 'block';
+
                     deliveryFeeDisplay.innerHTML = 'Calculated by Lalamove';
+                    if (grandTotalDisplay) {
+                        grandTotalDisplay.textContent = '₱' + SUBTOTAL.toFixed(2);
+                    }
                 } else {
                     deliveryAlert.style.display = 'none';
+
                     deliveryFeeDisplay.innerHTML = '₱0.00';
+                    if (grandTotalDisplay) {
+                        grandTotalDisplay.textContent = '₱' + SUBTOTAL.toFixed(2);
+                    }
                 }
             }
 

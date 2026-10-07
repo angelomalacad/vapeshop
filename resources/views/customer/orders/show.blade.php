@@ -78,6 +78,11 @@
                                         <td colspan="3" class="text-end fw-bold">Subtotal:</td>
                                         <td class="text-end fw-bold">₱{{ number_format($order->subtotal, 2) }}</td>
                                     </tr>
+                                    {{-- ✅ Delivery Fee row (black text, aligned with Subtotal) --}}
+                                    <tr>
+                                        <td colspan="3" class="text-end fw-bold">Delivery Fee:</td>
+                                        <td class="text-end fw-bold">₱{{ number_format($order->delivery_fee ?? 0, 2) }}</td>
+                                    </tr>
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
                                         <td class="text-end fw-bold fs-5 text-danger">

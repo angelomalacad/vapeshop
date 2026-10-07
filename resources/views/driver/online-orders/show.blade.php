@@ -338,7 +338,7 @@
             max-height: 88vh;
         }
 
-        .modal-body-custom > div {
+        .modal-body-custom>div {
             padding: 1.25rem 1rem !important;
         }
 
@@ -396,7 +396,7 @@
         }
 
         .info-card .card-body,
-        .info-card > .p-3 {
+        .info-card>.p-3 {
             padding: 0.9rem !important;
         }
 
@@ -542,7 +542,7 @@
         }
 
         /* Customer info columns → stack on mobile */
-        .info-card .row > .col-6 {
+        .info-card .row>.col-6 {
             flex: 0 0 100%;
             max-width: 100%;
         }
@@ -583,7 +583,7 @@
             min-height: 40px;
         }
 
-        .delivery-date-range > span {
+        .delivery-date-range>span {
             font-size: 0.72rem;
             color: #94a3b8;
         }
@@ -704,13 +704,20 @@
                                         $stockColor = 'text-danger';
 
                                         if ($order->branch_id && $product) {
-                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                            $branchInventory = \App\Models\BranchInventory::where(
+                                                'branch_id',
+                                                $order->branch_id,
+                                            )
                                                 ->where('product_id', $product->id)
-                                                ->when($item->flavor_id, function($query) use ($item) {
-                                                    return $query->where('flavor_id', $item->flavor_id);
-                                                }, function($query) {
-                                                    return $query->whereNull('flavor_id');
-                                                })
+                                                ->when(
+                                                    $item->flavor_id,
+                                                    function ($query) use ($item) {
+                                                        return $query->where('flavor_id', $item->flavor_id);
+                                                    },
+                                                    function ($query) {
+                                                        return $query->whereNull('flavor_id');
+                                                    },
+                                                )
                                                 ->first();
 
                                             if ($branchInventory) {
@@ -771,11 +778,15 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- ✅ FIXED: Subtotal and Total - Aligned under TOTAL column -->
+                    <!-- ✅ FIXED: Subtotal, Delivery Fee and Total - Aligned under TOTAL column -->
                     <div class="p-3 bg-light">
                         <div class="totals-row totals-align-fixed">
                             <span class="totals-label">Subtotal</span>
                             <span class="totals-value">₱{{ number_format($order->subtotal, 2) }}</span>
+                        </div>
+                        <div class="totals-row totals-align-fixed">
+                            <span class="totals-label">Delivery Fee</span>
+                            <span class="totals-value">₱{{ number_format($order->delivery_fee ?? 0, 2) }}</span>
                         </div>
                         <div class="totals-row totals-total totals-align-fixed">
                             <span class="totals-label">Total</span>
@@ -794,7 +805,7 @@
                             <div class="col-12">
                                 <p class="info-label">Branch</p>
                                 <p class="info-value">
-                                    @if($order->branch)
+                                    @if ($order->branch)
                                         <span class="branch-badge">
                                             <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
                                         </span>
@@ -803,7 +814,7 @@
                                     @endif
                                 </p>
                             </div>
-                            @if($order->branch && $order->branch->address)
+                            @if ($order->branch && $order->branch->address)
                                 <div class="col-12">
                                     <p class="info-label">Branch Address</p>
                                     <p class="info-value">{{ $order->branch->address }}</p>
@@ -851,20 +862,20 @@
                             // ✅ FIXED: Map delivery status to display status
                             $deliveryStatus = $order->delivery ? $order->delivery->status : null;
                             $orderStatus = $order->order_status;
-                            
+
                             // Map statuses for display
                             $statusMap = [
                                 'assigned' => 'ready',
                                 'picked_up' => 'picked_up',
                                 'out_for_delivery' => 'out_for_delivery',
                                 'delivered' => 'delivered',
-                                'delivery_failed' => 'delivery_failed'
+                                'delivery_failed' => 'delivery_failed',
                             ];
-                            
+
                             if (isset($statusMap[$deliveryStatus])) {
                                 $orderStatus = $statusMap[$deliveryStatus];
                             }
-                            
+
                             $statusClass = match ($orderStatus) {
                                 'ready' => 'badge-ready',
                                 'out_for_delivery' => 'badge-out_for_delivery',
@@ -875,7 +886,7 @@
                                 'cancelled' => 'badge-cancelled',
                                 default => 'badge-secondary',
                             };
-                            
+
                             $displayStatus = ucfirst(str_replace('_', ' ', $orderStatus));
                             if ($orderStatus == 'delivery_failed') {
                                 $displayStatus = 'Delivery Failed';
@@ -926,10 +937,12 @@
                             <div class="mb-3">
                                 <label class="info-label">Expected Delivery Date</label>
                                 <div class="delivery-date-range">
-                                    <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
+                                    <input type="date" name="delivery_date_from" id="delivery_date_from"
+                                        class="form-control"
                                         value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
                                     <span class="text-muted">to</span>
-                                    <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
+                                    <input type="date" name="delivery_date_to" id="delivery_date_to"
+                                        class="form-control"
                                         value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
                                 </div>
                                 <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
@@ -977,7 +990,7 @@
         if (deliveryDateFrom && deliveryDateTo) {
             // Set min on From to today
             deliveryDateFrom.min = new Date().toISOString().split('T')[0];
-            
+
             // Update min on To when From changes
             deliveryDateFrom.addEventListener('change', function() {
                 deliveryDateTo.min = this.value; // ✅ Allow same date as From
@@ -985,7 +998,7 @@
                     deliveryDateTo.value = this.value;
                 }
             });
-            
+
             // Set initial min on To to match From
             if (deliveryDateFrom.value) {
                 deliveryDateTo.min = deliveryDateFrom.value;
@@ -1024,7 +1037,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    sessionStorage.setItem('delivery_success_message', data.message || 'Status updated successfully!');
+                    sessionStorage.setItem('delivery_success_message', data.message ||
+                        'Status updated successfully!');
                     window.location.reload();
                 } else {
                     if (typeof showNotification === 'function') {
@@ -1054,7 +1068,7 @@
         const deliveryDateFrom = document.getElementById('delivery_date_from').value;
         const deliveryDateTo = document.getElementById('delivery_date_to').value;
         const resultDiv = document.getElementById('result');
-        
+
         if (!deliveryDateFrom || !deliveryDateTo) {
             if (resultDiv) {
                 resultDiv.innerHTML = '<div class="alert alert-danger">Please select both From and To dates.</div>';
@@ -1081,53 +1095,55 @@
 
         // ✅ USE ABSOLUTE URL TO ENSURE IT WORKS
         fetch(`{{ url('/driver/online-orders') }}/${orderId}/delivery-date`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                delivery_date_from: deliveryDateFrom,
-                delivery_date_to: deliveryDateTo
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    delivery_date_from: deliveryDateFrom,
+                    delivery_date_to: deliveryDateTo
+                })
             })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnText;
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
 
-            if (data.success) {
-                // ✅ SHOW SUCCESS MESSAGE INSIDE THE MODAL
-                if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message || 'Delivery dates saved successfully!') + '</div>';
+                if (data.success) {
+                    // ✅ SHOW SUCCESS MESSAGE INSIDE THE MODAL
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
+                            'Delivery dates saved successfully!') + '</div>';
+                    }
+
+                    // ✅ REFRESH PAGE AFTER 1.5 SECONDS TO CLEAR THE MESSAGE
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // ✅ SHOW ERROR MESSAGE INSIDE THE MODAL
+                    if (resultDiv) {
+                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                            'Error saving delivery dates') + '</div>';
+                    }
                 }
-                
-                // ✅ REFRESH PAGE AFTER 1.5 SECONDS TO CLEAR THE MESSAGE
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                // ✅ SHOW ERROR MESSAGE INSIDE THE MODAL
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+
+                // ✅ SHOW NETWORK ERROR INSIDE THE MODAL
                 if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Error saving delivery dates') + '</div>';
+                    resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
                 }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnText;
-            
-            // ✅ SHOW NETWORK ERROR INSIDE THE MODAL
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
-            }
-        });
+            });
     }
 </script>

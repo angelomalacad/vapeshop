@@ -7,6 +7,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BranchAdmin\ProductController as BranchAdminProductController;
+use App\Http\Controllers\Admin\SettingController;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -363,6 +364,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::post('/{shift}/cancel', [App\Http\Controllers\Admin\DriverShiftController::class, 'cancel'])->name('cancel');
         Route::get('/active', [App\Http\Controllers\Admin\DriverShiftController::class, 'getActiveDriver'])->name('active');
     });
+     // ===== SETTINGS (OWNER) — Delivery Fee =====
+    Route::post('settings/delivery-fee', [SettingController::class, 'updateDeliveryFee'])
+        ->name('settings.update-delivery-fee');
 
     // ===== DELIVERY MANAGEMENT (OWNER) =====
     Route::prefix('deliveries')->name('deliveries.')->group(function () {

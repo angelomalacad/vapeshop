@@ -753,6 +753,14 @@
             }
         }
     }
+
+    /* ✅ NEW: Delivery fee note under Amount */
+    .fee-note {
+        font-size: 0.68rem;
+        color: #64748b;
+        font-weight: 500;
+        white-space: nowrap;
+    }
 </style>
 
 <!-- 1. THE DRIVER MENU SIDEBAR (Floats on the left, clears header) -->
@@ -859,6 +867,9 @@
                         </td>
                         <td>
                             <span class="fw-bold text-success">₱{{ number_format($delivery->order->total_amount ?? 0, 2) }}</span>
+                            @if (($delivery->order->delivery_fee ?? 0) > 0)
+                                <div class="fee-note">incl. ₱{{ number_format($delivery->order->delivery_fee, 2) }} delivery fee</div>
+                            @endif
                         </td>
                         <td>{{ $delivery->recipient_name }}</td>
                         <td>{{ $delivery->recipient_phone }}</td>
@@ -955,6 +966,9 @@
                         </td>
                         <td>
                             <span class="fw-bold text-success">₱{{ number_format($delivery->order->total_amount ?? 0, 2) }}</span>
+                            @if (($delivery->order->delivery_fee ?? 0) > 0)
+                                <div class="fee-note">incl. ₱{{ number_format($delivery->order->delivery_fee, 2) }} delivery fee</div>
+                            @endif
                         </td>
                         <td>{{ $delivery->recipient_name }}</td>
                         <td>{{ $delivery->recipient_phone }}</td>

@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Delivery;
 use App\Models\BranchInventory;
 use App\Models\InventoryReservation;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -59,11 +60,8 @@ class CheckoutController extends Controller
         $firstBranchId = collect($cart)->first()['branch_id'] ?? null;
         $branch = $firstBranchId ? Branch::find($firstBranchId) : null;
 
-        $tax = 0; // ✅ No tax
-        $total = $subtotal; // ✅ Total is just subtotal
-
         // ================================================================
-        // FIX: Determine Calamba status from the User Profile
+        // Determine Calamba status from the User Profile
         // ================================================================
         $isInsideCalamba = false;
         $userCity = Auth::check() ? Auth::user()->city : null;
@@ -76,9 +74,12 @@ class CheckoutController extends Controller
         }
         // ================================================================
 
-        $isInsideCalamba = $isInsideCalamba ?? false;
+        $tax = 0; // ✅ No tax
+        $calambaFee = (float) (\DB::table('settings')->where('key', 'calamba_delivery_fee')->value('value') ?? 50);
+        $deliveryFee = $isInsideCalamba ? $calambaFee : 0;
+        $total = $subtotal + $deliveryFee;
 
-        return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'total', 'cartItems', 'isInsideCalamba'));
+        return view('customer.checkout.index', compact('branch', 'subtotal', 'tax', 'deliveryFee', 'total', 'cartItems', 'isInsideCalamba'));
     }
 
     public function store(Request $request)
@@ -106,7 +107,7 @@ class CheckoutController extends Controller
             'delivery_type' => 'required|in:pickup,delivery',
 
             'delivery_address' => 'required_if:address_option,saved|nullable|string',
-            'delivery_date' => 'nullable|date|after_or_equal:today', // ✅ ADD THIS
+            'delivery_date' => 'nullable|date|after_or_equal:today',
             'new_delivery_address' => 'required_if:address_option,new|nullable|string',
 
             'new_city' => 'required_if:address_option,new|nullable|string|max:100',
@@ -154,13 +155,24 @@ class CheckoutController extends Controller
                 $landmark = $request->new_landmark ?? $request->landmark;
             }
 
+            // --- Determine if inside Calamba (for delivery fee) ---
+            $isInsideCalambaForFee = false;
+            if ($city) {
+                $cityLower = strtolower(trim($city));
+                if ($cityLower === 'calamba city' || $cityLower === 'calamba') {
+                    $isInsideCalambaForFee = true;
+                }
+            }
+
             // 2. Calculate Totals
             $subtotal = 0;
             foreach ($cart as $item) {
                 $subtotal += $item['price'] * $item['quantity'];
             }
             $tax = 0; // ✅ No tax
-            $total = $subtotal; // ✅ Total is just subtotal
+            $calambaFee = (float) (\DB::table('settings')->where('key', 'calamba_delivery_fee')->value('value') ?? 50);
+            $deliveryFee = $isInsideCalambaForFee ? $calambaFee : 0;
+            $total = $subtotal + $deliveryFee;
 
             // 3. Determine if the cart has mixed branches
             $branchIds = collect($cart)->pluck('branch_id')->unique();
@@ -176,8 +188,8 @@ class CheckoutController extends Controller
                 'branch_id' => $singleBranchId,
                 'subtotal' => $subtotal,
                 'tax' => 0, // ✅ No tax
-                'delivery_fee' => 0, // ✅ No delivery fee
-                'total_amount' => $subtotal, // ✅ Total is just subtotal
+                'delivery_fee' => $deliveryFee, // ✅ ₱50 inside Calamba, 0 outside
+                'total_amount' => $total, // ✅ Subtotal + delivery fee
                 'status' => 'pending',
                 'order_status' => 'pending',
                 'payment_status' => 'pending',
@@ -187,7 +199,7 @@ class CheckoutController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_email' => $request->customer_email,
                 'delivery_address' => $deliveryAddress,
-                'delivery_date' => $request->delivery_date, // ✅ ADD THIS
+                'delivery_date' => $request->delivery_date,
                 'city' => $city,
                 'barangay' => $barangay,
                 'other_barangay' => $otherBarangay,
@@ -209,7 +221,7 @@ class CheckoutController extends Controller
                     'price' => $item['price'],
                     'subtotal' => $item['price'] * $item['quantity'],
                 ]);
-                
+
                 // CREATE INVENTORY RESERVATION RECORD
                 InventoryReservation::create([
                     'branch_inventory_id' => $inventoryId,

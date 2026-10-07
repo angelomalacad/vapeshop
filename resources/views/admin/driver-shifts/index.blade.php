@@ -14,6 +14,35 @@
             </div>
         </div>
 
+        <!-- ✅ Delivery Fee Setting (Owner can change the Calamba delivery fee) -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="bi bi-gear me-2 text-primary"></i> Delivery Fee Setting
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="deliveryFeeForm" class="row g-3 align-items-end">
+                    @csrf
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Calamba Delivery Fee (₱)</label>
+                        <input type="number" name="calamba_delivery_fee" id="calambaDeliveryFeeInput" class="form-control"
+                            min="0" step="0.01" required
+                            value="{{ \App\Models\Setting::get('calamba_delivery_fee', 50) }}">
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-info-circle"></i> Applied to all Calamba City orders. Lalamove orders are not
+                            affected.
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100" id="saveDeliveryFeeBtn">
+                            <i class="bi bi-check-circle"></i> Save Fee
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Date Selector -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
@@ -80,9 +109,10 @@
                                         data-bs-target="#changeDriverModal">
                                         <i class="bi bi-arrow-repeat"></i> Change Driver
                                     </button>
-                                    
+
                                     <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                                        data-bs-target="#cancelShiftModal" data-action="{{ route('admin.driver-shifts.cancel', $activeShift) }}">
+                                        data-bs-target="#cancelShiftModal"
+                                        data-action="{{ route('admin.driver-shifts.cancel', $activeShift) }}">
                                         <i class="bi bi-x-circle"></i> Cancel Shift
                                     </button>
                                 @endif
@@ -226,8 +256,8 @@
                         </thead>
                         <tbody>
                             @forelse($allHistory->sortByDesc(function($shift) {
-                                return strtotime($shift->shift_date);
-                            }) as $shift)
+                                    return strtotime($shift->shift_date);
+                                }) as $shift)
                                 <tr>
                                     <td>
                                         {{ date('M d, Y', strtotime($shift->shift_date)) }}
@@ -321,7 +351,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Shift</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to cancel this shift?</p>
@@ -345,13 +376,14 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            
+
             function handleButtonLoading(btn, isLoading, text) {
                 if (!btn) return;
                 if (isLoading) {
                     btn.dataset.originalHtml = btn.innerHTML;
                     btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + (text || 'Processing...');
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + (text ||
+                        'Processing...');
                 } else {
                     btn.disabled = false;
                     if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
@@ -366,30 +398,31 @@
                     const btn = document.getElementById('assignDriverBtn');
                     handleButtonLoading(btn, true, 'Assigning...');
                     const formData = new FormData(this);
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message || 'Driver assigned successfully!', 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        } else {
-                            showNotification(data.message || 'Failed to assign driver.', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        showNotification('An error occurred while assigning driver.', 'error');
-                    })
-                    .finally(() => {
-                        handleButtonLoading(btn, false);
-                    });
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotification(data.message || 'Driver assigned successfully!',
+                                    'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                showNotification(data.message || 'Failed to assign driver.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            showNotification('An error occurred while assigning driver.', 'error');
+                        })
+                        .finally(() => {
+                            handleButtonLoading(btn, false);
+                        });
                 });
             }
 
@@ -401,37 +434,38 @@
                     const btn = document.getElementById('changeDriverBtn');
                     handleButtonLoading(btn, true, 'Changing...');
                     const formData = new FormData(this);
-                    
+
                     fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(data.message || 'Driver changed successfully!', 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        } else {
-                            showNotification(data.message || 'Failed to change driver.', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        showNotification('An error occurred while changing driver.', 'error');
-                    })
-                    .finally(() => {
-                        handleButtonLoading(btn, false);
-                    });
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotification(data.message || 'Driver changed successfully!',
+                                    'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                showNotification(data.message || 'Failed to change driver.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            showNotification('An error occurred while changing driver.', 'error');
+                        })
+                        .finally(() => {
+                            handleButtonLoading(btn, false);
+                        });
                 });
             }
 
             // 3. CANCEL SHIFT - REMOVED _method: 'DELETE' TO FIX 405!
             document.addEventListener('click', function(e) {
                 if (e.target.closest('#confirmCancelShiftBtn')) {
-                    
+
                     const cancelBtn = document.querySelector('button[data-bs-target="#cancelShiftModal"]');
                     const formAction = cancelBtn ? cancelBtn.getAttribute('data-action') : null;
 
@@ -443,47 +477,89 @@
                     const btn = document.getElementById('confirmCancelShiftBtn');
                     handleButtonLoading(btn, true, 'Cancelling...');
 
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content');
 
                     // Send pure POST, no _method
                     fetch(formAction, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ 
-                            _token: csrfToken
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                _token: csrfToken
+                            })
                         })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        const modalEl = document.getElementById('cancelShiftModal');
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
+                        .then(response => response.json())
+                        .then(data => {
+                            const modalEl = document.getElementById('cancelShiftModal');
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
 
-                        if (data.success) {
-                            showNotification(data.message || 'Shift cancelled successfully!', 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        } else {
-                            showNotification(data.message || 'Failed to cancel shift.', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        const modalEl = document.getElementById('cancelShiftModal');
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
-                        
-                        showNotification('An error occurred while cancelling shift.', 'error');
-                    })
-                    .finally(() => {
-                        handleButtonLoading(btn, false);
-                    });
+                            if (data.success) {
+                                showNotification(data.message || 'Shift cancelled successfully!',
+                                    'success');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                showNotification(data.message || 'Failed to cancel shift.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            const modalEl = document.getElementById('cancelShiftModal');
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+
+                            showNotification('An error occurred while cancelling shift.', 'error');
+                        })
+                        .finally(() => {
+                            handleButtonLoading(btn, false);
+                        });
                 }
             });
 
-            // 4. Check for session flash messages
+            // 4. DELIVERY FEE FORM — Owner updates the Calamba fee
+            const feeForm = document.getElementById('deliveryFeeForm');
+            if (feeForm) {
+                feeForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('saveDeliveryFeeBtn');
+                    handleButtonLoading(btn, true, 'Saving...');
+
+                    const formData = new FormData(this);
+
+                    fetch('{{ route('admin.settings.update-delivery-fee') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                calamba_delivery_fee: formData.get('calamba_delivery_fee')
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showNotification(data.message || 'Delivery fee updated!', 'success');
+                            } else {
+                                showNotification(data.message || 'Failed to update fee.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showNotification('An error occurred while saving the fee.', 'error');
+                        })
+                        .finally(() => {
+                            handleButtonLoading(btn, false);
+                        });
+                });
+            }
+
+            // 5. Check for session flash messages
             @if (session('success'))
                 showNotification('{{ session('success') }}', 'success');
             @endif

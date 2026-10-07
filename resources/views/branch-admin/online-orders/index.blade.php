@@ -294,6 +294,14 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
+
+        /* ✅ NEW: Delivery fee note under Total */
+        .fee-note {
+            font-size: 0.68rem;
+            color: #64748b;
+            font-weight: 500;
+            white-space: nowrap;
+        }
     </style>
 
     <div class="container-fluid">
@@ -605,8 +613,11 @@
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
-                                    <td><strong
-                                            class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                    <td>
+                                        <strong class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                        @if (($order->delivery_fee ?? 0) > 0)
+                                            <div class="fee-note">incl. ₱{{ number_format($order->delivery_fee, 2) }} delivery fee</div>
+                                        @endif
                                     </td>
                                     <td>
                                         @if ($order->branch)

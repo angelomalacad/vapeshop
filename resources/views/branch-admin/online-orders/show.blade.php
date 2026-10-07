@@ -575,6 +575,10 @@
                         <td class="label-col">Subtotal</td>
                         <td class="value-col">₱{{ number_format($order->subtotal, 2) }}</td>
                     </tr>
+                    <tr>
+                        <td class="label-col">Delivery Fee</td>
+                        <td class="value-col">₱{{ number_format($order->delivery_fee ?? 0, 2) }}</td>
+                    </tr>
                     <tr style="border-top: 1px solid #eef2f6;">
                         <td class="label-col"><strong>Total</strong></td>
                         <td class="value-col"><strong style="color: #e74c3c;">₱{{ number_format($order->total_amount, 2) }}</strong></td>
