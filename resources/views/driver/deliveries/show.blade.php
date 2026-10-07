@@ -233,6 +233,13 @@
         color: #94a3b8;
     }
 
+    /* ✅ NEW: Red icon for delivery failed */
+    .timeline-icon.failed {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: white;
+    }
+
     .timeline-icon i {
         font-size: 1rem;
     }
@@ -248,9 +255,19 @@
         margin-bottom: 0.25rem;
     }
 
+    /* ✅ NEW: Red title for delivery failed */
+    .timeline-title.text-failed {
+        color: #dc2626;
+    }
+
     .timeline-date {
         font-size: 0.7rem;
         color: #64748b;
+    }
+
+    /* ✅ NEW: Red date for delivery failed */
+    .timeline-date.text-failed {
+        color: #dc2626;
     }
 
     .timeline-line {
@@ -264,6 +281,11 @@
 
     .timeline-line.completed {
         background: #10b981;
+    }
+
+    /* ✅ NEW: Red line for delivery failed */
+    .timeline-line.failed {
+        background: #dc2626;
     }
 
     .timeline-item:last-child .timeline-line {
@@ -376,7 +398,7 @@
             max-height: 88vh;
         }
 
-        .modal-body-custom > div {
+        .modal-body-custom>div {
             padding: 1.25rem 1rem !important;
         }
 
@@ -410,7 +432,7 @@
         }
 
         .info-card .card-body,
-        .info-card > .p-3 {
+        .info-card>.p-3 {
             padding: 0.9rem !important;
         }
 
@@ -571,7 +593,7 @@
         }
 
         /* Delivery Info + Customer Details — stack columns */
-        .row.g-3 > .col-md-6 {
+        .row.g-3>.col-md-6 {
             flex: 0 0 100%;
             max-width: 100%;
         }
@@ -750,15 +772,22 @@
                                         $stockAvailable = 0;
                                         $stockClass = 'stock-info-in';
                                         $stockIcon = 'bi-check-circle-fill';
-                                        
+
                                         if ($delivery->order->branch_id && $product) {
-                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $delivery->order->branch_id)
+                                            $branchInventory = \App\Models\BranchInventory::where(
+                                                'branch_id',
+                                                $delivery->order->branch_id,
+                                            )
                                                 ->where('product_id', $product->id)
-                                                ->when($item->flavor_id, function($query) use ($item) {
-                                                    return $query->where('flavor_id', $item->flavor_id);
-                                                }, function($query) {
-                                                    return $query->whereNull('flavor_id');
-                                                })
+                                                ->when(
+                                                    $item->flavor_id,
+                                                    function ($query) use ($item) {
+                                                        return $query->where('flavor_id', $item->flavor_id);
+                                                    },
+                                                    function ($query) {
+                                                        return $query->whereNull('flavor_id');
+                                                    },
+                                                )
                                                 ->first();
 
                                             if ($branchInventory) {
@@ -777,13 +806,12 @@
                                     <tr>
                                         <td>
                                             @if ($imageUrl)
-                                                <img src="{{ $imageUrl }}"
-                                                    alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                                <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'N/A' }}"
+                                                    class="product-image">
                                             @else
                                                 <div
                                                     class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-image text-muted"
-                                                        style="font-size: 1.2rem;"></i>
+                                                    <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
                                                 </div>
                                             @endif
                                         </td>
@@ -856,6 +884,10 @@
                                 $displayDeliveryStatus = ucfirst(str_replace('_', ' ', $delivery->status));
                                 if ($delivery->status == 'in_transit') {
                                     $displayDeliveryStatus = 'Out for Delivery';
+                                }
+                                // ✅ NEW: Show "Delivery Failed" for failed status
+                                if ($delivery->status == 'failed' || $delivery->status == 'delivery_failed') {
+                                    $displayDeliveryStatus = 'Delivery Failed';
                                 }
                             @endphp
                             <span class="badge {{ $statusBadgeClass }}">
@@ -943,6 +975,13 @@
                                 $currentDeliveryStatus = $delivery->status;
                                 $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
 
+                                // ✅ NEW: Detect if delivery failed
+                                $isDeliveryFailed = in_array(
+                                    $currentDeliveryStatus,
+                                    ['failed', 'delivery_failed'],
+                                    true,
+                                );
+
                                 $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
                                     return $currentDeliveryLevel >= $level;
                                 };
@@ -958,7 +997,8 @@
 
                             <!-- Assigned to Driver -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : ($isCurrentStep(1) ? 'current' : 'pending') }}">
+                                <div
+                                    class="timeline-icon {{ $isDeliveryCompleted(1) ? 'completed' : ($isCurrentStep(1) ? 'current' : 'pending') }}">
                                     <i class="bi bi-person-check"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -982,7 +1022,8 @@
 
                             <!-- Picked Up -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : ($isCurrentStep(2) ? 'current' : 'pending') }}">
+                                <div
+                                    class="timeline-icon {{ $isDeliveryCompleted(2) ? 'completed' : ($isCurrentStep(2) ? 'current' : 'pending') }}">
                                     <i class="bi bi-box-seam"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -1000,13 +1041,15 @@
 
                             <!-- Out for Delivery -->
                             <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : ($isCurrentStep(3) ? 'current' : 'pending') }}">
+                                <div
+                                    class="timeline-icon {{ $isDeliveryCompleted(3) ? 'completed' : ($isCurrentStep(3) ? 'current' : 'pending') }}">
                                     <i class="bi bi-truck"></i>
                                 </div>
                                 <div class="timeline-content">
                                     <div class="timeline-title">Out for Delivery</div>
                                     @if ($delivery->out_for_delivery_at)
-                                        <div class="timeline-date">{{ $formatDate($delivery->out_for_delivery_at) }}</div>
+                                        <div class="timeline-date">{{ $formatDate($delivery->out_for_delivery_at) }}
+                                        </div>
                                     @elseif ($delivery->in_transit_at)
                                         <div class="timeline-date">{{ $formatDate($delivery->in_transit_at) }}</div>
                                     @elseif ($isDeliveryCompleted(3))
@@ -1015,25 +1058,52 @@
                                         <div class="timeline-date text-muted">Waiting</div>
                                     @endif
                                 </div>
-                                <div class="timeline-line {{ $isDeliveryCompleted(4) ? 'completed' : '' }}"></div>
+                                {{-- ✅ Line turns red if delivery failed, else green if completed --}}
+                                <div
+                                    class="timeline-line {{ $isDeliveryFailed ? 'failed' : ($isDeliveryCompleted(4) ? 'completed' : '') }}">
+                                </div>
                             </div>
 
-                            <!-- Delivered -->
-                            <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : ($isCurrentStep(4) ? 'current' : 'pending') }}">
-                                    <i class="bi bi-flag-fill"></i>
+                            {{-- ✅ UPDATED: Last item switches between Delivered (green) and Delivery Failed (red) --}}
+                            @if ($isDeliveryFailed)
+                                <!-- Delivery Failed (red) -->
+                                <div class="timeline-item">
+                                    <div class="timeline-icon failed">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title text-failed">Delivery Failed</div>
+                                        @if ($delivery->failed_at ?? null)
+                                            <div class="timeline-date text-failed">
+                                                {{ $formatDate($delivery->failed_at) }}</div>
+                                        @elseif ($delivery->updated_at)
+                                            <div class="timeline-date text-failed">
+                                                {{ $formatDate($delivery->updated_at) }}</div>
+                                        @else
+                                            <div class="timeline-date text-failed">Failed</div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-title">Delivered</div>
-                                    @if ($delivery->delivered_at)
-                                        <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}</div>
-                                    @elseif ($isDeliveryCompleted(4))
-                                        <div class="timeline-date">Delivered</div>
-                                    @else
-                                        <div class="timeline-date text-muted">Waiting</div>
-                                    @endif
+                            @else
+                                <!-- Delivered (green) -->
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : ($isCurrentStep(4) ? 'current' : 'pending') }}">
+                                        <i class="bi bi-flag-fill"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Delivered</div>
+                                        @if ($delivery->delivered_at)
+                                            <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}
+                                            </div>
+                                        @elseif ($isDeliveryCompleted(4))
+                                            <div class="timeline-date">Delivered</div>
+                                        @else
+                                            <div class="timeline-date text-muted">Waiting</div>
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>

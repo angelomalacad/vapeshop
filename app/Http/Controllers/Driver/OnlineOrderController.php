@@ -28,16 +28,15 @@ class OnlineOrderController extends Controller
                 ->with('error', 'You are not assigned for today. Please contact the owner.');
         }
 
-        // ✅ Show ALL orders that are in the delivery process
+        // ✅ Show orders that are STILL IN PROGRESS (excludes delivered & failed — those go to History)
         $orders = Order::where('order_number', 'NOT LIKE', 'POS-%')
-            ->where(function($query) {
-                $query->whereHas('delivery', function($q) {
+            ->where(function ($query) {
+                $query->whereHas('delivery', function ($q) {
+                    // ✅ Only active delivery statuses
                     $q->whereIn('status', [
-                        'assigned', 
-                        'picked_up', 
-                        'out_for_delivery', 
-                        'delivered', 
-                        'failed'
+                        'assigned',
+                        'picked_up',
+                        'out_for_delivery',
                     ]);
                 })
                 ->orWhere('order_status', 'ready');
@@ -45,7 +44,10 @@ class OnlineOrderController extends Controller
             ->where('order_status', '!=', 'pending')
             ->where('order_status', '!=', 'confirmed')
             ->where('order_status', '!=', 'processing')
-            ->where('order_status', '!=', 'cancelled');
+            ->where('order_status', '!=', 'cancelled')
+            // ✅ NEW: exclude delivered and delivery_failed from active list
+            ->where('order_status', '!=', 'delivered')
+            ->where('order_status', '!=', 'delivery_failed');
 
         // ✅ NEW: Search by Order Number
         if ($request->filled('order_number')) {
@@ -63,37 +65,37 @@ class OnlineOrderController extends Controller
             $deliveryType = $request->delivery_type;
             if ($deliveryType === 'lalamove') {
                 // ✅ FIXED: Lalamove orders are those NOT in Calamba City
-                // Use whereNotIn or proper AND logic
-                $orders->where(function($q) {
+                $orders->where(function ($q) {
                     $q->where('city', '!=', 'Calamba')
                       ->where('city', '!=', 'Calamba City');
                 });
             } elseif ($deliveryType === 'staff') {
                 // ✅ FIXED: Staff orders are those in Calamba City
-                $orders->where(function($q) {
+                $orders->where(function ($q) {
                     $q->where('city', 'Calamba')
                       ->orWhere('city', 'Calamba City');
                 });
             }
         }
 
-        // ✅ Status filter
+        // ✅ Status filter — only active statuses remain
         if ($request->filled('status')) {
             $statusFilter = $request->status;
-            
+
+            // ✅ Map display status to delivery status (delivered & failed removed)
             $statusMap = [
                 'ready' => 'assigned',
                 'out_for_delivery' => 'out_for_delivery',
                 'picked_up' => 'picked_up',
-                'delivered' => 'delivered',
-                'delivery_failed' => 'failed'
             ];
-            
-            $deliveryStatus = $statusMap[$statusFilter] ?? $statusFilter;
-            
-            $orders->whereHas('delivery', function($query) use ($deliveryStatus) {
-                $query->where('status', $deliveryStatus);
-            });
+
+            // ✅ Ignore any legacy filter for delivered/delivery_failed — they shouldn't reach here
+            if (isset($statusMap[$statusFilter])) {
+                $deliveryStatus = $statusMap[$statusFilter];
+                $orders->whereHas('delivery', function ($query) use ($deliveryStatus) {
+                    $query->where('status', $deliveryStatus);
+                });
+            }
         }
 
         // ✅ Date From filter
@@ -127,13 +129,12 @@ class OnlineOrderController extends Controller
             return $order;
         });
 
-        // ✅ Counts for status cards
+        // ✅ Counts for status cards — only active statuses remain
+        // (delivered and delivery_failed removed since those cards are gone from the view)
         $counts = [
             'ready' => Delivery::where('status', 'assigned')->count(),
             'picked_up' => Delivery::where('status', 'picked_up')->count(),
             'out_for_delivery' => Delivery::where('status', 'out_for_delivery')->count(),
-            'delivered' => Delivery::where('status', 'delivered')->count(),
-            'delivery_failed' => Delivery::where('status', 'failed')->count(),
         ];
 
         // ✅ Get all branches for filter dropdown
@@ -262,21 +263,21 @@ class OnlineOrderController extends Controller
     }
 
     public function updateDeliveryDate(Request $request, Order $order)
-{
-    $request->validate([
-        'delivery_date_from' => 'required|date',
-        'delivery_date_to' => 'required|date|after_or_equal:delivery_date_from', // ✅ Allows same date
-    ]);
+    {
+        $request->validate([
+            'delivery_date_from' => 'required|date',
+            'delivery_date_to' => 'required|date|after_or_equal:delivery_date_from',
+        ]);
 
-    $order->delivery_date_from = $request->delivery_date_from;
-    $order->delivery_date_to = $request->delivery_date_to;
-    $order->save();
+        $order->delivery_date_from = $request->delivery_date_from;
+        $order->delivery_date_to = $request->delivery_date_to;
+        $order->save();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Delivery dates updated successfully!',
-        'delivery_date_from' => $order->fresh()->delivery_date_from,
-        'delivery_date_to' => $order->fresh()->delivery_date_to
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Delivery dates updated successfully!',
+            'delivery_date_from' => $order->fresh()->delivery_date_from,
+            'delivery_date_to' => $order->fresh()->delivery_date_to
+        ]);
+    }
 }

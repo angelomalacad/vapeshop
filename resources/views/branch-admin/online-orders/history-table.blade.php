@@ -175,6 +175,12 @@
         color: #dc2626;
     }
 
+    /* ✅ NEW: Delivery Failed badge */
+    .badge-delivery_failed {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
     .badge {
         padding: 0.35rem 0.75rem;
         border-radius: 30px;
@@ -309,6 +315,10 @@
                         for Delivery</option>
                     <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
                     </option>
+                    {{-- ✅ NEW: Delivery Failed filter option --}}
+                    <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>
+                        Delivery Failed
+                    </option>
                     <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
                     </option>
                 </select>
@@ -419,6 +429,18 @@
                 </div>
             </div>
         </div>
+        {{-- ✅ NEW: Delivery Failed status card --}}
+        <div class="col">
+            <div class="card status-card">
+                <div class="card-body text-center py-2">
+                    <div class="status-icon bg-danger bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                        <i class="bi bi-x-circle-fill fs-5 text-danger"></i>
+                    </div>
+                    <h6 class="status-number mb-0">{{ $onlineDeliveryFailed ?? 0 }}</h6>
+                    <p class="status-label mb-0">Delivery Failed</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Orders Table -->
@@ -455,13 +477,16 @@
                                     'out_for_delivery' => 'badge-out_for_delivery',
                                     'delivered' => 'badge-delivered',
                                     'cancelled' => 'badge-cancelled',
+                                    'delivery_failed' => 'badge-delivery_failed',
                                     default => 'badge-secondary',
                                 };
 
+                                // ✅ UPDATED: explicit label for delivery_failed so it renders as "Delivery Failed"
                                 $displayStatus = match ($order->order_status) {
                                     'processing' => 'Packing',
                                     'picked_up' => 'Picked Up',
                                     'out_for_delivery' => 'Out for Delivery',
+                                    'delivery_failed' => 'Delivery Failed',
                                     default => ucfirst($order->order_status),
                                 };
 

@@ -289,12 +289,18 @@
             }
 
             @keyframes sheetSlideUp {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
+                from {
+                    transform: translateY(100%);
+                }
+
+                to {
+                    transform: translateY(0);
+                }
             }
         }
 
         @media (max-width: 767.98px) {
+
             /* ---------- Layout ---------- */
             .container-fluid {
                 padding-left: 14px;
@@ -356,12 +362,12 @@
             }
 
             /* 2-column grid for status cards */
-            .row.g-2.mb-4 > [class*="col-"] {
+            .row.g-2.mb-4>[class*="col-"] {
                 flex: 0 0 auto;
                 width: 50%;
             }
 
-            .row.g-2.mb-4 > .col-md-2.col-4 {
+            .row.g-2.mb-4>.col-md-2.col-4 {
                 margin-bottom: 0.5rem;
             }
 
@@ -422,12 +428,12 @@
             }
 
             /* Filter columns: 2 per row on mobile */
-            .card.border-0.shadow-sm.mb-4 .row.g-3 > [class*="col-md-"] {
+            .card.border-0.shadow-sm.mb-4 .row.g-3>[class*="col-md-"] {
                 flex: 0 0 50%;
                 width: 50%;
             }
 
-            .card.border-0.shadow-sm.mb-4 .row.g-3 > .col-md-2:last-child {
+            .card.border-0.shadow-sm.mb-4 .row.g-3>.col-md-2:last-child {
                 flex: 0 0 100%;
                 width: 100%;
             }
@@ -512,7 +518,7 @@
             }
 
             .order-table td:nth-child(2) img,
-            .order-table td:nth-child(2) > div {
+            .order-table td:nth-child(2)>div {
                 width: 56px !important;
                 height: 56px !important;
                 border-radius: 10px !important;
@@ -840,7 +846,7 @@
             </div>
         </div>
 
-        <!-- Status Cards - FIXED COUNTS -->
+        <!-- Status Cards - DELIVERED AND FAILED REMOVED -->
         <div class="row g-2 mb-4">
             <div class="col-md-2 col-4">
                 <div class="card status-card">
@@ -881,105 +887,82 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-4">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-dark bg-opacity-10">
-                            <i class="bi bi-flag-fill text-dark"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivered'] ?? 0 }}</h2>
-                            <p class="status-label">Delivered</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2 col-4">
-                <div class="card status-card">
-                    <div class="card-body status-card-body">
-                        <div class="status-icon bg-danger bg-opacity-10">
-                            <i class="bi bi-x-circle text-danger"></i>
-                        </div>
-                        <div class="status-info">
-                            <h2 class="status-number">{{ $counts['delivery_failed'] ?? 0 }}</h2>
-                            <p class="status-label">Failed</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Filter Section -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
-            <!-- Order # Search -->
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Order #</label>
-                <input type="text" name="order_number" class="form-control" 
-                       placeholder="Search order #..." value="{{ request('order_number') }}">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('driver.online-orders.index') }}" class="row g-3 align-items-end">
+                    <!-- Order # Search -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Order #</label>
+                        <input type="text" name="order_number" class="form-control" placeholder="Search order #..."
+                            value="{{ request('order_number') }}">
+                    </div>
+
+                    <!-- Status Filter - DELIVERED AND FAILED REMOVED -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                            <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
+                            </option>
+                            <option value="out_for_delivery"
+                                {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                        </select>
+                    </div>
+
+                    <!-- Delivery Type Filter -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Delivery Type</label>
+                        <select name="delivery_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>
+                                Lalamove</option>
+                            <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Branch Filter -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Branch</label>
+                        <select name="branch_id" class="form-select">
+                            <option value="">All Branches</option>
+                            @foreach ($branches as $branch)
+                                <option value="{{ $branch->id }}"
+                                    {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Date From -->
+                    <div class="col-md-1">
+                        <label class="form-label fw-semibold">From</label>
+                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                    </div>
+
+                    <!-- Date To -->
+                    <div class="col-md-1">
+                        <label class="form-label fw-semibold">To</label>
+                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
             </div>
-            
-            <!-- Status Filter -->
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Status</label>
-                <select name="status" class="form-select">
-                    <option value="">All Status</option>
-                    <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                    <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
-                    <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                    <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                    <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>Delivery Failed</option>
-                </select>
-            </div>
-            
-            <!-- ✅ NEW: Delivery Type Filter -->
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Delivery Type</label>
-                <select name="delivery_type" class="form-select">
-                    <option value="">All Types</option>
-                    <option value="lalamove" {{ request('delivery_type') == 'lalamove' ? 'selected' : '' }}>Lalamove</option>
-                    <option value="staff" {{ request('delivery_type') == 'staff' ? 'selected' : '' }}>Staff</option>
-                </select>
-            </div>
-            
-            <!-- Branch Filter -->
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Branch</label>
-                <select name="branch_id" class="form-select">
-                    <option value="">All Branches</option>
-                    @foreach($branches as $branch)
-                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
-                            {{ $branch->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            
-            <!-- Date From -->
-            <div class="col-md-1">
-                <label class="form-label fw-semibold">From</label>
-                <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
-            </div>
-            
-            <!-- Date To -->
-            <div class="col-md-1">
-                <label class="form-label fw-semibold">To</label>
-                <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
-            </div>
-            
-            <!-- Buttons -->
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-funnel me-1"></i> Filter
-                </button>
-                <a href="{{ route('driver.online-orders.index') }}" class="btn btn-outline-secondary w-100 mt-2">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
+        </div>
 
         <!-- Orders Table -->
         <div class="card modern-card">
@@ -1010,20 +993,20 @@
                                     // ✅ FIXED: Map delivery status to display status
                                     $deliveryStatus = $order->delivery ? $order->delivery->status : null;
                                     $displayStatus = $order->order_status;
-                                    
+
                                     // Map statuses for display - in_transit shows as out_for_delivery
                                     $statusMap = [
                                         'assigned' => 'ready',
                                         'picked_up' => 'picked_up',
                                         'out_for_delivery' => 'out_for_delivery',
                                         'delivered' => 'delivered',
-                                        'delivery_failed' => 'delivery_failed'
+                                        'delivery_failed' => 'delivery_failed',
                                     ];
-                                    
+
                                     if (isset($statusMap[$deliveryStatus])) {
                                         $displayStatus = $statusMap[$deliveryStatus];
                                     }
-                                    
+
                                     $statusClass = match ($displayStatus) {
                                         'ready' => 'badge-ready',
                                         'out_for_delivery' => 'badge-out_for_delivery',
@@ -1034,7 +1017,7 @@
                                         'cancelled' => 'badge-cancelled',
                                         default => 'badge-secondary',
                                     };
-                                    
+
                                     $displayStatusLabel = ucfirst(str_replace('_', ' ', $displayStatus));
                                     if ($displayStatus == 'delivery_failed') {
                                         $displayStatusLabel = 'Delivery Failed';
@@ -1058,6 +1041,12 @@
                                     $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
                                     $isLalamoveEligible = !$isCalambaCity;
                                 @endphp
+
+                                {{-- ✅ SKIP: delivered and delivery_failed orders (they belong in History) --}}
+                                @if (in_array($displayStatus, ['delivered', 'delivery_failed']))
+                                    @continue
+                                @endif
+
                                 <tr>
                                     <td class="ps-4"><code class="fw-semibold">{{ $order->order_number }}</code></td>
                                     <td>
@@ -1083,9 +1072,11 @@
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
-                                    <td><strong class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong></td>
+                                    <td><strong
+                                            class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                    </td>
                                     <td>
-                                        @if($order->branch)
+                                        @if ($order->branch)
                                             <span class="branch-badge">
                                                 <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
                                             </span>
@@ -1143,11 +1134,13 @@
                     @if ($orders->onFirstPage())
                         <button class="btn btn-outline-secondary" disabled>Previous</button>
                     @else
-                        <a href="{{ $orders->appends(request()->except('page'))->previousPageUrl() }}" class="btn btn-outline-primary">Previous</a>
+                        <a href="{{ $orders->appends(request()->except('page'))->previousPageUrl() }}"
+                            class="btn btn-outline-primary">Previous</a>
                     @endif
 
                     @if ($orders->hasMorePages())
-                        <a href="{{ $orders->appends(request()->except('page'))->nextPageUrl() }}" class="btn btn-outline-primary">Next</a>
+                        <a href="{{ $orders->appends(request()->except('page'))->nextPageUrl() }}"
+                            class="btn btn-outline-primary">Next</a>
                     @else
                         <button class="btn btn-outline-secondary" disabled>Next</button>
                     @endif

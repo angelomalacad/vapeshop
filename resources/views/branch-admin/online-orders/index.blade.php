@@ -147,6 +147,12 @@
             color: #dc2626;
         }
 
+        /* ✅ Delivery Failed badge (kept for safety in case an order sneaks through) */
+        .badge-delivery_failed {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
         .badge {
             padding: 0.35rem 0.65rem;
             border-radius: 30px;
@@ -393,12 +399,16 @@
                         <select name="status" class="form-select filter-select">
                             <option value="">All</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing</option>
+                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
+                            </option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
+                            </option>
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                            <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="out_for_delivery"
+                                {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                            </option>
+                            {{-- ✅ REMOVED: delivered and delivery_failed (moved to History) --}}
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -408,9 +418,10 @@
                             <option value="my_branch" {{ request('branch_filter') == 'my_branch' ? 'selected' : '' }}>
                                 My Branch
                             </option>
-                            @foreach($branches as $branch)
-                                @if($branch->id != Auth::user()->branch_id)
-                                    <option value="{{ $branch->id }}" {{ request('branch_filter') == $branch->id ? 'selected' : '' }}>
+                            @foreach ($branches as $branch)
+                                @if ($branch->id != Auth::user()->branch_id)
+                                    <option value="{{ $branch->id }}"
+                                        {{ request('branch_filter') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
                                     </option>
                                 @endif
@@ -424,11 +435,13 @@
                     </div>
                     <div class="col-md-2">
                         <label class="filter-label">From</label>
-                        <input type="date" name="date_from" class="form-control filter-input" value="{{ request('date_from') }}">
+                        <input type="date" name="date_from" class="form-control filter-input"
+                            value="{{ request('date_from') }}">
                     </div>
                     <div class="col-md-2">
                         <label class="filter-label">To</label>
-                        <input type="date" name="date_to" class="form-control filter-input" value="{{ request('date_to') }}">
+                        <input type="date" name="date_to" class="form-control filter-input"
+                            value="{{ request('date_to') }}">
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-primary filter-btn w-100">
@@ -475,13 +488,17 @@
                                         'picked_up' => 'badge-picked_up',
                                         'delivered' => 'badge-delivered',
                                         'cancelled' => 'badge-cancelled',
+                                        'delivery_failed' => 'badge-delivery_failed',
                                         default => 'badge-secondary',
                                     };
 
-                                    $displayStatus =
-                                        $order->order_status == 'processing'
-                                            ? 'Packing'
-                                            : ucfirst(str_replace('_', ' ', $order->order_status));
+                                    $displayStatus = match ($order->order_status) {
+                                        'processing' => 'Packing',
+                                        'delivery_failed' => 'Delivery Failed',
+                                        'picked_up' => 'Picked Up',
+                                        'out_for_delivery' => 'Out for Delivery',
+                                        default => ucfirst(str_replace('_', ' ', $order->order_status)),
+                                    };
 
                                     $firstItem = $order->items->first();
                                     $product = $firstItem ? $firstItem->product : null;
@@ -507,18 +524,25 @@
 
                                     if ($order->branch_id) {
                                         foreach ($order->items as $item) {
-                                            $inventoryItem = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
+                                            $inventoryItem = \App\Models\BranchInventory::where(
+                                                'branch_id',
+                                                $order->branch_id,
+                                            )
                                                 ->where('product_id', $item->product_id)
-                                                ->when($item->flavor_id, function($query) use ($item) {
-                                                    return $query->where('flavor_id', $item->flavor_id);
-                                                }, function($query) {
-                                                    return $query->whereNull('flavor_id');
-                                                })
+                                                ->when(
+                                                    $item->flavor_id,
+                                                    function ($query) use ($item) {
+                                                        return $query->where('flavor_id', $item->flavor_id);
+                                                    },
+                                                    function ($query) {
+                                                        return $query->whereNull('flavor_id');
+                                                    },
+                                                )
                                                 ->first();
 
                                             if ($inventoryItem) {
                                                 $available = $inventoryItem->available_quantity;
-                                                
+
                                                 if ($available < $item->quantity) {
                                                     $hasVariantIssue = true;
                                                     if ($available <= 0) {
@@ -585,7 +609,7 @@
                                             class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
                                     </td>
                                     <td>
-                                        @if($order->branch)
+                                        @if ($order->branch)
                                             <span class="branch-badge">
                                                 <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
                                             </span>
@@ -612,7 +636,7 @@
                                         <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                                     </td>
                                     <td class="text-end pe-3">
-                                        @if($order->is_current_branch)
+                                        @if ($order->is_current_branch)
                                             <button onclick="openOrderModal({{ $order->id }})"
                                                 class="btn btn-manage btn-sm text-white">
                                                 <i class="bi bi-eye me-1"></i> Manage

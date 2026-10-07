@@ -220,6 +220,7 @@
                 opacity: 1;
             }
         }
+
         /* ===================================================== */
 
         /* Main Content */
@@ -629,9 +630,12 @@
                             href="{{ route('branch-admin.inventory.index') }}">
                             <i class="bi bi-box-seam"></i> Inventory
                             @php
-                                $inventoryCount = \App\Models\BranchInventory::where('branch_id', Auth::user()->branch_id)->count();
+                                $inventoryCount = \App\Models\BranchInventory::where(
+                                    'branch_id',
+                                    Auth::user()->branch_id,
+                                )->count();
                             @endphp
-                            @if($inventoryCount > 0)
+                            @if ($inventoryCount > 0)
                                 <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
                             @endif
                         </a>
@@ -656,11 +660,16 @@
                             href="{{ route('branch-admin.inventory.transfers') }}">
                             <i class="bi bi-arrow-left-right"></i> All Transfers
                             @php
-                                $pendingTransfersNav = \App\Models\StockTransfer::where(function($q) {
-                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere('to_branch_id', Auth::user()->branch_id);
-                                })->where('status', 'pending')->count();
+                                $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) {
+                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere(
+                                        'to_branch_id',
+                                        Auth::user()->branch_id,
+                                    );
+                                })
+                                    ->where('status', 'pending')
+                                    ->count();
                             @endphp
-                            @if($pendingTransfersNav > 0)
+                            @if ($pendingTransfersNav > 0)
                                 <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
                             @endif
                         </a>
@@ -674,7 +683,7 @@
                             @php
                                 $catalogCount = \App\Models\Product::count();
                             @endphp
-                            @if($catalogCount > 0)
+                            @if ($catalogCount > 0)
                                 <span class="badge-count-green float-end">{{ $catalogCount }}</span>
                             @endif
                         </a>
@@ -701,10 +710,19 @@
                             href="{{ route('branch-admin.online-orders.index') }}">
                             <i class="bi bi-cart"></i> Online Orders
                             @php
+                                // ✅ Counts only ACTIVE online orders (excludes delivered, delivery_failed, cancelled)
                                 $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
-                                    ->whereIn('status', ['pending', 'confirmed', 'processing', 'ready'])->count();
+                                    ->where('order_number', 'NOT LIKE', 'POS-%')
+                                    ->whereIn('order_status', [
+                                        'pending',
+                                        'confirmed',
+                                        'processing',
+                                        'ready',
+                                        'out_for_delivery',
+                                    ])
+                                    ->count();
                             @endphp
-                            @if($onlineOrdersCount > 0)
+                            @if ($onlineOrdersCount > 0)
                                 <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
                             @endif
                         </a>
@@ -773,9 +791,11 @@
                             ->count();
                     @endphp
                     <div class="ms-2">
-                        <a href="{{ route('branch-admin.inventory.low-stock') }}" class="btn btn-outline-primary btn-sm">
+                        <a href="{{ route('branch-admin.inventory.low-stock') }}"
+                            class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-exclamation-triangle"></i> Low Stock
-                            <span class="{{ $lowStockCount > 0 ? 'badge-count-red' : 'badge-count-gray' }}">{{ $lowStockCount }}</span>
+                            <span
+                                class="{{ $lowStockCount > 0 ? 'badge-count-red' : 'badge-count-gray' }}">{{ $lowStockCount }}</span>
                         </a>
                     </div>
 

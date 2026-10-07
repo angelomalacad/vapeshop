@@ -7,7 +7,9 @@
     <title>Branch Staff Dashboard - Vape Expo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+        rel="stylesheet">
     <style>
         * {
             font-family: 'Inter', sans-serif;
@@ -544,73 +546,93 @@
                     </div>
                     <div class="list-group list-group-flush">
                         <!-- Dashboard -->
-                        <a href="{{ route('branch-admin.dashboard') }}" class="list-group-item list-group-item-action active">
+                        <a href="{{ route('branch-admin.dashboard') }}"
+                            class="list-group-item list-group-item-action active">
                             <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
 
                         <!-- Inventory -->
-                        <a href="{{ route('branch-admin.inventory.index') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.index') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-box-seam me-2"></i> Inventory
                             @php
-                                $inventoryCount = \App\Models\BranchInventory::where('branch_id', Auth::user()->branch_id)->count();
+                                $inventoryCount = \App\Models\BranchInventory::where(
+                                    'branch_id',
+                                    Auth::user()->branch_id,
+                                )->count();
                             @endphp
-                            @if($inventoryCount > 0)
+                            @if ($inventoryCount > 0)
                                 <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
                             @endif
                         </a>
 
                         <!-- Stock History -->
-                        <a href="{{ route('branch-admin.inventory.stock-history') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.stock-history') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Stock History
                         </a>
 
                         <!-- Request Transfer -->
-                        <a href="{{ route('branch-admin.inventory.transfer.form') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.transfer.form') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-send me-2"></i> Request Transfer
                         </a>
 
                         <!-- All Transfers -->
-                        <a href="{{ route('branch-admin.inventory.transfers') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.inventory.transfers') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-arrow-left-right me-2"></i> All Transfers
                             @php
-                                $pendingTransfersNav = \App\Models\StockTransfer::where(function($q) {
-                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere('to_branch_id', Auth::user()->branch_id);
-                                })->where('status', 'pending')->count();
+                                $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) {
+                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere(
+                                        'to_branch_id',
+                                        Auth::user()->branch_id,
+                                    );
+                                })
+                                    ->where('status', 'pending')
+                                    ->count();
                             @endphp
-                            @if($pendingTransfersNav > 0)
+                            @if ($pendingTransfersNav > 0)
                                 <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
                             @endif
                         </a>
 
                         <!-- Catalog -->
-                        <a href="{{ route('branch-admin.products.index') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.products.index') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-tags me-2"></i> Catalog
                             @php
                                 $catalogCount = \App\Models\Product::count();
                             @endphp
-                            @if($catalogCount > 0)
+                            @if ($catalogCount > 0)
                                 <span class="badge-count-green float-end">{{ $catalogCount }}</span>
                             @endif
                         </a>
 
                         <!-- New Product -->
-                        <a href="{{ route('branch-admin.products.create') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.products.create') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-plus-lg me-2"></i> New Product
                         </a>
 
                         <!-- Warehouse Stock -->
-                        <a href="{{ route('branch-admin.warehouse.index') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.warehouse.index') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-house-door me-2"></i> Warehouse Stock
                         </a>
 
                         <!-- Online Orders -->
-                        <a href="{{ route('branch-admin.online-orders.index') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.online-orders.index') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-cart me-2"></i> Online Orders
                             @php
+                                // ✅ Counts only ACTIVE online orders (excludes delivered, delivery_failed, cancelled)
                                 $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
-                                    ->whereIn('status', ['pending', 'confirmed', 'processing', 'ready'])->count();
+                                    ->where('order_number', 'NOT LIKE', 'POS-%')
+                                    ->whereNotIn('order_status', ['delivered', 'delivery_failed', 'cancelled'])
+                                    ->count();
                             @endphp
-                            @if($onlineOrdersCount > 0)
+                            @if ($onlineOrdersCount > 0)
                                 <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
                             @endif
                         </a>
@@ -621,7 +643,8 @@
                         </a>
 
                         <!-- Sales History -->
-                        <a href="{{ route('branch-admin.pos.history') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ route('branch-admin.pos.history') }}"
+                            class="list-group-item list-group-item-action">
                             <i class="bi bi-clock-history me-2"></i> Sales History
                         </a>
 
@@ -633,7 +656,8 @@
                         <!-- Logout -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="list-group-item list-group-item-action w-100 text-start border-0 bg-transparent">
+                            <button type="submit"
+                                class="list-group-item list-group-item-action w-100 text-start border-0 bg-transparent">
                                 <i class="bi bi-box-arrow-right me-2"></i> Logout
                             </button>
                         </form>
@@ -1002,7 +1026,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <p class="mb-0 small"><i class="bi bi-telephone me-2"></i> For concerns, contact owner:
-                                <strong>Carlo Caranto - 0960 328 0432</strong></p>
+                                <strong>Carlo Caranto - 0960 328 0432</strong>
+                            </p>
                         </div>
                         <div class="col-md-6 text-md-end">
                             <p class="mb-0 small"><i class="bi bi-shield-check me-2"></i> Vape Expo - Authorized

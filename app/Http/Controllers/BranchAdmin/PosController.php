@@ -645,6 +645,7 @@ $cancelledDeliveries = Delivery::with(['order', 'driver'])
     $onlinePickedUp = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'picked_up')->count();
     $onlineOutForDelivery = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'out_for_delivery')->count();
     $onlineDelivered = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'delivered')->count();
+    $onlineDeliveryFailed = Order::where('branch_id', $branchId)->where('delivery_type', 'delivery')->where('order_status', 'delivery_failed')->count();
 
     return view('branch-admin.pos.history', compact(
         'orders',
@@ -667,7 +668,8 @@ $cancelledDeliveries = Delivery::with(['order', 'driver'])
         'onlineReady',
         'onlinePickedUp',
         'onlineOutForDelivery',
-        'onlineDelivered'
+        'onlineDelivered',
+        'onlineDeliveryFailed',
     ));
 }
 

@@ -23,8 +23,10 @@ class OnlineOrderController extends Controller
         $branchId = Auth::user()->branch_id;
 
         // ✅ FIX: Show ONLY orders for the current branch
+        // ✅ UPDATED: Exclude delivered and delivery_failed (they belong in History)
         $orders = Order::where('branch_id', $branchId)
-            ->where('order_number', 'NOT LIKE', 'POS-%');
+            ->where('order_number', 'NOT LIKE', 'POS-%')
+            ->whereNotIn('order_status', ['delivered', 'delivery_failed']);
 
         // ✅ Status filter
         if ($request->filled('status')) {
@@ -73,6 +75,7 @@ class OnlineOrderController extends Controller
         $branches = \App\Models\Branch::where('is_active', true)->get();
 
         // ✅ Counts for status cards - ONLY for current branch
+        // ✅ UPDATED: Also exclude delivered and delivery_failed from these so card counts match the list
         $counts = [
             'pending' => Order::where('branch_id', $branchId)->where('order_status', 'pending')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
             'confirmed' => Order::where('branch_id', $branchId)->where('order_status', 'confirmed')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
