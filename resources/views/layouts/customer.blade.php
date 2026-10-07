@@ -580,8 +580,7 @@
                     </li>
                     <li class="nav-item">
                         {{-- ✅ Desktop Cart: count shown in parentheses --}}
-                        <a href="{{ route('customer.cart.index') }}"
-                            class="btn btn-outline-light btn-sm rounded-pill">
+                        <a href="{{ route('customer.cart.index') }}" class="btn btn-outline-light btn-sm rounded-pill">
                             <i class="bi bi-cart"></i> Cart{{ $cartCount > 0 ? ' (' . $cartCount . ')' : '' }}
                         </a>
                     </li>
@@ -589,7 +588,8 @@
                         {{-- ✅ Desktop Orders: count shown in parentheses --}}
                         <a href="{{ route('customer.orders.index') }}"
                             class="btn btn-outline-light btn-sm rounded-pill">
-                            <i class="bi bi-receipt"></i> Orders{{ $processingOrderCount > 0 ? ' (' . $processingOrderCount . ')' : '' }}
+                            <i class="bi bi-receipt"></i>
+                            Orders{{ $processingOrderCount > 0 ? ' (' . $processingOrderCount . ')' : '' }}
                         </a>
                     </li>
                     <li class="nav-item dropdown">
@@ -605,7 +605,8 @@
                             {{ Auth::user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('customer.profile.index') }}">Edit Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('customer.profile.index') }}">Edit Profile</a>
+                            </li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -632,10 +633,6 @@
             </div>
         @endif
 
-        {{-- ============================================================ --}}
-        {{-- DISABLED THE ERROR ALERT TO PREVENT "Undefined variable" UI CRASH --}}
-        {{-- ============================================================ --}}
-        {{-- 
         @if (session('error'))
             <div class="container">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -644,8 +641,21 @@
                 </div>
             </div>
         @endif
-        --}}
-        {{-- ============================================================ --}}
+
+        @if ($errors->any())
+            <div class="container">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the following:</strong>
+                    <ul class="mb-0 mt-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        @endif
 
         @if (session('info'))
             <div class="container">
@@ -691,49 +701,52 @@
                 <span>Orders{{ $processingOrderCount > 0 ? ' (' . $processingOrderCount . ')' : '' }}</span>
             </a>
             {{-- ✅ Mobile Account: dropdown with picture if available --}}
-            <a href="#" class="nav-item-link {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}"
-                data-bs-toggle="dropdown" aria-expanded="false">
-                {{-- ✅ Mobile avatar: show picture if available, else icon --}}
-                @if (Auth::user()->profile_picture)
-                    <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
-                        alt="{{ Auth::user()->name }}" class="nav-avatar-mobile">
-                @else
-                    <i class="bi bi-person-circle"></i>
-                @endif
-                <span>Account</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end account-dropdown-mobile" style="position: fixed; bottom: 80px; right: 12px; min-width: 220px;">
-                <li>
-                    <h6 class="dropdown-header d-flex align-items-center gap-2">
-                        @if (Auth::user()->profile_picture)
-                            <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
-                                alt="{{ Auth::user()->name }}" class="nav-avatar-mobile">
-                        @else
-                            <i class="bi bi-person-circle"></i>
-                        @endif
-                        {{ Auth::user()->name }}
-                    </h6>
-                </li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{{ route('customer.profile.index') }}">
-                        <i class="bi bi-person-gear me-2"></i>Edit Profile
-                    </a>
-                </li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button class="dropdown-item text-danger" type="submit">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                        </button>
-                    </form>
-                </li>
-            </ul>
+            <div class="dropdown">
+                <a href="#"
+                    class="nav-item-link {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    @if (Auth::user()->profile_picture)
+                        <img src="{{ Storage::url(Auth::user()->profile_picture) }}" alt="{{ Auth::user()->name }}"
+                            class="nav-avatar-mobile">
+                    @else
+                        <i class="bi bi-person-circle"></i>
+                    @endif
+                    <span>Account</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end account-dropdown-mobile"
+                    style="position: fixed; bottom: 80px; right: 12px; min-width: 220px;">
+                    <li>
+                        <h6 class="dropdown-header d-flex align-items-center gap-2">
+                            @if (Auth::user()->profile_picture)
+                                <img src="{{ Storage::url(Auth::user()->profile_picture) }}"
+                                    alt="{{ Auth::user()->name }}" class="nav-avatar-mobile">
+                            @else
+                                <i class="bi bi-person-circle"></i>
+                            @endif
+                            {{ Auth::user()->name }}
+                        </h6>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('customer.profile.index') }}">
+                            <i class="bi bi-person-gear me-2"></i>Edit Profile
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button class="dropdown-item text-danger" type="submit">
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 

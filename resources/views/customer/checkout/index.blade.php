@@ -21,13 +21,15 @@
                                 <input type="radio" class="btn-check" name="address_option" id="savedAddressOption"
                                     value="saved" checked>
                                 <label class="btn btn-outline-primary rounded-start-pill" for="savedAddressOption">
-                                    <i class="bi bi-person"></i> <span class="d-none d-sm-inline">Use My Saved Address</span><span class="d-sm-none">Saved</span>
+                                    <i class="bi bi-person"></i> <span class="d-none d-sm-inline">Use My Saved
+                                        Address</span><span class="d-sm-none">Saved</span>
                                 </label>
 
                                 <input type="radio" class="btn-check" name="address_option" id="newAddressOption"
                                     value="new">
                                 <label class="btn btn-outline-primary rounded-end-pill" for="newAddressOption">
-                                    <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Use Different Address</span><span class="d-sm-none">New</span>
+                                    <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Use Different
+                                        Address</span><span class="d-sm-none">New</span>
                                 </label>
                             </div>
                             <small class="text-muted d-block mt-2 text-center address-hint">
@@ -120,7 +122,8 @@
                                     <div class="col-md-6 mb-3">
                                         <label>Province</label>
                                         <!-- Displayed as static text, not editable -->
-                                        <div class="form-control bg-light text-muted" style="cursor: default;">Laguna</div>
+                                        <div class="form-control bg-light text-muted" style="cursor: default;">Laguna
+                                        </div>
                                         <!-- Sent to the controller (it validates new_province when using a new address) -->
                                         <input type="hidden" name="new_province" value="Laguna">
                                     </div>
@@ -144,7 +147,64 @@
                                         <select class="form-select" name="new_barangay" id="new_barangay">
                                             <option value="">Select Barangay</option>
                                             @php
-                                                $calambaBarangays = ['Canlubang', 'Majada In', 'Sirang Lupa', 'Burol', 'Palo alto', 'Laguerta', 'Paciano Rizal', 'Real', 'Halang', 'Banadero', 'Lingga', 'Parian', 'Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Banlic', 'Barangay 7', 'Bucal', 'Pansol', 'Lecheria', 'Looc', 'Uwisan', 'Mayapa', 'Turbina', 'Batino', 'Lawa', 'Bubuyan', 'Hornalan', 'Sampiruhan', 'Milagrosa', 'Palingon', 'Saimsim', 'San Cristobal', 'Barandal', 'Makiling', 'La Mesa', 'Maunong', 'Pittland', 'Masili', 'Sucol', 'Ulango', 'Majada Labas', 'Kay-Anlog', 'Punta', 'Bagong Kalsada', 'Prinza', 'Mabato', 'Puting Lupa', 'Bunggo', 'Camaligan', 'Mabacan', 'San Jose', 'Majada Out'];
+                                                $calambaBarangays = [
+                                                    'Canlubang',
+                                                    'Majada In',
+                                                    'Sirang Lupa',
+                                                    'Burol',
+                                                    'Palo alto',
+                                                    'Laguerta',
+                                                    'Paciano Rizal',
+                                                    'Real',
+                                                    'Halang',
+                                                    'Banadero',
+                                                    'Lingga',
+                                                    'Parian',
+                                                    'Barangay 1',
+                                                    'Barangay 2',
+                                                    'Barangay 3',
+                                                    'Barangay 4',
+                                                    'Barangay 5',
+                                                    'Barangay 6',
+                                                    'Banlic',
+                                                    'Barangay 7',
+                                                    'Bucal',
+                                                    'Pansol',
+                                                    'Lecheria',
+                                                    'Looc',
+                                                    'Uwisan',
+                                                    'Mayapa',
+                                                    'Turbina',
+                                                    'Batino',
+                                                    'Lawa',
+                                                    'Bubuyan',
+                                                    'Hornalan',
+                                                    'Sampiruhan',
+                                                    'Milagrosa',
+                                                    'Palingon',
+                                                    'Saimsim',
+                                                    'San Cristobal',
+                                                    'Barandal',
+                                                    'Makiling',
+                                                    'La Mesa',
+                                                    'Maunong',
+                                                    'Pittland',
+                                                    'Masili',
+                                                    'Sucol',
+                                                    'Ulango',
+                                                    'Majada Labas',
+                                                    'Kay-Anlog',
+                                                    'Punta',
+                                                    'Bagong Kalsada',
+                                                    'Prinza',
+                                                    'Mabato',
+                                                    'Puting Lupa',
+                                                    'Bunggo',
+                                                    'Camaligan',
+                                                    'Mabacan',
+                                                    'San Jose',
+                                                    'Majada Out',
+                                                ];
                                                 natcasesort($calambaBarangays); // alphabetical, "Barangay 2" before "Barangay 10"
                                             @endphp
                                             @foreach ($calambaBarangays as $barangayOption)
@@ -184,7 +244,7 @@
 
                             <!-- Hidden branch selection (system will assign nearest branch) -->
                             <input type="hidden" name="branch_id" value="{{ $branch->id }}">
-                            
+
                             <div class="mb-3">
                                 <label>Payment Method *</label>
                                 <select name="payment_method" id="paymentMethod" class="form-select">
@@ -209,8 +269,9 @@
                                 <textarea name="notes" class="form-control" rows="2" placeholder="Special delivery instructions..."></textarea>
                             </div>
 
-                            <!-- ✅ DESKTOP Place Order button (unchanged, hidden on mobile via CSS) -->
-                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-desktop">
+                            <!-- ✅ DESKTOP Place Order button (inside form, hidden on mobile via CSS) -->
+                            <button type="submit"
+                                class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-desktop">
                                 <i class="bi bi-check-circle"></i> Place Order
                             </button>
                         </form>
@@ -257,15 +318,10 @@
                             @endforeach
                         </div>
 
-                         <div class="d-flex justify-content-between mb-2 summary-row">
+                        <div class="d-flex justify-content-between mb-2 summary-row">
                             <span>Subtotal</span>
                             <span>₱{{ number_format($subtotal, 2) }}</span>
                         </div>
-                        <!-- REMOVE TAX ROW - No tax -->
-                        <!-- <div class="d-flex justify-content-between mb-2">
-                            <span>Tax</span>
-                            <span>₱{{ number_format($tax, 2) }}</span>
-                        </div> -->
                         <div class="d-flex justify-content-between mb-2 summary-row">
                             <span>Delivery Fee</span>
                             <span id="deliveryFeeDisplay">₱0.00</span>
@@ -277,9 +333,10 @@
                         </div>
                     </div>
 
-                    <!-- ✅ MOBILE ONLY: Place Order button moved here (below Order Summary) -->
+                    <!-- ✅ MOBILE ONLY: Place Order button at the bottom of Order Summary -->
                     <div class="card-footer bg-white border-0 order-summary-footer-mobile">
-                        <button type="submit" form="checkoutForm" class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-mobile">
+                        <button type="button" id="mobilePlaceOrderBtn"
+                            class="btn btn-primary btn-lg w-100 rounded-pill place-order-btn place-order-btn-mobile">
                             <i class="bi bi-check-circle"></i> Place Order
                         </button>
                     </div>
@@ -299,8 +356,18 @@
             border-color: #0d6efd;
         }
 
-        /* ✅ Hide mobile Place Order button by default (desktop view) */
+        /* ✅ Desktop button visible by default */
+        .place-order-btn-desktop {
+            display: block;
+        }
+
+        /* ✅ Mobile footer hidden by default (desktop view) */
         .order-summary-footer-mobile {
+            display: none;
+        }
+
+        /* ✅ Mobile button hidden by default */
+        .place-order-btn-mobile {
             display: none;
         }
 
@@ -402,7 +469,7 @@
                 margin-bottom: 0.35rem;
             }
 
-            .checkout-card-body .row > [class*="col-"] {
+            .checkout-card-body .row>[class*="col-"] {
                 margin-bottom: 0.85rem !important;
             }
 
@@ -445,7 +512,7 @@
                 display: none !important;
             }
 
-            /* ✅ SHOW mobile Place Order button on mobile */
+            /* ✅ SHOW mobile Place Order footer + button on mobile */
             .order-summary-footer-mobile {
                 display: block !important;
                 padding: 1rem;
@@ -455,6 +522,7 @@
             }
 
             .place-order-btn-mobile {
+                display: block !important;
                 padding: 0.85rem 1rem;
                 font-size: 0.95rem;
                 font-weight: 600;
@@ -509,7 +577,7 @@
             }
 
             .order-item-img img,
-            .order-item-img > div {
+            .order-item-img>div {
                 width: 50px !important;
                 height: 50px !important;
                 border-radius: 10px !important;
@@ -617,6 +685,7 @@
             const otherBarangayContainer = document.getElementById('otherBarangayContainer');
             const otherBarangayInput = document.getElementById('other_barangay');
             const checkoutForm = document.getElementById('checkoutForm');
+            const mobilePlaceOrderBtn = document.getElementById('mobilePlaceOrderBtn');
 
             // 1. Toggle Address Sections
             function toggleAddressSections() {
@@ -629,7 +698,6 @@
                     savedSection.style.display = 'block';
                     newSection.style.display = 'none';
 
-                    // Disable new address inputs (no 'required' attribute set)
                     document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(
                         input => {
                             input.disabled = true;
@@ -644,7 +712,6 @@
                     savedSection.style.display = 'none';
                     newSection.style.display = 'block';
 
-                    // Enable new address inputs (NO 'required' attribute is added)
                     document.querySelectorAll('#newAddressSection select, #newAddressSection input').forEach(
                         input => {
                             input.disabled = false;
@@ -717,17 +784,21 @@
             // 5. FORM SUBMISSION
             if (checkoutForm) {
                 checkoutForm.addEventListener('submit', function(e) {
-                    // Force the radio button value into the form
+                    // 🧹 Remove any previously appended dynamic inputs
+                    this.querySelectorAll('input[data-dynamic="true"]').forEach(el => el.remove());
+
+                    // ✅ Force the selected address_option into the form
                     const selectedRadio = document.querySelector('input[name="address_option"]:checked');
                     if (selectedRadio) {
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = 'hidden';
                         hiddenInput.name = 'address_option';
                         hiddenInput.value = selectedRadio.value;
+                        hiddenInput.dataset.dynamic = 'true';
                         this.appendChild(hiddenInput);
                     }
 
-                    // If "New Address" is selected, map the inputs
+                    // ✅ If "New Address" is selected, map the inputs
                     if (newOption.checked) {
                         let finalBarangay = '';
                         let finalOtherBarangay = '';
@@ -745,55 +816,45 @@
                         const newZipCode = document.querySelector('input[name="new_zip_code"]');
                         const newLandmark = document.querySelector('input[name="new_landmark"]');
 
-                        const deliveryAddressInput = document.createElement('input');
-                        deliveryAddressInput.type = 'hidden';
-                        deliveryAddressInput.name = 'delivery_address';
-                        deliveryAddressInput.value = newAddress ? newAddress.value : '';
+                        const fields = {
+                            delivery_address: newAddress ? newAddress.value : '',
+                            city: newCity ? newCity.value : '',
+                            barangay: finalBarangay,
+                            other_barangay: finalOtherBarangay,
+                            zip_code: newZipCode ? newZipCode.value : '',
+                            landmark: newLandmark ? newLandmark.value : '',
+                            province: 'Laguna',
+                        };
 
-                        const cityInput = document.createElement('input');
-                        cityInput.type = 'hidden';
-                        cityInput.name = 'city';
-                        cityInput.value = newCity ? newCity.value : '';
+                        for (const [name, value] of Object.entries(fields)) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            input.dataset.dynamic = 'true';
+                            this.appendChild(input);
+                        }
+                    }
+                });
+            }
 
-                        const barangayInput = document.createElement('input');
-                        barangayInput.type = 'hidden';
-                        barangayInput.name = 'barangay';
-                        barangayInput.value = finalBarangay;
-
-                        const otherBarangayInputHidden = document.createElement('input');
-                        otherBarangayInputHidden.type = 'hidden';
-                        otherBarangayInputHidden.name = 'other_barangay';
-                        otherBarangayInputHidden.value = finalOtherBarangay;
-
-                        const zipCodeInput = document.createElement('input');
-                        zipCodeInput.type = 'hidden';
-                        zipCodeInput.name = 'zip_code';
-                        zipCodeInput.value = newZipCode ? newZipCode.value : '';
-
-                        const landmarkInput = document.createElement('input');
-                        landmarkInput.type = 'hidden';
-                        landmarkInput.name = 'landmark';
-                        landmarkInput.value = newLandmark ? newLandmark.value : '';
-
-                        this.appendChild(deliveryAddressInput);
-                        this.appendChild(cityInput);
-                        this.appendChild(barangayInput);
-                        this.appendChild(otherBarangayInputHidden);
-                        this.appendChild(zipCodeInput);
-                        this.appendChild(landmarkInput);
-
-                        const provinceInput = document.createElement('input');
-                        provinceInput.type = 'hidden';
-                        provinceInput.name = 'province';
-                        provinceInput.value = 'Laguna';
-                        this.appendChild(provinceInput);
+            // ✅ Mobile button triggers the form's submit event so our handler runs
+            if (mobilePlaceOrderBtn && checkoutForm) {
+                mobilePlaceOrderBtn.addEventListener('click', function() {
+                    if (typeof checkoutForm.requestSubmit === 'function') {
+                        checkoutForm.requestSubmit();
+                    } else {
+                        checkoutForm.dispatchEvent(new Event('submit', {
+                            cancelable: true,
+                            bubbles: true
+                        }));
                     }
                 });
             }
         });
     </script>
 
-    {{-- ADDED: Switch the barangay list depending on the selected city.
+    {{-- Switch the barangay list depending on the selected city.
          Calamba City = alphabetical barangay list. Any other city = only "Other",
          so the customer types their own barangay. Existing script above is untouched. --}}
     <script>
@@ -802,7 +863,6 @@
             const barangaySelect = document.getElementById('new_barangay');
             if (!citySelect || !barangaySelect) return;
 
-            // Remember the Calamba (alphabetical) options so we can restore them
             const calambaOptionsHtml = barangaySelect.innerHTML;
 
             function syncBarangayOptions() {
@@ -811,12 +871,10 @@
                 const showingOnlyOther = barangaySelect.dataset.mode === 'other';
 
                 if (isCalamba && showingOnlyOther) {
-                    // Back to Calamba: restore the full barangay list
                     barangaySelect.innerHTML = calambaOptionsHtml;
                     barangaySelect.value = '';
                     barangaySelect.dataset.mode = 'calamba';
                 } else if (!isCalamba && !showingOnlyOther) {
-                    // Other city: only "Other" so the user types their barangay
                     barangaySelect.innerHTML = '<option value="Other" selected>Other</option>';
                     barangaySelect.value = 'Other';
                     barangaySelect.dataset.mode = 'other';
@@ -824,7 +882,6 @@
                     return;
                 }
 
-                // Triggers your existing toggle that shows/hides the "Specify Barangay" input
                 barangaySelect.dispatchEvent(new Event('change'));
             }
 
