@@ -188,6 +188,108 @@
         cursor: not-allowed;
         transform: none;
     }
+
+    /* ============================================================
+       NEW: Low Stock & Out of Stock row highlighting
+       (matching branch admin side)
+       ============================================================ */
+    .table>tbody>tr.table-low-stock>td {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+
+    .table>tbody>tr.table-low-stock:hover>td {
+        background-color: #fecaca !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock>td {
+        background-color: #dc2626 !important;
+        color: white !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock:hover>td {
+        background-color: #b91c1c !important;
+    }
+
+    /* Low stock text visibility */
+    .table>tbody>tr.table-low-stock>td .fw-bold,
+    .table>tbody>tr.table-low-stock>td .fw-semibold {
+        color: #991b1b !important;
+        font-weight: 700 !important;
+    }
+
+    .table>tbody>tr.table-low-stock>td .text-muted {
+        color: #7f1d1d !important;
+    }
+
+    /* Out of stock text visibility */
+    .table>tbody>tr.table-out-of-stock>td .fw-bold,
+    .table>tbody>tr.table-out-of-stock>td .fw-semibold,
+    .table>tbody>tr.table-out-of-stock>td .text-muted {
+        color: white !important;
+    }
+
+    /* Badge styling in low stock rows */
+    .table>tbody>tr.table-low-stock>td .badge {
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+    }
+
+    .table>tbody>tr.table-low-stock>td .badge-low-stock {
+        background: #b91c1c !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.4rem 0.7rem !important;
+    }
+
+    /* Badge styling in out of stock rows */
+    .table>tbody>tr.table-out-of-stock>td .badge-out-of-stock {
+        background: #dc2626 !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.5rem 0.9rem !important;
+        font-size: 0.85rem !important;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Action buttons in low stock rows */
+    .table>tbody>tr.table-low-stock>td .btn {
+        border-color: #dc2626 !important;
+    }
+
+    .table>tbody>tr.table-low-stock>td .btn:hover {
+        background: #dc2626 !important;
+        color: white !important;
+    }
+
+    .table>tbody>tr.table-low-stock>td .btn-outline-info,
+    .table>tbody>tr.table-low-stock>td .btn-outline-warning,
+    .table>tbody>tr.table-low-stock>td .btn-outline-secondary,
+    .table>tbody>tr.table-low-stock>td .btn-outline-danger {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+
+    /* Action buttons in out of stock rows */
+    .table>tbody>tr.table-out-of-stock>td .btn {
+        border-color: white !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock>td .btn:hover {
+        background: white !important;
+        color: #dc2626 !important;
+    }
+
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-info,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-warning,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-secondary,
+    .table>tbody>tr.table-out-of-stock>td .btn-outline-danger {
+        color: white !important;
+        border-color: white !important;
+    }
 </style>
 
 @section('title', 'Inventory Overview - Vape Expo')
@@ -309,8 +411,8 @@
                 <form method="GET" class="row g-3" id="filterForm">
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Search Product</label>
-                        <input type="text" name="search" class="form-control"
-                            placeholder="Search by product name..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control" placeholder="Search by product name..."
+                            value="{{ request('search') }}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Branch</label>
@@ -340,10 +442,14 @@
                         <label class="form-label fw-semibold">Stock Status</label>
                         <select name="stock_status" class="form-select">
                             <option value="">All Status</option>
-                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock</option>
-                            <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Out of Stock</option>
-                            <option value="archived" {{ request('stock_status') == 'archived' ? 'selected' : '' }}>Archived</option>
-                            <option value="disposed" {{ request('stock_status') == 'disposed' ? 'selected' : '' }}>Disposed</option>
+                            <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Low Stock
+                            </option>
+                            <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Out of Stock
+                            </option>
+                            <option value="archived" {{ request('stock_status') == 'archived' ? 'selected' : '' }}>Archived
+                            </option>
+                            <option value="disposed" {{ request('stock_status') == 'disposed' ? 'selected' : '' }}>Disposed
+                            </option>
                         </select>
                     </div>
                     <div class="col-12">
@@ -413,8 +519,21 @@
                                     $expiry = $inv->expiration_date
                                         ? \Carbon\Carbon::parse($inv->expiration_date)
                                         : null;
+
+                                    // Determine row class for highlighting (only for active items)
+                                    $isLowStock =
+                                        !$isDisposed &&
+                                        !$isArchived &&
+                                        $available > 0 &&
+                                        $available <= $inv->low_stock_threshold;
+                                    $isOutOfStock = !$isDisposed && !$isArchived && $available <= 0;
+                                    $rowClass = $isOutOfStock
+                                        ? 'table-out-of-stock'
+                                        : ($isLowStock
+                                            ? 'table-low-stock'
+                                            : '');
                                 @endphp
-                                <tr>
+                                <tr class="{{ $rowClass }}">
                                     <td class="ps-4" style="width: 60px">
                                         @if ($imageUrl)
                                             <img src="{{ $imageUrl }}" alt="{{ $product->name }}"
@@ -443,7 +562,13 @@
                                         <span class="fw-bold text-{{ $statusClass }}">{{ $available }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ $statusClass }}">{{ $statusText }}</span>
+                                        @if ($statusText === 'Low Stock')
+                                            <span class="badge badge-low-stock">Low Stock</span>
+                                        @elseif ($statusText === 'Out of Stock')
+                                            <span class="badge badge-out-of-stock">Out of Stock</span>
+                                        @else
+                                            <span class="badge bg-{{ $statusClass }}">{{ $statusText }}</span>
+                                        @endif
                                     </td>
                                     <td>{{ $inv->low_stock_threshold }}</td>
                                     <td>
@@ -462,15 +587,13 @@
                                         <div class="btn-group btn-group-sm">
                                             @if ($isDisposed)
                                                 <button type="button" class="btn btn-outline-success" title="Restore"
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#restoreDisposedModal"
+                                                    data-bs-toggle="modal" data-bs-target="#restoreDisposedModal"
                                                     data-id="{{ $inv->id }}"
                                                     data-name="{{ $product->name ?? 'Item' }}">
                                                     <i class="bi bi-arrow-counterclockwise"></i> Restore
                                                 </button>
                                             @else
-                                                <button type="button" class="btn btn-outline-info"
-                                                    title="View Details"
+                                                <button type="button" class="btn btn-outline-info" title="View Details"
                                                     onclick="openShowModal({{ $inv->id }})">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
@@ -480,35 +603,30 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
 
-                                                <button type="button" class="btn btn-outline-success"
-                                                    title="Add Stock"
+                                                <button type="button" class="btn btn-outline-success" title="Add Stock"
                                                     onclick="openAddStockModal({{ $inv->id }})">
                                                     <i class="bi bi-plus-circle"></i>
                                                 </button>
 
                                                 @if ($isArchived)
-                                                    <button type="button" class="btn btn-outline-success" title="Restore from Archive"
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#unarchiveModal"
-                                                        data-id="{{ $inv->id }}"
+                                                    <button type="button" class="btn btn-outline-success"
+                                                        title="Restore from Archive" data-bs-toggle="modal"
+                                                        data-bs-target="#unarchiveModal" data-id="{{ $inv->id }}"
                                                         data-name="{{ $product->name ?? 'Item' }}">
                                                         <i class="bi bi-arrow-counterclockwise"></i>
                                                     </button>
                                                 @else
-                                                    <button type="button" class="btn btn-outline-secondary" title="Archive"
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#archiveModal"
-                                                        data-id="{{ $inv->id }}"
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                        title="Archive" data-bs-toggle="modal"
+                                                        data-bs-target="#archiveModal" data-id="{{ $inv->id }}"
                                                         data-name="{{ $product->name ?? 'Item' }}">
                                                         <i class="bi bi-archive"></i>
                                                     </button>
                                                 @endif
 
                                                 <button type="button" class="btn btn-outline-danger"
-                                                    title="Dispose Item" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#disposeModal"
-                                                    data-id="{{ $inv->id }}"
+                                                    title="Dispose Item" data-bs-toggle="modal"
+                                                    data-bs-target="#disposeModal" data-id="{{ $inv->id }}"
                                                     data-name="{{ $product->name ?? 'Item' }}">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
@@ -608,7 +726,8 @@
                         <p>Are you sure you want to dispose this item?</p>
                         <p class="fw-bold text-danger" id="disposeItemName"></p>
                         <div class="mb-3">
-                            <label for="dispose_reason" class="form-label fw-semibold">Reason for Disposal (Optional)</label>
+                            <label for="dispose_reason" class="form-label fw-semibold">Reason for Disposal
+                                (Optional)</label>
                             <textarea name="dispose_reason" id="dispose_reason" class="form-control" rows="3"
                                 placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
                         </div>
@@ -641,7 +760,8 @@
                     <div class="dispose-modal-body">
                         <p>Are you sure you want to archive this item?</p>
                         <p class="fw-bold" id="archiveItemName" style="color: #6b7280;"></p>
-                        <p class="text-muted small">Archived items will be hidden from active inventory but can be restored later.</p>
+                        <p class="text-muted small">Archived items will be hidden from active inventory but can be restored
+                            later.</p>
                     </div>
                     <div class="dispose-modal-footer">
                         <button type="button" class="btn-cancel" data-bs-dismiss="modal">
@@ -657,7 +777,8 @@
     </div>
 
     <!-- Unarchive Modal -->
-    <div class="modal fade" id="unarchiveModal" tabindex="-1" aria-labelledby="unarchiveModalLabel" aria-hidden="true">
+    <div class="modal fade" id="unarchiveModal" tabindex="-1" aria-labelledby="unarchiveModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="dispose-modal-header" style="background: #10b981;">
@@ -687,7 +808,8 @@
     </div>
 
     <!-- Restore Disposed Modal -->
-    <div class="modal fade" id="restoreDisposedModal" tabindex="-1" aria-labelledby="restoreDisposedModalLabel" aria-hidden="true">
+    <div class="modal fade" id="restoreDisposedModal" tabindex="-1" aria-labelledby="restoreDisposedModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="dispose-modal-header" style="background: #10b981;">
@@ -707,7 +829,8 @@
                         <button type="button" class="btn-cancel" data-bs-dismiss="modal">
                             <i class="bi bi-x me-1"></i> Cancel
                         </button>
-                        <button type="submit" class="btn-dispose" id="restoreDisposedSubmitBtn" style="background: #10b981;">
+                        <button type="submit" class="btn-dispose" id="restoreDisposedSubmitBtn"
+                            style="background: #10b981;">
                             <i class="bi bi-arrow-counterclockwise me-2"></i> Restore
                         </button>
                     </div>
@@ -722,7 +845,7 @@
             // Check for session flash messages
             const flashSuccess = document.getElementById('flashSuccess');
             const flashError = document.getElementById('flashError');
-            
+
             if (flashSuccess && flashSuccess.textContent.trim()) {
                 const message = flashSuccess.textContent.trim();
                 if (typeof window.showNotification === 'function') {
@@ -730,7 +853,7 @@
                 }
                 flashSuccess.remove();
             }
-            
+
             if (flashError && flashError.textContent.trim()) {
                 const message = flashError.textContent.trim();
                 if (typeof window.showNotification === 'function') {
@@ -854,7 +977,7 @@
                 if (disposeForm) {
                     disposeForm.reset();
                 }
-                
+
                 if (disposeSubmitBtn) {
                     disposeSubmitBtn.disabled = false;
                     disposeSubmitBtn.innerHTML = '<i class="bi bi-trash me-2"></i> Dispose';
@@ -870,61 +993,64 @@
                     const formData = new FormData(this);
 
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+                    submitBtn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
 
                     fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => {
-                                throw new Error(err.message || 'Server error');
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(disposeModal);
-                            if (modal) modal.hide();
-
-                            if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Item disposed successfully!', 'success');
-                            } else {
-                                alert(data.message || 'Item disposed successfully!');
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: formData
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => {
+                                    throw new Error(err.message || 'Server error');
+                                });
                             }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                const modal = bootstrap.Modal.getInstance(disposeModal);
+                                if (modal) modal.hide();
 
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message ||
+                                        'Item disposed successfully!', 'success');
+                                } else {
+                                    alert(data.message || 'Item disposed successfully!');
+                                }
+
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalText;
+
+                                if (typeof window.showNotification === 'function') {
+                                    window.showNotification(data.message || 'Dispose failed', 'error');
+                                } else {
+                                    alert('Error: ' + (data.message || 'Unknown error'));
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = originalText;
 
                             if (typeof window.showNotification === 'function') {
-                                window.showNotification(data.message || 'Dispose failed', 'error');
+                                window.showNotification('Network error. Please try again.', 'error');
                             } else {
-                                alert('Error: ' + (data.message || 'Unknown error'));
+                                alert('Network error. Please try again.');
                             }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-
-                        if (typeof window.showNotification === 'function') {
-                            window.showNotification('Network error. Please try again.', 'error');
-                        } else {
-                            alert('Network error. Please try again.');
-                        }
-                    });
+                        });
                 });
             }
         });
@@ -998,7 +1124,8 @@
                     }
 
                     if (restoreDisposedForm) {
-                        restoreDisposedForm.action = '/admin/inventory/' + inventoryId + '/restore-disposed';
+                        restoreDisposedForm.action = '/admin/inventory/' + inventoryId +
+                        '/restore-disposed';
                     }
                 });
             }

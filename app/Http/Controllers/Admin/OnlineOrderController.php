@@ -58,6 +58,7 @@ class OnlineOrderController extends Controller
             'out_for_delivery' => Order::where('order_status', 'out_for_delivery')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
             'delivered' => Order::where('order_status', 'delivered')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
             'cancelled' => Order::where('order_status', 'cancelled')->where('order_number', 'NOT LIKE', 'POS-%')->count(),
+            'delivery_failed' => Order::where('order_status', 'delivery_failed')->count(),
         ];
 
         return view('admin.online-orders.index', compact('orders', 'counts'));

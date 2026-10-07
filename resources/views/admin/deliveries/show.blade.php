@@ -166,6 +166,13 @@
         color: #065f46;
     }
 
+    /* ✅ NEW: Red alert for failed delivery */
+    .alert-danger-custom {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+    }
+
     /* Totals */
     .totals-row {
         display: flex;
@@ -255,6 +262,13 @@
         color: #94a3b8;
     }
 
+    /* ✅ NEW: Red failed icon */
+    .timeline-icon.failed {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: white;
+    }
+
     .timeline-icon i {
         font-size: 1rem;
     }
@@ -270,9 +284,19 @@
         margin-bottom: 0.25rem;
     }
 
+    /* ✅ NEW: Red failed title */
+    .timeline-title.text-failed {
+        color: #dc2626;
+    }
+
     .timeline-date {
         font-size: 0.7rem;
         color: #64748b;
+    }
+
+    /* ✅ NEW: Red failed date */
+    .timeline-date.text-failed {
+        color: #dc2626;
     }
 
     .timeline-line {
@@ -286,6 +310,11 @@
 
     .timeline-line.completed {
         background: #10b981;
+    }
+
+    /* ✅ NEW: Red failed line */
+    .timeline-line.failed {
+        background: #dc2626;
     }
 
     .timeline-item:last-child .timeline-line {
@@ -395,6 +424,7 @@
     }
 
     @media (max-width: 768px) {
+
         .order-table th,
         .order-table td {
             padding: 0.5rem;
@@ -451,7 +481,7 @@
                                                 $imageUrl = Storage::url($product->image);
                                             }
                                         }
-                                        
+
                                         // ✅ Inventory Stock Check
                                         $stockAvailable = 0;
                                         $stockReserved = 0;
@@ -459,22 +489,29 @@
                                         $stockStatus = 'out_of_stock';
                                         $stockClass = 'stock-info-out';
                                         $stockIcon = 'bi-x-circle-fill';
-                                        
+
                                         if ($delivery->order->branch_id && $product) {
-                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $delivery->order->branch_id)
+                                            $branchInventory = \App\Models\BranchInventory::where(
+                                                'branch_id',
+                                                $delivery->order->branch_id,
+                                            )
                                                 ->where('product_id', $product->id)
-                                                ->when($item->flavor_id, function($query) use ($item) {
-                                                    return $query->where('flavor_id', $item->flavor_id);
-                                                }, function($query) {
-                                                    return $query->whereNull('flavor_id');
-                                                })
+                                                ->when(
+                                                    $item->flavor_id,
+                                                    function ($query) use ($item) {
+                                                        return $query->where('flavor_id', $item->flavor_id);
+                                                    },
+                                                    function ($query) {
+                                                        return $query->whereNull('flavor_id');
+                                                    },
+                                                )
                                                 ->first();
-                                            
+
                                             if ($branchInventory) {
                                                 $stockTotal = $branchInventory->quantity;
                                                 $stockReserved = $branchInventory->reserved_quantity;
                                                 $stockAvailable = $branchInventory->available_quantity;
-                                                
+
                                                 if ($stockAvailable <= 0) {
                                                     $stockStatus = 'out_of_stock';
                                                     $stockClass = 'stock-info-out';
@@ -494,13 +531,12 @@
                                     <tr>
                                         <td>
                                             @if ($imageUrl)
-                                                <img src="{{ $imageUrl }}"
-                                                    alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                                <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'N/A' }}"
+                                                    class="product-image">
                                             @else
                                                 <div
                                                     class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-image text-muted"
-                                                        style="font-size: 1.2rem;"></i>
+                                                    <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
                                                 </div>
                                             @endif
                                         </td>
@@ -556,6 +592,7 @@
                         <p class="info-label">Status</p>
                         <p class="info-value">
                             @php
+                                // ✅ UPDATED: red badge for failed/cancelled + proper label
                                 $statusBadgeClass = match ($delivery->status) {
                                     'pending' => 'badge-secondary',
                                     'assigned' => 'badge-info',
@@ -563,9 +600,14 @@
                                     'in_transit' => 'badge-warning',
                                     'delivered' => 'badge-success',
                                     'failed' => 'badge-danger',
+                                    'cancelled' => 'badge-danger',
                                     default => 'badge-secondary',
                                 };
-                                $displayDeliveryStatus = ucfirst(str_replace('_', ' ', $delivery->status));
+                                $displayDeliveryStatus = match ($delivery->status) {
+                                    'failed' => 'Delivery Failed',
+                                    'cancelled' => 'Cancelled',
+                                    default => ucfirst(str_replace('_', ' ', $delivery->status)),
+                                };
                             @endphp
                             <span class="badge {{ $statusBadgeClass }}">
                                 {{ $displayDeliveryStatus }}
@@ -604,6 +646,12 @@
                             <p class="info-value">
                                 {{ \Carbon\Carbon::parse($delivery->delivered_at)->format('M d, Y h:i A') }}</p>
                         @endif
+                        {{-- ✅ NEW: Failed at timestamp --}}
+                        @if ($delivery->failed_at ?? null)
+                            <p class="info-label">Failed At</p>
+                            <p class="info-value text-danger">
+                                {{ \Carbon\Carbon::parse($delivery->failed_at)->format('M d, Y h:i A') }}</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -637,7 +685,7 @@
             </div>
         </div>
 
-        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery (3 columns, 33% each) -->
+        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery -->
         <div class="row g-3 mt-2">
             <!-- Delivery Progress -->
             <div class="col-md-4">
@@ -654,18 +702,22 @@
                                     'picked_up' => 2,
                                     'in_transit' => 3,
                                     'delivered' => 4,
-                                    'failed' => 99,
-                                ];
+                                    'failed' => 4, // ✅ Same level as delivered — it's the final step
+    'cancelled' => 99,
+];
 
-                                $currentDeliveryStatus = $delivery->status;
-                                $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
+$currentDeliveryStatus = $delivery->status;
+$currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
 
-                                $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
-                                    return $currentDeliveryLevel >= $level;
-                                };
+// ✅ NEW: detect if this delivery is failed
+$isDeliveryFailed = in_array($currentDeliveryStatus, ['failed', 'cancelled'], true);
 
-                                $formatDate = function ($date) {
-                                    return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
+$isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
+    return $currentDeliveryLevel >= $level;
+};
+
+$formatDate = function ($date) {
+    return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
                                 };
                             @endphp
 
@@ -726,25 +778,52 @@
                                         <div class="timeline-date text-muted">Waiting</div>
                                     @endif
                                 </div>
-                                <div class="timeline-line {{ $isDeliveryCompleted(4) ? 'completed' : '' }}"></div>
+                                {{-- ✅ Line turns red if failed --}}
+                                <div
+                                    class="timeline-line {{ $isDeliveryFailed ? 'failed' : ($isDeliveryCompleted(4) ? 'completed' : '') }}">
+                                </div>
                             </div>
 
-                            <!-- Delivered -->
-                            <div class="timeline-item">
-                                <div class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : 'pending' }}">
-                                    <i class="bi bi-flag-fill"></i>
+                            {{-- ✅ UPDATED: Last step switches between Delivered (green) and Delivery Failed (red) --}}
+                            @if ($isDeliveryFailed)
+                                <!-- Delivery Failed (red) -->
+                                <div class="timeline-item">
+                                    <div class="timeline-icon failed">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title text-failed">Delivery Failed</div>
+                                        @if ($delivery->failed_at ?? null)
+                                            <div class="timeline-date text-failed">
+                                                {{ $formatDate($delivery->failed_at) }}</div>
+                                        @elseif ($delivery->updated_at)
+                                            <div class="timeline-date text-failed">
+                                                {{ $formatDate($delivery->updated_at) }}</div>
+                                        @else
+                                            <div class="timeline-date text-failed">Failed</div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-title">Delivered</div>
-                                    @if ($delivery->delivered_at)
-                                        <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}</div>
-                                    @elseif ($isDeliveryCompleted(4))
-                                        <div class="timeline-date">Delivered</div>
-                                    @else
-                                        <div class="timeline-date text-muted">Waiting</div>
-                                    @endif
+                            @else
+                                <!-- Delivered (green) -->
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-icon {{ $isDeliveryCompleted(4) ? 'completed' : 'pending' }}">
+                                        <i class="bi bi-flag-fill"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-title">Delivered</div>
+                                        @if ($delivery->delivered_at)
+                                            <div class="timeline-date">{{ $formatDate($delivery->delivered_at) }}
+                                            </div>
+                                        @elseif ($isDeliveryCompleted(4))
+                                            <div class="timeline-date">Delivered</div>
+                                        @else
+                                            <div class="timeline-date text-muted">Waiting</div>
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>

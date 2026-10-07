@@ -175,6 +175,12 @@
             color: #dc2626;
         }
 
+        /* ✅ NEW: Delivery Failed badge */
+        .badge-delivery_failed {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
         .badge {
             padding: 0.35rem 0.75rem;
             border-radius: 30px;
@@ -347,19 +353,29 @@
 
         <!-- Filter Section -->
         <div class="filter-container">
-            <form method="GET" action="{{ route('admin.online-orders.index') }}" class="filter-form row g-3 align-items-end">
+            <form method="GET" action="{{ route('admin.online-orders.index') }}"
+                class="filter-form row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">Status</label>
                     <select name="status" class="form-select">
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing</option>
+                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
+                        </option>
+                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Packing
+                        </option>
                         <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
-                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up</option>
-                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="picked_up" {{ request('status') == 'picked_up' ? 'selected' : '' }}>Picked Up
+                        </option>
+                        <option value="out_for_delivery" {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out
+                            for Delivery</option>
+                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered
+                        </option>
+                        {{-- ✅ NEW: Delivery Failed filter option --}}
+                        <option value="delivery_failed" {{ request('status') == 'delivery_failed' ? 'selected' : '' }}>
+                            Delivery Failed</option>
+                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -462,6 +478,18 @@
                     </div>
                 </div>
             </div>
+            {{-- ✅ NEW: Delivery Failed status card --}}
+            <div class="col">
+                <div class="card status-card">
+                    <div class="card-body text-center py-2">
+                        <div class="status-icon bg-danger bg-opacity-10 mx-auto" style="width: 40px; height: 40px;">
+                            <i class="bi bi-x-circle-fill fs-5 text-danger"></i>
+                        </div>
+                        <h6 class="status-number mb-0">{{ $counts['delivery_failed'] ?? 0 }}</h6>
+                        <p class="status-label mb-0">Delivery Failed</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Orders Table -->
@@ -498,14 +526,17 @@
                                         'out_for_delivery' => 'badge-out_for_delivery',
                                         'delivered' => 'badge-delivered',
                                         'cancelled' => 'badge-cancelled',
+                                        'delivery_failed' => 'badge-delivery_failed',
                                         default => 'badge-secondary',
                                     };
 
+                                    // ✅ UPDATED: explicit label for delivery_failed so it renders as "Delivery Failed"
                                     $displayStatus = match ($order->order_status) {
                                         'processing' => 'Packing',
                                         'picked_up' => 'Picked Up',
                                         'out_for_delivery' => 'Out for Delivery',
-                                        default => ucfirst($order->order_status),
+                                        'delivery_failed' => 'Delivery Failed',
+                                        default => ucfirst(str_replace('_', ' ', $order->order_status)),
                                     };
 
                                     $firstItem = $order->items->first();
@@ -551,7 +582,8 @@
                                         <div class="fw-semibold">{{ $order->customer_name }}</div>
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
-                                    <td><strong class="text-success">₱{{ number_format($order->subtotal, 2) }}</strong></td>
+                                    <td><strong class="text-success">₱{{ number_format($order->subtotal, 2) }}</strong>
+                                    </td>
                                     <td>
                                         <span class="delivery-badge">
                                             @if ($isLalamoveEligible)
