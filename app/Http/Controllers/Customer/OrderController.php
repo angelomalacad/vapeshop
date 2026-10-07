@@ -15,10 +15,10 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::where('user_id', Auth::id())
-            ->with(['items.product', 'items.flavor']) 
+            ->with(['items.product', 'items.flavor'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-            
+
         // ✅ ADD: Transform orders to include status badge class and label
         $orders->getCollection()->transform(function ($order) {
             $statusColors = [
@@ -29,6 +29,7 @@ class OrderController extends Controller
                 'picked_up' => 'secondary',
                 'out_for_delivery' => 'secondary',
                 'delivered' => 'dark',
+                'delivery_failed' => 'danger', // ✅ NEW
                 'cancelled' => 'danger',
             ];
             $statusLabels = [
@@ -39,6 +40,7 @@ class OrderController extends Controller
                 'picked_up' => 'Picked Up',
                 'out_for_delivery' => 'Out for Delivery',
                 'delivered' => 'Delivered',
+                'delivery_failed' => 'Delivery Failed', // ✅ NEW
                 'cancelled' => 'Cancelled',
             ];
 
@@ -78,22 +80,22 @@ class OrderController extends Controller
 
             foreach ($reservations as $reservation) {
                 $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
-                
+
                 if ($inventory) {
                     $inventory->update([
                         'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
                     ]);
                 }
-                
+
                 $reservation->update([
                     'status' => 'released',
                     'released_at' => now()
                 ]);
             }
-            
+
             foreach ($order->items as $item) {
                 $inventory = BranchInventory::where('id', $item->inventory_id)->first();
-                
+
                 if ($inventory) {
                     if ($inventory->reserved_quantity > 0) {
                         $quantityToRelease = min($item->quantity, $inventory->reserved_quantity);
@@ -101,7 +103,7 @@ class OrderController extends Controller
                     }
                 }
             }
-            
+
             $order->update(['order_status' => 'cancelled']);
         });
 
@@ -122,6 +124,7 @@ class OrderController extends Controller
             'out_for_delivery' => null,
             'in_transit' => null,
             'delivered' => null,
+            'failed' => null, // ✅ NEW: delivery failed timestamp
         ];
 
         $ensureCarbon = function($value) {
@@ -202,6 +205,50 @@ class OrderController extends Controller
                 $timestamps['delivered'] = $ensureCarbon($order->delivery->delivered_at);
             } else {
                 $timestamps['delivered'] = $order->updated_at;
+            }
+        }
+
+        // ✅ NEW: Failed delivery - the blocks above skip 'delivery_failed',
+        // so fill the steps the order already went through plus the failed time.
+        if ($order->order_status == 'delivery_failed') {
+            $delivery = $order->delivery;
+
+            if (isset($order->confirmed_at) && $order->confirmed_at) {
+                $timestamps['confirmed'] = $ensureCarbon($order->confirmed_at);
+            } elseif ($delivery && $delivery->assigned_at) {
+                $timestamps['confirmed'] = $ensureCarbon($delivery->assigned_at);
+            } else {
+                $timestamps['confirmed'] = $order->updated_at;
+            }
+
+            if (isset($order->processing_at) && $order->processing_at) {
+                $timestamps['packing'] = $ensureCarbon($order->processing_at);
+            } else {
+                $timestamps['packing'] = $order->updated_at;
+            }
+
+            if (isset($order->ready_at) && $order->ready_at) {
+                $timestamps['ready'] = $ensureCarbon($order->ready_at);
+            } else {
+                $timestamps['ready'] = $order->updated_at;
+            }
+
+            if ($delivery && $delivery->picked_up_at) {
+                $timestamps['picked_up'] = $ensureCarbon($delivery->picked_up_at);
+            } elseif ($order->out_for_delivery_at) {
+                $timestamps['picked_up'] = $ensureCarbon($order->out_for_delivery_at);
+            } else {
+                $timestamps['picked_up'] = $order->updated_at;
+            }
+
+            if ($delivery && $delivery->in_transit_at) {
+                $timestamps['out_for_delivery'] = $ensureCarbon($delivery->in_transit_at);
+            }
+
+            if ($delivery && $delivery->failed_at) {
+                $timestamps['failed'] = $ensureCarbon($delivery->failed_at);
+            } else {
+                $timestamps['failed'] = $order->updated_at;
             }
         }
 

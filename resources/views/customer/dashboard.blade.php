@@ -350,6 +350,14 @@
             white-space: nowrap;
         }
 
+        /* ✅ NEW: Delivery Failed status badge (soft red, readable) */
+        .badge-delivery-failed {
+            background-color: #fee2e2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca;
+            font-weight: 600;
+        }
+
         /* Map Container */
         .map-container {
             height: 280px;
@@ -535,13 +543,13 @@
             }
 
             /* Make the card body clickable appearance */
-            .action-card .card-body > div:not(.card-icon) {
+            .action-card .card-body>div:not(.card-icon) {
                 flex: 1;
                 min-width: 0;
             }
 
             /* Row gap for mobile action cards */
-            .row.g-4.mb-4 > [class*="col-"] {
+            .row.g-4.mb-4>[class*="col-"] {
                 margin-bottom: 0.7rem;
             }
 
@@ -903,7 +911,8 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-semibold fs-6 mb-2">Browse Products</h5>
-                                <p class="card-text text-muted small mb-3">View all available vape products from our collection.</p>
+                                <p class="card-text text-muted small mb-3">View all available vape products from our
+                                    collection.</p>
                                 <span class="btn rounded-pill">
                                     Shop Now <i class="bi bi-arrow-right ms-1"></i>
                                 </span>
@@ -939,7 +948,8 @@
                             </div>
                             <div>
                                 <h5 class="card-title fw-semibold fs-6 mb-2">Track Orders</h5>
-                                <p class="card-text text-muted small mb-3">Monitor your order status and delivery progress.</p>
+                                <p class="card-text text-muted small mb-3">Monitor your order status and delivery progress.
+                                </p>
                                 <span class="btn rounded-pill">
                                     Track Now <i class="bi bi-arrow-right ms-1"></i>
                                 </span>
@@ -1024,16 +1034,26 @@
                                                                 'bg' => 'dark',
                                                                 'icon' => 'bi-check-circle-fill',
                                                             ],
+                                                            'delivery_failed' => [
+                                                                'bg' => 'danger',
+                                                                'icon' => 'bi-x-circle-fill',
+                                                            ],
                                                             'cancelled' => ['bg' => 'danger', 'icon' => 'bi-x-circle'],
                                                         ];
                                                         $badge = $statusBadge[$order->order_status] ?? [
                                                             'bg' => 'secondary',
                                                             'icon' => 'bi-info-circle',
                                                         ];
+                                                        // ✅ NEW: readable label (no underscore) + failed delivery flag
+                                                        $isDeliveryFailed = $order->order_status === 'delivery_failed';
+                                                        $statusLabel = ucwords(
+                                                            str_replace('_', ' ', $order->order_status),
+                                                        );
                                                     @endphp
-                                                    <span class="badge bg-{{ $badge['bg'] }} badge-modern">
+                                                    <span
+                                                        class="badge {{ $isDeliveryFailed ? 'badge-delivery-failed' : 'bg-' . $badge['bg'] }} badge-modern">
                                                         <i class="bi {{ $badge['icon'] }} me-1"></i>
-                                                        {{ ucfirst($order->order_status) }}
+                                                        {{ $statusLabel }}
                                                     </span>
                                                 </td>
                                                 <td>

@@ -5,35 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Hash;
 
 class ResetPasswordController extends Controller
 {
     use ResetsPasswords;
 
-    /**
-     * Where to redirect users after resetting their password.
-     *
-     * @var string
-     */
     protected $redirectTo = '/login';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest');
     }
 
-    /**
-     * ✅ OVERRIDE: Get the password validation rules.
-     * Enforces: min 8 chars, 1 uppercase, 1 number, 1 special char.
-     *
-     * @return array
-     */
     protected function rules()
     {
         return [
@@ -42,20 +26,15 @@ class ResetPasswordController extends Controller
             'password' => [
                 'required',
                 'string',
-                'min:8',                  // Minimum 8 characters
-                'confirmed',              // Must match password_confirmation
-                'regex:/[A-Z]/',          // At least one uppercase letter
-                'regex:/[0-9]/',          // At least one number
-                'regex:/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\\\/;\'`~]/', // At least one special character
+                'min:8',
+                'confirmed',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\\\/;\'`~]/',
             ],
         ];
     }
 
-    /**
-     * ✅ OVERRIDE: Custom validation messages.
-     *
-     * @return array
-     */
     protected function validationErrorMessages()
     {
         return [
@@ -63,5 +42,36 @@ class ResetPasswordController extends Controller
             'password.regex' => 'Password must contain at least one uppercase letter, one number, and one special character.',
             'password.confirmed' => 'Password confirmation does not match.',
         ];
+    }
+
+    /**
+     * ✅ COMPLETELY CUSTOM RESET — no trait magic, full control
+     */
+    public function reset(Request $request)
+    {
+        // STEP 1 — validate basic rules
+        $request->validate($this->rules(), $this->validationErrorMessages());
+
+        // STEP 2 — find user
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        // STEP 3 — HARD BLOCK if user not found (forces error to show)
+        if (!$user) {
+            return back()->withErrors(['email' => 'No account found with that email.']);
+        }
+
+        // STEP 4 — HARD BLOCK if same password
+        if (Hash::check($request->password, $user->password)) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['password' => 'SAME PASSWORD DETECTED — you cannot reuse your old password.']);
+        }
+
+        // STEP 5 — update password
+        $user->password = Hash::make($request->password);
+        $user->setRememberToken(\Illuminate\Support\Str::random(60));
+        $user->save();
+
+        return redirect($this->redirectTo)->with('status', 'Your password has been reset successfully.');
     }
 }

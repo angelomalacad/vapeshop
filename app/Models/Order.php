@@ -33,6 +33,7 @@ class Order extends Model
         // NEW fields for online ordering
         'customer_email',
         'city',
+        'province',
         'barangay',
         'other_barangay',
         'landmark',
@@ -103,6 +104,6 @@ class Order extends Model
 {
     return $value ? \Carbon\Carbon::parse($value) : null;
 }
-    
+
 
 }

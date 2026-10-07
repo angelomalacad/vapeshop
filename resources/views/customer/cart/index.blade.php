@@ -5,8 +5,10 @@
         <!-- Header with Title and Continue Shopping Button -->
         <div class="d-flex justify-content-between align-items-center mb-4 cart-header">
             <h2 class="cart-title"><i class="bi bi-cart"></i> Shopping Cart</h2>
-            <a href="{{ route('customer.products.index') }}" class="btn btn-outline-secondary rounded-pill continue-shopping-btn">
-                <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Continue Shopping</span><span class="d-sm-none">Back</span>
+            <a href="{{ route('customer.products.index') }}"
+                class="btn btn-outline-secondary rounded-pill continue-shopping-btn">
+                <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Continue Shopping</span><span
+                    class="d-sm-none">Back</span>
             </a>
         </div>
 
@@ -14,7 +16,8 @@
             <div class="card shadow-sm border-0 cart-card">
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <form method="POST" action="{{ route('customer.cart.checkout-selected') }}" id="checkoutSelectedForm">
+                        <form method="POST" action="{{ route('customer.cart.checkout-selected') }}"
+                            id="checkoutSelectedForm">
                             @csrf
                             <table class="table cart-table mb-0">
                                 <thead class="table-light">
@@ -48,7 +51,8 @@
                                                                 alt="{{ $item['product_name'] }}"
                                                                 style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;"
                                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                            <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8;">
+                                                            <div
+                                                                style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8;">
                                                                 <i class="bi bi-box-seam" style="font-size: 1.5rem;"></i>
                                                             </div>
                                                         @else
@@ -108,7 +112,8 @@
                         <!-- Right Side: Action Buttons -->
                         <div class="col-md-6 col-12 text-md-end">
                             <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3 cart-actions">
-                                <h4 class="mb-0 selected-total-label">Selected Total: <span id="selectedTotal" class="text-danger">₱0.00</span>
+                                <h4 class="mb-0 selected-total-label">Selected Total: <span id="selectedTotal"
+                                        class="text-danger">₱0.00</span>
                                 </h4>
 
                                 <!-- Checkout Selected -->
@@ -118,12 +123,13 @@
                                 </button>
 
                                 <!-- Checkout All -->
-                                <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill px-4 checkout-all-btn">
+                                <a href="{{ route('customer.checkout.index') }}"
+                                    class="btn btn-success rounded-pill px-4 checkout-all-btn">
                                     Checkout All <i class="bi bi-cart-check"></i>
                                 </a>
 
-                                <button type="button" id="clearCartBtn" class="btn btn-outline-danger rounded-pill clear-cart-btn"
-                                    onclick="confirmClearCart()">
+                                <button type="button" id="clearCartBtn"
+                                    class="btn btn-outline-danger rounded-pill clear-cart-btn" onclick="confirmClearCart()">
                                     <i class="bi bi-trash3"></i> Clear Cart
                                 </button>
                             </div>
@@ -162,7 +168,8 @@
             <!-- ✅ MOBILE ONLY FOOTER: Action buttons moved to the bottom (below summary) -->
             <div class="cart-footer cart-footer-mobile">
                 <div class="cart-actions-mobile">
-                    <h4 class="mb-0 selected-total-label-mobile">Selected Total: <span id="selectedTotalMobile" class="text-danger">₱0.00</span>
+                    <h4 class="mb-0 selected-total-label-mobile">Selected Total: <span id="selectedTotalMobile"
+                            class="text-danger">₱0.00</span>
                     </h4>
 
                     <!-- Checkout Selected -->
@@ -172,12 +179,13 @@
                     </button>
 
                     <!-- Checkout All -->
-                    <a href="{{ route('customer.checkout.index') }}" class="btn btn-success rounded-pill checkout-all-btn-mobile">
+                    <a href="{{ route('customer.checkout.index') }}"
+                        class="btn btn-success rounded-pill checkout-all-btn-mobile">
                         Checkout All <i class="bi bi-cart-check"></i>
                     </a>
 
-                    <button type="button" id="clearCartBtnMobile" class="btn btn-outline-danger rounded-pill clear-cart-btn-mobile"
-                        onclick="confirmClearCart()">
+                    <button type="button" id="clearCartBtnMobile"
+                        class="btn btn-outline-danger rounded-pill clear-cart-btn-mobile" onclick="confirmClearCart()">
                         <i class="bi bi-trash3"></i> Clear Cart
                     </button>
                 </div>
@@ -202,9 +210,11 @@
     </div>
 
     <!-- ✅ NEW: Clear Cart Confirmation Modal (replaces browser confirm) -->
-    <div class="modal fade" id="clearCartModal" tabindex="-1" aria-labelledby="clearCartModalLabel" aria-hidden="true">
+    <div class="modal fade" id="clearCartModal" tabindex="-1" aria-labelledby="clearCartModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-content"
+                style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                 <div class="modal-header" style="border-bottom: 1px solid #eef2f6; padding: 1.25rem 1.5rem;">
                     <h5 class="modal-title fw-bold" id="clearCartModalLabel" style="color: #dc3545;">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>Clear Cart
@@ -213,12 +223,43 @@
                 </div>
                 <div class="modal-body" style="padding: 1.5rem;">
                     <p class="mb-0">Are you sure you want to clear your entire cart?</p>
-                    <p class="text-muted small mt-2 mb-0">This will remove all items from your cart. This action cannot be undone.</p>
+                    <p class="text-muted small mt-2 mb-0">This will remove all items from your cart. This action cannot be
+                        undone.</p>
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmClearCartBtn">
                         <i class="bi bi-trash3 me-1"></i>Yes, Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ NEW: Remove Specific Item Confirmation Modal -->
+    <div class="modal fade" id="removeItemModal" tabindex="-1" aria-labelledby="removeItemModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="border-bottom: 1px solid #eef2f6; padding: 1.25rem 1.5rem;">
+                    <h5 class="modal-title fw-bold" id="removeItemModalLabel" style="color: #dc3545;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Remove Item
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <p class="mb-0">Are you sure you want to remove <strong id="removeItemName"></strong> from your
+                        cart?</p>
+                    <p class="text-muted small mt-2 mb-0">This will remove the item from your cart. This action cannot be
+                        undone.</p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmRemoveItemBtn">
+                        <i class="bi bi-trash3 me-1"></i>Yes, Remove
                     </button>
                 </div>
             </div>
@@ -635,7 +676,7 @@
             }
 
             /* Info alert */
-            .cart-container > .alert-info {
+            .cart-container>.alert-info {
                 font-size: 0.78rem;
                 padding: 0.7rem 0.85rem;
                 border-radius: 12px;
@@ -906,15 +947,43 @@
                 });
             });
 
-            // Remove item via AJAX (NO PAGE REFRESH)
+            // ✅ Remove item via AJAX (NO PAGE REFRESH) — now uses a modal
             document.querySelectorAll('.remove-item-btn').forEach(function(btn) {
-                btn.addEventListener('click', async function() {
+                btn.addEventListener('click', function() {
                     var inventoryId = this.dataset.inventoryId;
                     var productName = this.dataset.productName;
-                    var row = this.closest('tr');
 
-                    if (confirm('Remove ' + productName + ' from cart?')) {
-                        var originalHtml = this.innerHTML;
+                    // Set the product name in the modal
+                    document.getElementById('removeItemName').textContent = productName;
+
+                    // Store the inventory ID on the confirm button
+                    var confirmBtn = document.getElementById('confirmRemoveItemBtn');
+                    confirmBtn.dataset.inventoryId = inventoryId;
+                    confirmBtn.dataset.productName = productName;
+
+                    // Show the modal
+                    var modalElement = document.getElementById('removeItemModal');
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.show();
+                });
+            });
+
+            // ✅ Handle the "Yes, Remove" button in the remove item modal
+            document.addEventListener('DOMContentLoaded', function() {
+                var confirmRemoveBtn = document.getElementById('confirmRemoveItemBtn');
+                if (confirmRemoveBtn) {
+                    confirmRemoveBtn.addEventListener('click', async function() {
+                        var inventoryId = this.dataset.inventoryId;
+                        var productName = this.dataset.productName;
+                        var row = document.querySelector('tr:has(.remove-item-btn[data-inventory-id="' +
+                            inventoryId + '"])');
+
+                        if (!row) return;
+
+                        var modalElement = document.getElementById('removeItemModal');
+                        var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+                        var originalBtnHtml = this.innerHTML;
                         this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
                         this.disabled = true;
 
@@ -932,6 +1001,7 @@
                             var data = await response.json();
 
                             if (data.success) {
+                                modal.hide();
                                 row.style.transition = 'all 0.3s ease';
                                 row.style.opacity = '0';
                                 setTimeout(function() {
@@ -943,16 +1013,17 @@
                                 }, 300);
                             } else {
                                 alert(data.message || 'Error removing item');
+                                this.innerHTML = originalBtnHtml;
+                                this.disabled = false;
                             }
                         } catch (error) {
                             console.error('Error:', error);
                             alert('Error removing item');
-                        } finally {
-                            this.innerHTML = originalHtml;
+                            this.innerHTML = originalBtnHtml;
                             this.disabled = false;
                         }
-                    }
-                });
+                    });
+                }
             });
 
             // ✅ Clear cart — now opens a Bootstrap modal instead of browser confirm()
@@ -978,7 +1049,8 @@
                             var response = await fetch('{{ route('customer.cart.clear') }}', {
                                 method: 'POST',
                                 headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'X-CSRF-TOKEN': document.querySelector(
+                                        'meta[name="csrf-token"]').content,
                                     'Content-Type': 'application/json',
                                     'Accept': 'application/json'
                                 }

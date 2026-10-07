@@ -51,8 +51,7 @@
                                                                 class="order-item-img"
                                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                                         @else
-                                                            <div
-                                                                class="order-item-img order-item-img-placeholder"
+                                                            <div class="order-item-img order-item-img-placeholder"
                                                                 style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #adb5bd;">
                                                                 <i class="bi bi-image"></i>
                                                             </div>
@@ -69,7 +68,8 @@
                                             </td>
                                             <td class="text-center order-item-qty">{{ $item->quantity }}</td>
                                             <td class="text-end order-item-price">₱{{ number_format($item->price, 2) }}</td>
-                                            <td class="text-end order-item-subtotal">₱{{ number_format($item->subtotal, 2) }}</td>
+                                            <td class="text-end order-item-subtotal">
+                                                ₱{{ number_format($item->subtotal, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -95,6 +95,10 @@
                         <i class="bi bi-clock-history me-2"></i> Order Status Timeline
                     </div>
                     <div class="card-body">
+                        @php
+                            // ✅ NEW: Driver marked the delivery as failed
+                            $isDeliveryFailed = $order->order_status === 'delivery_failed';
+                        @endphp
                         <!-- Main Order Status Timeline -->
                         <div class="status-timeline">
                             <!-- Status Timeline -->
@@ -110,18 +114,20 @@
 
                                 <!-- Confirmed -->
                                 <div
-                                    class="status-step {{ $order->order_status == 'confirmed' ? 'active' : (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    class="status-step {{ $order->order_status == 'confirmed' ? 'active' : (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }} {{ $isDeliveryFailed ? 'completed' : '' }}">
                                     <div class="status-icon"><i class="bi bi-check-circle"></i></div>
                                     <div class="status-label">Confirmed</div>
                                     @if ($statusTimestamps['confirmed'])
-                                        <div class="status-date">{{ $statusTimestamps['confirmed']->format('M d, Y') }}</div>
-                                        <div class="status-time">{{ $statusTimestamps['confirmed']->format('h:i A') }}</div>
+                                        <div class="status-date">{{ $statusTimestamps['confirmed']->format('M d, Y') }}
+                                        </div>
+                                        <div class="status-time">{{ $statusTimestamps['confirmed']->format('h:i A') }}
+                                        </div>
                                     @endif
                                 </div>
 
                                 <!-- Processing -->
                                 <div
-                                    class="status-step {{ $order->order_status == 'processing' ? 'active' : (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    class="status-step {{ $order->order_status == 'processing' ? 'active' : (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }} {{ $isDeliveryFailed ? 'completed' : '' }}">
                                     <div class="status-icon"><i class="bi bi-box-seam"></i></div>
                                     <div class="status-label">Processing</div>
                                     @if ($statusTimestamps['packing'])
@@ -132,7 +138,7 @@
 
                                 <!-- Ready -->
                                 <div
-                                    class="status-step {{ $order->order_status == 'ready' ? 'active' : (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    class="status-step {{ $order->order_status == 'ready' ? 'active' : (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered']) ? 'completed' : '') }} {{ $isDeliveryFailed ? 'completed' : '' }}">
                                     <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
                                     <div class="status-label">Ready</div>
                                     @if ($statusTimestamps['ready'])
@@ -143,37 +149,78 @@
 
                                 <!-- Picked Up -->
                                 <div
-                                    class="status-step {{ $order->order_status == 'picked_up' ? 'active' : (in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : '') }}">
+                                    class="status-step {{ $order->order_status == 'picked_up' ? 'active' : (in_array($order->order_status, ['out_for_delivery', 'delivered']) ? 'completed' : '') }} {{ $isDeliveryFailed ? 'completed' : '' }}">
                                     <div class="status-icon"><i class="bi bi-box-seam"></i></div>
                                     <div class="status-label">Picked Up</div>
                                     @if ($statusTimestamps['picked_up'])
-                                        <div class="status-date">{{ $statusTimestamps['picked_up']->format('M d, Y') }}</div>
-                                        <div class="status-time">{{ $statusTimestamps['picked_up']->format('h:i A') }}</div>
+                                        <div class="status-date">{{ $statusTimestamps['picked_up']->format('M d, Y') }}
+                                        </div>
+                                        <div class="status-time">{{ $statusTimestamps['picked_up']->format('h:i A') }}
+                                        </div>
                                     @endif
                                 </div>
 
                                 <!-- Out for Delivery -->
                                 <div
-                                    class="status-step {{ $order->order_status == 'out_for_delivery' ? 'active' : ($order->order_status == 'delivered' ? 'completed' : '') }}">
+                                    class="status-step {{ $order->order_status == 'out_for_delivery' ? 'active' : ($order->order_status == 'delivered' ? 'completed' : '') }} {{ $isDeliveryFailed ? 'completed failed-link' : '' }}">
                                     <div class="status-icon"><i class="bi bi-truck"></i></div>
                                     <div class="status-label">Out for Delivery</div>
                                     @if ($statusTimestamps['out_for_delivery'])
-                                        <div class="status-date">{{ $statusTimestamps['out_for_delivery']->format('M d, Y') }}</div>
-                                        <div class="status-time">{{ $statusTimestamps['out_for_delivery']->format('h:i A') }}</div>
+                                        <div class="status-date">
+                                            {{ $statusTimestamps['out_for_delivery']->format('M d, Y') }}</div>
+                                        <div class="status-time">
+                                            {{ $statusTimestamps['out_for_delivery']->format('h:i A') }}</div>
                                     @endif
                                 </div>
 
                                 <!-- Delivered -->
-                                <div class="status-step {{ $order->order_status == 'delivered' ? 'active' : '' }}">
-                                    <div class="status-icon"><i class="bi bi-flag-fill"></i></div>
-                                    <div class="status-label">Delivered</div>
-                                    @if ($statusTimestamps['delivered'])
-                                        <div class="status-date">{{ $statusTimestamps['delivered']->format('M d, Y') }}</div>
-                                        <div class="status-time">{{ $statusTimestamps['delivered']->format('h:i A') }}</div>
-                                    @endif
-                                </div>
+                                @if ($isDeliveryFailed)
+                                    <!-- Delivery Failed (replaces Delivered) -->
+                                    <div class="status-step failed">
+                                        <div class="status-icon"><i class="bi bi-x-circle-fill"></i></div>
+                                        <div class="status-label">Delivery Failed</div>
+                                        @if (!empty($statusTimestamps['failed']))
+                                            <div class="status-date">{{ $statusTimestamps['failed']->format('M d, Y') }}
+                                            </div>
+                                            <div class="status-time">{{ $statusTimestamps['failed']->format('h:i A') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="status-step {{ $order->order_status == 'delivered' ? 'active' : '' }}">
+                                        <div class="status-icon"><i class="bi bi-flag-fill"></i></div>
+                                        <div class="status-label">Delivered</div>
+                                        @if ($statusTimestamps['delivered'])
+                                            <div class="status-date">{{ $statusTimestamps['delivered']->format('M d, Y') }}
+                                            </div>
+                                            <div class="status-time">{{ $statusTimestamps['delivered']->format('h:i A') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
+
+                        @if ($isDeliveryFailed)
+                            @php $failedAt = $statusTimestamps['failed'] ?? null; @endphp
+                            <div class="delivery-failed-alert mt-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <div>
+                                        <strong>Delivery Failed</strong>
+                                        @if ($failedAt)
+                                            <div class="small">{{ $failedAt->format('F d, Y h:i A') }}</div>
+                                        @endif
+                                        <div class="mt-2">
+                                            <strong>Reason:</strong>
+                                            {{ $order->delivery && !empty($order->delivery->driver_notes) ? $order->delivery->driver_notes : 'No reason was provided by the driver.' }}
+                                        </div>
+                                        <div class="small mt-2">Please contact support if you need help with your order.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
                         @php
                             $cityLower = strtolower(trim($order->city ?? ''));
@@ -191,7 +238,8 @@
                                 <div class="delivery-timeline">
                                     @if ($order->delivery->assigned_at)
                                         <div class="delivery-log-item">
-                                            <div class="delivery-log-icon assigned"><i class="bi bi-person-check"></i></div>
+                                            <div class="delivery-log-icon assigned"><i class="bi bi-person-check"></i>
+                                            </div>
                                             <div class="delivery-log-content">
                                                 <div class="delivery-log-title">Assigned to Driver</div>
                                                 <div class="delivery-log-date">
@@ -285,8 +333,8 @@
                                             </div>
                                             @if ($order->delivery->tracking_number && filter_var($order->delivery->tracking_number, FILTER_VALIDATE_URL))
                                                 <a href="{{ $order->delivery->tracking_number }}" target="_blank"
-                                                    class="btn btn-primary btn-sm px-3 track-btn" style="font-size: 0.85rem;"><i
-                                                        class="bi bi-eye me-1"></i> Track</a>
+                                                    class="btn btn-primary btn-sm px-3 track-btn"
+                                                    style="font-size: 0.85rem;"><i class="bi bi-eye me-1"></i> Track</a>
                                             @endif
                                         </div>
                                     </div>
@@ -305,8 +353,9 @@
                         <div class="card-body">
                             <p class="mb-1">{{ $order->delivery_address }}</p>
                             <p class="mb-1">
+                            <p class="mb-1">
                                 {{ $order->barangay === 'Other' && $order->other_barangay ? $order->other_barangay : $order->barangay }},
-                                {{ $order->city }}</p>
+                                {{ $order->city }}, Laguna</p>
                             @if ($order->landmark)
                                 <p class="mb-0 text-muted"><small>Landmark: {{ $order->landmark }}</small></p>
                             @endif
@@ -369,19 +418,24 @@
                         <p>{{ $order->branch->name }}</p>
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
-                        
+
                         <!-- Delivery Date (From – To) - BLUE -->
                         <p><strong>Delivery Date:</strong></p>
                         <p class="order-delivery-date" style="color: #0d6efd; font-weight: 600;">
                             @php
-                                $deliveryFrom = $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from) : null;
-                                $deliveryTo = $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to) : null;
-                                
+                                $deliveryFrom = $order->delivery_date_from
+                                    ? \Carbon\Carbon::parse($order->delivery_date_from)
+                                    : null;
+                                $deliveryTo = $order->delivery_date_to
+                                    ? \Carbon\Carbon::parse($order->delivery_date_to)
+                                    : null;
+
                                 if ($deliveryFrom && $deliveryTo) {
                                     if ($deliveryFrom->eq($deliveryTo)) {
                                         $deliveryDisplay = $deliveryFrom->format('F d, Y');
                                     } else {
-                                        $deliveryDisplay = $deliveryFrom->format('F d, Y') . ' – ' . $deliveryTo->format('F d, Y');
+                                        $deliveryDisplay =
+                                            $deliveryFrom->format('F d, Y') . ' – ' . $deliveryTo->format('F d, Y');
                                     }
                                 } elseif ($deliveryFrom) {
                                     $deliveryDisplay = $deliveryFrom->format('F d, Y');
@@ -395,7 +449,7 @@
                             @endphp
                             {{ $deliveryDisplay }}
                         </p>
-                        
+
                         @if ($order->notes)
                             <hr>
                             <p><strong>Your Notes:</strong></p>
@@ -892,16 +946,19 @@
             }
 
             @keyframes pulseStatus {
-                0%, 100% {
+
+                0%,
+                100% {
                     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3), 0 0 0 0 rgba(40, 167, 69, 0.4);
                 }
+
                 50% {
                     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3), 0 0 0 8px rgba(40, 167, 69, 0);
                 }
             }
 
             /* Status content layout */
-            .status-step > div:not(.status-icon) {
+            .status-step>div:not(.status-icon) {
                 flex: 1;
                 padding-top: 0.4rem;
             }
@@ -1088,7 +1145,7 @@
             }
 
             /* Image preview modal mobile */
-            #imagePreviewModal > div {
+            #imagePreviewModal>div {
                 width: 94% !important;
                 border-radius: 14px !important;
                 margin: 1rem;
@@ -1209,6 +1266,49 @@
             .status-date,
             .status-time {
                 font-size: 10px;
+            }
+        }
+
+        /* ===== FAILED DELIVERY STATE ===== */
+        .status-step.failed .status-icon {
+            background: #dc3545;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(220, 53, 69, 0.2);
+        }
+
+        .status-step.failed .status-label {
+            color: #dc3545;
+        }
+
+        .status-step.failed .status-date,
+        .status-step.failed .status-time {
+            color: #6c757d;
+        }
+
+        .status-step.failed-link:not(:last-child):before {
+            background: #dc3545;
+        }
+
+        .delivery-failed-alert {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #dc3545;
+            color: #991b1b;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        .delivery-failed-alert i {
+            font-size: 1.2rem;
+            color: #dc3545;
+        }
+
+        @media (max-width: 767.98px) {
+            .delivery-failed-alert {
+                padding: 0.85rem;
+                font-size: 0.82rem;
+                border-radius: 14px;
             }
         }
     </style>
