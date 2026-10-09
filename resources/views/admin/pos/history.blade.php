@@ -590,33 +590,6 @@
 </div>
 
 @push('scripts')
-<script>
-function printReceipt(orderId) {
-    var modalContent = document.querySelector('#receiptModal' + orderId + ' .modal-body');
-    if (!modalContent) return;
-    var clone = modalContent.cloneNode(true);
-    var printWindow = window.open('', '_blank');
-    if (printWindow) {
-        printWindow.document.write('<html><head><title>Receipt</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><style>body{padding:20px}@media print{body{padding:0}}</style></head><body>' + clone.outerHTML + '<script>window.print();window.close();<\/script></body></html>');
-        printWindow.document.close();
-    }
-}
-
-// Notes click
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.notes-cell').forEach(function(cell) {
-        cell.addEventListener('click', function() {
-            var fullNote = this.querySelector('.notes-full');
-            if (fullNote) {
-                var orderNumber = this.closest('tr').querySelector('code')?.textContent || '';
-                document.getElementById('notesOrderNumber').textContent = 'Order: ' + orderNumber;
-                document.getElementById('notesContent').textContent = fullNote.textContent.trim();
-                var modal = new bootstrap.Modal(document.getElementById('notesModal'));
-                modal.show();
-            }
-        });
-    });
-});
-</script>
+<script src="{{ asset('js/pos-history.js') }}"></script>
 @endpush
 @endsection

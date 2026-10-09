@@ -1240,6 +1240,58 @@
         max-width: 50% !important;
     }
 }
+        /* ============================================================ */
+        /* MOBILE HEADER COLLAPSE (Owner Panel)                          */
+        /* ============================================================ */
+        #headerMenuToggle {
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.35rem 0.6rem;
+            border-radius: 8px;
+        }
+
+        #headerMenuToggle .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            width: 1.1em;
+            height: 1.1em;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            #headerMenuToggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #ownerHeaderNav {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.12);
+                gap: 0.5rem;
+            }
+
+            #ownerHeaderNav.header-nav-open {
+                display: flex;
+            }
+
+            #ownerHeaderNav .navbar-text {
+                margin-right: 0 !important;
+                font-size: 0.85rem;
+                text-align: left;
+            }
+
+            #ownerHeaderNav form {
+                width: 100%;
+            }
+
+            #ownerHeaderNav form button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -1263,7 +1315,7 @@
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <nav class="navbar navbar-expand-lg animate-fade-up"
+        <nav class="navbar navbar-expand-lg animate-fade-up"
         style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
         <div class="container">
             <a class="navbar-brand text-white fw-bold" href="{{ route('home') }}">
@@ -1271,7 +1323,14 @@
                     class="d-inline-block align-text-top me-2" onerror="this.style.display='none'">
                 Vape Expo - Owner Panel
             </a>
-            <div class="navbar-nav ms-auto">
+
+            {{-- Mobile-only hamburger for header collapse --}}
+            <button class="navbar-toggler" type="button" id="headerMenuToggle"
+                aria-label="Toggle header menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-nav ms-auto" id="ownerHeaderNav">
                 <span class="navbar-text text-white-50 me-3">
                     <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }} (Owner)
                 </span>
@@ -2443,6 +2502,23 @@
 
                     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
                     <script>
+                        // ========== MOBILE HEADER COLLAPSE ==========
+        (function() {
+            const headerToggle = document.getElementById('headerMenuToggle');
+            const headerNav = document.getElementById('ownerHeaderNav');
+            if (!headerToggle || !headerNav) return;
+
+            headerToggle.addEventListener('click', function() {
+                headerNav.classList.toggle('header-nav-open');
+            });
+
+            // Close on resize to desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    headerNav.classList.remove('header-nav-open');
+                }
+            });
+        })();
                         // Loading screen hide after page load
                         window.addEventListener('load', function() {
                             const loadingScreen = document.getElementById('loadingScreen');
