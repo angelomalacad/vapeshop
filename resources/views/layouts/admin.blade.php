@@ -474,34 +474,57 @@
             letter-spacing: -0.02em;
         }
 
-        .col-md-3:first-child .stat-icon-wrapper,
-        .col-6:first-child .stat-icon-wrapper {
-            background: #eef4ff;
-            color: #3b82f6;
+        /* ------------------------------------------------------------ */
+        /* STAT ICON COLORS (FIXED)                                     */
+        /* The old position-based rules (nth-child) were removed because */
+        /* they overwrote each page's own colors. Now:                  */
+        /*  - default tint has ZERO specificity (:where) so inline /    */
+        /*    page styles always win                                    */
+        /*  - optional modifier classes: stat-blue, stat-orange,        */
+        /*    stat-green, stat-yellow, stat-red, stat-gray              */
+        /* ------------------------------------------------------------ */
+        :where(.stat-icon-wrapper) {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
         }
 
-        .col-md-3:nth-child(2) .stat-icon-wrapper,
-        .col-6:nth-child(2) .stat-icon-wrapper {
-            background: #fef2f2;
-            color: #ef4444;
+        .stat-icon-wrapper.stat-blue {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
         }
 
-        .col-md-3:nth-child(3) .stat-icon-wrapper,
-        .col-6:nth-child(3) .stat-icon-wrapper {
-            background: #fef2f2;
-            color: #dc2626;
+        .stat-icon-wrapper.stat-orange {
+            background: rgba(253, 126, 20, 0.1);
+            color: #fd7e14;
         }
 
-        .col-md-3:nth-child(4) .stat-icon-wrapper,
-        .col-6:nth-child(4) .stat-icon-wrapper {
-            background: #f3f4f6;
-            color: #6b7280;
+        .stat-icon-wrapper.stat-green {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
         }
 
-        .col-md-3:nth-child(5) .stat-icon-wrapper,
-        .col-6:nth-child(5) .stat-icon-wrapper {
-            background: #e6f7e6;
-            color: #10b981;
+        .stat-icon-wrapper.stat-yellow {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .stat-icon-wrapper.stat-red {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .stat-icon-wrapper.stat-gray {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        /* Text colors matching the Owner Dashboard */
+        .stat-label {
+            color: #94a3b8;
+        }
+
+        .stat-value {
+            color: #1a1a2e;
         }
 
         .row.g-4:has(.stat-card-modern) {

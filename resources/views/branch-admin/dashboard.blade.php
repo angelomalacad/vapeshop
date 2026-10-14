@@ -816,6 +816,59 @@
                 display: none !important;
             }
         }
+        /* ========================================== */
+/* DESKTOP FIX: box-shaped cards + inner padding */
+/* ========================================== */
+@media (min-width: 769px) {
+
+    /* Box shape instead of oval */
+    .modern-card,
+    .branch-info-card,
+    .sidebar-card,
+    .owner-card,
+    .welcome-banner {
+        border-radius: 12px;
+    }
+
+    .sidebar-card .card-header {
+        border-radius: 8px 8px 0 0;
+    }
+
+    /* Bootstrap card padding was missing (no ".card" class) */
+    .modern-card .card-header,
+    .owner-card .card-header {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .modern-card .card-body,
+    .owner-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .modern-card .card-header {
+        padding-top: 1rem;
+    }
+
+    .owner-card .card-body {
+        padding-top: 0.5rem;
+    }
+
+    /* Keep long text/numbers from being cut */
+    .modern-card {
+        overflow: visible;
+    }
+
+    .stats-grid > div {
+        min-width: 0;
+    }
+
+    .stats-grid h4,
+    .stats-grid h6 {
+        white-space: normal;
+        word-break: break-word;
+    }
+}
     </style>
 </head>
 
