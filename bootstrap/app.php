@@ -24,13 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\TempBrandOverride::class,
         ]);
-        
+
         // ✅ ADD THIS BLOCK FOR SANCTUM API AUTH
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,
         ]);
-        
+
         // ✅ ADD THIS LINE FOR ROLE MIDDLEWARE ALIAS
         $middleware->alias([
             'role' => RoleMiddleware::class,
