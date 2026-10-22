@@ -741,6 +741,62 @@
                 padding: 1rem;
             }
         }
+        /* ============================================================ */
+/* CHECKOUT MODAL - MOBILE FIX (keeps footer buttons visible)   */
+/* ============================================================ */
+
+/* The <form> sits between .modal-content and .modal-body/.modal-footer,
+   so it must act as the flex column that holds them */
+.checkout-modal .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: inherit;
+    overflow: hidden;
+}
+
+.checkout-modal .modal-header {
+    flex-shrink: 0;
+}
+
+/* Only the body scrolls */
+.checkout-modal .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Footer stays pinned and visible */
+.checkout-modal .modal-footer {
+    flex-shrink: 0;
+    background: #fff;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 768px) {
+    .checkout-modal .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .checkout-modal .modal-content {
+        max-height: calc(100vh - 1rem);   /* fallback for older browsers */
+        max-height: calc(100dvh - 1rem);  /* real visible height on mobile */
+        overflow: hidden;
+    }
+
+    .checkout-modal .modal-footer {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+    }
+
+    .checkout-modal .modal-footer .btn {
+        flex: 1;
+        white-space: nowrap;
+    }
+}
     </style>
 
     <div class="container-fluid">
