@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Product;
 use App\Models\ProductFlavor;
 use App\Models\WarehouseInventory;
@@ -138,6 +139,8 @@ class WarehouseController extends Controller
                 'expiration_date' => $warehouse->expiration_date,
             ]);
             
+            $branch = Branch::find($request->branch_id);
+            
             StockMovement::create([
                 'branch_id' => null,
                 'product_id' => $request->product_id,
@@ -148,7 +151,7 @@ class WarehouseController extends Controller
                 'movement_type' => 'transfer_out',
                 'reference_type' => 'stock_transfer',
                 'reference_id' => $transfer->id,
-                'notes' => "Distributed to branch ID: {$request->branch_id}",
+                'notes' => 'Distributed to ' . ($branch->name ?? "branch ID: {$request->branch_id}"),
                 'created_by' => auth()->id(),
             ]);
             

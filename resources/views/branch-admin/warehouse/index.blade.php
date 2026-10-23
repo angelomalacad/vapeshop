@@ -229,8 +229,6 @@
                                             {{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
                                             @if (\Carbon\Carbon::parse($item->expiration_date)->isPast())
                                                 <span class="badge bg-danger ms-1">Expired</span>
-                                            @elseif(\Carbon\Carbon::parse($item->expiration_date)->diffInDays(now()) <= 30)
-                                                <span class="badge bg-warning ms-1">Soon</span>
                                             @endif
                                         @else
                                             <span class="text-muted">N/A</span>

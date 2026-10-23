@@ -403,6 +403,14 @@ class WarehouseInventorySeeder extends Seeder
             return;
         }
 
+        // If no flavor was given and the product has exactly one (devices, e-liquids, accessories), use it
+        if (!$flavor) {
+            $productFlavors = $product->flavors;
+            if ($productFlavors->count() === 1) {
+                $flavor = $productFlavors->first();
+            }
+        }
+
         // If no expiration date is provided, set a default based on product type
         if (!$expirationDate) {
             if ($product->type === 'liquid') {
