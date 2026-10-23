@@ -33,6 +33,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 1,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -72,6 +73,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 1,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -107,6 +109,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 1,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -140,6 +143,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -177,6 +181,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -210,6 +215,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -247,6 +253,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -279,6 +286,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -313,6 +321,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -346,6 +355,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -379,6 +389,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -412,6 +423,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(12)->toDateString(),
             ]
         );
 
@@ -449,6 +461,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
 
@@ -484,6 +497,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
 
@@ -517,6 +531,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
 
@@ -542,6 +557,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
 
@@ -567,6 +583,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 1,
                 'smart_display' => 1,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
 
@@ -596,6 +613,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $dinnerLady->flavors()->delete();
@@ -620,6 +638,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $naked->flavors()->delete();
@@ -644,6 +663,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $monster->flavors()->delete();
@@ -668,6 +688,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $coastal->flavors()->delete();
@@ -692,6 +713,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $milkman->flavors()->delete();
@@ -716,6 +738,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $pachamama->flavors()->delete();
@@ -740,6 +763,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $ripe->flavors()->delete();
@@ -764,6 +788,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $charlie->flavors()->delete();
@@ -788,6 +813,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $sadboy->flavors()->delete();
@@ -812,6 +838,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $glas->flavors()->delete();
@@ -836,6 +863,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $twist->flavors()->delete();
@@ -860,6 +888,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $juiceHead->flavors()->delete();
@@ -884,6 +913,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $cloudNurdz->flavors()->delete();
@@ -912,6 +942,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $geekvape->flavors()->delete();
@@ -936,6 +967,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 1,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $voopoo->flavors()->delete();
@@ -960,6 +992,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $smok->flavors()->delete();
@@ -988,6 +1021,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $relxPods->flavors()->delete();
@@ -1012,6 +1046,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(24)->toDateString(),
             ]
         );
         $caliburnCoils->flavors()->delete();
@@ -1042,6 +1077,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $batteries->flavors()->delete();
@@ -1066,6 +1102,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $charger->flavors()->delete();
@@ -1090,6 +1127,7 @@ class ProductSeeder extends Seeder
                 'adjustable_airflow' => 0,
                 'smart_display' => 0,
                 'is_active' => 1,
+                'expiration_date' => now()->addMonths(36)->toDateString(),
             ]
         );
         $dripTips->flavors()->delete();

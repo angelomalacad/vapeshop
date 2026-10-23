@@ -572,17 +572,15 @@
                                     </td>
                                     <td>{{ $inv->low_stock_threshold }}</td>
                                     <td>
-                                        @if ($expiry && !$isDisposed)
-                                            {{ $expiry->format('M d, Y') }}
-                                            @if ($expiry->isPast())
-                                                <span class="badge bg-danger ms-1">Expired</span>
-                                            @elseif($expiry->diffInDays(now()) <= 30)
-                                                <span class="badge bg-warning ms-1">Soon</span>
-                                            @endif
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
-                                    </td>
+    @if ($expiry && !$isDisposed)
+        {{ $expiry->format('M d, Y') }}
+        @if ($expiry->isPast())
+            <span class="badge bg-danger ms-1">Expired</span>
+        @endif
+    @else
+        <span class="text-muted">N/A</span>
+    @endif
+</td>
                                     <td class="pe-4">
                                         <div class="btn-group btn-group-sm">
                                             @if ($isDisposed)
