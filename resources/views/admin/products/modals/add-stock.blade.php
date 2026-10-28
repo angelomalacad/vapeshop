@@ -28,7 +28,7 @@
                         <div class="mb-3">
                             <label class="form-label-minimal">Variant (optional)</label>
                             <select name="flavor_id" class="form-select-minimal">
-                                <option value="">-- All Variant --</option>
+                                <option value="" disabled selected hidden>-- Select Variant --</option>
                                 @foreach ($product->flavors as $flavor)
                                     <option value="{{ $flavor->id }}">{{ $flavor->name }}</option>
                                 @endforeach
@@ -39,7 +39,7 @@
                     <div class="mb-3">
                         <label class="form-label-minimal">Select Destination <span class="text-danger">*</span></label>
                         <select name="branch_id" id="branchSelect" class="form-select-minimal" required>
-                            <option value="">-- Choose Destination --</option>
+                            <option value="" disabled selected hidden>-- Choose Destination --</option>
                             <option value="warehouse">🏢 Main Warehouse (Add New Stock)</option>
                             @foreach ($branches as $branch)
                                 <option value="{{ $branch->id }}">🏪 {{ $branch->name }} (Transfer from Warehouse)

@@ -429,6 +429,15 @@ class InventorySeeder extends Seeder
                 'reorder_point' => $reorderPoint,
                 'optimal_stock' => $reorderPoint * 2,
                 'last_restocked_at' => now(),
+                'expiration_date' => $product->expiration_date
+                    ?? now()->addMonths([
+                        'disposable' => 12,
+                        'pod-system' => 24,
+                        'liquid'     => 24,
+                        'mod'        => 36,
+                        'accessory'  => 36,
+                        'coil'       => 24,
+                    ][$product->type] ?? 12)->toDateString(),
             ]
         );
     }

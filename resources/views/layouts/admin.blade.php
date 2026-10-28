@@ -1476,19 +1476,7 @@
                 </div>
             </div>
 
-            @if (session('success'))
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                    <button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
-                    <button type="button" class="btn-close float-end" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
+            {{-- Session success/error messages are now shown as global toasts (see FLASH TOASTS script below) --}}
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -1663,6 +1651,33 @@
             console.log('✅ Admin Notification System embedded successfully!');
         })();
     </script>
+
+    <!-- ============================================================ -->
+    <!-- FLASH TOASTS: show session success/error as global toasts    -->
+    <!-- ============================================================ -->
+    @if (session('success') || session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function flash(message, type) {
+                    var text = String(message).trim();
+                    // skip if a page already showed the same message (e.g. the inventory page)
+                    var duplicate = Array.from(document.querySelectorAll('.admin-notification-message'))
+                        .some(function(el) {
+                            return el.textContent.trim() === text;
+                        });
+                    if (!duplicate && typeof window.showNotification === 'function') {
+                        window.showNotification(message, type);
+                    }
+                }
+                @if (session('success'))
+                    flash(@json(session('success')), 'success');
+                @endif
+                @if (session('error'))
+                    flash(@json(session('error')), 'error');
+                @endif
+            });
+        </script>
+    @endif
 
     <!-- Global Functions for Modals -->
     <script>

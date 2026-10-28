@@ -128,15 +128,39 @@
                                         <input type="hidden" name="new_province" value="Laguna">
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label>City/Municipality *</label>
+                                        <label>City/Municipalities *</label>
                                         <select class="form-select" name="new_city" id="new_city">
-                                            <option value="">Select City</option>
-                                            <option value="Calamba City">Calamba City</option>
-                                            <option value="Los Baños">Los Baños</option>
-                                            <option value="Cabuyao">Cabuyao</option>
-                                            <option value="Santa Rosa">Santa Rosa</option>
+                                            <option value="">Select City/Municipalities</option>
+                                            <option value="Alaminos">Alaminos</option>
+                                            <option value="Bay">Bay</option>
                                             <option value="Biñan">Biñan</option>
+                                            <option value="Cabuyao">Cabuyao</option>
+                                            <option value="Calamba City">Calamba City</option>
+                                            <option value="Calauan">Calauan</option>
+                                            <option value="Cavinti">Cavinti</option>
+                                            <option value="Famy">Famy</option>
+                                            <option value="Kalayaan">Kalayaan</option>
+                                            <option value="Liliw">Liliw</option>
+                                            <option value="Los Baños">Los Baños</option>
+                                            <option value="Luisiana">Luisiana</option>
+                                            <option value="Lumban">Lumban</option>
+                                            <option value="Mabitac">Mabitac</option>
+                                            <option value="Magdalena">Magdalena</option>
+                                            <option value="Majayjay">Majayjay</option>
+                                            <option value="Nagcarlan">Nagcarlan</option>
+                                            <option value="Paete">Paete</option>
+                                            <option value="Pagsanjan">Pagsanjan</option>
+                                            <option value="Pakil">Pakil</option>
+                                            <option value="Pangil">Pangil</option>
+                                            <option value="Pila">Pila</option>
+                                            <option value="Rizal">Rizal</option>
+                                            <option value="San Pablo">San Pablo</option>
                                             <option value="San Pedro">San Pedro</option>
+                                            <option value="Santa Cruz">Santa Cruz</option>
+                                            <option value="Santa Maria">Santa Maria</option>
+                                            <option value="Santa Rosa">Santa Rosa</option>
+                                            <option value="Siniloan">Siniloan</option>
+                                            <option value="Victoria">Victoria</option>
                                         </select>
                                     </div>
                                 </div>

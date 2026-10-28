@@ -111,6 +111,12 @@
         .btn-register:active {
             transform: translateY(0);
         }
+        .btn-register:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
         .btn-outline-secondary {
             border-color: #ced4da;
             color: #6c757d;
@@ -491,18 +497,42 @@
                                            value="Laguna" readonly style="background-color: #e9ecef; cursor: default;">
                                 </div>
                                 
-                                <!-- 2. City (Laguna Cities Only - ALPHABETICAL) -->
+                                <!-- 2. City/Municipalities (Laguna - ALPHABETICAL) -->
                                 <div class="col-12 col-md-4 mb-2 mb-md-3">
-                                    <label for="city" class="form-label">City</label>
+                                    <label for="city" class="form-label">City/Municipalities</label>
                                     <select class="form-select" id="city" name="city">
-                                        <option value="">Select City</option>
+                                        <option value="">Select City/Municipalities</option>
                                         <!-- Sorted alphabetically -->
+                                        <option value="Alaminos" {{ old('city') == 'Alaminos' ? 'selected' : '' }}>Alaminos</option>
+                                        <option value="Bay" {{ old('city') == 'Bay' ? 'selected' : '' }}>Bay</option>
                                         <option value="Biñan" {{ old('city') == 'Biñan' ? 'selected' : '' }}>Biñan</option>
                                         <option value="Cabuyao" {{ old('city') == 'Cabuyao' ? 'selected' : '' }}>Cabuyao</option>
                                         <option value="Calamba" {{ old('city') == 'Calamba' ? 'selected' : '' }}>Calamba</option>
+                                        <option value="Calauan" {{ old('city') == 'Calauan' ? 'selected' : '' }}>Calauan</option>
+                                        <option value="Cavinti" {{ old('city') == 'Cavinti' ? 'selected' : '' }}>Cavinti</option>
+                                        <option value="Famy" {{ old('city') == 'Famy' ? 'selected' : '' }}>Famy</option>
+                                        <option value="Kalayaan" {{ old('city') == 'Kalayaan' ? 'selected' : '' }}>Kalayaan</option>
+                                        <option value="Liliw" {{ old('city') == 'Liliw' ? 'selected' : '' }}>Liliw</option>
                                         <option value="Los Baños" {{ old('city') == 'Los Baños' ? 'selected' : '' }}>Los Baños</option>
+                                        <option value="Luisiana" {{ old('city') == 'Luisiana' ? 'selected' : '' }}>Luisiana</option>
+                                        <option value="Lumban" {{ old('city') == 'Lumban' ? 'selected' : '' }}>Lumban</option>
+                                        <option value="Mabitac" {{ old('city') == 'Mabitac' ? 'selected' : '' }}>Mabitac</option>
+                                        <option value="Magdalena" {{ old('city') == 'Magdalena' ? 'selected' : '' }}>Magdalena</option>
+                                        <option value="Majayjay" {{ old('city') == 'Majayjay' ? 'selected' : '' }}>Majayjay</option>
+                                        <option value="Nagcarlan" {{ old('city') == 'Nagcarlan' ? 'selected' : '' }}>Nagcarlan</option>
+                                        <option value="Paete" {{ old('city') == 'Paete' ? 'selected' : '' }}>Paete</option>
+                                        <option value="Pagsanjan" {{ old('city') == 'Pagsanjan' ? 'selected' : '' }}>Pagsanjan</option>
+                                        <option value="Pakil" {{ old('city') == 'Pakil' ? 'selected' : '' }}>Pakil</option>
+                                        <option value="Pangil" {{ old('city') == 'Pangil' ? 'selected' : '' }}>Pangil</option>
+                                        <option value="Pila" {{ old('city') == 'Pila' ? 'selected' : '' }}>Pila</option>
+                                        <option value="Rizal" {{ old('city') == 'Rizal' ? 'selected' : '' }}>Rizal</option>
+                                        <option value="San Pablo" {{ old('city') == 'San Pablo' ? 'selected' : '' }}>San Pablo</option>
                                         <option value="San Pedro" {{ old('city') == 'San Pedro' ? 'selected' : '' }}>San Pedro</option>
+                                        <option value="Santa Cruz" {{ old('city') == 'Santa Cruz' ? 'selected' : '' }}>Santa Cruz</option>
+                                        <option value="Santa Maria" {{ old('city') == 'Santa Maria' ? 'selected' : '' }}>Santa Maria</option>
                                         <option value="Santa Rosa" {{ old('city') == 'Santa Rosa' ? 'selected' : '' }}>Santa Rosa</option>
+                                        <option value="Siniloan" {{ old('city') == 'Siniloan' ? 'selected' : '' }}>Siniloan</option>
+                                        <option value="Victoria" {{ old('city') == 'Victoria' ? 'selected' : '' }}>Victoria</option>
                                     </select>
                                 </div>
 
@@ -610,7 +640,7 @@
                             </div>
 
                             <!-- Terms and Conditions with Modals -->
-                            <div class="form-check mb-2">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
                                 <label class="form-check-label" for="terms">
                                     I agree to the 
@@ -620,12 +650,6 @@
                                 </label>
                             </div>
 
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
-                                <label class="form-check-label" for="newsletter">
-                                    I want to receive updates about new products and promotions
-                                </label>
-                            </div>
 
                             <!-- Submit Button -->
                             <button type="submit" class="btn btn-register" id="submitBtn">
@@ -962,6 +986,19 @@
                     confirmInput.focus();
                     alert('Passwords do not match.');
                     return false;
+                }
+
+                // Show a loading spinner while the account is being created
+                // (prevents double clicks and shows that something is happening)
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creating Account...';
+            });
+
+            // If the user comes back with the browser Back button, restore the button
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
                 }
             });
 

@@ -918,7 +918,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-card">
-                        <div class="stat-number">5</div>
+                        <div class="stat-number">7</div>
                         <div class="stat-label">Staff Members</div>
                     </div>
                 </div>

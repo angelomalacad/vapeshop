@@ -179,27 +179,27 @@
                                     $totalItemValue = $item->quantity * ($item->last_purchase_price ?? 0);
                                 @endphp
                                 <tr>
-                                    <td class="ps-4">
+                                    <td class="ps-4" style="min-width: 240px;">
                                         <div class="d-flex align-items-center">
                                             @if ($product && $product->image)
                                                 <img src="{{ Storage::url($product->image) }}"
-                                                    alt="{{ $product->name }}" class="rounded me-2"
+                                                    alt="{{ $product->name }}" class="rounded me-2 flex-shrink-0"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                             @else
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-2"
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-2 flex-shrink-0"
                                                     style="width: 40px; height: 40px;">
                                                     <i class="bi bi-box text-muted"></i>
                                                 </div>
                                             @endif
-                                            <div>
-                                                <strong>{{ $product->name ?? 'N/A' }}</strong>
+                                            <div style="min-width: 0;">
+                                                <strong class="d-block text-break">{{ $product->name ?? 'N/A' }}</strong>
                                                 @if ($product && $product->sku)
-                                                    <br><small class="text-muted">SKU: {{ $product->sku }}</small>
+                                                    <small class="text-muted">SKU: {{ $product->sku }}</small>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $item->flavor ? $item->flavor->name : 'N/A' }}</td>
+                                    <td style="min-width: 150px;">{{ $item->flavor ? $item->flavor->name : 'N/A' }}</td>
                                     <td>{{ $product->category ?? 'Uncategorized' }}</td>
                                     <td>{{ $product->brand ?? 'N/A' }}</td>
                                     <td>
@@ -212,9 +212,9 @@
                                     </td>
                                     <td>
                                         @if ($isLowStock)
-                                            <span class="badge bg-warning">Below {{ $item->low_stock_threshold }}</span>
+                                            <span class="badge bg-warning">{{ $item->low_stock_threshold }}</span>
                                         @else
-                                            <span class="text-muted">≥ {{ $item->low_stock_threshold }}</span>
+                                            <span class="text-muted">{{ $item->low_stock_threshold }}</span>
                                         @endif
                                     </td>
                                     <td>₱{{ number_format($item->last_purchase_price ?? 0, 2) }}</td>
@@ -226,8 +226,6 @@
                                             {{ \Carbon\Carbon::parse($item->expiration_date)->format('M d, Y') }}
                                             @if (\Carbon\Carbon::parse($item->expiration_date)->isPast())
                                                 <span class="badge bg-danger ms-1">Expired</span>
-                                            @elseif(\Carbon\Carbon::parse($item->expiration_date)->diffInDays(now()) <= 30)
-                                                <span class="badge bg-warning ms-1">Soon</span>
                                             @endif
                                         @else
                                             <span class="text-muted">N/A</span>

@@ -3,6 +3,9 @@
 @section('title', 'Stock Movement History - Vape Expo')
 
 @section('content')
+    @php
+        $branchNames = \App\Models\Branch::pluck('name', 'id');
+    @endphp
     <div class="container-fluid px-4">
         <!-- Header -->
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
@@ -121,11 +124,24 @@
                                         'expired' => 'dark',
                                     ];
                                     $color = $typeColors[$movement->movement_type] ?? 'secondary';
+
+                                    // Replace "branch ID: 1" in old notes with the real branch name
+                                    $noteText = preg_replace_callback(
+                                        '/branch ID:\s*(\d+)/i',
+                                        fn($m) => 'branch: ' . ($branchNames[$m[1]] ?? 'ID ' . $m[1]),
+                                        $movement->notes ?? '',
+                                    );
                                 @endphp
                                 <tr>
                                     <td class="ps-4">{{ $movement->created_at->format('M d, Y - h:i A') }}</td>
                                     <td>
-                                        <span class="fw-semibold">{{ $movement->branch->name ?? 'Unknown Branch' }}</span>
+                                        <span class="fw-semibold">
+                                            @if ($movement->branch_id)
+                                                {{ $movement->branch->name ?? 'Unknown Branch' }}
+                                            @else
+                                                Warehouse
+                                            @endif
+                                        </span>
                                     </td>
                                     <td>{{ $movement->product->name ?? 'N/A' }}</td>
                                     <td>{{ $movement->flavor->name ?? 'N/A' }}</td>
@@ -140,7 +156,7 @@
                                     </td>
                                     <td>{{ $movement->previous_quantity }}</td>
                                     <td>{{ $movement->new_quantity }}</td>
-                                    <td>{{ Str::limit($movement->notes, 30) }}</td>
+                                    <td title="{{ $noteText }}">{{ Str::limit($noteText, 60) }}</td>
                                     <td class="pe-4">{{ $movement->creator->name ?? 'System' }}</td>
                                 </tr>
                             @empty
