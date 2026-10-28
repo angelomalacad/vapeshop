@@ -111,6 +111,12 @@
         .btn-register:active {
             transform: translateY(0);
         }
+        .btn-register:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
         .btn-outline-secondary {
             border-color: #ced4da;
             color: #6c757d;
@@ -634,7 +640,7 @@
                             </div>
 
                             <!-- Terms and Conditions with Modals -->
-                            <div class="form-check mb-2">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
                                 <label class="form-check-label" for="terms">
                                     I agree to the 
@@ -644,12 +650,6 @@
                                 </label>
                             </div>
 
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" checked>
-                                <label class="form-check-label" for="newsletter">
-                                    I want to receive updates about new products and promotions
-                                </label>
-                            </div>
 
                             <!-- Submit Button -->
                             <button type="submit" class="btn btn-register" id="submitBtn">
@@ -986,6 +986,19 @@
                     confirmInput.focus();
                     alert('Passwords do not match.');
                     return false;
+                }
+
+                // Show a loading spinner while the account is being created
+                // (prevents double clicks and shows that something is happening)
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creating Account...';
+            });
+
+            // If the user comes back with the browser Back button, restore the button
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
                 }
             });
 
