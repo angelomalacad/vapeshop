@@ -107,7 +107,7 @@ class OnlineOrderController extends Controller
     }
 
     /**
-     * Confirm order - RESERVE stock (not deduct)
+     * Confirm order - keeps the stock that checkout already reserved (not deducted yet)
      */
     public function confirm(Order $order)
     {
@@ -130,13 +130,52 @@ class OnlineOrderController extends Controller
         DB::beginTransaction();
 
         try {
-            // Check and RESERVE inventory for each item
+            // The customer's checkout already RESERVED the stock for this order.
+            // Here we only confirm that reservation (we do NOT reserve a second time).
             foreach ($order->items as $item) {
-                $inventory = BranchInventory::where('branch_id', $branchId)
-                    ->where('product_id', $item->product_id)
+                // Use the exact inventory row (product + flavor) that was reserved at checkout
+                $inventory = null;
+
+                if ($item->inventory_id) {
+                    $inventory = BranchInventory::where('id', $item->inventory_id)
+                        ->where('branch_id', $branchId)
+                        ->lockForUpdate()
+                        ->first();
+                }
+
+                if (!$inventory) {
+                    $inventory = BranchInventory::where('branch_id', $branchId)
+                        ->where('product_id', $item->product_id)
+                        ->when($item->flavor_id, function ($query) use ($item) {
+                            return $query->where('flavor_id', $item->flavor_id);
+                        })
+                        ->lockForUpdate()
+                        ->first();
+                }
+
+                if (!$inventory) {
+                    throw new \Exception("Insufficient stock for product: {$item->product->name}");
+                }
+
+                // Is this item's stock already reserved for this order?
+                $existingReservation = InventoryReservation::where('order_id', $order->id)
+                    ->where('branch_inventory_id', $inventory->id)
+                    ->where('status', 'active')
                     ->first();
 
-                if (!$inventory || $inventory->available_quantity < $item->quantity) {
+                if ($existingReservation) {
+                    // Keep the reservation made at checkout and give it more time
+                    // while the order is being prepared and delivered.
+                    $existingReservation->update([
+                        'expires_at' => now()->addHours(24),
+                        'notes' => "Order #{$order->order_number} confirmed by branch staff"
+                    ]);
+
+                    continue;
+                }
+
+                // No active reservation (for example it expired or was released): reserve now
+                if ($inventory->available_quantity < $item->quantity) {
                     throw new \Exception("Insufficient stock for product: {$item->product->name}");
                 }
 

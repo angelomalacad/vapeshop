@@ -591,7 +591,12 @@ class DeliveryController extends Controller
                 $oldQuantity = $inventory->quantity;
                 $newQuantity = max(0, $oldQuantity - $item->quantity);
                 $oldReserved = $inventory->reserved_quantity;
-                $newReserved = max(0, $oldReserved - $item->quantity);
+                // The reserved stock of this order was already released above (from its
+                // reservation records). Only release it here for old orders that had no
+                // reservation record, otherwise other orders' reservations would shrink.
+                $newReserved = $reservations->isEmpty()
+                    ? max(0, $oldReserved - $item->quantity)
+                    : $oldReserved;
 
                 // Update inventory - deduct stock
                 $inventory->update([

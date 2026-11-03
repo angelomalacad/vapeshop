@@ -56,6 +56,15 @@ Route::post('/login', function () {
                 ->with('error', 'Your email is not yet verified. Please check your inbox and verify your email before logging in.');
         }
 
+        // Block accounts that the owner disabled (Customers > status toggle)
+        if ($user->is_active === false || (string) $user->is_active === '0') {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect()->route('login.show')
+                ->with('error', 'Your account has been disabled. Please contact the store.');
+        }
+
         // Redirect based on role
         switch ($user->role) {
             case 'super_admin':
@@ -73,7 +82,7 @@ Route::post('/login', function () {
     return back()->withErrors([
         'email' => 'The provided credentials do not match our records.',
     ]);
-})->name('login.store');
+})->middleware('throttle:10,1')->name('login.store');
 // ===== END OF CUSTOM LOGIN ROUTE =====
 
 // ===== LOGOUT ROUTE =====
@@ -135,7 +144,7 @@ Route::post('/register', function () {
 
     // Redirect to verification notice
     return redirect()->route('verification.notice');
-})->name('register.store');
+})->middleware('throttle:10,1')->name('register.store');
 // ===== END OF CUSTOM REGISTRATION ROUTE =====
 
 // ===== VERIFICATION NOTICE ROUTE =====
@@ -252,7 +261,6 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
 
     // Products with branch selection
     Route::get('/products', [App\Http\Controllers\Customer\ProductController::class, 'index'])->name('products.index');
-    Route::get('/products/branch/{branch}', [App\Http\Controllers\Customer\ProductController::class, 'byBranch'])->name('products.byBranch');
 
     // AJAX route for product variants (used by the modal)
     Route::get('/products/{product}/variants', [App\Http\Controllers\Customer\ProductController::class, 'getVariants'])->name('products.variants');
@@ -275,10 +283,8 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
     Route::get('/orders', [App\Http\Controllers\Customer\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [App\Http\Controllers\Customer\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::get('/orders/{order}/track', [App\Http\Controllers\Customer\OrderController::class, 'track'])->name('orders.track');
 
     // Track Modal - AJAX route for modal content
-    Route::get('/orders/{order}/track-modal', [App\Http\Controllers\Customer\OrderController::class, 'trackModal'])->name('orders.track-modal');
 
     // Notifications (optional)
     Route::get('/notifications', [App\Http\Controllers\Customer\NotificationController::class, 'index'])->name('notifications.index');
@@ -286,9 +292,41 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
 });
 
 // ===========================================================================
-// ADMIN (SUPER ADMIN) ROUTES – NO CHANGES (kept as is)
+// ADMIN EMAIL VERIFICATION (login required, but NOT 'verified' / role-protected,
+// so a user with an unverified email can still reach the resend button)
 // ===========================================================================
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // ===== EMAIL VERIFICATION ROUTES FOR ADMIN =====
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+        $user = \App\Models\User::findOrFail($id);
+        if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return redirect()->route('login.show')->with('error', 'Invalid verification link.');
+        }
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            return redirect()->route('login.show')->with('success', 'Email verified successfully! You can now login.');
+        }
+        return redirect()->route('login.show')->with('info', 'Email already verified.');
+    })->name('verification.verify');
+
+    // ✅ Admin resend — unique URI
+    Route::post('/email/verification-notification-admin', function () {
+        if (request()->user()->hasVerifiedEmail()) {
+            return redirect()->route('admin.dashboard');
+        }
+        request()->user()->sendEmailVerificationNotification();
+        return back()->with('success', 'Verification link sent!');
+    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+});
+
+// ===========================================================================
+// ADMIN (SUPER ADMIN) ROUTES – owner only (role:super_admin)
+// ===========================================================================
+Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('admin')->name('admin.')->group(function () {
     // ===== DASHBOARD - USING CONTROLLER (FIXED) =====
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     // =============================================
@@ -301,31 +339,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // =============================================
     // END OF ANALYTICS ROUTES
     // =============================================
-    // ===== EMAIL VERIFICATION ROUTES FOR ADMIN =====
-    Route::get('/email/verify', function () {
-        return view('auth.verify-email');
-    })->middleware('auth')->name('verification.notice');
-
-    Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
-        $user = \App\Models\User::findOrFail($id);
-        if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
-            return redirect()->route('admin.login')->with('error', 'Invalid verification link.');
-        }
-        if (!$user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            return redirect()->route('admin.login')->with('success', 'Email verified successfully! You can now login.');
-        }
-        return redirect()->route('admin.login')->with('info', 'Email already verified.');
-    })->name('verification.verify');
-
-    // ✅ Admin resend — unique URI
-    Route::post('/email/verification-notification-admin', function () {
-        if (request()->user()->hasVerifiedEmail()) {
-            return redirect()->route('admin.dashboard');
-        }
-        request()->user()->sendEmailVerificationNotification();
-        return back()->with('success', 'Verification link sent!');
-    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
     // ===== API ROUTE FOR FLAVORS =====
     Route::get('/api/products/{product}/flavors', function($productId) {
@@ -466,46 +479,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // ===== SUPER ADMIN POS ROUTES =====
     Route::prefix('pos')->name('pos.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\PosController::class, 'index'])->name('index');
+        Route::get('/', fn () => redirect()->route('admin.pos.history'))->name('index');
         Route::get('/history', [App\Http\Controllers\Admin\PosController::class, 'history'])->name('history');
-        Route::get('/receipt', [App\Http\Controllers\Admin\PosController::class, 'receipt'])->name('receipt');
-        Route::post('/add-to-cart', [App\Http\Controllers\Admin\PosController::class, 'addToCart'])->name('add-to-cart');
-        Route::post('/update-cart', [App\Http\Controllers\Admin\PosController::class, 'updateCart'])->name('update-cart');
-        Route::post('/clear-cart', [App\Http\Controllers\Admin\PosController::class, 'clearCart'])->name('clear-cart');
-        Route::post('/checkout', [App\Http\Controllers\Admin\PosController::class, 'checkout'])->name('checkout');
     });
     Route::get('/pos/test', function() { return response()->json(['message' => 'POS route is working!']); })->name('pos.test');
-});
-
-Route::get('/debug-dashboard', function() {
-    $data = [];
-    $data['expiringSoon'] = \App\Models\BranchInventory::whereNotNull('expiration_date')
-        ->where('expiration_date', '>=', \Carbon\Carbon::today())
-        ->where('expiration_date', '<=', \Carbon\Carbon::today()->addDays(30))
-        ->with(['product', 'branch'])
-        ->get();
-    $data['fastMovingProducts'] = \Illuminate\Support\Facades\DB::table('order_items')
-        ->join('products', 'order_items.product_id', '=', 'products.id')
-        ->join('orders', 'order_items.order_id', '=', 'orders.id')
-        ->where('orders.payment_status', 'paid')
-        ->select('products.id', 'products.name', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_sold'))
-        ->groupBy('products.id', 'products.name')
-        ->orderBy('total_sold', 'desc')
-        ->limit(5)
-        ->get();
-
-    return [
-        'expiringSoon_count' => $data['expiringSoon']->count(),
-        'expiringSoon_data' => $data['expiringSoon']->toArray(),
-        'fastMovingProducts_count' => $data['fastMovingProducts']->count(),
-        'fastMovingProducts_data' => $data['fastMovingProducts']->toArray(),
-    ];
 });
 
 // ===========================================================================
 // BRANCH ADMIN ROUTES (with online order management)
 // ===========================================================================
-Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:branch_admin,super_admin'])->prefix('branch-admin')->name('branch-admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\BranchAdmin\DashboardController::class, 'index'])->name('dashboard');
 
@@ -519,31 +502,15 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::delete('/products/{product}', [BranchAdminProductController::class, 'destroy'])->name('products.destroy');
     Route::post('/products/upload-image', [BranchAdminProductController::class, 'uploadImage'])->name('products.upload-image');
 
-    // Orders/Sales Processing (existing POS)
-    if (class_exists(\App\Http\Controllers\BranchAdmin\OrderController::class)) {
-        Route::resource('orders', \App\Http\Controllers\BranchAdmin\OrderController::class);
-        Route::post('/orders/{order}/process', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'processOrder'])->name('orders.process');
-        Route::get('/pos', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'pos'])->name('pos');
-        Route::post('/pos/quick-sale', [\App\Http\Controllers\BranchAdmin\OrderController::class, 'quickSale'])->name('pos.quick-sale');
-    } else {
-        Route::get('/orders', function () { return "Orders Management - To be implemented"; })->name('orders.index');
-        Route::get('/pos', function () { return "Point of Sale - To be implemented"; })->name('pos');
-    }
-
         // Online Orders Management
     Route::prefix('online-orders')->name('online-orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'index'])->name('index');
         Route::get('/{order}/modal', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'showModal'])->name('modal');
         Route::get('/{order}', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'show'])->name('show');
         Route::post('/{order}/confirm', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'confirm'])->name('confirm');
-        Route::post('/{order}/reject', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'reject'])->name('reject');
         Route::post('/{order}/processing', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markProcessing'])->name('processing');
         Route::post('/{order}/ready', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markReady'])->name('ready');
         Route::post('/{order}/delivery-date', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateDeliveryDate'])->name('delivery-date'); // ✅ NEW
-        Route::post('/{order}/cancel', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'cancel'])->name('cancel');
-        Route::post('/{order}/assign-driver', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'assignDriver'])->name('assign-driver');
-        Route::post('/{order}/delivered', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'markDelivered'])->name('delivered');
-        Route::post('/delivery/{delivery}/tracking', [App\Http\Controllers\BranchAdmin\OnlineOrderController::class, 'updateTracking'])->name('update-tracking');
     });
 
     // Reports
@@ -577,7 +544,6 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'index'])->name('index');
         Route::get('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProductForm'])->name('add-product');
-        Route::post('/add-product', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addProduct'])->name('add-product.post');
         Route::get('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStockForm'])->name('quick-add-stock');
         Route::post('/quick-add-stock', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'quickAddStock'])->name('quick-add-stock.post');
         Route::get('/add-to-inventory/{product}', [App\Http\Controllers\BranchAdmin\InventoryController::class, 'addToInventoryForm'])->name('add-to-inventory');
@@ -618,8 +584,6 @@ Route::middleware(['auth', 'verified'])->prefix('branch-admin')->name('branch-ad
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [App\Http\Controllers\BranchAdmin\PosController::class, 'index'])->name('index');
         Route::get('/history', [App\Http\Controllers\BranchAdmin\PosController::class, 'history'])->name('history');
-        Route::get('/online-orders-history', [App\Http\Controllers\BranchAdmin\PosController::class, 'onlineOrdersHistory'])->name('online-orders.history');
-        Route::get('/delivery-history', [App\Http\Controllers\BranchAdmin\PosController::class, 'deliveryHistory'])->name('delivery-history');
         Route::get('/order/{order}', [App\Http\Controllers\BranchAdmin\PosController::class, 'showOrder'])->name('order.show');
         Route::post('/add-to-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'addToCart'])->name('add-to-cart');
         Route::post('/update-cart', [App\Http\Controllers\BranchAdmin\PosController::class, 'updateCart'])->name('update-cart');
@@ -657,7 +621,6 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
         Route::get('/', [App\Http\Controllers\Driver\OnlineOrderController::class, 'index'])->name('index');
         Route::get('/{order}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'show'])->name('show');
         Route::post('/{order}/start-delivery', [App\Http\Controllers\Driver\OnlineOrderController::class, 'startDelivery'])->name('start-delivery');
-        Route::post('/{order}/cancel', [App\Http\Controllers\Driver\OnlineOrderController::class, 'cancel'])->name('cancel');
         Route::post('/update-lalamove/{orderId}', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateLalamove'])->name('update-lalamove');
         Route::post('/{order}/delivery-date', [App\Http\Controllers\Driver\OnlineOrderController::class, 'updateDeliveryDate'])->name('update-delivery-date');
     });
@@ -667,16 +630,14 @@ Route::middleware(['auth', 'verified', 'role:driver'])->prefix('driver')->name('
     Route::get('/deliveries/{delivery}', [App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
     Route::get('/deliveries/{delivery}/modal-data', [App\Http\Controllers\Driver\DeliveryController::class, 'getModalData'])->name('deliveries.modal-data');
     Route::post('/deliveries/{delivery}/update-status', [App\Http\Controllers\Driver\DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
-    Route::post('/deliveries/{delivery}/location', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLocation'])->name('deliveries.location');
-    Route::post('/deliveries/{delivery}/upload-proof', [App\Http\Controllers\Driver\DeliveryController::class, 'uploadProof'])->name('deliveries.upload-proof');
 
     Route::post('/deliveries/{delivery}/update-lalamove', [App\Http\Controllers\Driver\DeliveryController::class, 'updateLalamoveTracking'])->name('deliveries.update-lalamove');
 });
 
 // ===========================================================================
-// API ROUTES (additional endpoints for online ordering)
+// API ROUTES (additional endpoints for online ordering) – login required
 // ===========================================================================
-Route::prefix('api')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('api')->group(function () {
     Route::get('/branches', function () {
         return response()->json(\App\Models\Branch::all());
     });
@@ -718,52 +679,6 @@ Route::prefix('api')->group(function () {
             'available' => $inventory ? $inventory->quantity : 0
         ]);
     })->name('api.warehouse.check');
-});
-
-Route::get('/test-archive-route', function () {
-    return 'Routes are working!';
-});
-
-// =============================================
-// DEBUG ROUTES - KEPT FOR TESTING
-// =============================================
-Route::get('/test-warehouse-query', function() {
-    DB::enableQueryLog();
-
-    $count = DB::table('warehouse_inventories')->where('quantity', '>', 0)->count();
-
-    $products = DB::table('warehouse_inventories')
-        ->join('products', 'warehouse_inventories.product_id', '=', 'products.id')
-        ->where('warehouse_inventories.quantity', '>', 0)
-        ->where('products.is_active', 1)
-        ->select('products.id', 'products.name')
-        ->distinct()
-        ->get();
-
-    $rawProducts = DB::select("
-        SELECT DISTINCT p.id, p.name
-        FROM warehouse_inventories wi
-        INNER JOIN products p ON wi.product_id = p.id
-        WHERE wi.quantity > 0
-        AND p.is_active = 1
-    ");
-
-    $allProducts = DB::table('products')->where('is_active', 1)->get();
-
-    return response()->json([
-        'count_with_stock' => $count,
-        'products_with_join' => $products,
-        'raw_sql_products' => $rawProducts,
-        'all_active_products' => $allProducts
-    ]);
-});
-
-Route::get('/test-db-connection', function() {
-    return response()->json([
-        'connection_name' => DB::connection()->getName(),
-        'database_name' => DB::connection()->getDatabaseName(),
-        'products_table_exists' => Schema::hasTable('products')
-    ]);
 });
 
 // =============================================
