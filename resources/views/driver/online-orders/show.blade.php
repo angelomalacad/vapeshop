@@ -650,6 +650,100 @@
             box-shadow: none;
         }
     }
+    /* ===== MOBILE FIX - order items (5 columns: product, qty, price, subtotal, stock) ===== */
+@media (max-width: 767.98px) {
+    .order-items-table tbody tr {
+        display: grid !important;
+        grid-template-columns: calc(52px + 0.5rem) auto 1fr auto !important;
+        grid-template-areas:
+            "prod  prod  prod  prod"
+            ".     qty   price total"
+            ".     stock stock stock" !important;
+        column-gap: 0.75rem !important;
+        row-gap: 0.3rem !important;
+        align-items: center !important;
+        padding: 0.9rem 0 !important;
+        border-bottom: 1px solid #eef2f6 !important;
+    }
+
+    .order-items-table tbody tr:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .order-items-table tbody tr td {
+        display: block !important;
+        width: auto !important;
+        min-width: 0 !important;
+        float: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        text-align: left !important;
+        vertical-align: top !important;
+    }
+
+    .order-items-table tbody tr td:nth-child(1) { grid-area: prod; }
+
+    .order-items-table tbody tr td:nth-child(2),
+    .order-items-table tbody tr td:nth-child(3) {
+        font-size: 0.8rem !important;
+        color: #64748b !important;
+        white-space: nowrap;
+    }
+
+    .order-items-table tbody tr td:nth-child(2) { grid-area: qty; }
+    .order-items-table tbody tr td:nth-child(2)::before { content: 'Qty: ' !important; }
+
+    /* "@ " replaced by a clear label */
+    .order-items-table tbody tr td:nth-child(3) { grid-area: price; }
+    .order-items-table tbody tr td:nth-child(3)::before { content: 'Price: ' !important; }
+
+    .order-items-table tbody tr td:nth-child(4) {
+        grid-area: total;
+        justify-self: end !important;
+        text-align: right !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #1a1a2e !important;
+        white-space: nowrap;
+    }
+
+    .order-items-table tbody tr td:nth-child(4)::before { content: none !important; }
+
+    .order-items-table tbody tr td:nth-child(5) {
+        grid-area: stock;
+        justify-self: start !important;
+    }
+
+    /* Stock badge: one neat pill, aligned with the product name */
+    .order-items-table tbody tr td:nth-child(5) .stock-info {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 0.2rem 0.4rem !important;
+        width: auto !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.3rem 0.7rem !important;
+        border-radius: 999px !important;
+        font-size: 0.72rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .order-items-table tbody tr td:nth-child(5) .stock-info span,
+    .order-items-table tbody tr td:nth-child(5) .stock-info small {
+        margin: 0 !important;
+    }
+
+    .order-items-table .product-image {
+        width: 52px !important;
+        height: 52px !important;
+        flex-shrink: 0;
+        border-radius: 10px !important;
+        object-fit: cover;
+    }
+}
 </style>
 
 <div class="modal-body-custom">

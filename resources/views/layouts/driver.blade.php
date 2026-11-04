@@ -540,6 +540,31 @@
                 }
             }
         }
+        /* ===== MOBILE FIX - driver modal (global) ===== */
+@media (max-width: 767.98px) {
+    #customModal > div {
+        overflow-x: hidden !important;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #customModalContent {
+        overflow-x: hidden;
+    }
+
+    #customModalContent img {
+        max-width: 100%;
+    }
+}
+
+/* Phones with a moving address bar: use the real visible height */
+@supports (height: 100dvh) {
+    @media (max-width: 767.98px) {
+        #customModal > div {
+            max-height: 92dvh !important;
+        }
+    }
+}
     </style>
 </head>
 
