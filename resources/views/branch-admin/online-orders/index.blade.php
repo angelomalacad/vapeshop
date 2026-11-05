@@ -414,7 +414,9 @@
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
                             <option value="out_for_delivery"
                                 {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            {{-- ✅ CANCELLED OPTION REMOVED --}}
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                            </option>
+                            {{-- ✅ REMOVED: delivered and delivery_failed (moved to History) --}}
                         </select>
                     </div>
                     <div class="col-md-2">
