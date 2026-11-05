@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             CategorySeeder::class,    // Add this line
             AdminUserSeeder::class,
+            BranchBarangaySeeder::class,
             ProductSeeder::class,
             InventorySeeder::class,
             DriverSeeder::class,
