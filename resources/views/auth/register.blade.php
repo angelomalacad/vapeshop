@@ -189,7 +189,6 @@
             font-size: 0.9rem;
             transition: color 0.2s ease;
         }
-        /* ✅ NEW: Color states for requirement items */
         .password-requirements p.requirement-met {
             color: #198754;
             font-weight: 500;
@@ -210,7 +209,6 @@
         .password-requirements p.requirement-failed i {
             color: #dc3545 !important;
         }
-        /* ✅ Password match indicator */
         .password-match-indicator {
             font-size: clamp(0.75rem, 2vw, 0.85rem);
             margin-top: 0.35rem;
@@ -552,7 +550,7 @@
                                             id="barangay" name="barangay" required>
                                         <!-- Options will be injected by JavaScript -->
                                     </select>
-                                    <div class="form-text">Select your barangay. If not listed, choose "Other".</div>
+                                    <div class="form-text">Select your barangay.</div>
                                     @error('barangay')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -649,7 +647,6 @@
                                     I confirm that I am at least 18 years old.
                                 </label>
                             </div>
-
 
                             <!-- Submit Button -->
                             <button type="submit" class="btn btn-register" id="submitBtn">
@@ -809,27 +806,45 @@
             const otherInput = document.getElementById('other_barangay');
             const citySelect = document.getElementById('city');
 
-            // Complete list of barangays (sorted alphabetically)
-            const barangayList = [
-                'Bagong Kalsada', 'Banadero', 'Banlic', 'Barandal', 'Barangay 1', 'Barangay 2', 
-                'Barangay 3', 'Barangay 4', 'Barangay 5', 'Barangay 6', 'Barangay 7', 'Batino', 
-                'Bubuyan', 'Bucal', 'Bunggo', 'Burol', 'Camaligan', 'Canlubang', 'Halang', 
-                'Hornalan', 'Kay-Anlog', 'La Mesa', 'Laguerta', 'Lawa', 'Lecheria', 'Lingga', 
-                'Looc', 'Mabacan', 'Mabato', 'Majada In', 'Majada Labas', 'Majada Out', 'Makiling', 
-                'Masili', 'Maunong', 'Mayapa', 'Milagrosa', 'Paciano Rizal', 'Palingon', 'Palo alto', 
-                'Pansol', 'Parian', 'Pittland', 'Prinza', 'Punta', 'Puting Lupa', 'Real', 'Saimsim', 
-                'Sampiruhan', 'San Cristobal', 'San Jose', 'Sirang Lupa', 'Sucol', 'Turbina', 
-                'Ulango', 'Uwisan'
-            ];
-
-            // Sort alphabetically
-            const sortedBarangays = barangayList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+            // ✅ COMPLETE DATABASE OF BARANGAYS FOR ALL CITIES/MUNICIPALITIES IN LAGUNA
+            const lagunaBarangays = {
+                "Alaminos": ["Barangay I (Pob.)", "Barangay II (Pob.)", "Barangay III (Pob.)", "Barangay IV (Pob.)", "Del Carmen", "San Agustin", "San Andres", "San Benito", "San Gregorio", "San Ildefonso", "San Juan", "San Miguel", "San Roque", "Santa Rosa"],
+                "Bay": ["Bitin", "Calo", "Dila", "Maitim", "Masaya", "Paciano Rizal", "Puypuy", "San Agustin (Pob.)", "San Antonio", "San Isidro", "San Nicolas (Pob.)", "San Roque", "Santa Cruz", "Santo Domingo", "Tagumpay", "Tranca"],
+                "Biñan": ["Biñan", "Bungahan", "Canlalay", "Casile", "De La Paz", "Ganado", "Langkiwa", "Loma", "Malaban", "Malamig", "Mampalasan", "Platero", "Poblacion", "San Antonio", "San Francisco", "San Jose", "San Vicente", "Santo Domingo", "Santo Niño", "Soro-soro", "Timbao", "Tubigan", "Zapote"],
+                "Cabuyao": ["Baclaran", "Banay-Banay", "Banlic", "Bigaa", "Butong", "Casile", "Diezmo", "Gulod", "Mamatid", "Marinig", "Niugan", "Pittland", "Pulo", "Sala", "San Isidro", "Barangay I Poblacion", "Barangay II Poblacion", "Barangay III Poblacion"],
+                "Calamba": ["Bagong Kalsada", "Banadero", "Banlic", "Barandal", "Barangay 1", "Barangay 2", "Barangay 3", "Barangay 4", "Barangay 5", "Barangay 6", "Barangay 7", "Batino", "Bubuyan", "Bucal", "Bunggo", "Burol", "Camaligan", "Canlubang", "Halang", "Hornalan", "Kay-Anlog", "La Mesa", "Laguerta", "Lawa", "Lecheria", "Lingga", "Looc", "Mabacan", "Mabato", "Majada In", "Majada Labas", "Majada Out", "Makiling", "Masili", "Maunong", "Mayapa", "Milagrosa", "Paciano Rizal", "Palingon", "Palo alto", "Pansol", "Parian", "Pittland", "Prinza", "Punta", "Puting Lupa", "Real", "Saimsim", "Sampiruhan", "San Cristobal", "San Jose", "Sirang Lupa", "Sucol", "Turbina", "Ulango", "Uwisan"],
+                "Calauan": ["Balayhangin", "Bangyas", "Dayap", "Hanggan", "Imok", "Kanluran (Pob.)", "Lamot 1", "Lamot 2", "Masiit", "Prinza", "Santo Tomas", "Silangan (Pob.)"],
+                "Cavinti": ["Anglas", "Bukal", "Bulajo", "Cansuso", "Duhat", "Inao-Awan", "Kanluran (Pob.)", "Layasin", "Layugan", "Mahipon", "Paowin", "Poblacion", "Silangan (Pob.)", "Sisilmin", "Sumucab", "Tibatib", "Udia"],
+                "Famy": ["Asana (Pob.)", "Bacong-Sigsigan", "Bagong Pag-Asa (Pob.)", "Balitoc", "Banaba (Pob.)", "Batuhan", "Bulihan", "Caballero (Pob.)", "Calumpang", "Kapatalan", "Magdapio", "Mayatba", "Minayutan", "Salangbato", "San Juan", "San Roque", "Tunhac"],
+                "Kalayaan": ["Longos", "San Antonio", "San Juan (Pob.)", "San Miguel", "San Pedro"],
+                "Liliw": ["Bagong Anyo (Pob.)", "Bayate", "Bongkol", "Bubukal", "Cabuyew", "Calumpang", "Culoy", "Dagatan", "Daniw", "Dita", "Ibabang Palina", "Ibabang San Roque", "Ibabang Taykin", "Ilayang Palina", "Ilayang San Roque", "Ilayang Taykin", "Kanlurang Bukal", "Laguan", "Luquin", "Malabo-Kalantukan", "Masikap (Pob.)", "Maslun (Pob.)", "Mojon", "Novaliches", "Oples", "Pag-Asa (Pob.)", "Palayan", "Rizal (Pob.)", "San Isidro", "Silangang Bukal", "Tuy-Baanan"],
+                "Los Baños": ["Anos", "Bagong Silang", "Bambang", "Batong Malake", "Baybayin (Pob.)", "Bayog", "Lalakay", "Maahas", "Malinta", "Mayondon", "Putho Tuntungin", "San Antonio", "Tadlac", "Timugan (Pob.)"],
+                "Luisiana": ["De La Paz", "Barangay I (Pob.)", "Barangay II (Pob.)", "Barangay III (Pob.)", "Barangay IV (Pob.)", "Barangay V (Pob.)", "Barangay VI (Pob.)", "Barangay VII (Pob.)", "Barangay VIII (Pob.)", "San Antonio", "San Buenaventura", "San Diego", "San Isidro", "San Jose", "San Juan", "San Luis", "San Pablo", "San Pedro", "San Rafael", "San Roque", "San Salvador", "Santo Domingo", "Santo Tomas"],
+                "Lumban": ["Bagong Silang", "Balimbingan (Pob.)", "Balubad", "Caliraya", "Concepcion", "Lewin", "Maracta (Pob.)", "Maytalang I", "Maytalang II", "Primera Parang (Pob.)", "Primera Pulo (Pob.)", "Salac (Pob.)", "Santo Niño (Pob.)", "Segunda Parang (Pob.)", "Segunda Pulo (Pob.)", "Wawa (Pob.)"],
+                "Mabitac": ["Amuyong", "Bayanihan (Pob.)", "Lambac (Pob.)", "Libis ng Nayon (Pob.)", "Lucong", "Maligaya (Pob.)", "Masikap (Pob.)", "Matalatala", "Nanguma", "Numero", "Paagahan", "Pag-Asa (Pob.)", "San Antonio", "San Miguel", "Sinagtala (Pob.)"],
+                "Magdalena": ["Alipit", "Baanan", "Balanac", "Bucal", "Buenavista", "Bungkol", "Buo", "Burlungan", "Cigaras", "Halayhayin", "Ibabang Atingay", "Ibabang Butnong", "Ilayang Atingay", "Ilayang Butnong", "Ilog", "Malaking Ambling", "Malinao", "Maravilla", "Munting Ambling", "Poblacion", "Sabang", "Salasad", "Tanawan", "Tipunan"],
+                "Majayjay": ["Amonoy", "Bakia", "Balanac", "Balayong", "Banilad", "Banti", "Bitaoy", "Botocan", "Bukal", "Burgos", "Burol", "Coralao", "Gagalot", "Ibabang Banga", "Ibabang Bayucain", "Ilayang Banga", "Ilayang Bayucain", "Isabang", "Malinao", "May-it", "Munting Kawayan", "Olla", "Oobi", "Origuel (Pob.)", "Panalaban", "Pangil", "Panglan", "Piit", "Pook", "Rizal", "San Francisco (Pob.)", "San Isidro", "San Miguel (Pob.)", "San Roque", "Santa Catalina (Pob.)", "Suba", "Talortor", "Tanawan", "Taytay", "Villa Nogales"],
+                "Nagcarlan": ["Abo", "Alibungbungan", "Alumbrado", "Balayong", "Balimbing", "Balinacon", "Bambang", "Banago", "Banca-banca", "Bangcuro", "Banilad", "Bayaquitos", "Buboy", "Buenavista", "Buhanginan", "Bukal", "Bunga", "Cabuyew", "Calumpang", "Kanluran Kabubuhayan", "Kanluran Lazaan", "Labangan", "Lagulo", "Lawaguin", "Maiit", "Malaya", "Malinao", "Manaol", "Maravilla", "Nagcalbang", "Oples", "Palayan", "Palina", "Poblacion I (Pob.)", "Poblacion II (Pob.)", "Poblacion III (Pob.)", "Sabang", "San Francisco", "Santa Lucia", "Sibulan", "Silangan Ilaya", "Silangan Kabubuhayan", "Silangan Lazaan", "Silangan Napapatid", "Sinipian", "Sulsuguin", "Talahib", "Talangan", "Taytay", "Tipacan", "Wakat", "Yukos"],
+                "Paete": ["Bagumbayan (Pob.)", "Bangkusay (Pob.)", "Ermita (Pob.)", "Ibaba del Norte (Pob.)", "Ibaba del Sur (Pob.)", "Ilaya del Norte (Pob.)", "Ilaya del Sur (Pob.)", "Maytoong (Pob.)", "Quinale (Pob.)"],
+                "Pagsanjan": ["Biñan", "Buboy", "Cabanbanan", "Calusiche", "Dingin", "Lambac", "Layugan", "Magdapio", "Maulawin", "Pinagsanjan", "Barangay I (Pob.)", "Barangay II (Pob.)", "Sabang", "Sampaloc", "San Isidro"],
+                "Pakil": ["Baño", "Banilan", "Burgos (Pob.)", "Casa Real", "Casinsin", "Dorado", "Gonzales (Pob.)", "Kabulusan", "Matikiw", "Rizal (Pob.)", "Saray", "Taft (Pob.)", "Tavera (Pob.)"],
+                "Pangil": ["Balian", "Dambo", "Galalan", "Isla (Pob.)", "Mabato-Azufre", "Natividad (Pob.)", "San Jose (Pob.)", "Sulib"],
+                "Pila": ["Aplaya", "Bagong Pook", "Bukal", "Bulilan Norte (Pob.)", "Bulilan Sur (Pob.)", "Concepcion", "Labuin", "Linga", "Masico", "Mojon", "Pansol", "Pinagbayanan", "San Antonio", "San Miguel", "Santa Clara Norte (Pob.)", "Santa Clara Sur (Pob.)", "Tubuan"],
+                "Rizal": ["Antipolo", "East Poblacion", "Paul 1", "Paul 2", "Pook", "Tala", "Talaga", "Tuy", "West Poblacion"],
+                "San Pablo": ["Bagong Bayan II-A (Pob.)", "Bagong Pook VI-C (Pob.)", "Barangay I-A (Pob.)", "Barangay I-B (Pob.)", "Barangay II-A (Pob.)", "Barangay II-B (Pob.)", "Barangay II-C (Pob.)", "Barangay II-D (Pob.)", "Barangay II-E (Pob.)", "Barangay II-F (Pob.)", "Barangay III-A (Pob.)", "Barangay III-B (Pob.)", "Barangay III-C (Pob.)", "Barangay III-D (Pob.)", "Barangay III-E (Pob.)", "Barangay III-F (Pob.)", "Barangay IV-A (Pob.)", "Barangay IV-B (Pob.)", "Barangay IV-C (Pob.)", "Barangay V-A (Pob.)", "Barangay V-B (Pob.)", "Barangay V-C (Pob.)", "Barangay V-D (Pob.)", "Barangay VI-A (Pob.)", "Barangay VI-B (Pob.)", "Barangay VI-D (Pob.)", "Barangay VI-E (Pob.)", "Barangay VII-A (Pob.)", "Barangay VII-B (Pob.)", "Barangay VII-C (Pob.)", "Barangay VII-D (Pob.)", "Barangay VII-E (Pob.)", "Bautista", "Concepcion", "Del Remedio", "Dolores", "San Antonio 1", "San Antonio 2", "San Bartolome", "San Buenaventura", "San Crispin", "San Cristobal", "San Diego", "San Francisco", "San Gabriel", "San Gregorio", "San Ignacio", "San Isidro", "San Joaquin", "San Jose", "San Juan", "San Lorenzo", "San Lucas 1", "San Lucas 2", "San Marcos", "San Mateo", "San Miguel", "San Nicolas", "San Pedro", "San Rafael", "San Roque", "San Vicente", "Santa Ana", "Santa Catalina", "Santa Cruz", "Santa Elena", "Santa Felomina", "Santa Isabel", "Santa Maria", "Santa Maria Magdalena", "Santa Monica", "Santa Veronica", "Santiago I", "Santiago II", "Santisimo Rosario", "Santo Angel", "Santo Cristo", "Santo Niño", "Soledad"],
+                "San Pedro": ["Bagong Silang", "Calendola", "Chrysanthemum", "Cuyab", "Estrella", "Fatima", "Gsis", "Landayan", "Langgam", "Laram", "Magsaysay", "Maharlika", "Narra", "Nueva", "Pacita 1", "Pacita 2", "Poblacion", "Riverside", "Rosario", "Sampaguita Village", "San Antonio", "San Lorenzo Ruiz", "San Roque", "San Vicente", "Santo Niño", "United Bayanihan", "United Better Living"],
+                "Santa Cruz": ["Alipit", "Bagumbayan", "Bubukal", "Calios", "Duhat", "Gatid", "Jasaan", "Labuin", "Malinao", "Oogong", "Pagsawitan", "Palasan", "Patimbao", "Barangay I (Pob.)", "Barangay II (Pob.)", "Barangay III (Pob.)", "Barangay IV (Pob.)", "Barangay V (Pob.)", "San Jose", "San Juan", "San Pablo Norte", "San Pablo Sur", "Santisima Cruz", "Santo Angel Central", "Santo Angel Norte", "Santo Angel Sur"],
+                "Santa Maria": ["Adia", "Bagong Pook", "Bagumbayan", "Barangay I (Pob.)", "Barangay II (Pob.)", "Barangay III (Pob.)", "Barangay IV (Pob.)", "Bubukal", "Cabooan", "Calangay", "Cambuja", "Coralan", "Cueva", "Inayapan", "Jose Laurel, Sr.", "Kayhakat", "Macasipac", "Masinao", "Mataling-Ting", "Pao-o", "Parang Ng Buho", "Santiago", "Talangka", "Tungkod"],
+                "Santa Rosa": ["Aplaya", "Balibago", "Caingin", "Dila", "Dita", "Don Jose", "Ibaba", "Labas", "Macabling", "Malitlit", "Malusak (Pob.)", "Market Area (Pob.)", "Kanluran (Pob.)", "Pook", "Pulong Santa Cruz", "Santo Domingo", "Sinalhan", "Tagapo"],
+                "Siniloan": ["Acevida", "Bagong Pag-Asa (Pob.)", "Bagumbarangay (Pob.)", "Buhay", "G. Redor (Pob.)", "Gen. Luna", "Halayhayin", "J. Rizal (Pob.)", "Kapatalan", "Laguio", "Liyang", "Llavac", "Magsaysay", "Mendiola (Pob.)", "Pandeno", "Salubungan", "Wawa"],
+                "Victoria": ["Banca-banca", "Daniw", "Masapang", "Nanhaya (Pob.)", "Pagalangan", "San Benito", "San Felix", "San Francisco", "San Roque (Pob.)"]
+            };
 
             function updateBarangayField(city) {
                 // Clear the select
                 barangaySelect.innerHTML = '';
 
-                if (city === 'Calamba') {
+                if (city && lagunaBarangays[city]) {
                     // Add "Select Barangay" placeholder first
                     const placeholder = document.createElement('option');
                     placeholder.value = '';
@@ -837,7 +852,8 @@
                     barangaySelect.appendChild(placeholder);
                     
                     // Then add all barangay options (sorted alphabetically)
-                    sortedBarangays.forEach(name => {
+                    const sorted = lagunaBarangays[city].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+                    sorted.forEach(name => {
                         const opt = document.createElement('option');
                         opt.value = name;
                         opt.textContent = name;
@@ -850,7 +866,7 @@
                     otherInput.value = '';
                     
                 } else if (city && city !== '') {
-                    // For any other city: only show "Other"
+                    // For any other city: only show "Other" (fallback just in case)
                     const hiddenOpt = document.createElement('option');
                     hiddenOpt.value = 'Other';
                     hiddenOpt.textContent = 'Other';
