@@ -69,7 +69,7 @@ class CartHelper
         return $total;
     }
 
-        /**
+    /**
      * Add item to cart
      */
     public static function addItem($inventoryId, $quantity, $branchId, $productName, $price, $flavorName = null, $productId = null, $flavorId = null)
@@ -78,33 +78,25 @@ class CartHelper
             return false;
         }
 
-        // ✅ NEW: Check maximum available stock for this inventory
-        $inventory = BranchInventory::find($inventoryId);
-        $maxStock = $inventory ? $inventory->available_quantity : 0;
-
         $cartItem = Cart::where('user_id', Auth::id())
             ->where('inventory_id', $inventoryId)
             ->first();
 
         if ($cartItem) {
-            // ✅ NEW: Limit the addition so it doesn't exceed max stock
-            $newQuantity = $cartItem->quantity + $quantity;
-            $cartItem->quantity = min($newQuantity, $maxStock);
+            $cartItem->quantity += $quantity;
             $cartItem->save();
         } else {
-            // ✅ NEW: If adding a new item, ensure it doesn't exceed max stock
             Cart::create([
                 'user_id' => Auth::id(),
                 'inventory_id' => $inventoryId,
-                'quantity' => min($quantity, $maxStock),
+                'quantity' => $quantity,
             ]);
         }
 
         // Update the session array to include flavor_id
         $cart = session()->get('cart', []);
         if (isset($cart[$inventoryId])) {
-            $newQuantity = $cart[$inventoryId]['quantity'] + $quantity;
-            $cart[$inventoryId]['quantity'] = min($newQuantity, $maxStock);
+            $cart[$inventoryId]['quantity'] += $quantity;
         } else {
             $cart[$inventoryId] = [
                 'inventory_id' => $inventoryId,
@@ -112,9 +104,9 @@ class CartHelper
                 'product_id' => $productId,
                 'product_name' => $productName,
                 'flavor_name' => $flavorName,
-                'flavor_id' => $flavorId,
+                'flavor_id' => $flavorId, // <--- ADDED THIS LINE
                 'price' => $price,
-                'quantity' => min($quantity, $maxStock),
+                'quantity' => $quantity,
             ];
         }
         session()->put('cart', $cart);

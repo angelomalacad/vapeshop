@@ -68,7 +68,7 @@ class CartController extends Controller
         return view('customer.cart.index', compact('items', 'subtotal'));
     }
 
-        public function add(Request $request)
+    public function add(Request $request)
     {
         $request->validate([
             'inventory_id' => 'required|exists:branch_inventories,id',
@@ -78,19 +78,7 @@ class CartController extends Controller
         $inventory = BranchInventory::with(['product', 'flavor'])->find($request->inventory_id);
 
         if (!$inventory || $inventory->available_quantity < $request->quantity) {
-            return back()->with('error', 'Insufficient stock. Only ' . ($inventory->available_quantity ?? 0) . ' left in stock.');
-        }
-
-        // ✅ NEW: Check if adding this quantity will exceed the cart limit
-        $existingCartItem = \App\Models\Cart::where('user_id', \Illuminate\Support\Facades\Auth::id())
-            ->where('inventory_id', $inventory->id)
-            ->first();
-            
-        $currentQtyInCart = $existingCartItem ? $existingCartItem->quantity : 0;
-
-        if (($currentQtyInCart + $request->quantity) > $inventory->available_quantity) {
-            $remainingStock = $inventory->available_quantity - $currentQtyInCart;
-            return back()->with('error', 'Cannot add more. You already have ' . $currentQtyInCart . ' in your cart. Only ' . $remainingStock . ' more left in stock.');
+            return back()->with('error', 'Insufficient stock.');
         }
 
         CartHelper::addItem(
