@@ -107,15 +107,21 @@ class CartController extends Controller
         return redirect()->route('customer.cart.index')->with('success', 'Product added to cart.');
     }
 
-    public function update(Request $request, $inventoryId)
+        public function update(Request $request, $inventoryId)
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
 
         $cart = CartHelper::getCart();
         if (isset($cart[$inventoryId])) {
             $inventory = BranchInventory::find($inventoryId);
-            if ($inventory && $inventory->available_quantity < $request->quantity) {
-                return response()->json(['success' => false, 'message' => 'Insufficient stock available.']);
+            
+            // ✅ FIX: Add a check for 0 stock
+            if (!$inventory || $inventory->available_quantity <= 0) {
+                return response()->json(['success' => false, 'message' => 'This item is currently out of stock.']);
+            }
+
+            if ($inventory->available_quantity < $request->quantity) {
+                return response()->json(['success' => false, 'message' => 'Insufficient stock available. Only ' . $inventory->available_quantity . ' left.']);
             }
         }
 
