@@ -2,6 +2,7 @@
 
 @section('content')
     <div class="container orders-container">
+        
         <h2 class="mb-4 orders-title"><i class="bi bi-receipt"></i> My Orders</h2>
 
         @if ($orders->count())
@@ -9,11 +10,11 @@
                 <div class="card shadow-sm border-0 mb-3 order-card">
                     <div class="card-body order-card-body">
                         <div class="row align-items-center order-row">
-                            <div class="col-md-3 order-product-col">
+                            
+                            <div class="col-lg-3 col-md-3 order-product-col">
                                 <small class="text-muted order-label">Order #</small>
                                 <div class="order-number"><strong>{{ $order->order_number }}</strong></div>
 
-                                {{-- Product Image & Name --}}
                                 @php
                                     $firstItem = $order->items->first();
                                     $imageUrl = null;
@@ -40,7 +41,6 @@
                                     <div class="order-product-details">
                                         <strong>{{ $firstItem->product->name ?? 'Order Items' }}</strong>
 
-                                        {{-- Display the Flavor/Variant below the name --}}
                                         @if ($firstItem && $firstItem->flavor)
                                             <br><small class="text-muted">Variant: {{ $firstItem->flavor->name }}</small>
                                         @endif
@@ -52,14 +52,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Date Column -->
-                            <div class="col-md-2 order-date-col">
+
+                            <div class="col-lg-2 col-md-2 order-date-col">
                                 <small class="text-muted order-label">Date of Order</small>
                                 <div class="fw-semibold order-value">{{ $order->created_at->format('M d, Y') }}</div>
                             </div>
 
-                            <!-- Delivery Date Column (No Cut Off) -->
-                            <div class="col-md-2 order-delivery-col">
+                            <div class="col-lg-2 col-md-2 order-delivery-col">
                                 <small class="text-muted order-label">Delivery Date</small>
                                 <div class="fw-semibold order-delivery-value"
                                     style="white-space: nowrap; font-size: 0.75rem; color: #0d6efd;">
@@ -94,16 +93,16 @@
                                 </div>
                             </div>
 
-
-                            <div class="col-md-2 order-total-col">
+                            {{-- ✅ FIXED: Changed to col-lg-2 to fit the total price on one line --}}
+                            <div class="col-lg-2 col-md-2 order-total-col">
                                 <small class="text-muted order-label">Total</small>
-                                <div class="fw-bold text-danger order-total-value">
+                                <div class="fw-bold text-danger order-total-value" style="white-space: nowrap;">
                                     ₱{{ number_format($order->total_amount, 2) }}</div>
                             </div>
-                            <div class="col-md-1 order-status-col">
+                            
+                            <div class="col-lg-1 col-md-1 order-status-col">
                                 <small class="text-muted order-label">Status</small>
                                 <div>
-                                    {{-- ✅ UPDATED: readable label (no underscore) + red style for failed delivery --}}
                                     @php $isDeliveryFailed = $order->order_status === 'delivery_failed'; @endphp
                                     <span
                                         class="badge {{ $isDeliveryFailed ? 'badge-delivery-failed' : $order->order_status_badge_class }}">
@@ -114,15 +113,56 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-md-2 text-md-end order-actions-col">
+                            
+                            <div class="col-lg-2 col-md-2 text-md-end order-actions-col">
                                 <div class="d-flex justify-content-end align-items-center gap-1 order-actions"
                                     style="white-space: nowrap;">
                                     <a href="{{ route('customer.orders.show', $order) }}"
                                         class="btn btn-outline-primary rounded-pill btn-sm view-details-btn"
                                         style="white-space: nowrap;">View Details</a>
 
-                                    {{-- ONLY ALLOW CANCELLATION IF STATUS IS STRICTLY 'pending' --}}
                                     @if ($order->order_status === 'pending')
+                                        
+                                        @if($order->items->count() > 1)
+                                            <div class="dropdown d-inline-block">
+                                                <button class="btn btn-outline-secondary rounded-pill btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="white-space: nowrap;">
+                                                    Items
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 250px; border-radius: 12px; padding: 0.5rem;">
+                                                    <li><h6 class="dropdown-header px-2">Manage Items</h6></li>
+                                                    @foreach($order->items as $item)
+                                                        <li>
+                                                            <div class="dropdown-item d-flex justify-content-between align-items-center px-2 py-2" style="cursor: default;">
+                                                                <div class="d-flex flex-column" style="max-width: 70%;">
+                                                                    <span class="fw-semibold text-truncate" style="font-size: 0.85rem;">
+                                                                        {{ $item->product->name ?? 'Item' }}
+                                                                    </span>
+                                                                    @if($item->flavor)
+                                                                        <small class="text-muted text-truncate" style="font-size: 0.75rem;">
+                                                                            {{ $item->flavor->name }} (x{{ $item->quantity }})
+                                                                        </small>
+                                                                    @endif
+                                                                </div>
+                                                                
+                                                                <button type="button" 
+                                                                    class="btn btn-sm btn-outline-danger btn-icon-circle open-remove-modal-btn" 
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#removeItemModal"
+                                                                    data-order-id="{{ $order->id }}"
+                                                                    data-item-id="{{ $item->id }}"
+                                                                    data-item-name="{{ $item->product->name ?? 'Item' }}"
+                                                                    data-item-flavor="{{ $item->flavor->name ?? '' }}"
+                                                                    data-item-qty="{{ $item->quantity }}"
+                                                                    title="Remove this item">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+
                                         <button type="button" class="btn btn-outline-danger rounded-pill btn-sm cancel-btn"
                                             style="white-space: nowrap;" data-bs-toggle="modal"
                                             data-bs-target="#cancelOrderModal{{ $order->id }}">
@@ -134,9 +174,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- ============================================================ --}}
-                {{-- CANCEL MODAL --}}
-                {{-- ============================================================ --}}
+                
                 @if ($order->order_status === 'pending')
                     <div class="modal fade" id="cancelOrderModal{{ $order->id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
@@ -160,7 +198,6 @@
                                     <button type="button" class="btn btn-secondary rounded-pill px-4"
                                         data-bs-dismiss="modal">Close</button>
 
-                                    {{-- THE ACTUAL CANCEL FORM INSIDE THE MODAL --}}
                                     <form action="{{ route('customer.orders.cancel', $order) }}" method="POST"
                                         class="d-inline">
                                         @csrf
@@ -173,8 +210,8 @@
                         </div>
                     </div>
                 @endif
-                {{-- ============================================================ --}}
             @endforeach
+            
             <div class="orders-pagination">
                 {{ $orders->links() }}
             </div>
@@ -188,8 +225,64 @@
         @endif
     </div>
 
+    <div class="modal fade" id="removeItemModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header" style="border-bottom: 1px solid #eef2f6; padding: 1.25rem 1.5rem;">
+                    <h5 class="modal-title fw-bold" style="color: #1a1a2e;">
+                        <i class="bi bi-trash-fill me-2 text-danger"></i> Remove Item
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <div class="mb-3 p-3 bg-light rounded" style="border: 1px solid #e2e8f0;">
+                        <h6 class="fw-bold mb-1" id="modalItemName" style="color: #1a1a2e;">Product Name</h6>
+                        <small class="text-muted" id="modalItemFlavor" style="display:block; margin-bottom: 0.5rem;">Flavor</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">In this order:</span>
+                            <span class="fw-bold" id="modalItemQty" style="color: #1a1a2e;">1</span>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-2 fw-semibold text-center" style="font-size: 0.9rem;">How many do you want to remove?</p>
+                    
+                    <div class="d-flex align-items-center gap-2 mb-3 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-3 py-1" onclick="adjustRemoveQty(-1)">-</button>
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="removeQtyInput" class="form-control text-center fw-bold" value="1" style="max-width: 80px; font-size: 1.1rem;">
+                        <button type="button" class="btn btn-outline-secondary px-3 py-1" onclick="adjustRemoveQty(1)">+</button>
+                    </div>
+                    
+                    <p class="text-muted small mb-0 text-center"><i class="bi bi-info-circle me-1"></i> Removing all items will automatically cancel the order.</p>
+                    <div id="removeItemError" class="text-danger small mt-2 fw-semibold text-center" style="display: none;"></div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #eef2f6; padding: 1rem 1.5rem;">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmRemoveBtn">
+                        <i class="bi bi-trash me-1"></i> Remove Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
-        /* ✅ NEW: Delivery Failed status badge (soft red, one line) */
+        .btn-icon-circle {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            max-width: 28px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .btn-icon-circle i {
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+
         .badge-delivery-failed {
             background-color: #fee2e2 !important;
             color: #dc2626 !important;
@@ -200,29 +293,32 @@
             text-align: left;
         }
 
-        /* Laptop/desktop: slightly smaller so it fits the Status column */
         @media (min-width: 992px) {
             .badge-delivery-failed {
                 font-size: 0.68rem;
                 padding: 0.3rem 0.5rem;
             }
+            .order-actions {
+                gap: 0.35rem !important;
+            }
+            .order-actions .btn {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.75rem;
+            }
         }
 
-        /* Tablet only: the Status column is very narrow, so allow wrapping there */
         @media (min-width: 768px) and (max-width: 991.98px) {
             .badge-delivery-failed {
                 white-space: normal;
             }
         }
 
-        /* ===== MOBILE APP-LIKE STYLES ===== */
         @media (max-width: 767.98px) {
             .orders-container {
                 padding-left: 14px;
                 padding-right: 14px;
             }
 
-            /* Header */
             .orders-title {
                 font-size: 1.15rem;
                 margin-bottom: 1rem !important;
@@ -236,7 +332,6 @@
                 font-size: 1.2rem;
             }
 
-            /* Order Card */
             .order-card {
                 border-radius: 16px !important;
                 overflow: hidden;
@@ -252,7 +347,6 @@
                 padding: 0.95rem 1rem;
             }
 
-            /* Turn row into a card-like block layout */
             .order-row {
                 display: block !important;
             }
@@ -265,7 +359,6 @@
                 margin: 0 !important;
             }
 
-            /* Product section */
             .order-product-col {
                 padding-bottom: 0.75rem !important;
                 margin-bottom: 0.75rem !important;
@@ -331,7 +424,6 @@
                 color: #64748b !important;
             }
 
-            /* Info rows (Date, Delivery Date, Total, Status) - 2-column grid */
             .order-date-col,
             .order-delivery-col,
             .order-total-col,
@@ -371,7 +463,6 @@
                 padding: 0.28rem 0.55rem;
             }
 
-            /* Actions row - full width at bottom */
             .order-actions-col {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -405,52 +496,82 @@
                 transform: scale(0.97);
             }
 
-            /* When only "View Details" exists (no cancel), make it full width */
             .order-actions .btn:only-child {
                 flex: 1;
             }
+            
+            .order-actions .dropdown {
+                flex: 1 1 auto;
+                min-width: 30%;
+            }
+            
+            .order-actions .dropdown .btn {
+                width: 100%;
+            }
 
-            /* Modal - Mobile App Style */
-            .cancel-modal-content {
+            .dropdown-menu {
+                font-size: 0.85rem;
+                border-radius: 12px !important;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+                min-width: 220px !important;
+                right: 0 !important;
+                left: auto !important;
+            }
+
+            .cancel-modal-content,
+            #removeItemModal .modal-content {
                 border-radius: 20px !important;
                 margin: 1rem;
             }
+            
+            @media (max-width: 480px) {
+                #removeItemModal .modal-dialog {
+                    margin: 0;
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    max-width: 100%;
+                }
+                #removeItemModal .modal-content {
+                    border-radius: 24px 24px 0 0 !important;
+                    margin: 0;
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
+            }
 
-            .cancel-modal-header {
+            .cancel-modal-header,
+            #removeItemModal .modal-header {
                 padding: 1rem 1.15rem !important;
             }
 
-            .cancel-modal-header .modal-title {
+            .cancel-modal-header .modal-title,
+            #removeItemModal .modal-title {
                 font-size: 1rem !important;
             }
 
-            .cancel-modal-body {
+            .cancel-modal-body,
+            #removeItemModal .modal-body {
                 padding: 1.15rem !important;
                 font-size: 0.88rem;
             }
 
-            .cancel-modal-body p {
-                line-height: 1.5;
-            }
-
-            .cancel-modal-body .text-muted {
-                font-size: 0.78rem !important;
-            }
-
-            .cancel-modal-footer {
+            .cancel-modal-footer,
+            #removeItemModal .modal-footer {
                 padding: 0.9rem 1.15rem !important;
                 gap: 0.5rem;
                 flex-wrap: nowrap;
             }
 
-            .cancel-modal-footer .btn {
+            .cancel-modal-footer .btn,
+            #removeItemModal .modal-footer .btn {
                 flex: 1;
                 padding: 0.6rem 0.75rem;
                 font-size: 0.82rem;
                 font-weight: 500;
             }
 
-            /* Pagination */
             .orders-pagination {
                 margin-top: 1rem;
             }
@@ -468,7 +589,6 @@
                 margin: 0;
             }
 
-            /* Empty state */
             .empty-orders {
                 padding: 3rem 1.25rem !important;
                 border-radius: 16px !important;
@@ -488,7 +608,6 @@
             }
         }
 
-        /* Extra small devices */
         @media (max-width: 380px) {
             .orders-title {
                 font-size: 1.05rem;
@@ -517,7 +636,6 @@
             }
         }
 
-        /* Tablet */
         @media (min-width: 768px) and (max-width: 991.98px) {
             .order-card-body {
                 padding: 1rem;
@@ -539,7 +657,6 @@
             }
         }
 
-        /* Touch device: remove hover transforms */
         @media (hover: none) {
             .order-card:hover {
                 transform: none;
@@ -550,4 +667,136 @@
             }
         }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let activeOrderId = null;
+            let activeItemId = null;
+            let maxQty = 1;
+
+            const removeModal = document.getElementById('removeItemModal');
+            const qtyInput = document.getElementById('removeQtyInput');
+            const errorDiv = document.getElementById('removeItemError');
+            const confirmBtn = document.getElementById('confirmRemoveBtn');
+
+            removeModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                
+                activeOrderId = button.getAttribute('data-order-id');
+                activeItemId = button.getAttribute('data-item-id');
+                maxQty = parseInt(button.getAttribute('data-item-qty')) || 1;
+                const itemName = button.getAttribute('data-item-name');
+                const itemFlavor = button.getAttribute('data-item-flavor');
+
+                document.getElementById('modalItemName').textContent = itemName;
+                
+                const flavorEl = document.getElementById('modalItemFlavor');
+                if (itemFlavor) {
+                    flavorEl.textContent = 'Flavor: ' + itemFlavor;
+                    flavorEl.style.display = 'block';
+                } else {
+                    flavorEl.style.display = 'none';
+                }
+
+                document.getElementById('modalItemQty').textContent = maxQty;
+                
+                qtyInput.value = 1;
+                errorDiv.style.display = 'none';
+                errorDiv.className = 'text-danger small mt-2 fw-semibold text-center';
+                confirmBtn.style.display = 'inline-block';
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Remove Item';
+                document.querySelector('#removeItemModal .btn-light').style.display = 'inline-block';
+            });
+
+            qtyInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                let val = parseInt(this.value);
+                errorDiv.style.display = 'none';
+
+                if (this.value !== '' && val > maxQty) {
+                    this.value = maxQty;
+                    errorDiv.textContent = `You only have ${maxQty} of this item.`;
+                    errorDiv.style.display = 'block';
+                }
+            });
+
+            qtyInput.addEventListener('blur', function() {
+                let val = parseInt(this.value);
+                if (isNaN(val) || val < 1) {
+                    this.value = 1;
+                }
+            });
+
+            window.adjustRemoveQty = function(change) {
+                let currentVal = parseInt(qtyInput.value) || 1;
+                let newVal = currentVal + change;
+
+                if (newVal >= 1 && newVal <= maxQty) {
+                    qtyInput.value = newVal;
+                    errorDiv.style.display = 'none';
+                } else if (newVal > maxQty) {
+                    errorDiv.textContent = `You only have ${maxQty} of this item in your order.`;
+                    errorDiv.style.display = 'block';
+                }
+            };
+
+            confirmBtn.addEventListener('click', function() {
+                let val = parseInt(qtyInput.value);
+                if (isNaN(val) || val < 1) {
+                    qtyInput.value = 1;
+                    val = 1;
+                }
+
+                const qtyToRemove = val;
+                
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Removing...';
+                errorDiv.style.display = 'none';
+
+                fetch(`/customer/orders/${activeOrderId}/remove-item`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        item_id: activeItemId,
+                        quantity: qtyToRemove 
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        errorDiv.className = 'text-success small mt-2 fw-semibold text-center';
+                        errorDiv.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + (data.message || 'Item removed!');
+                        errorDiv.style.display = 'block';
+                        
+                        confirmBtn.style.display = 'none';
+                        document.querySelector('#removeItemModal .btn-light').style.display = 'none';
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                        
+                    } else {
+                        errorDiv.className = 'text-danger small mt-2 fw-semibold text-center';
+                        errorDiv.textContent = data.message || 'Failed to remove item.';
+                        errorDiv.style.display = 'block';
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Remove Item';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorDiv.className = 'text-danger small mt-2 fw-semibold text-center';
+                    errorDiv.textContent = 'Network error. Please try again.';
+                    errorDiv.style.display = 'block';
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i> Remove Item';
+                });
+            });
+        });
+    </script>
 @endsection

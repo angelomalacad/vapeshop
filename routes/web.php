@@ -283,6 +283,8 @@ Route::middleware(['auth', 'verified'])->prefix('customer')->name('customer.')->
     Route::get('/orders', [App\Http\Controllers\Customer\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [App\Http\Controllers\Customer\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [App\Http\Controllers\Customer\OrderController::class, 'cancel'])->name('orders.cancel');
+    // ✅ NEW: Remove a single item from a pending order
+    Route::post('/orders/{order}/remove-item', [App\Http\Controllers\Customer\OrderController::class, 'removeItem'])->name('orders.remove-item');
 
     // Track Modal - AJAX route for modal content
 

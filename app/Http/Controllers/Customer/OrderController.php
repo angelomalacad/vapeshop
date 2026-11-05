@@ -19,7 +19,6 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // ✅ ADD: Transform orders to include status badge class and label
         $orders->getCollection()->transform(function ($order) {
             $statusColors = [
                 'pending' => 'warning',
@@ -29,7 +28,7 @@ class OrderController extends Controller
                 'picked_up' => 'secondary',
                 'out_for_delivery' => 'secondary',
                 'delivered' => 'dark',
-                'delivery_failed' => 'danger', // ✅ NEW
+                'delivery_failed' => 'danger',
                 'cancelled' => 'danger',
             ];
             $statusLabels = [
@@ -40,7 +39,7 @@ class OrderController extends Controller
                 'picked_up' => 'Picked Up',
                 'out_for_delivery' => 'Out for Delivery',
                 'delivered' => 'Delivered',
-                'delivery_failed' => 'Delivery Failed', // ✅ NEW
+                'delivery_failed' => 'Delivery Failed',
                 'cancelled' => 'Cancelled',
             ];
 
@@ -53,16 +52,16 @@ class OrderController extends Controller
         return view('customer.orders.index', compact('orders'));
     }
 
-    public function show(Order $order)
+       public function show(Order $order)
     {
         if ($order->user_id != Auth::id()) abort(403);
         $order->load('items.product', 'items.flavor', 'branch', 'delivery.driver');
 
-        // Get timestamps for each status
         $statusTimestamps = $this->getStatusTimestamps($order);
-
-        // Get delivery status for in_transit
         $deliveryStatus = $order->delivery ? $order->delivery->status : null;
+
+        // ✅ ADD THIS LINE TO ENSURE BRANCH IS ALWAYS LOADED
+        $order->load('branch'); 
 
         return view('customer.orders.show', compact('order', 'statusTimestamps', 'deliveryStatus'));
     }
@@ -110,9 +109,106 @@ class OrderController extends Controller
         return redirect()->route('customer.orders.index')->with('success', 'Order cancelled.');
     }
 
-    /**
-     * Get timestamps for each order status
-     */
+        public function removeItem(Request $request, Order $order)
+    {
+        if ($order->user_id != Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        if ($order->order_status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Cannot remove items. Order is already being processed.'], 400);
+        }
+
+        $itemId = $request->input('item_id');
+        $qtyToRemove = (int) $request->input('quantity', 1); 
+
+        $item = $order->items()->find($itemId);
+
+        if (!$item) {
+            return response()->json(['success' => false, 'message' => 'Item not found.'], 404);
+        }
+
+        if ($qtyToRemove <= 0) {
+            return response()->json(['success' => false, 'message' => 'Invalid quantity.'], 400);
+        }
+
+        if ($qtyToRemove > $item->quantity) {
+            return response()->json(['success' => false, 'message' => 'You are trying to remove more items than you have.'], 400);
+        }
+
+        $totalOrderItems = $order->items()->sum('quantity');
+        if (($totalOrderItems - $qtyToRemove) <= 0) {
+            return response()->json(['success' => false, 'message' => 'Cannot remove all items. Please use the Cancel Order button instead.'], 400);
+        }
+
+        try {
+            DB::transaction(function () use ($order, $item, $qtyToRemove) {
+                
+                $reservation = InventoryReservation::where('order_id', $order->id)
+                    ->where('branch_inventory_id', $item->inventory_id)
+                    ->where('status', 'active')
+                    ->first();
+
+                $releaseAmount = min($qtyToRemove, $item->quantity); 
+                
+                if ($reservation) {
+                    $inventory = BranchInventory::find($reservation->branch_inventory_id);
+                    if ($inventory) {
+                        $inventory->update([
+                            'reserved_quantity' => max(0, $inventory->reserved_quantity - $releaseAmount)
+                        ]);
+                    }
+                    
+                    if ($reservation->quantity <= $releaseAmount) {
+                        $reservation->update([
+                            'status' => 'released',
+                            'released_at' => now()
+                        ]);
+                    } else {
+                        $reservation->decrement('quantity', $releaseAmount);
+                    }
+                }
+
+                $inventoryDirect = BranchInventory::where('id', $item->inventory_id)->first();
+                if ($inventoryDirect && $inventoryDirect->reserved_quantity > 0) {
+                    $inventoryDirect->decrement('reserved_quantity', $releaseAmount);
+                }
+
+                if ($qtyToRemove >= $item->quantity) {
+                    $item->delete();
+                } else {
+                    $newItemQty = $item->quantity - $qtyToRemove;
+                    $newItemSubtotal = $newItemQty * $item->price;
+                    
+                    $item->update([
+                        'quantity' => $newItemQty,
+                        'subtotal' => $newItemSubtotal
+                    ]);
+                }
+
+                $newSubtotal = $order->items()->sum('subtotal');
+                $newTotal = $newSubtotal + ($order->delivery_fee ?? 0);
+
+                // ✅ Force update directly to the database to preserve ALL other columns (like branch_id)
+                Order::where('id', $order->id)->update([
+                    'subtotal' => $newSubtotal,
+                    'total_amount' => $newTotal,
+                ]);
+            });
+
+            session()->flash('success', 'Item removed from order successfully.');
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Item removed from order successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Remove Item Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An error occurred while removing the item.'], 500);
+        }
+    }
+
     private function getStatusTimestamps($order)
     {
         $timestamps = [
@@ -120,11 +216,11 @@ class OrderController extends Controller
             'confirmed' => null,
             'packing' => null,
             'ready' => null,
-            'picked_up' => null, // ✅ ADD THIS
+            'picked_up' => null, 
             'out_for_delivery' => null,
             'in_transit' => null,
             'delivered' => null,
-            'failed' => null, // ✅ NEW: delivery failed timestamp
+            'failed' => null, 
         ];
 
         $ensureCarbon = function($value) {
@@ -137,7 +233,6 @@ class OrderController extends Controller
             return null;
         };
 
-        // Get confirmed timestamp
         if (in_array($order->order_status, ['confirmed', 'processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->confirmed_at) && $order->confirmed_at) {
                 $timestamps['confirmed'] = $ensureCarbon($order->confirmed_at);
@@ -148,7 +243,6 @@ class OrderController extends Controller
             }
         }
 
-        // Get packing timestamp (maps from database 'processing')
         if (in_array($order->order_status, ['processing', 'ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->processing_at) && $order->processing_at) {
                 $timestamps['packing'] = $ensureCarbon($order->processing_at);
@@ -157,7 +251,6 @@ class OrderController extends Controller
             }
         }
 
-        // Get ready timestamp
         if (in_array($order->order_status, ['ready', 'picked_up', 'out_for_delivery', 'delivered'])) {
             if (isset($order->ready_at) && $order->ready_at) {
                 $timestamps['ready'] = $ensureCarbon($order->ready_at);
@@ -166,7 +259,6 @@ class OrderController extends Controller
             }
         }
 
-        // ✅ ADD: Get picked_up timestamp
         if (in_array($order->order_status, ['picked_up', 'out_for_delivery', 'delivered'])) {
             if ($order->delivery && $order->delivery->picked_up_at) {
                 $timestamps['picked_up'] = $ensureCarbon($order->delivery->picked_up_at);
@@ -177,7 +269,6 @@ class OrderController extends Controller
             }
         }
 
-        // Get out for delivery timestamp
         if (in_array($order->order_status, ['out_for_delivery', 'delivered'])) {
             if (isset($order->out_for_delivery_at) && $order->out_for_delivery_at) {
                 $timestamps['out_for_delivery'] = $ensureCarbon($order->out_for_delivery_at);
@@ -188,7 +279,6 @@ class OrderController extends Controller
             }
         }
 
-        // Get in_transit timestamp from delivery
         if ($order->delivery) {
             if ($order->delivery->status == 'in_transit') {
                 $timestamps['in_transit'] = $ensureCarbon($order->delivery->updated_at);
@@ -199,7 +289,6 @@ class OrderController extends Controller
             }
         }
 
-        // Get delivered timestamp
         if ($order->order_status == 'delivered') {
             if ($order->delivery && $order->delivery->delivered_at) {
                 $timestamps['delivered'] = $ensureCarbon($order->delivery->delivered_at);
@@ -208,8 +297,6 @@ class OrderController extends Controller
             }
         }
 
-        // ✅ NEW: Failed delivery - the blocks above skip 'delivery_failed',
-        // so fill the steps the order already went through plus the failed time.
         if ($order->order_status == 'delivery_failed') {
             $delivery = $order->delivery;
 

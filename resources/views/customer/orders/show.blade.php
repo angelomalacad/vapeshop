@@ -29,6 +29,11 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($order->items as $item)
+                                        @php
+                                            // ✅ NEW: Fetch the specific branch for this item's inventory
+                                            $itemInventory = \App\Models\BranchInventory::with('branch')->find($item->inventory_id);
+                                            $itemBranchName = $itemInventory && $itemInventory->branch ? $itemInventory->branch->name : null;
+                                        @endphp
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center order-item-product">
@@ -61,6 +66,12 @@
                                                         <div class="fw-semibold">{{ $item->product->name }}</div>
                                                         @if ($item->flavor)
                                                             <div class="small text-muted">Variant: {{ $item->flavor->name }}
+                                                            </div>
+                                                        @endif
+                                                        {{-- ✅ NEW: Show the branch for this specific item --}}
+                                                        @if ($itemBranchName)
+                                                            <div class="small text-muted mt-1">
+                                                                <i class="bi bi-shop" style="font-size: 0.7rem;"></i> {{ $itemBranchName }}
                                                             </div>
                                                         @endif
                                                     </div>
@@ -420,7 +431,7 @@
                         <p><strong>Date placed:</strong></p>
                         <p>{{ $order->created_at->format('F d, Y h:i A') }}</p>
                         <p><strong>Branch:</strong></p>
-                        <p>{{ $order->branch->name }}</p>
+                        <p>{{ $order->branch ? $order->branch->name : 'Multiple Branches' }}</p>
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
 
