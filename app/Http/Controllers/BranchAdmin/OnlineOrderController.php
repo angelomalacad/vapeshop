@@ -26,7 +26,7 @@ class OnlineOrderController extends Controller
         // ✅ UPDATED: Exclude delivered and delivery_failed (they belong in History)
         $orders = Order::where('branch_id', $branchId)
             ->where('order_number', 'NOT LIKE', 'POS-%')
-            ->whereNotIn('order_status', ['delivered', 'delivery_failed', 'cancelled']); // ✅ ADD 'cancelled'
+            ->whereNotIn('order_status', ['delivered', 'delivery_failed']);
 
         // ✅ Status filter
         if ($request->filled('status')) {
@@ -106,7 +106,7 @@ class OnlineOrderController extends Controller
         return view('branch-admin.online-orders.show', compact('order', 'isCurrentBranch'));
     }
 
-        /**
+    /**
      * Confirm order - keeps the stock that checkout already reserved (not deducted yet)
      */
     public function confirm(Order $order)
@@ -133,13 +133,16 @@ class OnlineOrderController extends Controller
             // The customer's checkout already RESERVED the stock for this order.
             // Here we only confirm that reservation (we do NOT reserve a second time).
             foreach ($order->items as $item) {
-                // ✅ FIX: Strictly look up the EXACT inventory row (including flavor_id)
-                $inventory = BranchInventory::where('id', $item->inventory_id)
-                    ->where('branch_id', $branchId)
-                    ->lockForUpdate()
-                    ->first();
+                // Use the exact inventory row (product + flavor) that was reserved at checkout
+                $inventory = null;
 
-                // Fallback if inventory_id was lost (search by product + flavor)
+                if ($item->inventory_id) {
+                    $inventory = BranchInventory::where('id', $item->inventory_id)
+                        ->where('branch_id', $branchId)
+                        ->lockForUpdate()
+                        ->first();
+                }
+
                 if (!$inventory) {
                     $inventory = BranchInventory::where('branch_id', $branchId)
                         ->where('product_id', $item->product_id)
@@ -151,7 +154,7 @@ class OnlineOrderController extends Controller
                 }
 
                 if (!$inventory) {
-                    throw new \Exception("Inventory record not found for product: {$item->product->name}");
+                    throw new \Exception("Insufficient stock for product: {$item->product->name}");
                 }
 
                 // Is this item's stock already reserved for this order?
@@ -162,16 +165,18 @@ class OnlineOrderController extends Controller
 
                 if ($existingReservation) {
                     // Keep the reservation made at checkout and give it more time
+                    // while the order is being prepared and delivered.
                     $existingReservation->update([
                         'expires_at' => now()->addHours(24),
                         'notes' => "Order #{$order->order_number} confirmed by branch staff"
                     ]);
+
                     continue;
                 }
 
-                // No active reservation (expired or released): Check if there is enough stock to reserve NOW
+                // No active reservation (for example it expired or was released): reserve now
                 if ($inventory->available_quantity < $item->quantity) {
-                    throw new \Exception("Insufficient stock for product: {$item->product->name}. Available: {$inventory->available_quantity}, Needed: {$item->quantity}");
+                    throw new \Exception("Insufficient stock for product: {$item->product->name}");
                 }
 
                 $oldQuantity = $inventory->quantity;
@@ -394,7 +399,7 @@ class OnlineOrderController extends Controller
         return $result;
     }
 
-        /**
+    /**
      * Deduct inventory when order is delivered
      */
     public function deductInventory(Order $order)
@@ -414,24 +419,39 @@ class OnlineOrderController extends Controller
                 throw new \Exception('Inventory already deducted for this order.');
             }
 
+            // ✅ RELEASE ALL ACTIVE RESERVATIONS FOR THIS ORDER
+            $reservations = InventoryReservation::where('order_id', $order->id)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($reservations as $reservation) {
+                $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
+
+                if ($inventory) {
+                    $inventory->update([
+                        'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
+                    ]);
+                }
+
+                $reservation->update([
+                    'status' => 'converted',
+                    'converted_at' => now()
+                ]);
+            }
+
             // Deduct inventory for each item
             foreach ($order->items as $item) {
                 $inventory = BranchInventory::where('branch_id', $branchId)
                     ->where('product_id', $item->product_id)
-                    ->when($item->flavor_id, function ($query) use ($item) {
-                        return $query->where('flavor_id', $item->flavor_id);
-                    })
                     ->first();
 
                 if ($inventory) {
                     $oldQuantity = $inventory->quantity;
                     $newQuantity = $oldQuantity - $item->quantity;
 
-                    // ✅ FIX: Deduct quantity AND release the reserved_quantity
-                    // We use max(0, ...) just in case the reserved amount was already adjusted
+                    // Update inventory - deduct stock
                     $inventory->update([
-                        'quantity' => $newQuantity,
-                        'reserved_quantity' => max(0, $inventory->reserved_quantity - $item->quantity)
+                        'quantity' => $newQuantity
                     ]);
 
                     // Create stock movement record for actual sale
@@ -450,14 +470,6 @@ class OnlineOrderController extends Controller
                     ]);
                 }
             }
-
-            // ✅ FIX: Mark the actual reservations as 'converted' so they are no longer active
-            InventoryReservation::where('order_id', $order->id)
-                ->where('status', 'active')
-                ->update([
-                    'status' => 'converted',
-                    'converted_at' => now()
-                ]);
 
             DB::commit();
 

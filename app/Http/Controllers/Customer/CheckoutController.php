@@ -88,7 +88,9 @@ class CheckoutController extends Controller
         $isSelectedCheckout = session()->has('selected_checkout');
         if ($isSelectedCheckout) {
             $cart = session()->get('selected_cart', []);
-            // ✅ FIX: Do NOT forget here. Only forget AFTER a successful order.
+            // Clear the session AFTER we retrieve it so it doesn't persist
+            session()->forget('selected_checkout');
+            session()->forget('selected_cart');
         } else {
             $cart = CartHelper::getCart();
         }
@@ -273,12 +275,6 @@ class CheckoutController extends Controller
             //    any unselected items still in the cart.
             foreach ($cart as $inventoryId => $item) {
                 CartHelper::removeItem($inventoryId);
-            }
-
-            // ✅ ADD THIS: Now that the order is successful, clear the session
-            if ($isSelectedCheckout) {
-                session()->forget('selected_checkout');
-                session()->forget('selected_cart');
             }
 
             DB::commit();

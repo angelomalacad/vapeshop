@@ -26,7 +26,6 @@ class Order extends Model
         'delivery_date',
         'delivery_date_from',  // ✅ Add this
     'delivery_date_to',    // ✅ Add this
-    'cancelled_at',
         'customer_name',
         'customer_phone',
         'notes',
