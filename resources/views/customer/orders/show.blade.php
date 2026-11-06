@@ -31,8 +31,13 @@
                                     @foreach ($order->items as $item)
                                         @php
                                             // ✅ NEW: Fetch the specific branch for this item's inventory
-                                            $itemInventory = \App\Models\BranchInventory::with('branch')->find($item->inventory_id);
-                                            $itemBranchName = $itemInventory && $itemInventory->branch ? $itemInventory->branch->name : null;
+                                            $itemInventory = \App\Models\BranchInventory::with('branch')->find(
+                                                $item->inventory_id,
+                                            );
+                                            $itemBranchName =
+                                                $itemInventory && $itemInventory->branch
+                                                    ? $itemInventory->branch->name
+                                                    : null;
                                         @endphp
                                         <tr>
                                             <td>
@@ -71,7 +76,8 @@
                                                         {{-- ✅ NEW: Show the branch for this specific item --}}
                                                         @if ($itemBranchName)
                                                             <div class="small text-muted mt-1">
-                                                                <i class="bi bi-shop" style="font-size: 0.7rem;"></i> {{ $itemBranchName }}
+                                                                <i class="bi bi-shop" style="font-size: 0.7rem;"></i>
+                                                                {{ $itemBranchName }}
                                                             </div>
                                                         @endif
                                                     </div>
@@ -92,7 +98,8 @@
                                     {{-- ✅ Delivery Fee row (black text, aligned with Subtotal) --}}
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold">Delivery Fee:</td>
-                                        <td class="text-end fw-bold">₱{{ number_format($order->delivery_fee ?? 0, 2) }}</td>
+                                        <td class="text-end fw-bold">₱{{ number_format($order->delivery_fee ?? 0, 2) }}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
@@ -430,8 +437,8 @@
                         <p><code>{{ $order->order_number }}</code></p>
                         <p><strong>Date placed:</strong></p>
                         <p>{{ $order->created_at->format('F d, Y h:i A') }}</p>
-                        <p><strong>Branch:</strong></p>
-                        <p>{{ $order->branch ? $order->branch->name : 'Multiple Branches' }}</p>
+                        {{-- <p><strong>Branch:</strong></p>
+                        <p>{{ $order->branch ? $order->branch->name : 'Multiple Branches' }}</p> --}}
                         <p><strong>Payment Method:</strong></p>
                         <p>{{ strtoupper($order->payment_method) }}</p>
 

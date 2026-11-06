@@ -446,7 +446,7 @@
                                         }
                                     }
 
-                                    // ✅ Inventory Stock Check
+                                    // ✅ Inventory Stock Check (Fixed to use inventory_id first)
                                     $stockAvailable = 0;
                                     $stockReserved = 0;
                                     $stockTotal = 0;
@@ -454,11 +454,13 @@
                                     $stockClass = 'stock-info-out';
                                     $stockIcon = 'bi-x-circle-fill';
 
-                                    if ($order->branch_id && $product) {
-                                        $branchInventory = \App\Models\BranchInventory::where(
-                                            'branch_id',
-                                            $order->branch_id,
-                                        )
+                                    $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()->find(
+                                        $item->inventory_id,
+                                    );
+
+                                    if (!$branchInventory && $order->branch_id && $product) {
+                                        $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()
+                                            ->where('branch_id', $order->branch_id)
                                             ->where('product_id', $product->id)
                                             ->when(
                                                 $item->flavor_id,
@@ -470,25 +472,25 @@
                                                 },
                                             )
                                             ->first();
+                                    }
 
-                                        if ($branchInventory) {
-                                            $stockTotal = $branchInventory->quantity;
-                                            $stockReserved = $branchInventory->reserved_quantity;
-                                            $stockAvailable = $branchInventory->available_quantity;
+                                    if ($branchInventory) {
+                                        $stockTotal = $branchInventory->quantity;
+                                        $stockReserved = $branchInventory->reserved_quantity;
+                                        $stockAvailable = $branchInventory->available_quantity;
 
-                                            if ($stockAvailable <= 0) {
-                                                $stockStatus = 'out_of_stock';
-                                                $stockClass = 'stock-info-out';
-                                                $stockIcon = 'bi-x-circle-fill';
-                                            } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
-                                                $stockStatus = 'low_stock';
-                                                $stockClass = 'stock-info-low';
-                                                $stockIcon = 'bi-exclamation-triangle-fill';
-                                            } else {
-                                                $stockStatus = 'in_stock';
-                                                $stockClass = 'stock-info-in';
-                                                $stockIcon = 'bi-check-circle-fill';
-                                            }
+                                        if ($stockAvailable <= 0) {
+                                            $stockStatus = 'out_of_stock';
+                                            $stockClass = 'stock-info-out';
+                                            $stockIcon = 'bi-x-circle-fill';
+                                        } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                            $stockStatus = 'low_stock';
+                                            $stockClass = 'stock-info-low';
+                                            $stockIcon = 'bi-exclamation-triangle-fill';
+                                        } else {
+                                            $stockStatus = 'in_stock';
+                                            $stockClass = 'stock-info-in';
+                                            $stockIcon = 'bi-check-circle-fill';
                                         }
                                     }
                                 @endphp
@@ -508,6 +510,14 @@
                                         <div class="product-name">{{ $item->product->name }}</div>
                                         @if ($item->flavor)
                                             <small class="text-muted">{{ $item->flavor->name }}</small>
+                                        @endif
+
+                                        {{-- ✅ Added Branch Name --}}
+                                        @if ($branchInventory && $branchInventory->branch)
+                                            <div class="mt-1" style="font-size: 0.7rem; color: #64748b;">
+                                                <i class="bi bi-shop"></i>
+                                                <strong>{{ $branchInventory->branch->name }}</strong>
+                                            </div>
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $item->quantity }}</td>

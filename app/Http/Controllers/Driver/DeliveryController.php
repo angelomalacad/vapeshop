@@ -235,7 +235,7 @@ class DeliveryController extends Controller
         // --- FILTER: Status ---
         if ($request->filled('status')) {
             $statusFilter = $request->status;
-            
+
             // Map status filters to actual delivery statuses
             $statusMap = [
                 'ready' => 'assigned',
@@ -248,7 +248,7 @@ class DeliveryController extends Controller
             ];
 
             $deliveryStatuses = $statusMap[$statusFilter] ?? $statusFilter;
-            
+
             if (is_array($deliveryStatuses)) {
                 $activeQuery->whereIn('status', $deliveryStatuses);
             } else {
@@ -442,17 +442,18 @@ class DeliveryController extends Controller
                     case 'delivered':
                         $order->order_status = 'delivered';
                         $order->delivered_at = now();
-                        
+
                         // ✅ NEW: Deduct inventory when order is delivered
                         $this->deductOrderInventory($order);
                         break;
                     case 'failed':
                         $order->order_status = 'delivery_failed';
+                        $this->releaseOrderReservations($order);
                         break;
                 }
 
                 $order->save();
-                
+
                 // Log the actual order status after update
                 \Log::info('Order status after update: ' . $order->fresh()->order_status . ' for order #' . $order->order_number . ' (Delivery status: ' . $newStatus . ')');
             }
@@ -533,13 +534,11 @@ class DeliveryController extends Controller
         }
     }
 
-    /**
+       /**
      * Deduct inventory when order is delivered
      */
     private function deductOrderInventory(Order $order)
     {
-        $branchId = $order->branch_id;
-
         DB::beginTransaction();
 
         try {
@@ -560,11 +559,13 @@ class DeliveryController extends Controller
                 ->get();
 
             foreach ($reservations as $reservation) {
-                $inventory = BranchInventory::where('id', $reservation->branch_inventory_id)->first();
+                $resInv = BranchInventory::withoutGlobalScopes()
+                    ->where('id', $reservation->branch_inventory_id)
+                    ->first();
 
-                if ($inventory) {
-                    $inventory->update([
-                        'reserved_quantity' => max(0, $inventory->reserved_quantity - $reservation->quantity)
+                if ($resInv) {
+                    $resInv->update([
+                        'reserved_quantity' => max(0, $resInv->reserved_quantity - $reservation->quantity)
                     ]);
                 }
 
@@ -574,26 +575,44 @@ class DeliveryController extends Controller
                 ]);
             }
 
-            // Deduct reserved inventory for each item
+            // ✅ DEDUCT INVENTORY FOR EACH ITEM
             foreach ($order->items as $item) {
-                $inventory = BranchInventory::where('branch_id', $branchId)
-                    ->where('product_id', $item->product_id)
-                    ->when($item->flavor_id, function($query) use ($item) {
-                        return $query->where('flavor_id', $item->flavor_id);
-                    })
-                    ->first();
+
+                // 🔑 FIX: Target the EXACT inventory row linked to the item (matches driver/admin display)
+                $inventory = null;
+
+                if ($item->inventory_id) {
+                    $inventory = BranchInventory::withoutGlobalScopes()->find($item->inventory_id);
+                }
+
+                // Fallback just in case inventory_id is null (for legacy items)
+                if (!$inventory) {
+                    $inventory = BranchInventory::withoutGlobalScopes()
+                        ->where('branch_id', $order->branch_id)
+                        ->where('product_id', $item->product_id)
+                        ->when(
+                            $item->flavor_id,
+                            function ($query) use ($item) {
+                                return $query->where('flavor_id', $item->flavor_id);
+                            },
+                            function ($query) {
+                                return $query->whereNull('flavor_id');
+                            }
+                        )
+                        ->first();
+                }
 
                 if (!$inventory) {
-                    \Log::warning("Inventory not found for product: {$item->product->name} in branch {$branchId}");
+                    \Log::warning("Inventory not found for product: " . ($item->product->name ?? 'Unknown') . " in order #{$order->order_number}");
                     continue;
                 }
 
                 $oldQuantity = $inventory->quantity;
                 $newQuantity = max(0, $oldQuantity - $item->quantity);
                 $oldReserved = $inventory->reserved_quantity;
-                // The reserved stock of this order was already released above (from its
-                // reservation records). Only release it here for old orders that had no
-                // reservation record, otherwise other orders' reservations would shrink.
+
+                // The reserved stock of this order was already released above.
+                // Only release it here for old orders that had no reservation record.
                 $newReserved = $reservations->isEmpty()
                     ? max(0, $oldReserved - $item->quantity)
                     : $oldReserved;
@@ -606,7 +625,7 @@ class DeliveryController extends Controller
 
                 // Create stock movement record for actual sale
                 StockMovement::create([
-                    'branch_id' => $branchId,
+                    'branch_id' => $inventory->branch_id, // 🔑 FIX: Use the inventory's actual branch, not the order's main branch
                     'product_id' => $item->product_id,
                     'flavor_id' => $item->flavor_id ?? null,
                     'previous_quantity' => $oldQuantity,
@@ -619,7 +638,7 @@ class DeliveryController extends Controller
                     'created_by' => Auth::id(),
                 ]);
 
-                \Log::info("Stock deducted for product {$item->product_id} in order #{$order->order_number}");
+                \Log::info("Stock deducted for product {$item->product_id} in order #{$order->order_number} (Inventory ID: {$inventory->id})");
             }
 
             DB::commit();
@@ -630,49 +649,71 @@ class DeliveryController extends Controller
             throw $e;
         }
     }
+    /**
+     * Release inventory reservations when a delivery fails
+     */
+    private function releaseOrderReservations(Order $order)
+    {
+        $reservations = InventoryReservation::where('order_id', $order->id)
+            ->where('status', 'active')
+            ->get();
 
-    public function getModalData(Delivery $delivery)
-{
-    // ✅ LOAD ALL RELATED DATA
-    $delivery->load([
-        'order.items.product', 
-        'order.branch', 
-        'order.customer'
-    ]);
-    
-    // ✅ ADD STOCK INFO TO EACH ITEM
-    if ($delivery->order) {
-        $order = $delivery->order;
-        $branchId = $order->branch_id;
-        
-        foreach ($order->items as $item) {
-            // Get branch inventory for this product + flavor
-            $branchInventory = \App\Models\BranchInventory::where('branch_id', $branchId)
-                ->where('product_id', $item->product_id)
-                ->when($item->flavor_id, function($query) use ($item) {
-                    return $query->where('flavor_id', $item->flavor_id);
-                }, function($query) {
-                    return $query->whereNull('flavor_id');
-                })
+        foreach ($reservations as $reservation) {
+            // 1. Find the exact inventory record
+            $inventory = BranchInventory::withoutGlobalScopes()
+                ->where('id', $reservation->branch_inventory_id)
+                ->lockForUpdate()
                 ->first();
-            
-            if ($branchInventory) {
-                $item->stock_available = $branchInventory->available_quantity;
-                $item->stock_reserved = $branchInventory->reserved_quantity ?? 0;
-                $item->stock_total = $branchInventory->quantity;
-                $item->low_stock_threshold = $branchInventory->low_stock_threshold ?? 10;
-            } else {
-                $item->stock_available = 0;
-                $item->stock_reserved = 0;
-                $item->stock_total = 0;
-                $item->low_stock_threshold = 10;
+
+            if ($inventory) {
+                // 2. Release the reserved stock
+                $oldReserved = $inventory->reserved_quantity;
+                $newReserved = max(0, $oldReserved - $reservation->quantity);
+
+                $inventory->update(['reserved_quantity' => $newReserved]);
+
+                // 3. Log it in Stock History
+                StockMovement::create([
+                    'branch_id' => $inventory->branch_id,
+                    'product_id' => $inventory->product_id,
+                    'flavor_id' => $inventory->flavor_id,
+                    'previous_quantity' => $inventory->quantity,
+                    'new_quantity' => $inventory->quantity,
+                    'quantity_change' => 0,
+                    'movement_type' => 'release',
+                    'reference_type' => 'order',
+                    'reference_id' => $order->id,
+                    'notes' => "Order #{$order->order_number} failed - stock released back to inventory",
+                    'created_by' => Auth::id(),
+                ]);
             }
+
+            // 4. Mark reservation as released
+            $reservation->update([
+                'status' => 'released',
+                'released_at' => now()
+            ]);
         }
     }
-    
-    return response()->json([
-        'success' => true,
-        'delivery' => $delivery
-    ]);
-}
+
+        /**
+     * ✅ FIXED: Returns pre-rendered modal HTML with correct per-item stock
+     * Uses $item->inventory_id — which is per-item, not per-order-branch.
+     */
+    public function getModalData(Delivery $delivery)
+    {
+        $delivery->load([
+            'order.items.product',
+            'order.items.inventory',
+            'order.branch',
+            'driver',
+        ]);
+
+        $html = view('driver.deliveries.show-modal', ['delivery' => $delivery])->render();
+
+        return response()->json([
+            'success' => true,
+            'html'    => $html,
+        ]);
+    }
 }

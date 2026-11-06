@@ -400,10 +400,10 @@
 
     .totals-admin-fixed .value-col {
         width: 30%;
-        padding-right: 9rem !important; /* ✅ Add this to move numbers LEFT */
+        padding-right: 9rem !important;
     }
 
-    /* ✅ NEW: Delivery Date Range (Expected Delivery Date) - stacked to fit the narrow card */
+    /* ✅ NEW: Delivery Date Range */
     .delivery-date-range {
         display: flex;
         flex-direction: column;
@@ -418,7 +418,7 @@
         font-size: 0.8rem;
     }
 
-    .delivery-date-range > span {
+    .delivery-date-range>span {
         text-align: center;
         font-size: 0.72rem;
         color: #94a3b8;
@@ -468,7 +468,7 @@
         <!-- Order Items Card - FULL WIDTH -->
         <div class="info-card">
             <div class="card-header-custom">
-                <h6><i class="bi bi-receipt"></i> Order Items</h6>
+                <h6><i class="bi bi-receipt"></i> Order Items (Your Branch Only)</h6>
             </div>
             <div class="table-responsive">
                 <table class="table order-items-table">
@@ -482,7 +482,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($order->items as $item)
+                        @foreach ($order->items->filter(function ($item) {
+        return $item->inventory && $item->inventory->branch_id === Auth::user()->branch_id;
+    }) as $item)
                             @php
                                 $product = $item->product;
                                 $imageUrl = null;
@@ -493,27 +495,22 @@
                                         $imageUrl = Storage::url($product->image);
                                     }
                                 }
-                                
-                                // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
+
                                 $stockAvailable = 0;
                                 $stockStatus = 'out_of_stock';
                                 $stockClass = 'stock-info-out';
                                 $stockIcon = 'bi-x-circle-fill';
                                 $stockColor = 'text-danger';
-                                
-                                if ($order->branch_id && $product) {
-                                    $branchInventory = \App\Models\BranchInventory::where('branch_id', $order->branch_id)
-                                        ->where('product_id', $product->id)
-                                        ->when($item->flavor_id, function($query) use ($item) {
-                                            return $query->where('flavor_id', $item->flavor_id);
-                                        }, function($query) {
-                                            return $query->whereNull('flavor_id');
-                                        })
-                                        ->first();
-                                    
+
+                                if ($product) {
+                                    $branchInventory = \App\Models\BranchInventory::where(
+                                        'id',
+                                        $item->inventory_id,
+                                    )->first();
+
                                     if ($branchInventory) {
                                         $stockAvailable = $branchInventory->available_quantity;
-                                        
+
                                         if ($stockAvailable <= 0) {
                                             $stockStatus = 'out_of_stock';
                                             $stockClass = 'stock-info-out';
@@ -581,7 +578,8 @@
                     </tr>
                     <tr style="border-top: 1px solid #eef2f6;">
                         <td class="label-col"><strong>Total</strong></td>
-                        <td class="value-col"><strong style="color: #e74c3c;">₱{{ number_format($order->total_amount, 2) }}</strong></td>
+                        <td class="value-col"><strong
+                                style="color: #e74c3c;">₱{{ number_format($order->total_amount, 2) }}</strong></td>
                     </tr>
                 </table>
             </div>
@@ -604,7 +602,7 @@
 
                         <p class="info-label">Branch</p>
                         <p class="info-value">
-                            @if($order->branch)
+                            @if ($order->branch)
                                 <span class="branch-badge">
                                     <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
                                 </span>
@@ -633,7 +631,10 @@
                                     'cancelled' => 'badge-cancelled',
                                     default => 'badge-secondary',
                                 };
-                                $displayStatus = $order->order_status == 'processing' ? 'Packing' : ucfirst(str_replace('_', ' ', $order->order_status));
+                                $displayStatus =
+                                    $order->order_status == 'processing'
+                                        ? 'Packing'
+                                        : ucfirst(str_replace('_', ' ', $order->order_status));
                             @endphp
                             <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                         </p>
@@ -665,180 +666,198 @@
                 </div>
             </div>
 
-           <!-- Update Status (Right) -->
-<div class="col-md-4">
-    <div class="info-card">
-        <div class="card-header-custom">
-            <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
-        </div>
-        <div class="card-body p-3">
-            @php
-                $isCurrentBranch = isset($isCurrentBranch) ? $isCurrentBranch : ($order->branch_id === Auth::user()->branch_id);
-            @endphp
-
-            @if($isCurrentBranch)
-                @if ($order->order_status == 'pending')
-                    <button type="button" class="status-btn btn-confirm"
-                        onclick="handleStatus('confirm', {{ $order->id }})">
-                        <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
-                    </button>
-                @elseif($order->order_status == 'confirmed')
-                    <button type="button" class="status-btn btn-processing"
-                        onclick="handleStatus('processing', {{ $order->id }})">
-                        <i class="bi bi-gear me-2"></i> Mark as Packing
-                    </button>
-                @elseif($order->order_status == 'processing')
-                    <button type="button" class="status-btn btn-ready"
-                        onclick="handleStatus('ready', {{ $order->id }})">
-                        <i class="bi bi-box-seam me-2"></i> Mark as Ready
-                    </button>
-                @elseif($order->order_status == 'ready')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Order is Ready</strong><br>
-                        <small class="text-muted">Waiting for driver to pick up.</small>
-                    </div>
-                @elseif($order->order_status == 'out_for_delivery')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-truck me-2"></i>
-                        <strong>Out for Delivery</strong><br>
-                        <small class="text-muted">Driver is delivering.</small>
-                    </div>
-                    @if($order->delivery && $order->delivery->driver)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
-                        </div>
-                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
-                        </div>
-                    @endif
-                @elseif($order->order_status == 'picked_up')
-                    <div class="alert-custom alert-info-custom text-center">
-                        <i class="bi bi-box-seam me-2"></i>
-                        <strong>Picked Up</strong><br>
-                        <small class="text-muted">Driver has picked up the order.</small>
-                    </div>
-                    @if($order->delivery && $order->delivery->driver)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Driver:</strong> {{ $order->delivery->driver->name ?? 'N/A' }}
-                            <br>
-                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
-                        </div>
-                    @elseif($order->delivery && $order->delivery->notes && $order->is_lalamove)
-                        <div class="alert-custom alert-info-custom mt-2">
-                            <i class="bi bi-person-badge me-2"></i>
-                            <strong>Lalamove Driver:</strong> {{ $order->delivery->notes }}
-                            <br>
-                            <small class="text-muted">Picked up at {{ $order->delivery->picked_up_at ? $order->delivery->picked_up_at->format('M d, Y h:i A') : 'N/A' }}</small>
-                        </div>
-                    @endif
-                @elseif($order->order_status == 'delivered')
-                    <div class="alert-custom alert-success-custom text-center">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        <strong>Order Completed</strong><br>
-                        <small class="text-muted">Delivered on {{ $order->updated_at->format('M d, Y h:i A') }}</small>
-                    </div>
-                @endif
-
-                {{-- ✅ NEW: Expected Delivery Date adjustment (From – To), same as the driver side --}}
-                @if (!in_array($order->order_status, ['delivered', 'cancelled']))
-                    <div class="mb-3 mt-3">
-                        <label class="info-label">Expected Delivery Date</label>
-                        <div class="delivery-date-range">
-                            <input type="date" name="delivery_date_from" id="delivery_date_from" class="form-control"
-                                value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
-                            <span class="text-muted">to</span>
-                            <input type="date" name="delivery_date_to" id="delivery_date_to" class="form-control"
-                                value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
-                        </div>
-                        <button type="button" class="btn btn-primary btn-sm mt-2" id="saveDeliveryDateBtn"
-                            onclick="saveDeliveryDate()">
-                            Save
-                        </button>
-                    </div>
-                @endif
-            @else
-                <div class="locked-alert">
-                    <i class="bi bi-lock-fill"></i>
-                    <h6>Locked Order</h6>
-                    <p>This order belongs to another branch.</p>
-                </div>
-            @endif
-
-            <div id="result" class="mt-3"></div>
-
-            <!-- ✅ NEW: Lalamove Info - ONLY FOR LALAMOVE ORDERS -->
-            @php
-                $cityLower = strtolower(trim($order->city ?? ''));
-                $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
-                $isLalamoveEligible = !$isCalambaCity;
-            @endphp
-
-            @if ($isLalamoveEligible && $order->delivery_type == 'delivery' && $order->delivery)
-                <div class="info-card mt-3" style="border: 1px solid #dbeafe;">
-                    <div class="card-header-custom" style="background: #f8f9fa;">
-                        <h6 style="color: #1e40af;"><i class="bi bi-truck"></i> Lalamove Info</h6>
+            <!-- Update Status (Right) -->
+            <div class="col-md-4">
+                <div class="info-card">
+                    <div class="card-header-custom">
+                        <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
                     </div>
                     <div class="card-body p-3">
-                        <!-- Driver Info -->
-                        <p class="info-label">Driver</p>
-                        <p class="info-value">
-                            @if ($order->delivery->driver)
-                                <i class="bi bi-person-badge text-primary me-1"></i>
-                                {{ $order->delivery->driver->name }}
-                            @elseif ($order->delivery->notes)
-                                <i class="bi bi-person-badge text-primary me-1"></i>
-                                {{ $order->delivery->notes }} (Lalamove)
-                            @else
-                                <span class="text-muted">Not Assigned</span>
-                            @endif
-                        </p>
+                        @php
+                            $hasBranchItems = $order->items->contains(function ($item) {
+                                return $item->inventory && $item->inventory->branch_id === Auth::user()->branch_id;
+                            });
 
-                        @if ($order->delivery->driver && $order->delivery->driver->phone)
-                            <p class="info-label">Driver Contact</p>
-                            <p class="info-value">
-                                <i class="bi bi-telephone text-primary me-1"></i>
-                                {{ $order->delivery->driver->phone }}
-                            </p>
+                            // ✅ Check this branch's specific item statuses
+                            $branchItemStatuses = $order->items
+                                ->filter(
+                                    fn($i) => $i->inventory && $i->inventory->branch_id === Auth::user()->branch_id,
+                                )
+                                ->pluck('status')
+                                ->unique()
+                                ->toArray();
+
+                            $branchStatus = 'pending';
+                            if (in_array('ready', $branchItemStatuses) && count($branchItemStatuses) === 1) {
+                                $branchStatus = 'ready';
+                            } elseif (
+                                in_array('processing', $branchItemStatuses) ||
+                                in_array('ready', $branchItemStatuses)
+                            ) {
+                                $branchStatus = 'processing';
+                            } elseif (
+                                in_array('confirmed', $branchItemStatuses) ||
+                                in_array('processing', $branchItemStatuses)
+                            ) {
+                                $branchStatus = 'confirmed';
+                            }
+                        @endphp
+
+                        @if ($hasBranchItems)
+
+                            {{-- 1. CONFIRM PHASE --}}
+                            @if ($branchStatus === 'pending')
+                                <button type="button" class="status-btn btn-confirm"
+                                    onclick="handleStatus('confirm', {{ $order->id }})">
+                                    <i class="bi bi-check-circle me-2"></i> Confirm Order & Reserve Stock
+                                </button>
+                            @endif
+
+                            {{-- 2. PACKING PHASE --}}
+                            @if ($branchStatus === 'confirmed')
+                                <div class="alert-custom alert-success-custom text-center mb-3">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Order Confirmed</strong>
+                                </div>
+                                <button type="button" class="status-btn btn-processing"
+                                    onclick="handleStatus('processing', {{ $order->id }})">
+                                    <i class="bi bi-gear me-2"></i> Mark as Packing
+                                </button>
+                            @endif
+
+                            {{-- 3. READY PHASE --}}
+                            @if ($branchStatus === 'processing')
+                                <div class="alert-custom alert-success-custom text-center mb-3">
+                                    <i class="bi bi-gear-fill me-2"></i>
+                                    <strong>Packing in Progress</strong>
+                                </div>
+                                <button type="button" class="status-btn btn-ready"
+                                    onclick="handleStatus('ready', {{ $order->id }})">
+                                    <i class="bi bi-box-seam me-2"></i> Mark as Ready
+                                </button>
+                            @endif
+
+                            {{-- 4. READY STATE (YOUR BRANCH) --}}
+                            @if ($branchStatus === 'ready')
+                                <div class="alert-custom alert-success-custom text-center">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Your Branch is Ready</strong><br>
+                                    <small class="text-muted">
+                                        @if ($order->order_status === 'ready')
+                                            All branches ready. Driver can pick up.
+                                        @else
+                                            Waiting for other branches.
+                                        @endif
+                                    </small>
+                                </div>
+                            @endif
+
+                            {{-- 5. DELIVERY STATES (Global) --}}
+                            @if ($order->order_status == 'out_for_delivery')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-truck me-2"></i>
+                                    <strong>Out for Delivery</strong>
+                                </div>
+                            @elseif($order->order_status == 'picked_up')
+                                <div class="alert-custom alert-info-custom text-center">
+                                    <i class="bi bi-box-seam me-2"></i>
+                                    <strong>Picked Up</strong>
+                                </div>
+                            @elseif($order->order_status == 'delivered')
+                                <div class="alert-custom alert-success-custom text-center">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>Order Completed</strong>
+                                </div>
+                            @endif
+
+                            {{-- Delivery Date --}}
+                            @if (!in_array($order->order_status, ['delivered', 'cancelled']))
+                                <div class="mb-3 mt-3">
+                                    <label class="info-label">Expected Delivery Date</label>
+                                    <div class="delivery-date-range">
+                                        <input type="date" name="delivery_date_from" id="delivery_date_from"
+                                            class="form-control"
+                                            value="{{ $order->delivery_date_from ? \Carbon\Carbon::parse($order->delivery_date_from)->format('Y-m-d') : '' }}">
+                                        <span class="text-muted">to</span>
+                                        <input type="date" name="delivery_date_to" id="delivery_date_to"
+                                            class="form-control"
+                                            value="{{ $order->delivery_date_to ? \Carbon\Carbon::parse($order->delivery_date_to)->format('Y-m-d') : '' }}">
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm mt-2"
+                                        id="saveDeliveryDateBtn" onclick="saveDeliveryDate()">Save</button>
+                                </div>
+                            @endif
+                        @else
+                            <div class="locked-alert">
+                                <i class="bi bi-lock-fill"></i>
+                                <h6>Locked Order</h6>
+                                <p>You do not have items in this order.</p>
+                            </div>
                         @endif
 
-                        <!-- Lalamove Tracking Link -->
-                        @if (!empty($order->delivery->tracking_number))
-                            <p class="info-label">Lalamove Tracking Link</p>
-                            <p class="info-value">
-                                <a href="{{ $order->delivery->tracking_number }}" target="_blank"
-                                    class="text-primary text-break">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i> View Tracking Link
-                                </a>
-                            </p>
-                        @else
-                            <p class="info-label">Lalamove Tracking Link</p>
-                            <p class="info-value text-muted">Link available when driver updates it.</p>
+                        <div id="result" class="mt-3"></div>
+
+                        @php
+                            $cityLower = strtolower(trim($order->city ?? ''));
+                            $isCalambaCity = $cityLower === 'calamba city' || $cityLower === 'calamba';
+                            $isLalamoveEligible = !$isCalambaCity;
+                        @endphp
+
+                        @if ($isLalamoveEligible && $order->delivery_type == 'delivery' && $order->delivery)
+                            <div class="info-card mt-3" style="border: 1px solid #dbeafe;">
+                                <div class="card-header-custom" style="background: #f8f9fa;">
+                                    <h6 style="color: #1e40af;"><i class="bi bi-truck"></i> Lalamove Info</h6>
+                                </div>
+                                <div class="card-body p-3">
+                                    <p class="info-label">Driver</p>
+                                    <p class="info-value">
+                                        @if ($order->delivery->driver)
+                                            <i class="bi bi-person-badge text-primary me-1"></i>
+                                            {{ $order->delivery->driver->name }}
+                                        @elseif ($order->delivery->notes)
+                                            <i class="bi bi-person-badge text-primary me-1"></i>
+                                            {{ $order->delivery->notes }} (Lalamove)
+                                        @else
+                                            <span class="text-muted">Not Assigned</span>
+                                        @endif
+                                    </p>
+
+                                    @if ($order->delivery->driver && $order->delivery->driver->phone)
+                                        <p class="info-label">Driver Contact</p>
+                                        <p class="info-value">
+                                            <i class="bi bi-telephone text-primary me-1"></i>
+                                            {{ $order->delivery->driver->phone }}
+                                        </p>
+                                    @endif
+
+                                    @if (!empty($order->delivery->tracking_number))
+                                        <p class="info-label">Lalamove Tracking Link</p>
+                                        <p class="info-value">
+                                            <a href="{{ $order->delivery->tracking_number }}" target="_blank"
+                                                class="text-primary text-break">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i> View Tracking Link
+                                            </a>
+                                        </p>
+                                    @else
+                                        <p class="info-label">Lalamove Tracking Link</p>
+                                        <p class="info-value text-muted">Link available when driver updates it.</p>
+                                    @endif
+                                </div>
+                            </div>
                         @endif
                     </div>
                 </div>
-            @endif
-        </div>
-    </div>
-</div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- ✅ JAVASCRIPT DIRECTLY HERE - NO BLADE DIRECTIVES -->
 <script>
     function handleStatus(action, orderId) {
         const resultDiv = document.getElementById('result');
         const button = event.target.closest('button');
 
-        if (!button) {
-            console.error('Button not found');
-            return;
-        }
+        if (!button) return;
 
         const originalText = button.innerHTML;
 
@@ -850,7 +869,6 @@
         }
 
         let url = '';
-
         switch (action) {
             case 'confirm':
                 url = `/branch-admin/online-orders/${orderId}/confirm`;
@@ -862,9 +880,7 @@
                 url = `/branch-admin/online-orders/${orderId}/ready`;
                 break;
             default:
-                if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">Invalid action</div>';
-                }
+                if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-danger">Invalid action</div>';
                 button.disabled = false;
                 button.innerHTML = originalText;
                 return;
@@ -882,76 +898,58 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
-                    }
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-success">' + data.message +
+                        '</div>';
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
-                            'Error occurred') + '</div>';
-                    }
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                        'Error occurred') + '</div>';
                     button.disabled = false;
                     button.innerHTML = originalText;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
-                }
+                if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message +
+                    '</div>';
                 button.disabled = false;
                 button.innerHTML = originalText;
             });
     }
 
     function closeModal() {
-        // Try multiple ways to close the modal
         const customModal = document.getElementById('customModal');
         if (customModal) {
             customModal.style.display = 'none';
             const content = document.getElementById('customModalContent');
             if (content) content.innerHTML = '';
         }
-
-        // Try Bootstrap modal
         const orderModal = document.getElementById('orderModal');
         if (orderModal) {
             const bootstrapModal = bootstrap.Modal.getInstance(orderModal);
             if (bootstrapModal) bootstrapModal.hide();
         }
-
-        // Remove any remaining modal backdrops
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
-
-        // Clear container
         const container = document.getElementById('modalContainer');
         if (container) container.innerHTML = '';
     }
 
-    // ✅ NEW: Delivery date range - allow the same date for From and To.
-    // Runs immediately (not on DOMContentLoaded) because this view is loaded inside a modal.
     (function initDeliveryDateRange() {
         const deliveryDateFrom = document.getElementById('delivery_date_from');
         const deliveryDateTo = document.getElementById('delivery_date_to');
-
         if (!deliveryDateFrom || !deliveryDateTo) return;
 
-        // From cannot be in the past (unless an earlier date is already saved)
         const today = new Date().toISOString().split('T')[0];
         if (!deliveryDateFrom.value || deliveryDateFrom.value >= today) {
             deliveryDateFrom.min = today;
         }
-
-        // To must be the same as or after From
         if (deliveryDateFrom.value) {
             deliveryDateTo.min = deliveryDateFrom.value;
         }
-
         deliveryDateFrom.addEventListener('change', function() {
             deliveryDateTo.min = this.value;
             if (deliveryDateTo.value && deliveryDateTo.value < this.value) {
@@ -960,7 +958,6 @@
         });
     })();
 
-    // ✅ NEW: Save the delivery date range
     function saveDeliveryDate() {
         const orderId = {{ $order->id }};
         const deliveryDateFrom = document.getElementById('delivery_date_from').value;
@@ -968,17 +965,13 @@
         const resultDiv = document.getElementById('result');
 
         if (!deliveryDateFrom || !deliveryDateTo) {
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Please select both From and To dates.</div>';
-            }
+            if (resultDiv) resultDiv.innerHTML =
+                '<div class="alert alert-danger">Please select both From and To dates.</div>';
             return;
         }
-
-        // Same date is allowed
         if (deliveryDateTo < deliveryDateFrom) {
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">To date cannot be before From date.</div>';
-            }
+            if (resultDiv) resultDiv.innerHTML =
+                '<div class="alert alert-danger">To date cannot be before From date.</div>';
             return;
         }
 
@@ -987,9 +980,7 @@
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
 
-        if (resultDiv) {
-            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
-        }
+        if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
 
         fetch(`{{ url('/branch-admin/online-orders') }}/${orderId}/delivery-date`, {
                 method: 'POST',
@@ -1007,32 +998,23 @@
             .then(data => {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalBtnText;
-
                 if (data.success) {
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
-                            'Delivery dates saved successfully!') + '</div>';
-                    }
-
-                    // Refresh so the customer-facing dates and this page stay in sync
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
+                        'Delivery dates saved successfully!') + '</div>';
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
-                            'Error saving delivery dates') + '</div>';
-                    }
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                        'Error saving delivery dates') + '</div>';
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalBtnText;
-
-                if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
-                }
+                if (resultDiv) resultDiv.innerHTML =
+                    '<div class="alert alert-danger">Network error. Please try again.</div>';
             });
     }
 </script>

@@ -441,19 +441,26 @@
                                         }
                                     }
 
-                                    // ✅ Inventory Stock Check
+                                    // ✅ Inventory Stock Check (Fixed for multi-branch)
                                     $stockAvailable = 0;
                                     $stockReserved = 0;
                                     $stockTotal = 0;
                                     $stockStatus = 'out_of_stock';
                                     $stockClass = 'stock-info-out';
                                     $stockIcon = 'bi-x-circle-fill';
+                                    $branchInventory = null;
 
-                                    if ($order->branch_id && $product) {
-                                        $branchInventory = \App\Models\BranchInventory::where(
-                                            'branch_id',
-                                            $order->branch_id,
-                                        )
+                                    // 1. Try exact inventory_id
+                                    if ($item->inventory_id) {
+                                        $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()->find(
+                                            $item->inventory_id,
+                                        );
+                                    }
+
+                                    // 2. Fallback to branch lookup
+                                    if (!$branchInventory && $order->branch_id && $product) {
+                                        $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()
+                                            ->where('branch_id', $order->branch_id)
                                             ->where('product_id', $product->id)
                                             ->when(
                                                 $item->flavor_id,
@@ -465,25 +472,25 @@
                                                 },
                                             )
                                             ->first();
+                                    }
 
-                                        if ($branchInventory) {
-                                            $stockTotal = $branchInventory->quantity;
-                                            $stockReserved = $branchInventory->reserved_quantity;
-                                            $stockAvailable = $branchInventory->available_quantity;
+                                    if ($branchInventory) {
+                                        $stockTotal = $branchInventory->quantity;
+                                        $stockReserved = $branchInventory->reserved_quantity;
+                                        $stockAvailable = $branchInventory->available_quantity;
 
-                                            if ($stockAvailable <= 0) {
-                                                $stockStatus = 'out_of_stock';
-                                                $stockClass = 'stock-info-out';
-                                                $stockIcon = 'bi-x-circle-fill';
-                                            } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
-                                                $stockStatus = 'low_stock';
-                                                $stockClass = 'stock-info-low';
-                                                $stockIcon = 'bi-exclamation-triangle-fill';
-                                            } else {
-                                                $stockStatus = 'in_stock';
-                                                $stockClass = 'stock-info-in';
-                                                $stockIcon = 'bi-check-circle-fill';
-                                            }
+                                        if ($stockAvailable <= 0) {
+                                            $stockStatus = 'out_of_stock';
+                                            $stockClass = 'stock-info-out';
+                                            $stockIcon = 'bi-x-circle-fill';
+                                        } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                            $stockStatus = 'low_stock';
+                                            $stockClass = 'stock-info-low';
+                                            $stockIcon = 'bi-exclamation-triangle-fill';
+                                        } else {
+                                            $stockStatus = 'in_stock';
+                                            $stockClass = 'stock-info-in';
+                                            $stockIcon = 'bi-check-circle-fill';
                                         }
                                     }
                                 @endphp
@@ -503,6 +510,13 @@
                                         <div class="product-name">{{ $item->product->name }}</div>
                                         @if ($item->flavor)
                                             <small class="text-muted">{{ $item->flavor->name }}</small>
+                                        @endif
+                                        {{-- ✅ Added Branch Name --}}
+                                        @if ($branchInventory && $branchInventory->branch)
+                                            <div class="mt-1" style="font-size: 0.7rem; color: #64748b;">
+                                                <i class="bi bi-shop"></i>
+                                                <strong>{{ $branchInventory->branch->name }}</strong>
+                                            </div>
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $item->quantity }}</td>
@@ -573,7 +587,6 @@
                         <div class="info-label">Status</div>
                         <div class="info-value">
                             @php
-                                // ✅ UPDATED: added delivery_failed class
                                 $statusClass = match ($order->order_status) {
                                     'pending' => 'badge-pending',
                                     'confirmed' => 'badge-confirmed',
@@ -586,7 +599,6 @@
                                     'delivery_failed' => 'badge-delivery_failed',
                                     default => 'badge-secondary',
                                 };
-                                // ✅ UPDATED: explicit label for delivery_failed
                                 $displayStatus = match ($order->order_status) {
                                     'processing' => 'Packing',
                                     'picked_up' => 'Picked Up',
@@ -667,7 +679,6 @@
                             <div class="info-label">Delivery Status</div>
                             <div class="info-value">
                                 @php
-                                    // ✅ UPDATED: failed/cancelled now show red badge
                                     $deliveryStatusClass = match ($order->delivery->status) {
                                         'assigned' => 'badge-info',
                                         'picked_up' => 'badge-primary',
@@ -677,7 +688,6 @@
                                         'cancelled' => 'badge-danger',
                                         default => 'badge-secondary',
                                     };
-                                    // ✅ UPDATED: explicit label for failed
                                     $deliveryStatusLabel = match ($order->delivery->status) {
                                         'failed' => 'Delivery Failed',
                                         'cancelled' => 'Cancelled',
@@ -713,7 +723,6 @@
                                 </div>
                             </div>
                         @endif
-                        {{-- ✅ NEW: Failed at timestamp --}}
                         @if ($order->delivery->failed_at ?? null)
                             <div class="info-row">
                                 <div class="info-label">Failed At</div>
@@ -722,7 +731,6 @@
                                 </div>
                             </div>
                         @endif
-                        {{-- ✅ NEW: Failure reason (if column exists) --}}
                         @if ($order->delivery->failure_reason ?? null)
                             <div class="info-row">
                                 <div class="info-label">Reason</div>
@@ -743,7 +751,6 @@
                 <div class="card-body-minimal">
                     <div class="timeline-container">
                         @php
-                            // ✅ UPDATED: delivery_failed treated as terminal (level 99 = failed endpoint)
                             $statusOrder = [
                                 'pending' => 0,
                                 'confirmed' => 1,
@@ -753,24 +760,21 @@
                                 'out_for_delivery' => 5,
                                 'in_transit' => 5,
                                 'delivered' => 6,
-                                'delivery_failed' => 6, // ✅ sits at same level as delivered (final step)
+                                'delivery_failed' => 6,
                                 'cancelled' => 99,
                             ];
 
                             $currentStatus = $order->order_status;
                             $currentStatusLevel = $statusOrder[$currentStatus] ?? 0;
 
-                            // Detect if this order is a failed delivery
                             $isFailedDelivery =
                                 $currentStatus === 'delivery_failed' ||
                                 ($order->delivery &&
                                     in_array($order->delivery->status, ['failed', 'cancelled'], true) &&
                                     $currentStatus !== 'cancelled');
 
-                            // Also check delivery status
                             if ($order->delivery) {
                                 $deliveryStatus = $order->delivery->status;
-                                // ✅ Treat delivery "failed" as terminal at level 6
                                 if (in_array($deliveryStatus, ['failed'], true)) {
                                     $deliveryStatusLevel = 6;
                                 } elseif ($deliveryStatus === 'cancelled') {
@@ -781,12 +785,10 @@
                                 $currentStatusLevel = max($currentStatusLevel, $deliveryStatusLevel);
                             }
 
-                            // Helper function
                             $isCompleted = function ($level) use ($currentStatusLevel) {
                                 return $currentStatusLevel >= $level;
                             };
 
-                            // Get timestamps (from orders or deliveries)
                             $confirmedAt = $order->confirmed_at;
                             $processingAt = $order->processing_at;
                             $readyAt = $order->ready_at;
@@ -798,10 +800,8 @@
                                     : null);
                             $deliveredAt =
                                 $order->delivered_at ?: ($order->delivery ? $order->delivery->delivered_at : null);
-                            // ✅ NEW: failed timestamp
                             $failedAt = $order->delivery->failed_at ?? ($order->failed_at ?? null);
 
-                            // Format date helper
                             $formatDate = function ($date) {
                                 return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
                             };

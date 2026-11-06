@@ -41,11 +41,13 @@ class Order extends Model
         'gcash_reference',
         'order_status',      // new status column for online flow
         'admin_notes',
+        'ready_branches',
     ];
 
     protected $casts = [
         'estimated_delivery_time' => 'datetime',
         'order_status' => 'string',
+        'ready_branches' => 'array', // ✅ Add this
     ];
 
     // Relationships

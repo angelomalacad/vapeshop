@@ -604,7 +604,7 @@
             }
 
             .order-table td:nth-child(7)::before {
-                content: 'Branch';
+                content: 'Pickup';
                 font-size: 0.72rem;
                 font-weight: 600;
                 color: #94a3b8;
@@ -988,7 +988,7 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Total</th>
-                                <th>Branch</th>
+                                <th>Pickup Branches</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Lalamove Info</th>
@@ -998,11 +998,9 @@
                         <tbody>
                             @forelse($orders as $order)
                                 @php
-                                    // ✅ FIXED: Map delivery status to display status
                                     $deliveryStatus = $order->delivery ? $order->delivery->status : null;
                                     $displayStatus = $order->order_status;
 
-                                    // Map statuses for display - in_transit shows as out_for_delivery
                                     $statusMap = [
                                         'assigned' => 'ready',
                                         'picked_up' => 'picked_up',
@@ -1050,7 +1048,6 @@
                                     $isLalamoveEligible = !$isCalambaCity;
                                 @endphp
 
-                                {{-- ✅ SKIP: delivered and delivery_failed orders (they belong in History) --}}
                                 @if (in_array($displayStatus, ['delivered', 'delivery_failed']))
                                     @continue
                                 @endif
@@ -1081,16 +1078,27 @@
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
                                     <td>
-                                        <strong class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                        <strong
+                                            class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
                                         @if (($order->delivery_fee ?? 0) > 0)
-                                            <div class="fee-note">incl. ₱{{ number_format($order->delivery_fee, 2) }} delivery fee</div>
+                                            <div class="fee-note">incl. ₱{{ number_format($order->delivery_fee, 2) }}
+                                                delivery fee</div>
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($order->branch)
-                                            <span class="branch-badge">
-                                                <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
-                                            </span>
+                                        @php
+                                            $pickupBranches = $order->items
+                                                ->map(fn($item) => $item->inventory->branch ?? null)
+                                                ->filter()
+                                                ->unique('id');
+                                        @endphp
+                                        @if ($pickupBranches->isNotEmpty())
+                                            <div class="d-flex flex-column gap-1">
+                                                @foreach ($pickupBranches as $branch)
+                                                    <span class="branch-badge"><i
+                                                            class="bi bi-shop me-1"></i>{{ $branch->name }}</span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="branch-badge">N/A</span>
                                         @endif
@@ -1120,9 +1128,18 @@
                                         @endif
                                     </td>
                                     <td class="pe-4">
+                                        @php
+                                            $allReady = in_array($order->order_status, [
+                                                'ready',
+                                                'picked_up',
+                                                'out_for_delivery',
+                                                'delivered',
+                                            ]);
+                                        @endphp
                                         <button onclick="window.openOrderModal({{ $order->id }})"
-                                            class="btn btn-manage btn-sm text-white">
-                                            <i class="bi bi-eye me-1"></i> Manage
+                                            class="btn btn-manage btn-sm text-white" {{ !$allReady ? 'disabled' : '' }}
+                                            title="{{ !$allReady ? 'Waiting for all branches to mark items as Ready' : 'Manage Order' }}">
+                                            <i class="bi bi-eye me-1"></i> {{ $allReady ? 'Manage' : 'Waiting...' }}
                                         </button>
                                     </td>
                                 </tr>
@@ -1160,7 +1177,7 @@
         </div>
     </div>
 
-    <!-- MODAL CONTAINER - CRITICAL FIX -->
+    <!-- MODAL CONTAINER -->
     <div id="customModal">
         <div id="customModalContent">
             <!-- Content will be injected here via AJAX -->

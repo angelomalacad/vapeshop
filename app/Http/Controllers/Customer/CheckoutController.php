@@ -18,12 +18,8 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-        // Check if this is a selected items checkout
         if (session()->has('selected_checkout')) {
             $cart = session()->get('selected_cart', []);
-            // Do NOT forget the flag immediately, keep it in session for form validation!
-            // session()->forget('selected_checkout');
-            // session()->forget('selected_cart');
         } else {
             $cart = CartHelper::getCart();
         }
@@ -32,18 +28,15 @@ class CheckoutController extends Controller
             return redirect()->route('customer.cart.index')->with('error', 'Your cart is empty.');
         }
 
-        // --- PREPARE CART ITEMS FOR ORDER SUMMARY IMAGES ---
         $cartItems = [];
         $subtotal = 0;
 
         foreach ($cart as $inventoryId => $item) {
             $inventory = \App\Models\BranchInventory::with('product')->find($inventoryId);
-
             $imageUrl = null;
             if ($inventory && $inventory->product && $inventory->product->image) {
                 $imageUrl = \Storage::url($inventory->product->image);
             }
-
             $cartItems[] = [
                 'inventory_id' => $inventoryId,
                 'product_name' => $item['product_name'],
@@ -53,28 +46,22 @@ class CheckoutController extends Controller
                 'price' => $item['price'],
                 'image_url' => $imageUrl,
             ];
-
             $subtotal += $item['price'] * $item['quantity'];
         }
 
         $firstBranchId = collect($cart)->first()['branch_id'] ?? null;
         $branch = $firstBranchId ? Branch::find($firstBranchId) : null;
 
-        // ================================================================
-        // Determine Calamba status from the User Profile
-        // ================================================================
         $isInsideCalamba = false;
         $userCity = Auth::check() ? Auth::user()->city : null;
-
         if ($userCity) {
             $cityLower = strtolower(trim($userCity));
             if ($cityLower === 'calamba city' || $cityLower === 'calamba') {
                 $isInsideCalamba = true;
             }
         }
-        // ================================================================
 
-        $tax = 0; // ✅ No tax
+        $tax = 0;
         $calambaFee = (float) (\DB::table('settings')->where('key', 'calamba_delivery_fee')->value('value') ?? 50);
         $deliveryFee = $isInsideCalamba ? $calambaFee : 0;
         $total = $subtotal + $deliveryFee;
@@ -84,11 +71,9 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        // Determine if we are using a selected cart
         $isSelectedCheckout = session()->has('selected_checkout');
         if ($isSelectedCheckout) {
             $cart = session()->get('selected_cart', []);
-            // ✅ FIX: Do NOT forget here. Only forget AFTER a successful order.
         } else {
             $cart = CartHelper::getCart();
         }
@@ -97,22 +82,18 @@ class CheckoutController extends Controller
             return redirect()->route('customer.cart.index')->with('error', 'Cart is empty.');
         }
 
-        // --- VALIDATION TO HANDLE NEW ADDRESS DROPDOWNS ---
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
             'delivery_type' => 'required|in:pickup,delivery',
-
             'delivery_address' => 'required_if:address_option,saved|nullable|string',
             'delivery_date' => 'nullable|date|after_or_equal:today',
             'new_delivery_address' => 'required_if:address_option,new|nullable|string',
-
             'new_city' => 'required_if:address_option,new|nullable|string|max:100',
             'new_barangay' => 'required_if:address_option,new|nullable|string|max:100',
             'new_province' => 'required_if:address_option,new|nullable|string|max:100',
             'new_zip_code' => 'nullable|string|max:20',
-
             'landmark' => 'nullable|string|max:255',
             'payment_method' => 'required|in:cod,gcash',
             'gcash_reference' => 'required_if:payment_method,gcash|nullable|string',
@@ -121,19 +102,16 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Check stock and reserve (Iterates through ALL branches in the cart)
             foreach ($cart as $inventoryId => $item) {
                 $inventory = BranchInventory::lockForUpdate()->find($inventoryId);
                 if (!$inventory || $inventory->available_quantity < $item['quantity']) {
                     throw new \Exception("Insufficient stock for {$item['product_name']}");
                 }
-                // Reserve stock
                 $inventory->update([
                     'reserved_quantity' => $inventory->reserved_quantity + $item['quantity']
                 ]);
             }
 
-            // --- MAP ADDRESS DATA BASED ON SELECTION ---
             $addressOption = $request->input('address_option', 'saved');
             $deliveryAddress = $request->delivery_address;
             $city = $request->city;
@@ -153,7 +131,6 @@ class CheckoutController extends Controller
                 $landmark = $request->new_landmark ?? $request->landmark;
             }
 
-            // --- Determine if inside Calamba (for delivery fee) ---
             $isInsideCalambaForFee = false;
             if ($city) {
                 $cityLower = strtolower(trim($city));
@@ -162,32 +139,28 @@ class CheckoutController extends Controller
                 }
             }
 
-            // 2. Calculate Totals
             $subtotal = 0;
             foreach ($cart as $item) {
                 $subtotal += $item['price'] * $item['quantity'];
             }
-            $tax = 0; // ✅ No tax
+            $tax = 0;
             $calambaFee = (float) (\DB::table('settings')->where('key', 'calamba_delivery_fee')->value('value') ?? 50);
             $deliveryFee = $isInsideCalambaForFee ? $calambaFee : 0;
             $total = $subtotal + $deliveryFee;
 
-            // 3. Determine if the cart has mixed branches
+            // ✅ Assign to first branch to prevent NULL branch_id
             $branchIds = collect($cart)->pluck('branch_id')->unique();
-            $isMixedCart = $branchIds->count() > 1;
+            $singleBranchId = $branchIds->first();
 
-            $singleBranchId = $isMixedCart ? null : $branchIds->first();
-
-            // 4. Create order
             $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(uniqid());
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => Auth::id(),
                 'branch_id' => $singleBranchId,
                 'subtotal' => $subtotal,
-                'tax' => 0, // ✅ No tax
-                'delivery_fee' => $deliveryFee, // ✅ ₱50 inside Calamba, 0 outside
-                'total_amount' => $total, // ✅ Subtotal + delivery fee
+                'tax' => 0,
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => $total,
                 'status' => 'pending',
                 'order_status' => 'pending',
                 'payment_status' => 'pending',
@@ -208,9 +181,7 @@ class CheckoutController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // 5. Create order items AND create reservation records
             foreach ($cart as $inventoryId => $item) {
-                // Create order item
                 $order->items()->create([
                     'inventory_id' => $inventoryId,
                     'product_id' => $item['product_id'],
@@ -218,9 +189,9 @@ class CheckoutController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'subtotal' => $item['price'] * $item['quantity'],
+                    'status' => 'pending',
                 ]);
 
-                // CREATE INVENTORY RESERVATION RECORD
                 InventoryReservation::create([
                     'branch_inventory_id' => $inventoryId,
                     'order_id' => $order->id,
@@ -233,21 +204,11 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // --- LALAMOVE / BRANCH DRIVER LOGIC ---
-            // Determine if inside Calamba
             $isInsideCalamba = false;
             if ($city) {
                 $cityLower = strtolower(trim($city));
                 if ($cityLower === 'calamba city' || $cityLower === 'calamba') {
                     $isInsideCalamba = true;
-                }
-            }
-
-            // If it's a Lalamove order (Outside Calamba) swap the inventory to Paciano logic
-            if (!$isInsideCalamba) {
-                foreach ($order->items as $orderItem) {
-                    // Optional: Implement your Lalamove Proximity Logic here
-                    // For now, we keep the original inventory_id as is
                 }
             }
 
@@ -265,17 +226,10 @@ class CheckoutController extends Controller
                 'notes' => $request->notes . ($isInsideCalamba ? '' : ' [LALAMOVE REQUIRED]'),
             ]);
 
-            // 6. ✅ FIX: Remove ONLY the purchased items from the cart.
-            //    Previously this used CartHelper::clearCart() which wiped the ENTIRE
-            //    cart — even items the customer did NOT select for this order.
-            //    Now we loop through only the items that were part of this order
-            //    ($cart contains only those) and remove them one by one, leaving
-            //    any unselected items still in the cart.
             foreach ($cart as $inventoryId => $item) {
                 CartHelper::removeItem($inventoryId);
             }
 
-            // ✅ ADD THIS: Now that the order is successful, clear the session
             if ($isSelectedCheckout) {
                 session()->forget('selected_checkout');
                 session()->forget('selected_cart');

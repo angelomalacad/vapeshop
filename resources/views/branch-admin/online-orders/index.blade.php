@@ -147,7 +147,6 @@
             color: #dc2626;
         }
 
-        /* ✅ Delivery Failed badge (kept for safety in case an order sneaks through) */
         .badge-delivery_failed {
             background: #fee2e2;
             color: #b91c1c;
@@ -414,7 +413,6 @@
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
                             <option value="out_for_delivery"
                                 {{ request('status') == 'out_for_delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                            {{-- ✅ CANCELLED OPTION REMOVED --}}
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -506,10 +504,16 @@
                                         default => ucfirst(str_replace('_', ' ', $order->order_status)),
                                     };
 
-                                    $firstItem = $order->items->first();
+                                    // ✅ Only show items belonging to this branch
+                                    $branchItems = $order->items->filter(function ($item) {
+                                        return $item->inventory &&
+                                            $item->inventory->branch_id === Auth::user()->branch_id;
+                                    });
+
+                                    $firstItem = $branchItems->first();
                                     $product = $firstItem ? $firstItem->product : null;
                                     $productName = $product ? $product->name : 'N/A';
-                                    $itemsCount = $order->items->count();
+                                    $itemsCount = $branchItems->count();
 
                                     $imageUrl = null;
                                     if ($product && $product->image) {
@@ -520,69 +524,53 @@
                                         }
                                     }
 
-                                    // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
+                                    // ✅ CORRECTED INVENTORY STOCK CHECK
                                     $stockStatus = 'in_stock';
                                     $stockLabel = 'In Stock';
                                     $stockIcon = 'check-circle-fill';
                                     $stockClass = 'badge-stock-in';
                                     $stockAvailable = 0;
-                                    $hasVariantIssue = false;
 
-                                    if ($order->branch_id) {
-                                        foreach ($order->items as $item) {
-                                            $inventoryItem = \App\Models\BranchInventory::where(
-                                                'branch_id',
-                                                $order->branch_id,
-                                            )
-                                                ->where('product_id', $item->product_id)
-                                                ->when(
-                                                    $item->flavor_id,
-                                                    function ($query) use ($item) {
-                                                        return $query->where('flavor_id', $item->flavor_id);
-                                                    },
-                                                    function ($query) {
-                                                        return $query->whereNull('flavor_id');
-                                                    },
-                                                )
-                                                ->first();
+                                    foreach ($branchItems as $item) {
+                                        $inventoryItem = \App\Models\BranchInventory::where(
+                                            'id',
+                                            $item->inventory_id,
+                                        )->first();
 
-                                            if ($inventoryItem) {
-                                                $available = $inventoryItem->available_quantity;
+                                        if ($inventoryItem) {
+                                            $available = $inventoryItem->available_quantity;
 
-                                                if ($available < $item->quantity) {
-                                                    $hasVariantIssue = true;
-                                                    if ($available <= 0) {
-                                                        $stockStatus = 'out_of_stock';
-                                                        $stockLabel = 'Out of Stock';
-                                                        $stockIcon = 'x-circle-fill';
-                                                        $stockClass = 'badge-stock-out';
-                                                        $stockAvailable = $available;
-                                                    } elseif ($available <= $inventoryItem->low_stock_threshold) {
-                                                        $stockStatus = 'low_stock';
-                                                        $stockLabel = 'Low Stock';
-                                                        $stockIcon = 'exclamation-triangle-fill';
-                                                        $stockClass = 'badge-stock-low';
-                                                        $stockAvailable = $available;
-                                                    } else {
-                                                        $stockStatus = 'in_stock';
-                                                        $stockLabel = 'In Stock';
-                                                        $stockIcon = 'check-circle-fill';
-                                                        $stockClass = 'badge-stock-in';
-                                                        $stockAvailable = $available;
-                                                    }
-                                                    break;
+                                            if ($available < $item->quantity) {
+                                                if ($available <= 0) {
+                                                    $stockStatus = 'out_of_stock';
+                                                    $stockLabel = 'Out of Stock';
+                                                    $stockIcon = 'x-circle-fill';
+                                                    $stockClass = 'badge-stock-out';
+                                                    $stockAvailable = $available;
+                                                } elseif ($available <= $inventoryItem->low_stock_threshold) {
+                                                    $stockStatus = 'low_stock';
+                                                    $stockLabel = 'Low Stock';
+                                                    $stockIcon = 'exclamation-triangle-fill';
+                                                    $stockClass = 'badge-stock-low';
+                                                    $stockAvailable = $available;
                                                 } else {
+                                                    $stockStatus = 'in_stock';
+                                                    $stockLabel = 'In Stock';
+                                                    $stockIcon = 'check-circle-fill';
+                                                    $stockClass = 'badge-stock-in';
                                                     $stockAvailable = $available;
                                                 }
-                                            } else {
-                                                $hasVariantIssue = true;
-                                                $stockStatus = 'out_of_stock';
-                                                $stockLabel = 'No Stock Record';
-                                                $stockIcon = 'x-circle-fill';
-                                                $stockClass = 'badge-stock-out';
-                                                $stockAvailable = 0;
                                                 break;
+                                            } else {
+                                                $stockAvailable = $available;
                                             }
+                                        } else {
+                                            $stockStatus = 'out_of_stock';
+                                            $stockLabel = 'No Stock Record';
+                                            $stockIcon = 'x-circle-fill';
+                                            $stockClass = 'badge-stock-out';
+                                            $stockAvailable = 0;
+                                            break;
                                         }
                                     }
                                 @endphp
@@ -612,16 +600,28 @@
                                         <small class="text-muted">{{ $order->customer_phone }}</small>
                                     </td>
                                     <td>
-                                        <strong class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
+                                        <strong
+                                            class="text-success">₱{{ number_format($order->total_amount, 2) }}</strong>
                                         @if (($order->delivery_fee ?? 0) > 0)
-                                            <div class="fee-note">incl. ₱{{ number_format($order->delivery_fee, 2) }} delivery fee</div>
+                                            <div class="fee-note">incl. ₱{{ number_format($order->delivery_fee, 2) }}
+                                                delivery fee</div>
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($order->branch)
-                                            <span class="branch-badge">
-                                                <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
-                                            </span>
+                                        @php
+                                            $orderBranches = $order->items
+                                                ->map(fn($i) => $i->inventory->branch ?? null)
+                                                ->filter()
+                                                ->unique('id');
+                                        @endphp
+                                        @if ($orderBranches->isNotEmpty())
+                                            <div class="d-flex flex-column gap-1">
+                                                @foreach ($orderBranches as $b)
+                                                    <span class="branch-badge">
+                                                        <i class="bi bi-shop me-1"></i>{{ $b->name }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
                                         @else
                                             <span class="branch-badge">N/A</span>
                                         @endif
@@ -642,6 +642,61 @@
                                         </span>
                                     </td>
                                     <td>
+                                        @php
+                                            // ✅ Get the status of this branch's specific items
+                                            $branchItemStatuses = $order->items
+                                                ->filter(function ($i) {
+                                                    return $i->inventory &&
+                                                        $i->inventory->branch_id === Auth::user()->branch_id;
+                                                })
+                                                ->pluck('status')
+                                                ->filter()
+                                                ->values()
+                                                ->toArray();
+
+                                            // Resolve branch status: ready > processing > confirmed > pending
+                                            $branchStatus = 'pending';
+                                            if (in_array('ready', $branchItemStatuses)) {
+                                                $branchStatus = 'ready';
+                                            } elseif (in_array('processing', $branchItemStatuses)) {
+                                                $branchStatus = 'processing';
+                                            } elseif (in_array('confirmed', $branchItemStatuses)) {
+                                                $branchStatus = 'confirmed';
+                                            }
+
+                                            // For ACTIVE orders, ALWAYS show branch-specific status
+                                            // (never fall through to the global "ready" from $order->order_status)
+                                            if (
+                                                in_array($order->order_status, [
+                                                    'pending',
+                                                    'confirmed',
+                                                    'processing',
+                                                    'ready',
+                                                ])
+                                            ) {
+                                                switch ($branchStatus) {
+                                                    case 'ready':
+                                                        $displayStatus = 'Ready (Your Branch)';
+                                                        $statusClass = 'badge-ready';
+                                                        break;
+                                                    case 'processing':
+                                                        $displayStatus = 'Packing (Your Branch)';
+                                                        $statusClass = 'badge-packing';
+                                                        break;
+                                                    case 'confirmed':
+                                                        $displayStatus = 'Confirmed (Your Branch)';
+                                                        $statusClass = 'badge-confirmed';
+                                                        break;
+                                                    default:
+                                                        // pending
+                                                        $displayStatus = 'Pending (Your Branch)';
+                                                        $statusClass = 'badge-pending';
+                                                        break;
+                                                }
+                                            }
+                                            // else: keep $displayStatus / $statusClass from the top of the row
+                                            // for out_for_delivery, picked_up, delivered, cancelled, delivery_failed
+                                        @endphp
                                         <span class="badge {{ $statusClass }}">{{ $displayStatus }}</span>
                                     </td>
                                     <td class="text-end pe-3">

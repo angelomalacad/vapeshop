@@ -1,9 +1,24 @@
+<!-- resources/views/driver/online-orders/show.blade.php -->
 <style>
-    /* Modal Styles */
     .modal-body-custom {
         padding: 0;
-        max-height: 85vh;
+        height: 85vh;
+        /* Changed from max-height to height to fix double scrollbars */
         overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* ✅ ADDED: Hide the scrollbar in the Order Items table */
+    .table-responsive {
+        scrollbar-width: none;
+        /* Firefox */
+        -ms-overflow-style: none;
+        /* IE and Edge */
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        display: none;
+        /* Chrome, Safari, Opera */
     }
 
     .modal-header-custom {
@@ -28,7 +43,6 @@
         margin: 0;
     }
 
-    /* Cards */
     .info-card {
         background: white;
         border-radius: 12px;
@@ -50,7 +64,6 @@
         margin: 0;
     }
 
-    /* Product Image */
     .product-image {
         width: 50px;
         height: 50px;
@@ -59,7 +72,6 @@
         background: #f8f9fa;
     }
 
-    /* Table */
     .order-items-table {
         margin-bottom: 0;
     }
@@ -94,7 +106,6 @@
         color: #64748b;
     }
 
-    /* Info Labels */
     .info-label {
         font-size: 0.7rem;
         font-weight: 600;
@@ -111,7 +122,6 @@
         font-weight: 500;
     }
 
-    /* Status Buttons */
     .status-btn {
         width: 100%;
         padding: 0.75rem;
@@ -138,7 +148,6 @@
         background: #16213e;
     }
 
-    /* ✅ FIXED: Close Button - Absolute Position in Upper Right Corner */
     .btn-close-modal {
         position: absolute;
         top: 20px;
@@ -156,7 +165,6 @@
         color: #333;
     }
 
-    /* Alerts */
     .alert-custom {
         border-radius: 12px;
         padding: 1rem;
@@ -181,14 +189,12 @@
         color: #92400e;
     }
 
-    /* Totals */
     .totals-row {
         display: flex;
         justify-content: space-between;
         padding: 0.5rem 1rem;
     }
 
-    /* ✅ Align Subtotal and Total under PRICE column */
     .totals-align-fixed .totals-label {
         margin-left: 14rem;
     }
@@ -226,10 +232,14 @@
         color: #e74c3c;
     }
 
-    /* Badges */
     .badge-ready {
         background: #d1fae5;
         color: #059669;
+    }
+
+    .badge-pending {
+        background: #f1f5f9;
+        color: #475569;
     }
 
     .badge-out_for_delivery {
@@ -269,7 +279,6 @@
         font-size: 0.7rem;
     }
 
-    /* Branch Badge */
     .branch-badge {
         padding: 0.25rem 0.65rem;
         border-radius: 30px;
@@ -282,7 +291,6 @@
         gap: 0.25rem;
     }
 
-    /* Delivery Date Range Styles */
     .delivery-date-range {
         display: flex;
         gap: 0.5rem;
@@ -294,7 +302,6 @@
         font-size: 0.8rem;
     }
 
-    /* Stock Info Styles */
     .stock-info {
         display: flex;
         align-items: center;
@@ -328,21 +335,15 @@
         font-size: 0.9rem;
     }
 
-    /* ============================================================ */
-    /* ✅ MOBILE-APP STYLES (Android + iPhone)                      */
-    /* ============================================================ */
     @media (max-width: 767.98px) {
-
-        /* ---------- Modal Body Padding ---------- */
         .modal-body-custom {
-            max-height: 88vh;
+            height: 88vh;
         }
 
         .modal-body-custom>div {
             padding: 1.25rem 1rem !important;
         }
 
-        /* ---------- Close Button (larger touch target) ---------- */
         .btn-close-modal {
             top: 14px;
             right: 14px;
@@ -362,7 +363,6 @@
             transform: scale(0.94);
         }
 
-        /* ---------- Header ---------- */
         .modal-header-custom {
             padding: 0 0 0.75rem 0 !important;
             flex-direction: column;
@@ -381,7 +381,6 @@
             font-size: 0.72rem;
         }
 
-        /* ---------- Cards ---------- */
         .info-card {
             border-radius: 14px;
             margin-bottom: 0.75rem;
@@ -400,7 +399,6 @@
             padding: 0.9rem !important;
         }
 
-        /* ---------- Order Items Table → Card List ---------- */
         .order-items-table thead {
             display: none;
         }
@@ -424,7 +422,6 @@
             text-align: left !important;
         }
 
-        /* Product cell */
         .order-items-table td:nth-child(1) {
             padding-bottom: 0.5rem;
             padding-right: 0;
@@ -451,7 +448,6 @@
             font-size: 0.7rem;
         }
 
-        /* Qty / Price / Total - inline row */
         .order-items-table td:nth-child(2),
         .order-items-table td:nth-child(3),
         .order-items-table td:nth-child(4) {
@@ -482,7 +478,6 @@
             font-size: 0.85rem;
         }
 
-        /* Stock cell */
         .order-items-table td:nth-child(5) {
             padding-top: 0.5rem;
             text-align: left !important;
@@ -496,7 +491,6 @@
             margin-top: 0.15rem;
         }
 
-        /* ---------- Totals ---------- */
         .info-card .p-3.bg-light {
             padding: 0.75rem 1rem !important;
         }
@@ -528,7 +522,6 @@
             font-size: 0.95rem;
         }
 
-        /* ---------- Info Rows (Branch, Customer) ---------- */
         .info-label {
             font-size: 0.68rem;
             margin-bottom: 0.15rem;
@@ -541,13 +534,11 @@
             word-break: break-word;
         }
 
-        /* Customer info columns → stack on mobile */
         .info-card .row>.col-6 {
             flex: 0 0 100%;
             max-width: 100%;
         }
 
-        /* ---------- Status Buttons ---------- */
         .status-btn {
             padding: 0.85rem;
             font-size: 0.88rem;
@@ -560,7 +551,6 @@
             box-shadow: none;
         }
 
-        /* ---------- Alerts ---------- */
         .alert-custom {
             padding: 0.85rem 1rem;
             font-size: 0.82rem;
@@ -568,7 +558,6 @@
             line-height: 1.5;
         }
 
-        /* ---------- Delivery Date Range ---------- */
         .delivery-date-range {
             flex-wrap: wrap;
             gap: 0.4rem;
@@ -601,7 +590,6 @@
             transform: scale(0.98);
         }
 
-        /* ---------- Result alerts ---------- */
         #result .alert {
             font-size: 0.8rem;
             padding: 0.65rem 0.85rem;
@@ -609,146 +597,115 @@
         }
     }
 
-    /* Extra small devices */
-    @media (max-width: 380px) {
-        .order-number {
-            font-size: 0.95rem;
+    @media (max-width: 767.98px) {
+        .order-items-table tbody tr {
+            display: grid !important;
+            grid-template-columns: calc(52px + 0.5rem) auto 1fr auto !important;
+            grid-template-areas:
+                "prod  prod  prod  prod"
+                ".     qty   price total"
+                ".     stock stock stock" !important;
+            column-gap: 0.75rem !important;
+            row-gap: 0.3rem !important;
+            align-items: center !important;
+            padding: 0.9rem 0 !important;
+            border-bottom: 1px solid #eef2f6 !important;
         }
 
-        .order-date {
-            font-size: 0.68rem;
+        .order-items-table tbody tr:last-child {
+            border-bottom: 0 !important;
         }
 
-        .product-image {
-            width: 42px !important;
-            height: 42px !important;
+        .order-items-table tbody tr td {
+            display: block !important;
+            width: auto !important;
+            min-width: 0 !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            text-align: left !important;
+            vertical-align: top !important;
         }
 
-        .product-name {
-            font-size: 0.82rem;
+        .order-items-table tbody tr td:nth-child(1) {
+            grid-area: prod;
         }
 
-        .info-value {
-            font-size: 0.78rem;
+        .order-items-table tbody tr td:nth-child(2),
+        .order-items-table tbody tr td:nth-child(3) {
+            font-size: 0.8rem !important;
+            color: #64748b !important;
+            white-space: nowrap;
         }
 
-        .status-btn {
-            font-size: 0.82rem;
-            padding: 0.75rem;
+        .order-items-table tbody tr td:nth-child(2) {
+            grid-area: qty;
         }
 
-        .totals-total .totals-label,
-        .totals-total .totals-value {
-            font-size: 0.88rem;
+        .order-items-table tbody tr td:nth-child(2)::before {
+            content: 'Qty: ' !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(3) {
+            grid-area: price;
+        }
+
+        .order-items-table tbody tr td:nth-child(3)::before {
+            content: 'Price: ' !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(4) {
+            grid-area: total;
+            justify-self: end !important;
+            text-align: right !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            color: #1a1a2e !important;
+            white-space: nowrap;
+        }
+
+        .order-items-table tbody tr td:nth-child(4)::before {
+            content: none !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(5) {
+            grid-area: stock;
+            justify-self: start !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(5) .stock-info {
+            display: inline-flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 0.2rem 0.4rem !important;
+            width: auto !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0.3rem 0.7rem !important;
+            border-radius: 999px !important;
+            font-size: 0.72rem !important;
+            line-height: 1.2 !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(5) .stock-info span,
+        .order-items-table tbody tr td:nth-child(5) .stock-info small {
+            margin: 0 !important;
+        }
+
+        .order-items-table .product-image {
+            width: 52px !important;
+            height: 52px !important;
+            flex-shrink: 0;
+            border-radius: 10px !important;
+            object-fit: cover;
         }
     }
-
-    /* Touch devices — remove hover */
-    @media (hover: none) {
-        .status-btn:hover {
-            transform: none;
-            box-shadow: none;
-        }
-    }
-    /* ===== MOBILE FIX - order items (5 columns: product, qty, price, subtotal, stock) ===== */
-@media (max-width: 767.98px) {
-    .order-items-table tbody tr {
-        display: grid !important;
-        grid-template-columns: calc(52px + 0.5rem) auto 1fr auto !important;
-        grid-template-areas:
-            "prod  prod  prod  prod"
-            ".     qty   price total"
-            ".     stock stock stock" !important;
-        column-gap: 0.75rem !important;
-        row-gap: 0.3rem !important;
-        align-items: center !important;
-        padding: 0.9rem 0 !important;
-        border-bottom: 1px solid #eef2f6 !important;
-    }
-
-    .order-items-table tbody tr:last-child {
-        border-bottom: 0 !important;
-    }
-
-    .order-items-table tbody tr td {
-        display: block !important;
-        width: auto !important;
-        min-width: 0 !important;
-        float: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-        text-align: left !important;
-        vertical-align: top !important;
-    }
-
-    .order-items-table tbody tr td:nth-child(1) { grid-area: prod; }
-
-    .order-items-table tbody tr td:nth-child(2),
-    .order-items-table tbody tr td:nth-child(3) {
-        font-size: 0.8rem !important;
-        color: #64748b !important;
-        white-space: nowrap;
-    }
-
-    .order-items-table tbody tr td:nth-child(2) { grid-area: qty; }
-    .order-items-table tbody tr td:nth-child(2)::before { content: 'Qty: ' !important; }
-
-    /* "@ " replaced by a clear label */
-    .order-items-table tbody tr td:nth-child(3) { grid-area: price; }
-    .order-items-table tbody tr td:nth-child(3)::before { content: 'Price: ' !important; }
-
-    .order-items-table tbody tr td:nth-child(4) {
-        grid-area: total;
-        justify-self: end !important;
-        text-align: right !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        color: #1a1a2e !important;
-        white-space: nowrap;
-    }
-
-    .order-items-table tbody tr td:nth-child(4)::before { content: none !important; }
-
-    .order-items-table tbody tr td:nth-child(5) {
-        grid-area: stock;
-        justify-self: start !important;
-    }
-
-    /* Stock badge: one neat pill, aligned with the product name */
-    .order-items-table tbody tr td:nth-child(5) .stock-info {
-        display: inline-flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
-        gap: 0.2rem 0.4rem !important;
-        width: auto !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0.3rem 0.7rem !important;
-        border-radius: 999px !important;
-        font-size: 0.72rem !important;
-        line-height: 1.2 !important;
-    }
-
-    .order-items-table tbody tr td:nth-child(5) .stock-info span,
-    .order-items-table tbody tr td:nth-child(5) .stock-info small {
-        margin: 0 !important;
-    }
-
-    .order-items-table .product-image {
-        width: 52px !important;
-        height: 52px !important;
-        flex-shrink: 0;
-        border-radius: 10px !important;
-        object-fit: cover;
-    }
-}
 </style>
 
 <div class="modal-body-custom">
     <div style="padding: 1.5rem; position: relative;">
-        <!-- ✅ FIXED: X Button in Upper Right Corner -->
         <button type="button" class="btn-close-modal" onclick="window.closeModal()">&times;</button>
 
         <div class="modal-header-custom" style="padding: 0 0 1rem 0;">
@@ -761,7 +718,6 @@
         <div class="row g-3">
             <!-- LEFT COLUMN -->
             <div class="col-md-7">
-                <!-- Order Items (LEFT - FIRST) -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-receipt"></i> Order Items</h6>
@@ -790,29 +746,17 @@
                                             }
                                         }
 
-                                        // ✅ CORRECTED INVENTORY STOCK CHECK (Checks Product + Flavor Variant)
                                         $stockAvailable = 0;
                                         $stockStatus = 'out_of_stock';
                                         $stockClass = 'stock-info-out';
                                         $stockIcon = 'bi-x-circle-fill';
                                         $stockColor = 'text-danger';
 
-                                        if ($order->branch_id && $product) {
+                                        if ($product) {
                                             $branchInventory = \App\Models\BranchInventory::where(
-                                                'branch_id',
-                                                $order->branch_id,
-                                            )
-                                                ->where('product_id', $product->id)
-                                                ->when(
-                                                    $item->flavor_id,
-                                                    function ($query) use ($item) {
-                                                        return $query->where('flavor_id', $item->flavor_id);
-                                                    },
-                                                    function ($query) {
-                                                        return $query->whereNull('flavor_id');
-                                                    },
-                                                )
-                                                ->first();
+                                                'id',
+                                                $item->inventory_id,
+                                            )->first();
 
                                             if ($branchInventory) {
                                                 $stockAvailable = $branchInventory->available_quantity;
@@ -854,6 +798,24 @@
                                                         <div class="product-flavor">Flavor: {{ $item->flavor->name }}
                                                         </div>
                                                     @endif
+
+                                                    {{-- ✅ Show pickup branch and readiness conditionally --}}
+                                                    <div class="product-flavor mt-1" style="font-size: 0.7rem;">
+                                                        <i class="bi bi-shop"></i>
+                                                        <strong>{{ $item->inventory->branch->name ?? 'Unknown' }}</strong>
+
+                                                        {{-- Only show the badge if the order is still in 'ready' state --}}
+                                                        @if ($order->order_status === 'ready')
+                                                            @php
+                                                                $itemStatus = $item->status ?? 'pending';
+                                                            @endphp
+                                                            <span
+                                                                class="badge {{ $itemStatus === 'ready' ? 'badge-ready' : 'badge-pending' }} ms-1"
+                                                                style="font-size: 0.65rem;">
+                                                                {{ $itemStatus === 'ready' ? 'Ready for Pickup' : 'Still Packing' }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -862,9 +824,10 @@
                                         <td class="text-end">₱{{ number_format($item->subtotal, 2) }}</td>
                                         <td class="text-center">
                                             <div class="stock-info {{ $stockClass }}">
-                                                <i class="bi {{ $stockIcon }} stock-info-icon"></i>
+                                                <i
+                                                    class="bi {{ $stockIcon }} {{ $stockColor }} stock-info-icon"></i>
                                                 <span class="fw-semibold">{{ $stockAvailable }}</span>
-                                                <small>({{ $item->quantity }} needed)</small>
+                                                <small class="ms-1">({{ $item->quantity }} needed)</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -872,7 +835,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- ✅ FIXED: Subtotal, Delivery Fee and Total - Aligned under TOTAL column -->
                     <div class="p-3 bg-light">
                         <div class="totals-row totals-align-fixed">
                             <span class="totals-label">Subtotal</span>
@@ -889,36 +851,7 @@
                     </div>
                 </div>
 
-                <!-- Branch Information (LEFT - BELOW ORDER ITEMS) -->
-                <div class="info-card">
-                    <div class="card-header-custom">
-                        <h6><i class="bi bi-shop"></i> Branch Information</h6>
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="row">
-                            <div class="col-12">
-                                <p class="info-label">Branch</p>
-                                <p class="info-value">
-                                    @if ($order->branch)
-                                        <span class="branch-badge">
-                                            <i class="bi bi-shop me-1"></i>{{ $order->branch->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </p>
-                            </div>
-                            @if ($order->branch && $order->branch->address)
-                                <div class="col-12">
-                                    <p class="info-label">Branch Address</p>
-                                    <p class="info-value">{{ $order->branch->address }}</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Customer Information (LEFT - THIRD) -->
+                <!-- Customer Information -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-person"></i> Customer Information</h6>
@@ -946,18 +879,16 @@
 
             <!-- RIGHT COLUMN -->
             <div class="col-md-5">
-                <!-- Update Status (RIGHT - FIRST) -->
+                <!-- Update Status -->
                 <div class="info-card">
                     <div class="card-header-custom">
                         <h6><i class="bi bi-arrow-repeat"></i> Update Status</h6>
                     </div>
                     <div class="card-body p-3">
                         @php
-                            // ✅ FIXED: Map delivery status to display status
                             $deliveryStatus = $order->delivery ? $order->delivery->status : null;
                             $orderStatus = $order->order_status;
 
-                            // Map statuses for display
                             $statusMap = [
                                 'assigned' => 'ready',
                                 'picked_up' => 'picked_up',
@@ -985,6 +916,9 @@
                             if ($orderStatus == 'delivery_failed') {
                                 $displayStatus = 'Delivery Failed';
                             }
+
+                            // ✅ Check if ALL items are ready based on their individual status
+                            $allItemsReady = !$order->items->where('status', '!=', 'ready')->count();
                         @endphp
 
                         <div class="mb-3">
@@ -993,10 +927,25 @@
                         </div>
 
                         @if ($orderStatus == 'ready')
-                            <button type="button" class="status-btn btn-delivery"
-                                onclick="handleStatus('start-delivery', {{ $order->id }})">
-                                <i class="bi bi-truck me-2"></i> Start Delivery
-                            </button>
+                            @if ($allItemsReady)
+                                <button type="button" class="status-btn btn-delivery"
+                                    onclick="handleStatus('start-delivery', {{ $order->id }})">
+                                    <i class="bi bi-truck me-2"></i> Start Delivery
+                                </button>
+                            @else
+                                <div class="alert-custom alert-warning-custom mb-3">
+                                    <i class="bi bi-clock-history me-2"></i>
+                                    <strong>Waiting for All Branches</strong><br>
+                                    <small class="text-muted">
+                                        Some items are still being packed. You can only start delivery once all branches
+                                        are ready.
+                                    </small>
+                                </div>
+                                <button type="button" class="status-btn btn-delivery" disabled
+                                    style="opacity: 0.5; cursor: not-allowed;">
+                                    <i class="bi bi-truck me-2"></i> Start Delivery (Waiting...)
+                                </button>
+                            @endif
                         @elseif(in_array($orderStatus, ['picked_up', 'out_for_delivery']))
                             <div class="alert-custom alert-info-custom mb-3">
                                 <i class="bi bi-truck me-2"></i>
@@ -1026,7 +975,6 @@
                             </div>
                         @endif
 
-                        <!-- ✅ FIXED: Delivery Date Range (Allow same date) -->
                         @if (!in_array($orderStatus, ['delivered', 'delivery_failed']))
                             <div class="mb-3">
                                 <label class="info-label">Expected Delivery Date</label>
@@ -1055,20 +1003,14 @@
 </div>
 
 <script>
-    // ✅ GLOBAL FUNCTIONS - Available everywhere
     window.closeModal = function() {
         const modal = document.getElementById('customModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
+        if (modal) modal.style.display = 'none';
         const content = document.getElementById('customModalContent');
-        if (content) {
-            content.innerHTML = '';
-        }
+        if (content) content.innerHTML = '';
     };
 
     document.addEventListener('DOMContentLoaded', function() {
-        // ✅ CHECK FOR STORED SUCCESS MESSAGE ON PAGE LOAD
         const successMessage = sessionStorage.getItem('delivery_success_message');
         if (successMessage) {
             if (typeof showNotification === 'function') {
@@ -1077,23 +1019,17 @@
             sessionStorage.removeItem('delivery_success_message');
         }
 
-        // ✅ NEW: Allow same date selection for delivery date range
         const deliveryDateFrom = document.getElementById('delivery_date_from');
         const deliveryDateTo = document.getElementById('delivery_date_to');
 
         if (deliveryDateFrom && deliveryDateTo) {
-            // Set min on From to today
             deliveryDateFrom.min = new Date().toISOString().split('T')[0];
-
-            // Update min on To when From changes
             deliveryDateFrom.addEventListener('change', function() {
-                deliveryDateTo.min = this.value; // ✅ Allow same date as From
+                deliveryDateTo.min = this.value;
                 if (deliveryDateTo.value < this.value) {
                     deliveryDateTo.value = this.value;
                 }
             });
-
-            // Set initial min on To to match From
             if (deliveryDateFrom.value) {
                 deliveryDateTo.min = deliveryDateFrom.value;
             }
@@ -1103,7 +1039,6 @@
     window.handleStatus = function(action, orderId) {
         const resultDiv = document.getElementById('result');
         const button = event.target.closest('button');
-
         if (!button) return;
 
         const originalText = button.innerHTML;
@@ -1156,7 +1091,6 @@
             });
     };
 
-    // ✅ FIXED: Delivery Date Save Function - Allows same date for From and To
     function saveDeliveryDate() {
         const orderId = {{ $order->id }};
         const deliveryDateFrom = document.getElementById('delivery_date_from').value;
@@ -1164,17 +1098,14 @@
         const resultDiv = document.getElementById('result');
 
         if (!deliveryDateFrom || !deliveryDateTo) {
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">Please select both From and To dates.</div>';
-            }
+            if (resultDiv) resultDiv.innerHTML =
+                '<div class="alert alert-danger">Please select both From and To dates.</div>';
             return;
         }
 
-        // ✅ FIXED: Allow same date
         if (deliveryDateTo < deliveryDateFrom) {
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="alert alert-danger">To date cannot be before From date.</div>';
-            }
+            if (resultDiv) resultDiv.innerHTML =
+                '<div class="alert alert-danger">To date cannot be before From date.</div>';
             return;
         }
 
@@ -1183,11 +1114,8 @@
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
 
-        if (resultDiv) {
-            resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
-        }
+        if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-info">Saving delivery dates...</div>';
 
-        // ✅ USE ABSOLUTE URL TO ENSURE IT WORKS
         fetch(`{{ url('/driver/online-orders') }}/${orderId}/delivery-date`, {
                 method: 'POST',
                 headers: {
@@ -1200,44 +1128,28 @@
                     delivery_date_to: deliveryDateTo
                 })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalBtnText;
 
                 if (data.success) {
-                    // ✅ SHOW SUCCESS MESSAGE INSIDE THE MODAL
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
-                            'Delivery dates saved successfully!') + '</div>';
-                    }
-
-                    // ✅ REFRESH PAGE AFTER 1.5 SECONDS TO CLEAR THE MESSAGE
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-success">' + (data.message ||
+                        'Delivery dates saved successfully!') + '</div>';
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    // ✅ SHOW ERROR MESSAGE INSIDE THE MODAL
-                    if (resultDiv) {
-                        resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
-                            'Error saving delivery dates') + '</div>';
-                    }
+                    if (resultDiv) resultDiv.innerHTML = '<div class="alert alert-danger">' + (data.message ||
+                        'Error saving delivery dates') + '</div>';
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalBtnText;
-
-                // ✅ SHOW NETWORK ERROR INSIDE THE MODAL
-                if (resultDiv) {
-                    resultDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
-                }
+                if (resultDiv) resultDiv.innerHTML =
+                    '<div class="alert alert-danger">Network error. Please try again.</div>';
             });
     }
 </script>

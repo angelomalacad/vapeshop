@@ -452,56 +452,69 @@
                                                 $imageUrl = Storage::url($product->image);
                                             }
                                         }
-                                        
-                                        // ✅ Inventory Stock Check
+
+                                        // ✅ Inventory Stock Check (Fixed for multi-branch)
                                         $stockAvailable = 0;
                                         $stockReserved = 0;
                                         $stockTotal = 0;
                                         $stockStatus = 'out_of_stock';
                                         $stockClass = 'stock-info-out';
                                         $stockIcon = 'bi-x-circle-fill';
-                                        
-                                        if ($delivery->order->branch_id && $product) {
-                                            $branchInventory = \App\Models\BranchInventory::where('branch_id', $delivery->order->branch_id)
+                                        $branchInventory = null;
+
+                                        // 1. Try exact inventory_id
+                                        if ($item->inventory_id) {
+                                            $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()->find(
+                                                $item->inventory_id,
+                                            );
+                                        }
+
+                                        // 2. Fallback to branch lookup
+                                        if (!$branchInventory && $delivery->order->branch_id && $product) {
+                                            $branchInventory = \App\Models\BranchInventory::withoutGlobalScopes()
+                                                ->where('branch_id', $delivery->order->branch_id)
                                                 ->where('product_id', $product->id)
-                                                ->when($item->flavor_id, function($query) use ($item) {
-                                                    return $query->where('flavor_id', $item->flavor_id);
-                                                }, function($query) {
-                                                    return $query->whereNull('flavor_id');
-                                                })
+                                                ->when(
+                                                    $item->flavor_id,
+                                                    function ($query) use ($item) {
+                                                        return $query->where('flavor_id', $item->flavor_id);
+                                                    },
+                                                    function ($query) {
+                                                        return $query->whereNull('flavor_id');
+                                                    },
+                                                )
                                                 ->first();
-                                            
-                                            if ($branchInventory) {
-                                                $stockTotal = $branchInventory->quantity;
-                                                $stockReserved = $branchInventory->reserved_quantity;
-                                                $stockAvailable = $branchInventory->available_quantity;
-                                                
-                                                if ($stockAvailable <= 0) {
-                                                    $stockStatus = 'out_of_stock';
-                                                    $stockClass = 'stock-info-out';
-                                                    $stockIcon = 'bi-x-circle-fill';
-                                                } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
-                                                    $stockStatus = 'low_stock';
-                                                    $stockClass = 'stock-info-low';
-                                                    $stockIcon = 'bi-exclamation-triangle-fill';
-                                                } else {
-                                                    $stockStatus = 'in_stock';
-                                                    $stockClass = 'stock-info-in';
-                                                    $stockIcon = 'bi-check-circle-fill';
-                                                }
+                                        }
+
+                                        if ($branchInventory) {
+                                            $stockTotal = $branchInventory->quantity;
+                                            $stockReserved = $branchInventory->reserved_quantity;
+                                            $stockAvailable = $branchInventory->available_quantity;
+
+                                            if ($stockAvailable <= 0) {
+                                                $stockStatus = 'out_of_stock';
+                                                $stockClass = 'stock-info-out';
+                                                $stockIcon = 'bi-x-circle-fill';
+                                            } elseif ($stockAvailable <= $branchInventory->low_stock_threshold) {
+                                                $stockStatus = 'low_stock';
+                                                $stockClass = 'stock-info-low';
+                                                $stockIcon = 'bi-exclamation-triangle-fill';
+                                            } else {
+                                                $stockStatus = 'in_stock';
+                                                $stockClass = 'stock-info-in';
+                                                $stockIcon = 'bi-check-circle-fill';
                                             }
                                         }
                                     @endphp
                                     <tr>
                                         <td>
                                             @if ($imageUrl)
-                                                <img src="{{ $imageUrl }}"
-                                                    alt="{{ $product->name ?? 'N/A' }}" class="product-image">
+                                                <img src="{{ $imageUrl }}" alt="{{ $product->name ?? 'N/A' }}"
+                                                    class="product-image">
                                             @else
                                                 <div
                                                     class="product-image bg-light d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-image text-muted"
-                                                        style="font-size: 1.2rem;"></i>
+                                                    <i class="bi bi-image text-muted" style="font-size: 1.2rem;"></i>
                                                 </div>
                                             @endif
                                         </td>
@@ -509,6 +522,13 @@
                                             <div class="product-name">{{ $item->product->name ?? 'N/A' }}</div>
                                             @if ($item->flavor)
                                                 <div class="product-flavor">Flavor: {{ $item->flavor->name }}
+                                                </div>
+                                            @endif
+                                            {{-- ✅ Added Branch Name --}}
+                                            @if ($branchInventory && $branchInventory->branch)
+                                                <div class="product-flavor mt-1" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-shop"></i>
+                                                    <strong>{{ $branchInventory->branch->name }}</strong>
                                                 </div>
                                             @endif
                                         </td>
@@ -573,7 +593,6 @@
                             </span>
                         </p>
 
-                        <!-- ✅ Driver Information -->
                         <div class="info-label">Driver</div>
                         <p class="info-value">
                             @if ($delivery->driver)
@@ -638,7 +657,7 @@
             </div>
         </div>
 
-        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery (3 columns, 33% each) -->
+        <!-- ROW 2: Delivery Progress + Lalamove Tracking + Proof of Delivery -->
         <div class="row g-3 mt-2">
             <!-- Delivery Progress -->
             <div class="col-md-4">
@@ -649,7 +668,6 @@
                     <div class="card-body-minimal">
                         <div class="timeline-container">
                             @php
-                                // Define status progression
                                 $deliveryStatusOrder = [
                                     'pending' => 0,
                                     'assigned' => 1,
@@ -662,12 +680,10 @@
                                 $currentDeliveryStatus = $delivery->status;
                                 $currentDeliveryLevel = $deliveryStatusOrder[$currentDeliveryStatus] ?? 0;
 
-                                // Helper function
                                 $isDeliveryCompleted = function ($level) use ($currentDeliveryLevel) {
                                     return $currentDeliveryLevel >= $level;
                                 };
 
-                                // Format date helper
                                 $formatDate = function ($date) {
                                     return $date ? \Carbon\Carbon::parse($date)->format('F d, Y h:i A') : null;
                                 };
@@ -754,7 +770,7 @@
                 </div>
             </div>
 
-                                    <!-- Lalamove Tracking -->
+            <!-- Lalamove Tracking -->
             <div class="col-md-4">
                 @php
                     $cityLower = strtolower(trim($delivery->order->city ?? ''));

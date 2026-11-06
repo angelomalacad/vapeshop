@@ -1071,44 +1071,45 @@
                 flex: 1 1 100%;
             }
         }
+
         /* ============================================================ */
-/* DESKTOP ONLY — box-shaped stat cards, no clipped text        */
-/* ============================================================ */
-@media (min-width: 769px) {
+        /* DESKTOP ONLY — box-shaped stat cards, no clipped text        */
+        /* ============================================================ */
+        @media (min-width: 769px) {
 
-    .main-content .stat-card-modern,
-    .main-content [class$="-card"],
-    .main-content [class*="-card "] {
-        border-radius: 12px !important;
-        overflow: visible !important;
-        height: auto !important;
-        min-width: 0;
-        box-sizing: border-box;
-    }
+            .main-content .stat-card-modern,
+            .main-content [class$="-card"],
+            .main-content [class*="-card "] {
+                border-radius: 12px !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-width: 0;
+                box-sizing: border-box;
+            }
 
-    .main-content .stat-card-modern {
-        padding: 1rem 1.25rem !important;
-        gap: 1rem;
-        align-items: center;
-    }
+            .main-content .stat-card-modern {
+                padding: 1rem 1.25rem !important;
+                gap: 1rem;
+                align-items: center;
+            }
 
-    .main-content .stat-card-modern .stat-content {
-        min-width: 0;
-        overflow: visible;
-    }
+            .main-content .stat-card-modern .stat-content {
+                min-width: 0;
+                overflow: visible;
+            }
 
-    .main-content .stat-card-modern .stat-icon-wrapper {
-        border-radius: 12px !important;
-        flex-shrink: 0;
-    }
+            .main-content .stat-card-modern .stat-icon-wrapper {
+                border-radius: 12px !important;
+                flex-shrink: 0;
+            }
 
-    .main-content .stat-card-modern .stat-label,
-    .main-content .stat-card-modern .stat-value {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-    }
-}
+            .main-content .stat-card-modern .stat-label,
+            .main-content .stat-card-modern .stat-value {
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -1253,8 +1254,8 @@
                             href="{{ route('branch-admin.online-orders.index') }}">
                             <i class="bi bi-cart"></i> Online Orders
                             @php
-                                $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
-                                    ->where('order_number', 'NOT LIKE', 'POS-%')
+                                // ✅ FIXED: Multi-branch badge count
+                                $onlineOrdersCount = \App\Models\Order::where('order_number', 'NOT LIKE', 'POS-%')
                                     ->whereIn('order_status', [
                                         'pending',
                                         'confirmed',
@@ -1262,6 +1263,9 @@
                                         'ready',
                                         'out_for_delivery',
                                     ])
+                                    ->whereHas('items.inventory', function ($q) {
+                                        $q->where('branch_id', Auth::user()->branch_id);
+                                    })
                                     ->count();
                             @endphp
                             @if ($onlineOrdersCount > 0)

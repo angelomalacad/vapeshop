@@ -721,103 +721,123 @@
             transform: scale(0.98);
         }
     }
+
     /* ===== MOBILE FIX - order items (6 columns: image, name, qty, price, subtotal, stock) ===== */
-@media (max-width: 767.98px) {
-    .order-items-table tbody tr {
-        display: grid !important;
-        grid-template-columns: 52px auto 1fr auto !important;
-        grid-template-areas:
-            "img name  name  total"
-            "img qty   price price"
-            ".   stock stock stock" !important;
-        column-gap: 0.75rem !important;
-        row-gap: 0.3rem !important;
-        align-items: center !important;
-        padding: 0.9rem 0 !important;
-        border-bottom: 1px solid #eef2f6 !important;
+    @media (max-width: 767.98px) {
+        .order-items-table tbody tr {
+            display: grid !important;
+            grid-template-columns: 52px auto 1fr auto !important;
+            grid-template-areas:
+                "img name  name  total"
+                "img qty   price price"
+                ".   stock stock stock" !important;
+            column-gap: 0.75rem !important;
+            row-gap: 0.3rem !important;
+            align-items: center !important;
+            padding: 0.9rem 0 !important;
+            border-bottom: 1px solid #eef2f6 !important;
+        }
+
+        .order-items-table tbody tr:last-child {
+            border-bottom: 0 !important;
+        }
+
+        .order-items-table tbody tr td {
+            display: block !important;
+            width: auto !important;
+            min-width: 0 !important;
+            float: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            text-align: left !important;
+            vertical-align: top !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(1) {
+            grid-area: img;
+            align-self: start !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(2) {
+            grid-area: name;
+            align-self: start !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(3),
+        .order-items-table tbody tr td:nth-child(4) {
+            font-size: 0.8rem !important;
+            color: #64748b !important;
+            white-space: nowrap;
+        }
+
+        .order-items-table tbody tr td:nth-child(3) {
+            grid-area: qty;
+        }
+
+        .order-items-table tbody tr td:nth-child(3)::before {
+            content: 'Qty: ' !important;
+        }
+
+        /* "@ " replaced by a clear label */
+        .order-items-table tbody tr td:nth-child(4) {
+            grid-area: price;
+        }
+
+        .order-items-table tbody tr td:nth-child(4)::before {
+            content: 'Price: ' !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(5) {
+            grid-area: total;
+            justify-self: end !important;
+            align-self: start !important;
+            text-align: right !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            color: #1a1a2e !important;
+            white-space: nowrap;
+        }
+
+        .order-items-table tbody tr td:nth-child(5)::before {
+            content: none !important;
+        }
+
+        .order-items-table tbody tr td:nth-child(6) {
+            grid-area: stock;
+            justify-self: start !important;
+        }
+
+        /* "Avail" badge: one neat pill, aligned with the product name */
+        .order-items-table tbody tr td:nth-child(6) .stock-info {
+            display: inline-flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 0.4rem !important;
+            width: auto !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0.3rem 0.7rem !important;
+            border-radius: 999px !important;
+            font-size: 0.72rem !important;
+            line-height: 1.2 !important;
+            white-space: nowrap;
+        }
+
+        .order-items-table tbody tr td:nth-child(6) .stock-info span {
+            margin: 0 !important;
+        }
+
+        .order-items-table .product-image {
+            width: 52px !important;
+            height: 52px !important;
+            border-radius: 10px !important;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     }
-
-    .order-items-table tbody tr:last-child {
-        border-bottom: 0 !important;
-    }
-
-    .order-items-table tbody tr td {
-        display: block !important;
-        width: auto !important;
-        min-width: 0 !important;
-        float: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-        text-align: left !important;
-        vertical-align: top !important;
-    }
-
-    .order-items-table tbody tr td:nth-child(1) { grid-area: img; align-self: start !important; }
-    .order-items-table tbody tr td:nth-child(2) { grid-area: name; align-self: start !important; }
-
-    .order-items-table tbody tr td:nth-child(3),
-    .order-items-table tbody tr td:nth-child(4) {
-        font-size: 0.8rem !important;
-        color: #64748b !important;
-        white-space: nowrap;
-    }
-
-    .order-items-table tbody tr td:nth-child(3) { grid-area: qty; }
-    .order-items-table tbody tr td:nth-child(3)::before { content: 'Qty: ' !important; }
-
-    /* "@ " replaced by a clear label */
-    .order-items-table tbody tr td:nth-child(4) { grid-area: price; }
-    .order-items-table tbody tr td:nth-child(4)::before { content: 'Price: ' !important; }
-
-    .order-items-table tbody tr td:nth-child(5) {
-        grid-area: total;
-        justify-self: end !important;
-        align-self: start !important;
-        text-align: right !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        color: #1a1a2e !important;
-        white-space: nowrap;
-    }
-
-    .order-items-table tbody tr td:nth-child(5)::before { content: none !important; }
-
-    .order-items-table tbody tr td:nth-child(6) {
-        grid-area: stock;
-        justify-self: start !important;
-    }
-
-    /* "Avail" badge: one neat pill, aligned with the product name */
-    .order-items-table tbody tr td:nth-child(6) .stock-info {
-        display: inline-flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 0.4rem !important;
-        width: auto !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0.3rem 0.7rem !important;
-        border-radius: 999px !important;
-        font-size: 0.72rem !important;
-        line-height: 1.2 !important;
-        white-space: nowrap;
-    }
-
-    .order-items-table tbody tr td:nth-child(6) .stock-info span {
-        margin: 0 !important;
-    }
-
-    .order-items-table .product-image {
-        width: 52px !important;
-        height: 52px !important;
-        border-radius: 10px !important;
-        object-fit: cover;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
 </style>
 
 <div class="modal-body-custom">
@@ -870,22 +890,8 @@
                                         $stockClass = 'stock-info-in';
                                         $stockIcon = 'bi-check-circle-fill';
 
-                                        if ($delivery->order->branch_id && $product) {
-                                            $branchInventory = \App\Models\BranchInventory::where(
-                                                'branch_id',
-                                                $delivery->order->branch_id,
-                                            )
-                                                ->where('product_id', $product->id)
-                                                ->when(
-                                                    $item->flavor_id,
-                                                    function ($query) use ($item) {
-                                                        return $query->where('flavor_id', $item->flavor_id);
-                                                    },
-                                                    function ($query) {
-                                                        return $query->whereNull('flavor_id');
-                                                    },
-                                                )
-                                                ->first();
+                                        if ($item->inventory_id) {
+                                            $branchInventory = \App\Models\BranchInventory::find($item->inventory_id);
 
                                             if ($branchInventory) {
                                                 $stockAvailable = $branchInventory->available_quantity;
