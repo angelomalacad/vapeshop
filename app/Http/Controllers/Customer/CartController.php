@@ -169,13 +169,13 @@ class CartController extends Controller
         return redirect()->route('customer.cart.index')->with('success', 'Product added to cart.');
     }
 
-        public function update(Request $request, $inventoryId)
+    public function update(Request $request, $inventoryId)
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
 
         $cart = CartHelper::getCart();
         if (isset($cart[$inventoryId])) {
-            $inventory = BranchInventory::withoutGlobalScopes()->find($inventoryId);
+            $inventory = BranchInventory::withoutGlobalScopes()->with(['product', 'flavor', 'branch'])->find($inventoryId);
             
             if (!$inventory) {
                 return response()->json(['success' => false, 'message' => 'This item is no longer available.', 'max_stock' => 0]);
@@ -198,10 +198,57 @@ class CartController extends Controller
                     'max_stock' => $totalStock // ✅ Return the max so JS can update the input
                 ]);
             }
+
+            // ✅ Recalculate the branch split for the new quantity
+            $userBranchId = null;
+            if (Auth::check() && Auth::user()->barangay) {
+                $servingBranch = DB::table('branch_barangay')->where('barangay_name', Auth::user()->barangay)->first();
+                if ($servingBranch) $userBranchId = $servingBranch->branch_id;
+            }
+
+            $proximityMap = [
+                1 => [2, 5, 4, 3],
+                2 => [1, 5, 4, 3],
+                3 => [4, 5, 2, 1],
+                4 => [3, 5, 2, 1],
+                5 => [2, 1, 4, 3],
+            ];
+
+            $allBranches = BranchInventory::withoutGlobalScopes()
+                ->with('branch')
+                ->where('product_id', $inventory->product_id)
+                ->where('flavor_id', $inventory->flavor_id)
+                ->get()
+                ->filter(fn($inv) => $inv->available_quantity > 0)
+                ->sortBy(function($inv) use ($proximityMap, $userBranchId) {
+                    if ($userBranchId) {
+                        if ($inv->branch_id == $userBranchId) return -1;
+                        $priority = array_search($inv->branch_id, $proximityMap[$userBranchId] ?? []);
+                        if ($priority !== false) return $priority;
+                    }
+                    return 999;
+                });
+
+            $remainingQty = $request->quantity;
+            $usedBranches = [];
+
+            foreach ($allBranches as $b) {
+                if ($remainingQty <= 0) break;
+                $deduct = min($remainingQty, $b->available_quantity);
+                $usedBranches[] = $b->branch->name ?? 'Unknown';
+                $remainingQty -= $deduct;
+            }
+
+            $branchDisplayName = count($usedBranches) > 0 ? implode(' + ', $usedBranches) : ($inventory->branch->name ?? 'Unknown Branch');
         }
 
         CartHelper::updateQuantity($inventoryId, $request->quantity);
-        return response()->json(['success' => true, 'message' => 'Cart updated.']);
+        
+        return response()->json([
+            'success' => true, 
+            'message' => 'Cart updated.',
+            'branch_display' => $branchDisplayName // ✅ Send the new branch string back
+        ]);
     }
 
     public function remove($inventoryId)

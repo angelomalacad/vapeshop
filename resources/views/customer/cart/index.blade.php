@@ -67,7 +67,7 @@
                                                     <div>
                                                         <strong>{{ $item['product_name'] }}</strong>
                                                         @if (isset($item['branch_name']))
-                                                            <br><small class="text-muted">{{ $item['branch_name'] }}</small>
+                                                            <br><small class="text-muted" id="branch-name-{{ $item['inventory_id'] }}">{{ $item['branch_name'] }}</small>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -772,7 +772,7 @@
         }
     </style>
 
-        @push('scripts')
+    @push('scripts')
         <script>
             // ✅ 1. FLASH MESSAGE FUNCTION
             function showFlashMessage(message, type = 'success') {
@@ -801,7 +801,7 @@
                 }, 4000);
             }
 
-                        // ✅ 2. AUTO-DISMISS LARAVEL FLASH MESSAGES (Prevents duplicates)
+            // ✅ 2. AUTO-DISMISS LARAVEL FLASH MESSAGES (Prevents duplicates)
             document.addEventListener('DOMContentLoaded', function() {
                 const alerts = document.querySelectorAll('.alert-dismissible');
                 alerts.forEach(alert => {
@@ -869,7 +869,7 @@
                 selectedSummaryCard.style.display = selectedCount > 0 ? 'block' : 'none';
             }
 
-                        // Function to update quantity via AJAX
+            // Function to update quantity via AJAX
             async function updateQuantity(inventoryId, newQuantity, price, inputElement) {
                 if (newQuantity < 1) {
                     showFlashMessage('Quantity must be at least 1', 'danger');
@@ -921,6 +921,12 @@
                         setTimeout(function() {
                             totalElement.style.color = '';
                         }, 500);
+
+                        // ✅ FIX: Update the branch display text dynamically
+                        const branchElement = document.getElementById('branch-name-' + inventoryId);
+                        if (branchElement && data.branch_display) {
+                            branchElement.textContent = data.branch_display;
+                        }
 
                         // Update checkbox data-quantity
                         const checkbox = document.querySelector('input[name="selected_items[]"][value="' + inventoryId +
@@ -998,7 +1004,7 @@
                 });
             });
 
-                        // ✅ Remove item via AJAX (NO PAGE REFRESH) — now uses a modal
+            // ✅ Remove item via AJAX (NO PAGE REFRESH) — now uses a modal
             document.querySelectorAll('.remove-item-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var inventoryId = this.dataset.inventoryId;
