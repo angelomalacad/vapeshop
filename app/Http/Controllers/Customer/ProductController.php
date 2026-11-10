@@ -19,7 +19,8 @@ class ProductController extends Controller
         $branches = Branch::where('is_active', true)->get();
         $selectedBranchId = $request->get('branch_id', 'all');
 
-        $query = BranchInventory::with(['product', 'flavor'])->where('is_archived', false);
+        // ✅ Added withoutGlobalScopes to ensure all branches' stock is fetched
+        $query = BranchInventory::withoutGlobalScopes()->with(['product', 'flavor'])->where('is_archived', false);
 
         if ($selectedBranchId !== 'all') {
             $query->where('branch_id', $selectedBranchId);
@@ -86,7 +87,7 @@ class ProductController extends Controller
         try {
             $product = Product::findOrFail($productId);
 
-            // 1. Get the user's assigned branch
+            // 1. Get the user's assigned branch via barangay mapping
             $userBranchId = null;
             if (Auth::check() && Auth::user()->barangay) {
                 $servingBranch = DB::table('branch_barangay')
@@ -96,88 +97,101 @@ class ProductController extends Controller
                 }
             }
 
-            // 2. Get ALL inventory items with stock across ALL branches
-            $allVariants = BranchInventory::with(['branch', 'flavor'])
+            // 2. Get ALL inventory items across ALL branches (bypassing global scopes)
+            $allVariants = BranchInventory::withoutGlobalScopes()->with(['branch', 'flavor'])
                 ->where('product_id', $productId)
                 ->get();
 
-            // 3. Define Proximity Chain based on your geography
-            $proximityMap = [
-                1 => [2, 5, 4, 3], // Asia 1 (Main) -> MCDC -> Majada Out -> V2 -> Paciano
-                2 => [1, 5, 4, 3], // MCDC -> Asia 1 -> Majada Out -> V2 -> Paciano
-                3 => [4, 5, 2, 1], // Paciano -> V2 -> Majada Out -> MCDC -> Asia 1
-                4 => [3, 5, 2, 1], // V2 -> Paciano -> Majada Out -> MCDC -> Asia 1
-                5 => [2, 1, 4, 3], // Majada Out -> MCDC -> Asia 1 -> V2 -> Paciano
-            ];
-
-            // 4. Deduplicate by Flavor Name AND Apply Proximity Logic
-            $finalVariants = [];
-            foreach ($allVariants as $inventory) {
-                $flavorName = $inventory->flavor->name ?? 'Standard';
-
-                // If we haven't added this flavor yet, add it
-                if (!isset($finalVariants[$flavorName])) {
-                    $finalVariants[$flavorName] = [
-                        'inventory_id' => $inventory->id,
-                        'product_id' => $inventory->product_id,
-                        'branch_id' => $inventory->branch_id,
-                        'branch_name' => $inventory->branch->name,
-                        'flavor' => $flavorName,
-                        'price' => $inventory->product->price,
-                        'available_quantity' => $inventory->available_quantity,
-                        'user_branch_id' => $userBranchId,
-                    ];
-                } else {
-                    // We already have this flavor. Check if the NEW one is a closer backup.
-                    $current = $finalVariants[$flavorName];
-                    $currentBranchId = $current['branch_id'];
-                    $newBranchId = $inventory->branch_id;
-
-                    // If current is out of stock, we ALWAYS swap to any branch with stock.
-                    if ($current['available_quantity'] <= 0 && $inventory->available_quantity > 0) {
-                        $finalVariants[$flavorName] = [
-                            'inventory_id' => $inventory->id,
-                            'product_id' => $inventory->product_id,
-                            'branch_id' => $inventory->branch_id,
-                            'branch_name' => $inventory->branch->name,
-                            'flavor' => $flavorName,
-                            'price' => $inventory->product->price,
-                            'available_quantity' => $inventory->available_quantity,
-                            'user_branch_id' => $userBranchId,
-                        ];
-                    }
-                    // If they both have stock, compare proximity to the user's assigned branch.
-                    elseif ($current['available_quantity'] > 0 && $inventory->available_quantity > 0) {
-                        // Check if we have a proximity map for the user
-                        if ($userBranchId && isset($proximityMap[$userBranchId])) {
-                            $priorityList = $proximityMap[$userBranchId];
-
-                            // Find index of current branch and new branch in the priority list
-                            $currentPriority = array_search($currentBranchId, $priorityList);
-                            $newPriority = array_search($newBranchId, $priorityList);
-
-                            // If new branch is closer (lower index), and not false, swap it
-                            if ($newPriority !== false && ($currentPriority === false || $newPriority < $currentPriority)) {
-                                $finalVariants[$flavorName] = [
-                                    'inventory_id' => $inventory->id,
-                                    'product_id' => $inventory->product_id,
-                                    'branch_id' => $inventory->branch_id,
-                                    'branch_name' => $inventory->branch->name,
-                                    'flavor' => $flavorName,
-                                    'price' => $inventory->product->price,
-                                    'available_quantity' => $inventory->available_quantity,
-                                    'user_branch_id' => $userBranchId,
-                                ];
-                            }
-                        }
-                    }
-                }
+            if ($allVariants->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'This product is not available in any branch inventory.']);
             }
 
-            // 5. Calculate Total Unique Flavors for the Frontend
-            $uniqueFlavorCount = count($finalVariants);
+            // 3. Define Proximity Chain (Passing Logic)
+            $proximityMap = [
+                1 => [2, 5, 4, 3],
+                2 => [1, 5, 4, 3],
+                3 => [4, 5, 2, 1],
+                4 => [3, 5, 2, 1],
+                5 => [2, 1, 4, 3],
+            ];
 
-            // 6. Build product image URL (Google Drive OR local storage)
+            // 4. Group by Flavor
+            $groupedVariants = [];
+            foreach ($allVariants as $inventory) {
+                $flavorName = $inventory->flavor->name ?? 'Standard';
+                
+                if (!isset($groupedVariants[$flavorName])) {
+                    $groupedVariants[$flavorName] = [
+                        'flavor' => $flavorName,
+                        'total_available_quantity' => 0,
+                        'branches' => []
+                    ];
+                }
+                
+                $groupedVariants[$flavorName]['total_available_quantity'] += $inventory->available_quantity;
+                
+                $groupedVariants[$flavorName]['branches'][] = [
+                    'inventory_id' => $inventory->id,
+                    'branch_id' => $inventory->branch_id,
+                    'branch_name' => $inventory->branch->name ?? 'Unknown Branch',
+                    'available_quantity' => $inventory->available_quantity,
+                    'user_branch_id' => $userBranchId, // Pass this down for the UI
+                ];
+            }
+
+            // 5. Sort branches by proximity (PASSING LOGIC FIXED)
+            $finalVariants = [];
+            foreach ($groupedVariants as $flavorName => $data) {
+                $branches = $data['branches'];
+                
+                usort($branches, function ($a, $b) use ($proximityMap, $userBranchId) {
+                    $aId = $a['branch_id'];
+                    $bId = $b['branch_id'];
+
+                    if ($userBranchId) {
+                        // User's own branch always first
+                        if ($aId == $userBranchId) return -1;
+                        if ($bId == $userBranchId) return 1;
+                        
+                        $aPriority = array_search($aId, $proximityMap[$userBranchId] ?? []);
+                        $bPriority = array_search($bId, $proximityMap[$userBranchId] ?? []);
+
+                        // ✅ FIX: Both are in the map, sort by priority
+                        if ($aPriority !== false && $bPriority !== false) {
+                            return $aPriority - $bPriority;
+                        }
+                        
+                        // ✅ FIX: Only A is in the map, A wins
+                        if ($aPriority !== false && $bPriority === false) {
+                            return -1; 
+                        }
+                        
+                        // ✅ FIX: Only B is in the map, B wins
+                        if ($aPriority === false && $bPriority !== false) {
+                            return 1;
+                        }
+                    }
+                    
+                    // Fallback to highest stock if neither is in the map
+                    return $b['available_quantity'] - $a['available_quantity'];
+                });
+
+                $primaryBranch = $branches[0];
+
+                $finalVariants[] = [
+                    'inventory_id' => $primaryBranch['inventory_id'], 
+                    'product_id' => $productId,
+                    'branch_id' => $primaryBranch['branch_id'],
+                    'branch_name' => $primaryBranch['branch_name'],
+                    'flavor' => $flavorName,
+                    'price' => $product->price,
+                    'available_quantity' => $data['total_available_quantity'], // ✅ TOTAL across all branches
+                    'user_branch_id' => $userBranchId,
+                    'branches' => $branches, // ✅ Send all branches to JS
+                ];
+            }
+
+            // 6. Image & Description logic
             $imageUrl = null;
             if (!empty($product->image_url)) {
                 $imageUrl = GoogleDriveHelper::getDirectImageUrl($product->image_url);
@@ -185,7 +199,6 @@ class ProductController extends Controller
                 $imageUrl = Storage::url($product->image);
             }
 
-            // 7. Build product description (fallback if empty)
             $description = $product->description;
             if (empty($description)) {
                 $parts = [];
@@ -197,9 +210,9 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'variants' => array_values($finalVariants),
+                'variants' => $finalVariants,
                 'product_name' => $product->name,
-                'unique_flavor_count' => $uniqueFlavorCount,
+                'unique_flavor_count' => count($finalVariants),
                 'product_info' => [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -216,7 +229,8 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to load product variants'], 500);
+            \Log::error('Error fetching variants: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to load product variants.'], 500);
         }
     }
 }

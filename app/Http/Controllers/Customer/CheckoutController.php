@@ -100,18 +100,77 @@ class CheckoutController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // ✅ Proximity Map for Auto-Split
+        $proximityMap = [
+            1 => [2, 5, 4, 3], // Asia 1 (Main) -> MCDC -> Majada Out -> V2 -> Paciano
+            2 => [1, 5, 4, 3], // MCDC -> Asia 1 -> Majada Out -> V2 -> Paciano
+            3 => [4, 5, 2, 1], // Paciano -> V2 -> Majada Out -> MCDC -> Asia 1
+            4 => [3, 5, 2, 1], // V2 -> Paciano -> Majada Out -> MCDC -> Asia 1
+            5 => [2, 1, 4, 3], // Majada Out -> MCDC -> Asia 1 -> V2 -> Paciano
+        ];
+        
+        $userBranchId = null;
+        if (Auth::check() && Auth::user()->barangay) {
+            $servingBranch = DB::table('branch_barangay')->where('barangay_name', Auth::user()->barangay)->first();
+            if ($servingBranch) $userBranchId = $servingBranch->branch_id;
+        }
+
         DB::beginTransaction();
         try {
-            foreach ($cart as $inventoryId => $item) {
-                $inventory = BranchInventory::lockForUpdate()->find($inventoryId);
-                if (!$inventory || $inventory->available_quantity < $item['quantity']) {
-                    throw new \Exception("Insufficient stock for {$item['product_name']}");
+            $splitItems = [];
+
+            // ✅ AUTO-SPLIT AND RESERVE STOCK
+            foreach ($cart as $primaryInventoryId => $item) {
+                $neededQty = $item['quantity'];
+                $productId = $item['product_id'];
+                $flavorId = $item['flavor_id'] ?? null;
+
+                // Get all branches with stock for this item, sorted by proximity
+                $availableBranches = BranchInventory::with('branch')
+                    ->where('product_id', $productId)
+                    ->when($flavorId, fn($q) => $q->where('flavor_id', $flavorId), fn($q) => $q->whereNull('flavor_id'))
+                    ->where('available_quantity', '>', 0)
+                    ->get()
+                    ->sortBy(function($inv) use ($proximityMap, $userBranchId) {
+                        if ($userBranchId) {
+                            if ($inv->branch_id == $userBranchId) return -1;
+                            $priority = array_search($inv->branch_id, $proximityMap[$userBranchId] ?? []);
+                            if ($priority !== false) return $priority;
+                        }
+                        return 999;
+                    });
+
+                // Check if total stock across ALL branches is enough
+                if ($availableBranches->sum('available_quantity') < $neededQty) {
+                    throw new \Exception("Insufficient total stock for {$item['product_name']} across all branches.");
                 }
-                $inventory->update([
-                    'reserved_quantity' => $inventory->reserved_quantity + $item['quantity']
-                ]);
+
+                // Deduct and split across branches
+                foreach ($availableBranches as $branchInv) {
+                    if ($neededQty <= 0) break;
+
+                    $deductQty = min($neededQty, $branchInv->available_quantity);
+                    
+                    // Lock and Reserve
+                    $branchInv = BranchInventory::lockForUpdate()->find($branchInv->id);
+                    $branchInv->update([
+                        'reserved_quantity' => $branchInv->reserved_quantity + $deductQty
+                    ]);
+
+                    $splitItems[] = [
+                        'inventory_id' => $branchInv->id,
+                        'product_id' => $productId,
+                        'flavor_id' => $flavorId,
+                        'quantity' => $deductQty,
+                        'price' => $item['price'],
+                        'subtotal' => $item['price'] * $deductQty,
+                    ];
+
+                    $neededQty -= $deductQty;
+                }
             }
 
+            // Address logic
             $addressOption = $request->input('address_option', 'saved');
             $deliveryAddress = $request->delivery_address;
             $city = $request->city;
@@ -148,9 +207,8 @@ class CheckoutController extends Controller
             $deliveryFee = $isInsideCalambaForFee ? $calambaFee : 0;
             $total = $subtotal + $deliveryFee;
 
-            // ✅ Assign to first branch to prevent NULL branch_id
-            $branchIds = collect($cart)->pluck('branch_id')->unique();
-            $singleBranchId = $branchIds->first();
+            // Assign primary branch (first split item's branch, or user's branch)
+            $singleBranchId = !empty($splitItems) ? BranchInventory::find($splitItems[0]['inventory_id'])->branch_id : ($userBranchId ?? 1);
 
             $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(uniqid());
             $order = Order::create([
@@ -181,26 +239,27 @@ class CheckoutController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            foreach ($cart as $inventoryId => $item) {
+            // Create Order Items based on the split array
+            foreach ($splitItems as $split) {
                 $order->items()->create([
-                    'inventory_id' => $inventoryId,
-                    'product_id' => $item['product_id'],
-                    'flavor_id' => $item['flavor_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity'],
+                    'inventory_id' => $split['inventory_id'],
+                    'product_id' => $split['product_id'],
+                    'flavor_id' => $split['flavor_id'],
+                    'quantity' => $split['quantity'],
+                    'price' => $split['price'],
+                    'subtotal' => $split['subtotal'],
                     'status' => 'pending',
                 ]);
 
                 InventoryReservation::create([
-                    'branch_inventory_id' => $inventoryId,
+                    'branch_inventory_id' => $split['inventory_id'],
                     'order_id' => $order->id,
                     'user_id' => Auth::id(),
-                    'quantity' => $item['quantity'],
+                    'quantity' => $split['quantity'],
                     'reservation_type' => 'online_order',
                     'status' => 'active',
                     'expires_at' => now()->addHours(24),
-                    'notes' => 'Auto-reserved for order #' . $order->order_number
+                    'notes' => 'Auto-split reserved for order #' . $order->order_number
                 ]);
             }
 

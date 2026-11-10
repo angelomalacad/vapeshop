@@ -2,6 +2,11 @@
 
 @section('content')
     <div class="container cart-container">
+        
+        <!-- ✅ 1. THIS IS THE ONLY HTML I ADDED (The container for the banner) -->
+        <div id="flashMessageContainer"></div>
+        <!-- ✅ END OF ADDED HTML -->
+
         <!-- Header with Title and Continue Shopping Button -->
         <div class="d-flex justify-content-between align-items-center mb-4 cart-header">
             <h2 class="cart-title"><i class="bi bi-cart"></i> Shopping Cart</h2>
@@ -767,8 +772,46 @@
         }
     </style>
 
-    @push('scripts')
+        @push('scripts')
         <script>
+            // ✅ 1. FLASH MESSAGE FUNCTION
+            function showFlashMessage(message, type = 'success') {
+                const container = document.getElementById('flashMessageContainer');
+                container.innerHTML = ''; // Clear previous
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-4`;
+                alertDiv.role = 'alert';
+                
+                let icon = 'bi-check-circle-fill';
+                if (type === 'danger') icon = 'bi-exclamation-triangle-fill';
+                
+                alertDiv.innerHTML = `
+                    <i class="bi ${icon} me-2"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                container.appendChild(alertDiv);
+                
+                setTimeout(() => {
+                    if (alertDiv && alertDiv.parentNode) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => alertDiv.remove(), 150);
+                    }
+                }, 4000);
+            }
+
+                        // ✅ 2. AUTO-DISMISS LARAVEL FLASH MESSAGES (Prevents duplicates)
+            document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.alert-dismissible');
+                alerts.forEach(alert => {
+                    setTimeout(() => {
+                        alert.classList.remove('show');
+                        setTimeout(() => alert.remove(), 150);
+                    }, 4000);
+                });
+            });
+
             // Select All functionality
             const selectAllCheckbox = document.getElementById('selectAll');
             const itemCheckboxes = document.querySelectorAll('.item-checkbox');
@@ -826,19 +869,20 @@
                 selectedSummaryCard.style.display = selectedCount > 0 ? 'block' : 'none';
             }
 
-            // Function to update quantity via AJAX
+                        // Function to update quantity via AJAX
             async function updateQuantity(inventoryId, newQuantity, price, inputElement) {
                 if (newQuantity < 1) {
-                    alert('Quantity must be at least 1');
+                    showFlashMessage('Quantity must be at least 1', 'danger');
+                    newQuantity = 1;
                     inputElement.value = 1;
-                    return;
                 }
 
                 const max = parseInt(inputElement.getAttribute('max'));
                 if (newQuantity > max) {
-                    alert('Maximum quantity available is ' + max);
+                    // ✅ FIX: Automatically set the input to the max, show error, but DO NOT return
+                    showFlashMessage('Maximum quantity available is ' + max + '. Automatically adjusted.', 'danger');
+                    newQuantity = max; 
                     inputElement.value = max;
-                    return;
                 }
 
                 // Show updating state
@@ -862,7 +906,7 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            quantity: newQuantity
+                            quantity: newQuantity // ✅ This will now send the max (e.g., 70) instead of 80
                         })
                     });
 
@@ -900,8 +944,16 @@
                             }, 1500);
                         }
                     } else {
-                        alert(data.message || 'Error updating quantity');
-                        inputElement.value = originalValue;
+                        showFlashMessage(data.message || 'Error updating quantity', 'danger');
+                        
+                        // ✅ FIX: Automatically update the max stock attribute and input value if server provides it
+                        if (data.max_stock !== undefined) {
+                            inputElement.max = data.max_stock;
+                            inputElement.value = data.max_stock;
+                        } else {
+                            inputElement.value = originalValue;
+                        }
+
                         if (feedbackDiv) {
                             feedbackDiv.innerHTML =
                                 '<small class="text-danger"><i class="bi bi-x-circle-fill"></i> Failed</small>';
@@ -912,7 +964,7 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('Error updating quantity. Please try again.');
+                    showFlashMessage('Error updating quantity. Please try again.', 'danger');
                     inputElement.value = originalValue;
                     if (feedbackDiv) {
                         feedbackDiv.innerHTML =
@@ -922,7 +974,6 @@
                         }, 1500);
                     }
                 } finally {
-                    // Remove updating state
                     inputElement.classList.remove('updating');
                 }
             }
@@ -947,21 +998,22 @@
                 });
             });
 
-            // ✅ Remove item via AJAX (NO PAGE REFRESH) — now uses a modal
+                        // ✅ Remove item via AJAX (NO PAGE REFRESH) — now uses a modal
             document.querySelectorAll('.remove-item-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var inventoryId = this.dataset.inventoryId;
                     var productName = this.dataset.productName;
 
-                    // Set the product name in the modal
                     document.getElementById('removeItemName').textContent = productName;
 
-                    // Store the inventory ID on the confirm button
                     var confirmBtn = document.getElementById('confirmRemoveItemBtn');
                     confirmBtn.dataset.inventoryId = inventoryId;
                     confirmBtn.dataset.productName = productName;
 
-                    // Show the modal
+                    // ✅ FIX: Reset the button state every time the modal opens
+                    confirmBtn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Yes, Remove';
+                    confirmBtn.disabled = false;
+
                     var modalElement = document.getElementById('removeItemModal');
                     var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
                     modal.show();
@@ -1012,13 +1064,13 @@
                                     }
                                 }, 300);
                             } else {
-                                alert(data.message || 'Error removing item');
+                                showFlashMessage(data.message || 'Error removing item', 'danger');
                                 this.innerHTML = originalBtnHtml;
                                 this.disabled = false;
                             }
                         } catch (error) {
                             console.error('Error:', error);
-                            alert('Error removing item');
+                            showFlashMessage('Error removing item', 'danger');
                             this.innerHTML = originalBtnHtml;
                             this.disabled = false;
                         }
@@ -1062,13 +1114,13 @@
                                 modal.hide();
                                 location.reload();
                             } else {
-                                alert(data.message || 'Error clearing cart');
+                                showFlashMessage(data.message || 'Error clearing cart', 'danger');
                                 this.innerHTML = originalBtnHtml;
                                 this.disabled = false;
                             }
                         } catch (error) {
                             console.error('Error:', error);
-                            alert('Error clearing cart');
+                            showFlashMessage('Error clearing cart', 'danger');
                             this.innerHTML = originalBtnHtml;
                             this.disabled = false;
                         }

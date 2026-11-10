@@ -8,13 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class CartHelper
 {
-    /**
-     * Get all cart items for the logged-in user
-     */
     public static function getCart()
     {
         if (!Auth::check()) {
-            return []; // Guests cannot have persistent carts
+            return [];
         }
 
         $cartItems = Cart::where('user_id', Auth::id())
@@ -24,7 +21,19 @@ class CartHelper
         $formattedCart = [];
         foreach ($cartItems as $cart) {
             $inventory = $cart->inventory;
-            if (!$inventory) continue; // Skip if inventory was deleted
+            if (!$inventory) continue;
+
+            $totalStock = BranchInventory::withoutGlobalScopes()
+                ->where('product_id', $inventory->product_id)
+                ->where('flavor_id', $inventory->flavor_id)
+                ->get()
+                ->sum('available_quantity');
+
+            // ✅ SAFE FALLBACK (Controller overrides this with the exact split)
+            $branchName = $inventory->branch->name ?? 'Unknown Branch';
+            if ($cart->quantity > $inventory->available_quantity) {
+                $branchName .= ' (+ Other Branches)';
+            }
 
             $formattedCart[$cart->inventory_id] = [
                 'inventory_id' => $cart->inventory_id,
@@ -36,16 +45,14 @@ class CartHelper
                 'price' => $inventory->product->price ?? 0,
                 'quantity' => $cart->quantity,
                 'product_image' => $inventory->product->image ? \Storage::url($inventory->product->image) : null,
-                'max_quantity' => $inventory->available_quantity,
+                'max_quantity' => $totalStock,
+                'branch_name' => $branchName, // ✅ REQUIRED FOR VIEW
             ];
         }
 
         return $formattedCart;
     }
 
-    /**
-     * Get total item count in cart
-     */
     public static function getItemCount()
     {
         $cart = self::getCart();
@@ -56,9 +63,6 @@ class CartHelper
         return $count;
     }
 
-    /**
-     * Get cart subtotal
-     */
     public static function getTotal()
     {
         $cart = self::getCart();
@@ -69,30 +73,32 @@ class CartHelper
         return $total;
     }
 
-        /**
-     * Add item to cart
-     */
     public static function addItem($inventoryId, $quantity, $branchId, $productName, $price, $flavorName = null, $productId = null, $flavorId = null)
     {
         if (!Auth::check()) {
             return false;
         }
 
-        // ✅ NEW: Check maximum available stock for this inventory
-        $inventory = BranchInventory::find($inventoryId);
-        $maxStock = $inventory ? $inventory->available_quantity : 0;
+        $inventory = BranchInventory::withoutGlobalScopes()->find($inventoryId);
+        $maxStock = 0;
+        
+        if ($inventory) {
+            $maxStock = BranchInventory::withoutGlobalScopes()
+                ->where('product_id', $inventory->product_id)
+                ->where('flavor_id', $inventory->flavor_id)
+                ->get()
+                ->sum('available_quantity');
+        }
 
         $cartItem = Cart::where('user_id', Auth::id())
             ->where('inventory_id', $inventoryId)
             ->first();
 
         if ($cartItem) {
-            // ✅ NEW: Limit the addition so it doesn't exceed max stock
             $newQuantity = $cartItem->quantity + $quantity;
             $cartItem->quantity = min($newQuantity, $maxStock);
             $cartItem->save();
         } else {
-            // ✅ NEW: If adding a new item, ensure it doesn't exceed max stock
             Cart::create([
                 'user_id' => Auth::id(),
                 'inventory_id' => $inventoryId,
@@ -100,7 +106,6 @@ class CartHelper
             ]);
         }
 
-        // Update the session array to include flavor_id
         $cart = session()->get('cart', []);
         if (isset($cart[$inventoryId])) {
             $newQuantity = $cart[$inventoryId]['quantity'] + $quantity;
@@ -122,9 +127,6 @@ class CartHelper
         return true;
     }
 
-    /**
-     * Update item quantity
-     */
     public static function updateQuantity($inventoryId, $quantity)
     {
         if (!Auth::check()) {
@@ -146,9 +148,6 @@ class CartHelper
         return true;
     }
 
-    /**
-     * Remove item from cart
-     */
     public static function removeItem($inventoryId)
     {
         if (!Auth::check()) {
@@ -162,9 +161,6 @@ class CartHelper
         return true;
     }
 
-    /**
-     * Clear entire cart for user
-     */
     public static function clearCart()
     {
         if (!Auth::check()) {
@@ -175,9 +171,6 @@ class CartHelper
         return true;
     }
 
-    /**
-     * Check if cart is empty
-     */
     public static function isEmpty()
     {
         return count(self::getCart()) === 0;

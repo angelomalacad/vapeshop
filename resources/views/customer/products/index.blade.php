@@ -644,14 +644,12 @@
                 padding-right: 12px;
             }
 
-            /* Reduce grid gap so cards have more width for images */
             #bestSellerGrid,
             #productGrid {
                 --bs-gutter-x: 0.75rem;
                 --bs-gutter-y: 0.75rem;
             }
 
-            /* Mobile product image */
             .product-img {
                 height: 120px;
                 width: 100%;
@@ -661,8 +659,6 @@
                 background: #f1f5f9;
             }
 
-            /* ✅ FIXED: Fallback placeholder — do NOT force display:flex here.
-               Let the inline style (or JS swap) control visibility. */
             .product-img.bg-light {
                 align-items: center;
                 justify-content: center;
@@ -672,7 +668,6 @@
                 font-size: 1.8rem !important;
             }
 
-            /* Card body */
             .product-card .card-body {
                 padding: 0.65rem;
                 display: flex;
@@ -814,7 +809,7 @@
         }
     </style>
 
-    @push('scripts')
+        @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Search functionality
@@ -852,6 +847,49 @@
                     const modalProductDetails = document.getElementById('modalProductDetails');
                     const decreaseQty = document.getElementById('decreaseQty');
                     const increaseQty = document.getElementById('increaseQty');
+
+                    // ✅ NEW: Function to calculate and show the exact branch deductions
+                    function updateBranchDisplay() {
+                        const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+                        if (!selectedOption || !selectedOption.value) {
+                            fulfilledBranchDisplay.innerText = '';
+                            return;
+                        }
+
+                        const quantity = parseInt(itemQuantity.value) || 1;
+                        let branches = [];
+                        try {
+                            branches = JSON.parse(selectedOption.dataset.branches || '[]');
+                        } catch(e) { branches = []; }
+
+                        if (branches.length === 0) {
+                            fulfilledBranchDisplay.innerText = '';
+                            return;
+                        }
+
+                        let remaining = quantity;
+                        let usedBranches = [];
+
+                        // Loop through branches in proximity order to calculate the split
+                        for (let b of branches) {
+                            if (remaining <= 0) break;
+                            if (b.available_quantity <= 0) continue;
+
+                            let deduct = Math.min(remaining, b.available_quantity);
+                            usedBranches.push(b.branch_name);
+                            remaining -= deduct;
+                        }
+
+                        if (usedBranches.length > 0) {
+                            if (usedBranches.length === 1 && branches[0].branch_id === branches[0].user_branch_id) {
+                                fulfilledBranchDisplay.innerText = '✓ Primary Fulfillment: ' + usedBranches[0] + ' (Your Branch)';
+                                fulfilledBranchDisplay.style.color = '#198754';
+                            } else {
+                                fulfilledBranchDisplay.innerText = '↗ Fulfillment: ' + usedBranches.join(' + ');
+                                fulfilledBranchDisplay.style.color = '#6c757d';
+                            }
+                        }
+                    }
 
                     if (decreaseQty) {
                         decreaseQty.addEventListener('click', function() {
@@ -942,36 +980,16 @@
                             }
 
                             let detailsHtml = '';
-
-                            if (productInfo.brand) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-award"></i> ${productInfo.brand}</span>`;
-                            }
-
-                            if (productInfo.category) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-tag"></i> ${productInfo.category}</span>`;
-                            }
-
-                            if (productInfo.nicotine_strength) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-droplet"></i> ${productInfo.nicotine_strength}</span>`;
-                            }
-
-                            if (productInfo.puff_count) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-cloud"></i> ${parseInt(productInfo.puff_count).toLocaleString()} puffs</span>`;
-                            }
-
-                            if (productInfo.battery_capacity) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-battery-full"></i> ${productInfo.battery_capacity}mAh</span>`;
-                            }
-
-                            if (productInfo.liquid_capacity) {
-                                detailsHtml += `<span class="detail-badge"><i class="bi bi-cup-straw"></i> ${productInfo.liquid_capacity}ml</span>`;
-                            }
-
+                            if (productInfo.brand) detailsHtml += `<span class="detail-badge"><i class="bi bi-award"></i> ${productInfo.brand}</span>`;
+                            if (productInfo.category) detailsHtml += `<span class="detail-badge"><i class="bi bi-tag"></i> ${productInfo.category}</span>`;
+                            if (productInfo.nicotine_strength) detailsHtml += `<span class="detail-badge"><i class="bi bi-droplet"></i> ${productInfo.nicotine_strength}</span>`;
+                            if (productInfo.puff_count) detailsHtml += `<span class="detail-badge"><i class="bi bi-cloud"></i> ${parseInt(productInfo.puff_count).toLocaleString()} puffs</span>`;
+                            if (productInfo.battery_capacity) detailsHtml += `<span class="detail-badge"><i class="bi bi-battery-full"></i> ${productInfo.battery_capacity}mAh</span>`;
+                            if (productInfo.liquid_capacity) detailsHtml += `<span class="detail-badge"><i class="bi bi-cup-straw"></i> ${productInfo.liquid_capacity}ml</span>`;
                             if (productInfo.type) {
                                 const typeFormatted = productInfo.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                 detailsHtml += `<span class="detail-badge"><i class="bi bi-grid"></i> ${typeFormatted}</span>`;
                             }
-
                             modalProductDetails.innerHTML = detailsHtml;
 
                             itemSelect.innerHTML = '<option value="">Select variant...</option>';
@@ -980,17 +998,14 @@
                                 option.value = variant.inventory_id;
                                 option.dataset.maxStock = variant.available_quantity;
                                 option.dataset.price = variant.price;
-                                option.dataset.branchName = variant.branch_name;
-                                option.dataset.isUserBranch = variant.branch_id === variant
-                                    .user_branch_id ? 'true' : 'false';
+                                option.dataset.branches = JSON.stringify(variant.branches); // ✅ Store the branches array
 
                                 let displayText = (variant.flavor || 'Standard') + ' - ₱' +
                                     parseFloat(variant.price).toFixed(2);
                                 if (variant.available_quantity <= 0) {
                                     displayText += ' (Currently Out of Stock)';
                                 } else {
-                                    displayText += ' (Stock: ' + variant
-                                        .available_quantity + ')';
+                                    displayText += ' (Total Stock: ' + variant.available_quantity + ')';
                                 }
                                 option.textContent = displayText;
                                 itemSelect.appendChild(option);
@@ -1011,29 +1026,19 @@
                         if (selectedOption && selectedOption.value) {
                             const maxStock = parseInt(selectedOption.dataset.maxStock);
                             const price = parseFloat(selectedOption.dataset.price);
-                            const branchName = selectedOption.dataset.branchName;
-                            const isUserBranch = selectedOption.dataset.isUserBranch === 'true';
 
                             itemInventoryId.value = selectedOption.value;
                             itemQuantity.max = Math.max(maxStock, 1);
                             itemQuantity.value = 1;
-                            itemStockInfo.innerText = maxStock > 0 ? 'Max stock: ' + maxStock :
-                                'Currently Out of Stock';
+                            itemStockInfo.innerText = maxStock > 0 ? 'Max stock: ' + maxStock : 'Currently Out of Stock';
                             itemPriceDisplay.innerText = '₱' + price.toFixed(2);
 
                             if (maxStock <= 0) {
-                                fulfilledBranchDisplay.innerText = '';
                                 itemQuantity.disabled = true;
+                                fulfilledBranchDisplay.innerText = '';
                             } else {
                                 itemQuantity.disabled = false;
-                                if (isUserBranch) {
-                                    fulfilledBranchDisplay.innerText = '✓ Fulfilled by your assigned branch: ' +
-                                        branchName;
-                                    fulfilledBranchDisplay.style.color = '#198754';
-                                } else {
-                                    fulfilledBranchDisplay.innerText = '↗ Fulfilled by: ' + branchName;
-                                    fulfilledBranchDisplay.style.color = '#6c757d';
-                                }
+                                updateBranchDisplay(); // ✅ Call dynamic calculation
                             }
                         } else {
                             itemInventoryId.value = '';
@@ -1053,6 +1058,8 @@
                                 if (isNaN(value)) value = 1;
                                 if (value > maxStock) this.value = maxStock;
                                 if (value < 1) this.value = 1;
+                                
+                                updateBranchDisplay(); // ✅ Call dynamic calculation
                             }
                         });
                     }
