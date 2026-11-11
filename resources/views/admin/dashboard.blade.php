@@ -1423,20 +1423,23 @@
                             </a>
                         @endif
                         @if (Route::has('admin.inventory.transfers'))
-                            <a href="{{ route('admin.inventory.transfers') }}"
+                            <a href="{{ route('admin.inventory.transfers') }}" id="nav-stock-transfers"
                                 class="list-group-item list-group-item-action ps-4">
                                 <i class="bi bi-arrow-left-right me-2 text-info"></i> Stock Transfers
                                 @php $pendingTransfersNav = \App\Models\StockTransfer::where('status', 'pending')->count(); @endphp
                                 @if ($pendingTransfersNav > 0)
-                                    <span
-                                        class="badge bg-warning rounded-pill float-end">{{ $pendingTransfersNav }}</span>
+                                    <span class="badge bg-warning rounded-pill float-end notification-badge" data-badge-id="stock-transfers" style="display:none;">{{ $pendingTransfersNav }}</span>
                                 @endif
                             </a>
                         @endif
                         @if (Route::has('admin.inventory.stock-history'))
-                            <a href="{{ route('admin.inventory.stock-history') }}"
+                            <a href="{{ route('admin.inventory.stock-history') }}" id="nav-stock-history"
                                 class="list-group-item list-group-item-action ps-4">
                                 <i class="bi bi-clock-history me-2 text-secondary"></i> Stock History
+                                @php $stockHistoryCount = \App\Models\StockMovement::whereDate('created_at', today())->count(); @endphp
+                                @if ($stockHistoryCount > 0)
+                                    <span class="badge bg-info rounded-pill float-end notification-badge" data-badge-id="stock-history" style="display:none;">{{ $stockHistoryCount }}</span>
+                                @endif
                             </a>
                         @endif
                         <div class="text-muted">WAREHOUSE</div>
@@ -1457,21 +1460,33 @@
                         @endif
                         <div class="text-muted">TRANSACTIONS</div>
                         @if (Route::has('admin.pos.history'))
-                            <a href="{{ route('admin.pos.history') }}"
+                            <a href="{{ route('admin.pos.history') }}" id="nav-pos-sales-history"
                                 class="list-group-item list-group-item-action">
                                 <i class="bi bi-clock-history me-2 text-secondary"></i> POS Sales History
+                                @php $posHistoryCount = \App\Models\Order::where('order_number', 'LIKE', 'POS-%')->whereDate('created_at', today())->count(); @endphp
+                                @if ($posHistoryCount > 0)
+                                    <span class="badge bg-success rounded-pill float-end notification-badge" data-badge-id="pos-sales-history" style="display:none;">{{ $posHistoryCount }}</span>
+                                @endif
                             </a>
                         @endif
                         @if (Route::has('admin.online-orders.index'))
-                            <a href="{{ route('admin.online-orders.index') }}"
+                            <a href="{{ route('admin.online-orders.index') }}" id="nav-online-orders"
                                 class="list-group-item list-group-item-action">
                                 <i class="bi bi-cart me-2 text-primary"></i> Online Orders History
+                                @php $onlineOrdersActive = \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])->count(); @endphp
+                                @if ($onlineOrdersActive > 0)
+                                    <span class="badge bg-primary rounded-pill float-end notification-badge" data-badge-id="online-orders" style="display:none;">{{ $onlineOrdersActive }}</span>
+                                @endif
                             </a>
                         @endif
                         @if (Route::has('admin.deliveries.index'))
-                            <a href="{{ route('admin.deliveries.index') }}"
+                            <a href="{{ route('admin.deliveries.index') }}" id="nav-delivery-history"
                                 class="list-group-item list-group-item-action">
-                                <i class="bi bi-truck me-2 text-primary"></i> Delivery History 
+                                <i class="bi bi-truck me-2 text-primary"></i> Delivery History
+                                @php $deliveryHistoryActive = \App\Models\Delivery::whereIn('status', ['pending', 'in_transit', 'out_for_delivery'])->count(); @endphp
+                                @if ($deliveryHistoryActive > 0)
+                                    <span class="badge bg-primary rounded-pill float-end notification-badge" data-badge-id="delivery-history" style="display:none;">{{ $deliveryHistoryActive }}</span>
+                                @endif
                             </a>
                         @endif
                         <div class="dropdown-divider"></div>
@@ -1693,10 +1708,10 @@
                         $branches = \App\Models\Branch::all();
                         foreach ($branches as $branch) {
                             $sales = \App\Models\Order::where('branch_id', $branch->id)
-                                ->where('order_number', 'NOT LIKE', 'POS-%') // online orders
+                                ->where('order_number', 'NOT LIKE', 'POS-%')
                                 ->sum('total_amount');
                             $posSales = \App\Models\Order::where('branch_id', $branch->id)
-                                ->where('order_number', 'LIKE', 'POS-%') // POS orders
+                                ->where('order_number', 'LIKE', 'POS-%')
                                 ->sum('total_amount');
                             $branchSales[$branch->name] = [
                                 'total' => $sales + $posSales,
@@ -3213,6 +3228,36 @@ function updateBranchSalesChart() {
                             if (countdownInterval) {
                                 clearInterval(countdownInterval);
                             }
+                        });
+                    </script>
+
+                    <!-- ✅ NOTIFICATION BADGE LOGIC (admin dashboard) -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const badges = [
+                                { id: 'stock-transfers',   count: {{ $pendingTransfersNav ?? 0 }},   linkId: 'nav-stock-transfers' },
+                                { id: 'stock-history',     count: {{ $stockHistoryCount ?? 0 }},     linkId: 'nav-stock-history' },
+                                { id: 'pos-sales-history', count: {{ $posHistoryCount ?? 0 }},       linkId: 'nav-pos-sales-history' },
+                                { id: 'online-orders',     count: {{ $onlineOrdersActive ?? 0 }},    linkId: 'nav-online-orders' },
+                                { id: 'delivery-history',  count: {{ $deliveryHistoryActive ?? 0 }}, linkId: 'nav-delivery-history' }
+                            ];
+
+                            badges.forEach(badge => {
+                                const badgeEl = document.querySelector(`[data-badge-id="${badge.id}"]`);
+                                const lastSeenCount = parseInt(localStorage.getItem('last_seen_admin_' + badge.id) || '0');
+
+                                if (badgeEl) {
+                                    badgeEl.style.display = (badge.count > lastSeenCount) ? 'inline-block' : 'none';
+                                }
+
+                                const link = document.getElementById(badge.linkId);
+                                if (link) {
+                                    link.addEventListener('click', function() {
+                                        localStorage.setItem('last_seen_admin_' + badge.id, badge.count);
+                                        if (badgeEl) badgeEl.style.display = 'none';
+                                    });
+                                }
+                            });
                         });
                     </script>
 </body>

@@ -524,7 +524,7 @@
                                         }
                                     }
 
-                                    // ✅ CORRECTED INVENTORY STOCK CHECK
+                                                                        // ✅ CORRECTED INVENTORY STOCK CHECK
                                     $stockStatus = 'in_stock';
                                     $stockLabel = 'In Stock';
                                     $stockIcon = 'check-circle-fill';
@@ -538,7 +538,9 @@
                                         )->first();
 
                                         if ($inventoryItem) {
-                                            $available = $inventoryItem->available_quantity;
+                                            // ✅ FIX: Use physical quantity instead of available_quantity 
+                                            // because this order has already reserved the stock.
+                                            $available = $inventoryItem->quantity; 
 
                                             if ($available < $item->quantity) {
                                                 if ($available <= 0) {

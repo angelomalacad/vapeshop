@@ -1337,63 +1337,75 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
     /**
      * Reject a transfer (for SOURCE branch - the one sending stock)
      */
-    public function rejectTransfer(Request $request, StockTransfer $transfer)
+        public function rejectTransfer(Request $request, StockTransfer $transfer)
     {
         $branchId = Auth::user()->branch_id;
 
-        if ($transfer->from_branch_id !== $branchId) {
+        $isSourceBranch = ($transfer->from_branch_id == $branchId);
+        $isDestinationBranch = ($transfer->to_branch_id == $branchId);
+
+        // Verify user belongs to either the source or destination branch
+        if (!$isSourceBranch && !$isDestinationBranch) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access. Only the source branch can reject transfers.'
+                'message' => 'Unauthorized access.'
             ], 403);
         }
 
-        if ($transfer->status !== 'pending') {
+        // Source branch can only reject PENDING transfers
+        if ($isSourceBranch && $transfer->status !== 'pending') {
             return response()->json([
                 'success' => false,
-                'message' => 'Only pending transfers can be rejected.'
+                'message' => 'Only pending transfers can be rejected by the source branch.'
             ], 400);
         }
 
-        // ✅ ADD THIS: Validate rejection reason
+        // Destination branch can only reject APPROVED transfers (after source approves, before receiving)
+        if ($isDestinationBranch && $transfer->status !== 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only approved transfers can be rejected by the destination branch.'
+            ], 400);
+        }
+
         $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
 
         DB::beginTransaction();
 
-    try {
-        // Release all active reservations for this transfer
-        $reservations = InventoryReservation::where('stock_transfer_id', $transfer->id)
-            ->where('status', 'active')
-            ->get();
+        try {
+            // Release all active reservations for this transfer so stock goes back to the source branch
+            $reservations = InventoryReservation::where('stock_transfer_id', $transfer->id)
+                ->where('status', 'active')
+                ->get();
 
-        foreach ($reservations as $reservation) {
-            $this->reservationService->releaseReservation($reservation->id);
+            foreach ($reservations as $reservation) {
+                $this->reservationService->releaseReservation($reservation->id);
+            }
+
+            $transfer->update([
+                'status' => 'cancelled',
+                'rejection_reason' => $request->rejection_reason,
+                'rejected_by' => Auth::id(),
+                'rejected_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transfer rejected successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error rejecting transfer: ' . $e->getMessage()
+            ], 500);
         }
-
-        $transfer->update([
-            'status' => 'cancelled',
-            'rejection_reason' => $request->rejection_reason,  // ✅ Save to dedicated column
-            'rejected_by' => Auth::id(),
-            'rejected_at' => now(),
-        ]);
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Transfer rejected successfully.'
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'Error rejecting transfer: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     /**
  * Complete a transfer (for DESTINATION branch - the one receiving stock)

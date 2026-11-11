@@ -1377,8 +1377,8 @@
                             <p class="fw-bold" id="disposeItemName"></p>
                             <div class="mb-3">
     <label class="form-label-minimal">Reason for Disposal *</label>
-    <textarea name="dispose_reason" class="form-control-minimal" rows="3" required
-        placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
+    <textarea name="dispose_reason" id="dispose_reason" class="form-control-minimal" rows="3" required
+    placeholder="e.g., Expired, Damaged, Defective, etc."></textarea>
 </div>
                         </div>
                         <div class="d-flex gap-2 mt-3">

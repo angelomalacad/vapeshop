@@ -19,8 +19,10 @@ class ProductController extends Controller
         $branches = Branch::where('is_active', true)->get();
         $selectedBranchId = $request->get('branch_id', 'all');
 
-        // ✅ Added withoutGlobalScopes to ensure all branches' stock is fetched
-        $query = BranchInventory::withoutGlobalScopes()->with(['product', 'flavor'])->where('is_archived', false);
+        // ✅ FIX: Added ->where('is_disposed', false) to hide disposed items
+        $query = BranchInventory::withoutGlobalScopes()->with(['product', 'flavor'])
+            ->where('is_archived', false)
+            ->where('is_disposed', false);
 
         if ($selectedBranchId !== 'all') {
             $query->where('branch_id', $selectedBranchId);
@@ -98,8 +100,11 @@ class ProductController extends Controller
             }
 
             // 2. Get ALL inventory items across ALL branches (bypassing global scopes)
+            // ✅ FIX: Added where('is_archived', false) and where('is_disposed', false)
             $allVariants = BranchInventory::withoutGlobalScopes()->with(['branch', 'flavor'])
                 ->where('product_id', $productId)
+                ->where('is_archived', false)
+                ->where('is_disposed', false)
                 ->get();
 
             if ($allVariants->isEmpty()) {

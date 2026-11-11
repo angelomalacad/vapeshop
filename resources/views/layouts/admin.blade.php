@@ -18,7 +18,7 @@
             // Falls back to direct queries if the cache store is unavailable.
             // =====================================================================
             try {
-                $sidebarCache = cache()->remember('admin.sidebar.badges.v2', 60, function () {
+                $sidebarCache = cache()->remember('admin.sidebar.badges.v3', 60, function () {
                     return [
                         'branchAdminCount'    => \App\Models\User::whereIn('role', ['branch_admin', 'staff'])->count(),
                         'customerCount'       => \App\Models\User::where('role', 'customer')->count(),
@@ -26,6 +26,10 @@
                         'totalItems'          => \App\Models\BranchInventory::count(),
                         'lowStockCountNav'    => \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count(),
                         'pendingTransfersNav' => \App\Models\StockTransfer::where('status', 'pending')->count(),
+                        'stockHistoryCount'          => \App\Models\StockMovement::whereDate('created_at', today())->count(),
+                        'posHistoryCount'            => \App\Models\Order::where('order_number', 'LIKE', 'POS-%')->whereDate('created_at', today())->count(),
+                        'onlineOrdersActiveCount'    => \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])->count(),
+                        'deliveryHistoryActiveCount' => \App\Models\Delivery::whereIn('status', ['pending', 'in_transit', 'out_for_delivery'])->count(),
                     ];
                 });
             } catch (\Throwable $e) {
@@ -37,6 +41,10 @@
                     'totalItems'          => \App\Models\BranchInventory::count(),
                     'lowStockCountNav'    => \App\Models\BranchInventory::whereColumn('quantity', '<=', 'low_stock_threshold')->count(),
                     'pendingTransfersNav' => \App\Models\StockTransfer::where('status', 'pending')->count(),
+                    'stockHistoryCount'          => \App\Models\StockMovement::whereDate('created_at', today())->count(),
+                    'posHistoryCount'            => \App\Models\Order::where('order_number', 'LIKE', 'POS-%')->whereDate('created_at', today())->count(),
+                    'onlineOrdersActiveCount'    => \App\Models\Order::where('order_number', 'LIKE', 'ORD-%')->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])->count(),
+                    'deliveryHistoryActiveCount' => \App\Models\Delivery::whereIn('status', ['pending', 'in_transit', 'out_for_delivery'])->count(),
                 ];
             }
         @endphp
@@ -1352,10 +1360,10 @@
                     @if (Route::has('admin.inventory.transfers'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.inventory.transfers') ? 'active' : '' }}"
-                                href="{{ route('admin.inventory.transfers') }}">
+                                href="{{ route('admin.inventory.transfers') }}" id="nav-stock-transfers">
                                 <i class="bi bi-arrow-left-right"></i> Stock Transfers
                                 @if (($sidebarCache['pendingTransfersNav'] ?? 0) > 0)
-                                    <span class="badge-count-red">{{ $sidebarCache['pendingTransfersNav'] }}</span>
+                                    <span class="badge-count-red notification-badge" data-badge-id="stock-transfers" style="display: none;">{{ $sidebarCache['pendingTransfersNav'] }}</span>
                                 @endif
                             </a>
                         </li>
@@ -1364,8 +1372,11 @@
                     @if (Route::has('admin.inventory.stock-history'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.inventory.stock-history') ? 'active' : '' }}"
-                                href="{{ route('admin.inventory.stock-history') }}">
+                                href="{{ route('admin.inventory.stock-history') }}" id="nav-stock-history">
                                 <i class="bi bi-clock-history"></i> Stock History
+                                @if (($sidebarCache['stockHistoryCount'] ?? 0) > 0)
+                                    <span class="badge-count-cyan notification-badge" data-badge-id="stock-history" style="display: none;">{{ $sidebarCache['stockHistoryCount'] }}</span>
+                                @endif
                             </a>
                         </li>
                     @endif
@@ -1394,8 +1405,11 @@
                     @if (Route::has('admin.pos.history'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.pos.history') ? 'active' : '' }}"
-                                href="{{ route('admin.pos.history') }}">
+                                href="{{ route('admin.pos.history') }}" id="nav-pos-sales-history">
                                 <i class="bi bi-clock-history"></i> POS Sales History
+                                @if (($sidebarCache['posHistoryCount'] ?? 0) > 0)
+                                    <span class="badge-count-green notification-badge" data-badge-id="pos-sales-history" style="display: none;">{{ $sidebarCache['posHistoryCount'] }}</span>
+                                @endif
                             </a>
                         </li>
                     @endif
@@ -1403,8 +1417,11 @@
                     @if (Route::has('admin.online-orders.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.online-orders.*') ? 'active' : '' }}"
-                                href="{{ route('admin.online-orders.index') }}">
+                                href="{{ route('admin.online-orders.index') }}" id="nav-online-orders">
                                 <i class="bi bi-cart"></i> Online Orders
+                                @if (($sidebarCache['onlineOrdersActiveCount'] ?? 0) > 0)
+                                    <span class="badge-count-green notification-badge" data-badge-id="online-orders" style="display: none;">{{ $sidebarCache['onlineOrdersActiveCount'] }}</span>
+                                @endif
                             </a>
                         </li>
                     @endif
@@ -1412,8 +1429,11 @@
                     @if (Route::has('admin.deliveries.index'))
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.deliveries.*') ? 'active' : '' }}"
-                                href="{{ route('admin.deliveries.index') }}">
+                                href="{{ route('admin.deliveries.index') }}" id="nav-delivery-history">
                                 <i class="bi bi-truck"></i> Delivery History
+                                @if (($sidebarCache['deliveryHistoryActiveCount'] ?? 0) > 0)
+                                    <span class="badge-count-cyan notification-badge" data-badge-id="delivery-history" style="display: none;">{{ $sidebarCache['deliveryHistoryActiveCount'] }}</span>
+                                @endif
                             </a>
                         </li>
                     @endif
@@ -1660,7 +1680,6 @@
             document.addEventListener('DOMContentLoaded', function() {
                 function flash(message, type) {
                     var text = String(message).trim();
-                    // skip if a page already showed the same message (e.g. the inventory page)
                     var duplicate = Array.from(document.querySelectorAll('.admin-notification-message'))
                         .some(function(el) {
                             return el.textContent.trim() === text;
@@ -1933,6 +1952,36 @@
 
                 sync();
             }
+        });
+    </script>
+
+    <!-- ✅ NOTIFICATION BADGE LOGIC (admin) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const badges = [
+                { id: 'stock-transfers',   count: {{ $sidebarCache['pendingTransfersNav']       ?? 0 }}, linkId: 'nav-stock-transfers' },
+                { id: 'stock-history',     count: {{ $sidebarCache['stockHistoryCount']         ?? 0 }}, linkId: 'nav-stock-history' },
+                { id: 'pos-sales-history', count: {{ $sidebarCache['posHistoryCount']           ?? 0 }}, linkId: 'nav-pos-sales-history' },
+                { id: 'online-orders',     count: {{ $sidebarCache['onlineOrdersActiveCount']   ?? 0 }}, linkId: 'nav-online-orders' },
+                { id: 'delivery-history',  count: {{ $sidebarCache['deliveryHistoryActiveCount'] ?? 0 }}, linkId: 'nav-delivery-history' }
+            ];
+
+            badges.forEach(badge => {
+                const badgeEl = document.querySelector(`[data-badge-id="${badge.id}"]`);
+                const lastSeenCount = parseInt(localStorage.getItem('last_seen_admin_' + badge.id) || '0');
+
+                if (badgeEl) {
+                    badgeEl.style.display = (badge.count > lastSeenCount) ? 'inline-block' : 'none';
+                }
+
+                const link = document.getElementById(badge.linkId);
+                if (link) {
+                    link.addEventListener('click', function() {
+                        localStorage.setItem('last_seen_admin_' + badge.id, badge.count);
+                        if (badgeEl) badgeEl.style.display = 'none';
+                    });
+                }
+            });
         });
     </script>
 

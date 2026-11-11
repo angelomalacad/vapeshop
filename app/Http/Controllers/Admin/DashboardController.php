@@ -357,7 +357,9 @@ foreach ($branches as $branch) {
     }
 
     /**
-     * Get sales comparison data for the bar chart
+     * Get sales comparison data for the bar chart.
+     * Defensive — checks which columns exist so missing `brand`/`category`
+     * columns don't throw a 500 error and force the JS to show fake data.
      */
     public function salesComparison(Request $request)
     {
@@ -366,9 +368,24 @@ foreach ($branches as $branch) {
         $startDate = $request->get('start');
         $endDate = $request->get('end');
 
+        // -------- Column discovery --------
+        $hasBrand     = \Schema::hasColumn('products', 'brand');
+        $hasCategory  = \Schema::hasColumn('products', 'category');
+        $hasPrice     = \Schema::hasColumn('order_items', 'price');
+        $hasSubtotal  = \Schema::hasColumn('order_items', 'subtotal');
+
+        if (!$hasPrice && !$hasSubtotal) {
+            \Log::warning('salesComparison: order_items has neither `price` nor `subtotal` — cannot compute sales.');
+            return response()->json(['labels' => [], 'data' => [], 'colors' => []]);
+        }
+
+        $salesExpr = $hasSubtotal
+            ? 'SUM(order_items.subtotal)'
+            : 'SUM(order_items.quantity * order_items.price)';
+
+        // -------- Date range filter --------
         $query = Order::where('payment_status', 'paid');
 
-        // Apply date range filter
         switch ($range) {
             case 'today':
                 $query->whereDate('created_at', today());
@@ -381,83 +398,89 @@ foreach ($branches as $branch) {
                       ->whereYear('created_at', Carbon::now()->year);
                 break;
             case 'last_month':
-                $query->whereMonth('created_at', Carbon::now()->subMonth()->month)
-                      ->whereYear('created_at', Carbon::now()->subMonth()->year);
+                $query->whereMonth('created_at', Carbon::now()->subMonthNoOverflow()->month)
+                      ->whereYear('created_at', Carbon::now()->subMonthNoOverflow()->year);
                 break;
             case 'custom':
                 if ($startDate && $endDate) {
                     $query->whereBetween('created_at', [
                         Carbon::parse($startDate)->startOfDay(),
-                        Carbon::parse($endDate)->endOfDay()
+                        Carbon::parse($endDate)->endOfDay(),
                     ]);
                 }
                 break;
         }
 
-        // Get order items with product details
-        $orderItems = DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->whereIn('orders.id', $query->pluck('id'))
-            ->select(
-                'products.id',
-                'products.name',
-                'products.brand',
-                'products.category',
-                DB::raw('SUM(order_items.quantity * order_items.price) as total_sales')
-            )
-            ->groupBy('products.id', 'products.name', 'products.brand', 'products.category')
-            ->orderBy('total_sales', 'desc')
-            ->limit(10)
-            ->get();
+        // -------- Build dynamic SELECT / GROUP BY --------
+        $selectCols = ['products.id', 'products.name'];
+        $groupBy    = ['products.id', 'products.name'];
 
-        // Prepare data based on comparison type
+        if ($hasBrand) {
+            $selectCols[] = 'products.brand';
+            $groupBy[]    = 'products.brand';
+        }
+        if ($hasCategory) {
+            $selectCols[] = 'products.category';
+            $groupBy[]    = 'products.category';
+        }
+        $selectCols[] = DB::raw($salesExpr . ' as total_sales');
+
+        // -------- Query (wrapped in try/catch so DB errors never bubble as 500) --------
+        try {
+            $orderItems = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->whereIn('orders.id', $query->pluck('id'))
+                ->select($selectCols)
+                ->groupBy($groupBy)
+                ->orderBy('total_sales', 'desc')
+                ->limit(10)
+                ->get();
+        } catch (\Throwable $e) {
+            \Log::error('salesComparison query failed: ' . $e->getMessage());
+            return response()->json(['labels' => [], 'data' => [], 'colors' => []]);
+        }
+
+        // -------- Assemble chart data --------
         $labels = [];
-        $data = [];
+        $data   = [];
         $colors = ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6f42c1', '#fd7e14', '#20c997', '#0dcaf0', '#d63384', '#6610f2'];
 
-        if ($type === 'brand') {
-            // Group by brand
+        if ($type === 'brand' && $hasBrand) {
             $brandSales = [];
             foreach ($orderItems as $item) {
                 $brand = $item->brand ?: 'Unbranded';
-                if (!isset($brandSales[$brand])) {
-                    $brandSales[$brand] = 0;
-                }
-                $brandSales[$brand] += $item->total_sales;
+                $brandSales[$brand] = ($brandSales[$brand] ?? 0) + $item->total_sales;
             }
             arsort($brandSales);
             $labels = array_keys($brandSales);
-            $data = array_values($brandSales);
-        } elseif ($type === 'category') {
-            // Group by category
+            $data   = array_values($brandSales);
+
+        } elseif ($type === 'category' && $hasCategory) {
             $categorySales = [];
             foreach ($orderItems as $item) {
                 $category = $item->category ?: 'Uncategorized';
-                if (!isset($categorySales[$category])) {
-                    $categorySales[$category] = 0;
-                }
-                $categorySales[$category] += $item->total_sales;
+                $categorySales[$category] = ($categorySales[$category] ?? 0) + $item->total_sales;
             }
             arsort($categorySales);
             $labels = array_keys($categorySales);
-            $data = array_values($categorySales);
+            $data   = array_values($categorySales);
+
         } else {
-            // Product (default)
+            // Product view — or fallback when brand/category columns don't exist
             $labels = $orderItems->pluck('name')->toArray();
-            $data = $orderItems->pluck('total_sales')->toArray();
+            $data   = $orderItems->pluck('total_sales')->toArray();
         }
 
-        // Limit to top 10
         if (count($labels) > 10) {
             $labels = array_slice($labels, 0, 10);
-            $data = array_slice($data, 0, 10);
+            $data   = array_slice($data,   0, 10);
         }
 
         return response()->json([
             'labels' => $labels,
-            'data' => $data,
-            'colors' => array_slice($colors, 0, count($labels))
+            'data'   => $data,
+            'colors' => array_slice($colors, 0, count($labels)),
         ]);
     }
 }

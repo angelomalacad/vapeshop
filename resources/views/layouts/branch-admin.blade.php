@@ -1116,6 +1116,37 @@
 </head>
 
 <body>
+    @php
+        $branchId = Auth::user()->branch_id;
+        
+        // 1. Inventory
+        $inventoryCount = \App\Models\BranchInventory::where('branch_id', $branchId)->count();
+        
+        // 2. Stock History (Today's movements)
+        $stockHistoryCount = \App\Models\StockMovement::where('branch_id', $branchId)->whereDate('created_at', today())->count();
+        
+        // 3. All Transfers (Pending)
+        $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) use ($branchId) {
+            $q->where('from_branch_id', $branchId)->orWhere('to_branch_id', $branchId);
+        })->where('status', 'pending')->count();
+        
+        // 4. Catalog
+        $catalogCount = \App\Models\Product::count();
+        
+        // 5. Online Orders (Active)
+        $onlineOrdersCount = \App\Models\Order::where('order_number', 'NOT LIKE', 'POS-%')
+            ->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])
+            ->whereHas('items.inventory', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            })->count();
+            
+        // 6. Sales History (Today's POS sales)
+        $todaySalesCount = \App\Models\Order::where('branch_id', $branchId)
+            ->where('order_number', 'LIKE', 'POS-%')
+            ->whereDate('created_at', today())
+            ->count();
+    @endphp
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-glass">
         <div class="container-fluid px-4">
@@ -1174,12 +1205,6 @@
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.inventory.index') }}">
                             <i class="bi bi-box-seam"></i> Inventory
-                            @php
-                                $inventoryCount = \App\Models\BranchInventory::where(
-                                    'branch_id',
-                                    Auth::user()->branch_id,
-                                )->count();
-                            @endphp
                             @if ($inventoryCount > 0)
                                 <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
                             @endif
@@ -1188,8 +1213,11 @@
 
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.stock-history') ? 'active' : '' }}"
-                            href="{{ route('branch-admin.inventory.stock-history') }}">
+                            href="{{ route('branch-admin.inventory.stock-history') }}" id="nav-stock-history">
                             <i class="bi bi-clock-history"></i> Stock History
+                            @if ($stockHistoryCount > 0)
+                                <span class="badge-count-cyan float-end notification-badge" data-badge-id="stock-history" style="display: none;">{{ $stockHistoryCount }}</span>
+                            @endif
                         </a>
                     </li>
 
@@ -1202,20 +1230,10 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.inventory.transfers') ? 'active' : '' }}"
-                            href="{{ route('branch-admin.inventory.transfers') }}">
+                            href="{{ route('branch-admin.inventory.transfers') }}" id="nav-all-transfers">
                             <i class="bi bi-arrow-left-right"></i> All Transfers
-                            @php
-                                $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) {
-                                    $q->where('from_branch_id', Auth::user()->branch_id)->orWhere(
-                                        'to_branch_id',
-                                        Auth::user()->branch_id,
-                                    );
-                                })
-                                    ->where('status', 'pending')
-                                    ->count();
-                            @endphp
                             @if ($pendingTransfersNav > 0)
-                                <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
+                                <span class="badge-count-red float-end notification-badge" data-badge-id="all-transfers" style="display: none;">{{ $pendingTransfersNav }}</span>
                             @endif
                         </a>
                     </li>
@@ -1225,9 +1243,6 @@
                         <a class="nav-link {{ request()->routeIs('branch-admin.products.index') ? 'active' : '' }}"
                             href="{{ route('branch-admin.products.index') }}">
                             <i class="bi bi-tags"></i> Catalog
-                            @php
-                                $catalogCount = \App\Models\Product::count();
-                            @endphp
                             @if ($catalogCount > 0)
                                 <span class="badge-count-green float-end">{{ $catalogCount }}</span>
                             @endif
@@ -1251,25 +1266,10 @@
                     <li class="sidebar-heading">SALES</li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.online-orders*') ? 'active' : '' }}"
-                            href="{{ route('branch-admin.online-orders.index') }}">
+                            href="{{ route('branch-admin.online-orders.index') }}" id="nav-online-orders">
                             <i class="bi bi-cart"></i> Online Orders
-                            @php
-                                // ✅ FIXED: Multi-branch badge count
-                                $onlineOrdersCount = \App\Models\Order::where('order_number', 'NOT LIKE', 'POS-%')
-                                    ->whereIn('order_status', [
-                                        'pending',
-                                        'confirmed',
-                                        'processing',
-                                        'ready',
-                                        'out_for_delivery',
-                                    ])
-                                    ->whereHas('items.inventory', function ($q) {
-                                        $q->where('branch_id', Auth::user()->branch_id);
-                                    })
-                                    ->count();
-                            @endphp
                             @if ($onlineOrdersCount > 0)
-                                <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
+                                <span class="badge-count-green float-end notification-badge" data-badge-id="online-orders" style="display: none;">{{ $onlineOrdersCount }}</span>
                             @endif
                         </a>
                     </li>
@@ -1281,8 +1281,11 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('branch-admin.pos.history') ? 'active' : '' }}"
-                            href="{{ route('branch-admin.pos.history') }}">
+                            href="{{ route('branch-admin.pos.history') }}" id="nav-sales-history">
                             <i class="bi bi-clock-history"></i> Sales History
+                            @if ($todaySalesCount > 0)
+                                <span class="badge-count-green float-end notification-badge" data-badge-id="sales-history" style="display: none;">{{ $todaySalesCount }}</span>
+                            @endif
                         </a>
                     </li>
 
@@ -1342,21 +1345,11 @@
                         </a>
                     </div>
 
-                    @php
-                        $totalPending = \App\Models\StockTransfer::where(function ($q) {
-                            $q->where('from_branch_id', Auth::user()->branch_id)->orWhere(
-                                'to_branch_id',
-                                Auth::user()->branch_id,
-                            );
-                        })
-                            ->where('status', 'pending')
-                            ->count();
-                    @endphp
-                    @if ($totalPending > 0)
+                    @if ($pendingTransfersNav > 0)
                         <div class="ms-2">
                             <a href="{{ route('branch-admin.inventory.transfers', ['filter' => 'all', 'status' => 'pending']) }}"
                                 class="btn btn-warning btn-sm pending-badge">
-                                <i class="bi bi-hourglass"></i> {{ $totalPending }} Pending
+                                <i class="bi bi-hourglass"></i> {{ $pendingTransfersNav }} Pending
                             </a>
                         </div>
                     @endif
@@ -1868,6 +1861,41 @@
 
                 sync();
             }
+        });
+    </script>
+
+    <!-- ✅ NEW: NOTIFICATION BADGE LOGIC -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const badges = [
+                { id: 'stock-history', count: {{ $stockHistoryCount ?? 0 }}, linkId: 'nav-stock-history' },
+                { id: 'all-transfers', count: {{ $pendingTransfersNav ?? 0 }}, linkId: 'nav-all-transfers' },
+                { id: 'online-orders', count: {{ $onlineOrdersCount ?? 0 }}, linkId: 'nav-online-orders' },
+                { id: 'sales-history', count: {{ $todaySalesCount ?? 0 }}, linkId: 'nav-sales-history' }
+            ];
+
+            badges.forEach(badge => {
+                const badgeEl = document.querySelector(`[data-badge-id="${badge.id}"]`);
+                const lastSeenCount = parseInt(localStorage.getItem('last_seen_' + badge.id) || '0');
+                
+                if (badgeEl) {
+                    if (badge.count > lastSeenCount) {
+                        badgeEl.style.display = 'inline-block';
+                    } else {
+                        badgeEl.style.display = 'none';
+                    }
+                }
+
+                const link = document.getElementById(badge.linkId);
+                if (link) {
+                    link.addEventListener('click', function() {
+                        localStorage.setItem('last_seen_' + badge.id, badge.count);
+                        if (badgeEl) {
+                            badgeEl.style.display = 'none';
+                        }
+                    });
+                }
+            });
         });
     </script>
 

@@ -221,7 +221,7 @@
             z-index: 1040;
         }
 
-                /* Floating toggle button — RIGHT side */
+        /* Floating toggle button — RIGHT side */
         .dash-toggle-btn {
             display: none;
             position: fixed;
@@ -252,7 +252,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* When drawer is open, button stays visible but changes color (close state) */
         body.sidebar-open .dash-toggle-btn {
             background: #dc3545;
             box-shadow: 0 4px 14px rgba(220, 53, 69, 0.45);
@@ -261,7 +260,6 @@
         body.sidebar-open .dash-toggle-btn:hover {
             background: #b02a37;
         }
-
 
         /* Badge Counts */
         .badge-count,
@@ -440,7 +438,7 @@
             color: #1e293b;
         }
 
-                /* Scrollbar */
+        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -548,12 +546,10 @@
                 display: flex;
             }
 
-            /* Show floating toggle on mobile */
             .dash-toggle-btn {
                 display: flex;
             }
 
-            /* Show mobile-only logout item */
             .mobile-only-logout {
                 display: block;
             }
@@ -930,6 +926,25 @@
 
         <!-- Sidebar (drawer on mobile) -->
         <aside class="dash-sidebar" id="dashSidebar">
+            @php
+                $branchId = Auth::user()->branch_id;
+                $inventoryCount = \App\Models\BranchInventory::where('branch_id', $branchId)->count();
+                $stockHistoryCount = \App\Models\StockMovement::where('branch_id', $branchId)->whereDate('created_at', today())->count();
+                $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) use ($branchId) {
+                    $q->where('from_branch_id', $branchId)->orWhere('to_branch_id', $branchId);
+                })->where('status', 'pending')->count();
+                $catalogCount = \App\Models\Product::count();
+                $onlineOrdersCount = \App\Models\Order::where('order_number', 'NOT LIKE', 'POS-%')
+                    ->whereIn('order_status', ['pending', 'confirmed', 'processing', 'ready', 'out_for_delivery'])
+                    ->whereHas('items.inventory', function ($q) use ($branchId) {
+                        $q->where('branch_id', $branchId);
+                    })->count();
+                $todaySalesCount = \App\Models\Order::where('branch_id', $branchId)
+                    ->where('order_number', 'LIKE', 'POS-%')
+                    ->whereDate('created_at', today())
+                    ->count();
+            @endphp
+
             <div class="sidebar-card">
                 <div class="card-header">
                     <span><i class="bi bi-grid me-2"></i> Staff Menu</span>
@@ -946,20 +961,17 @@
                     <a href="{{ route('branch-admin.inventory.index') }}"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-box-seam me-2"></i> Inventory
-                        @php
-                            $inventoryCount = \App\Models\BranchInventory::where(
-                                'branch_id',
-                                Auth::user()->branch_id,
-                            )->count();
-                        @endphp
                         @if ($inventoryCount > 0)
                             <span class="badge-count-cyan float-end">{{ $inventoryCount }}</span>
                         @endif
                     </a>
 
-                    <a href="{{ route('branch-admin.inventory.stock-history') }}"
+                    <a href="{{ route('branch-admin.inventory.stock-history') }}" id="nav-stock-history"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-clock-history me-2"></i> Stock History
+                        @if ($stockHistoryCount > 0)
+                            <span class="badge-count-cyan float-end notification-badge" data-badge-id="stock-history" style="display: none;">{{ $stockHistoryCount }}</span>
+                        @endif
                     </a>
 
                     <a href="{{ route('branch-admin.inventory.transfer.form') }}"
@@ -967,30 +979,17 @@
                         <i class="bi bi-send me-2"></i> Request Transfer
                     </a>
 
-                    <a href="{{ route('branch-admin.inventory.transfers') }}"
+                    <a href="{{ route('branch-admin.inventory.transfers') }}" id="nav-all-transfers"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-arrow-left-right me-2"></i> All Transfers
-                        @php
-                            $pendingTransfersNav = \App\Models\StockTransfer::where(function ($q) {
-                                $q->where('from_branch_id', Auth::user()->branch_id)->orWhere(
-                                    'to_branch_id',
-                                    Auth::user()->branch_id,
-                                );
-                            })
-                                ->where('status', 'pending')
-                                ->count();
-                        @endphp
                         @if ($pendingTransfersNav > 0)
-                            <span class="badge-count-red float-end">{{ $pendingTransfersNav }}</span>
+                            <span class="badge-count-red float-end notification-badge" data-badge-id="all-transfers" style="display: none;">{{ $pendingTransfersNav }}</span>
                         @endif
                     </a>
 
                     <a href="{{ route('branch-admin.products.index') }}"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-tags me-2"></i> Catalog
-                        @php
-                            $catalogCount = \App\Models\Product::count();
-                        @endphp
                         @if ($catalogCount > 0)
                             <span class="badge-count-green float-end">{{ $catalogCount }}</span>
                         @endif
@@ -1006,17 +1005,11 @@
                         <i class="bi bi-house-door me-2"></i> Warehouse Stock
                     </a>
 
-                    <a href="{{ route('branch-admin.online-orders.index') }}"
+                    <a href="{{ route('branch-admin.online-orders.index') }}" id="nav-online-orders"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-cart me-2"></i> Online Orders
-                        @php
-                            $onlineOrdersCount = \App\Models\Order::where('branch_id', Auth::user()->branch_id)
-                                ->where('order_number', 'NOT LIKE', 'POS-%')
-                                ->whereNotIn('order_status', ['delivered', 'delivery_failed', 'cancelled'])
-                                ->count();
-                        @endphp
                         @if ($onlineOrdersCount > 0)
-                            <span class="badge-count-green float-end">{{ $onlineOrdersCount }}</span>
+                            <span class="badge-count-green float-end notification-badge" data-badge-id="online-orders" style="display: none;">{{ $onlineOrdersCount }}</span>
                         @endif
                     </a>
 
@@ -1025,16 +1018,18 @@
                         <i class="bi bi-cash-coin me-2"></i> Point of Sale
                     </a>
 
-                    <a href="{{ route('branch-admin.pos.history') }}"
+                    <a href="{{ route('branch-admin.pos.history') }}" id="nav-sales-history"
                         class="list-group-item list-group-item-action">
                         <i class="bi bi-clock-history me-2"></i> Sales History
+                        @if ($todaySalesCount > 0)
+                            <span class="badge-count-green float-end notification-badge" data-badge-id="sales-history" style="display: none;">{{ $todaySalesCount }}</span>
+                        @endif
                     </a>
 
                     <a href="{{ route('home') }}" class="list-group-item list-group-item-action">
                         <i class="bi bi-house me-2"></i> Home
                     </a>
 
-                    {{-- Logout item — visible only on mobile (hidden on desktop via .mobile-only-logout) --}}
                     <form method="POST" action="{{ route('logout') }}" class="mobile-only-logout">
                         @csrf
                         <button type="submit"
@@ -1238,7 +1233,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="text-muted mb-1 small">Pending Transfers</h6>
-                                        <h3 class="mb-0 fw-bold text-warning">{{ $pendingTransfersTotal ?? 0 }}</h3>
+                                        <h3 class="mb-0 fw-bold text-warning notification-card-val" data-badge-id="all-transfers">{{ $pendingTransfersTotal ?? 0 }}</h3>
                                         <div class="mt-1">
                                             <small class="text-success">
                                                 <i class="bi bi-download me-1"></i> Incoming:
@@ -1480,6 +1475,41 @@
                 if (e.key === 'Escape') closeDrawer();
             });
         })();
+    </script>
+
+    <!-- ✅ NEW: NOTIFICATION BADGE LOGIC -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const badges = [
+                { id: 'stock-history', count: {{ $stockHistoryCount ?? 0 }}, linkId: 'nav-stock-history' },
+                { id: 'all-transfers', count: {{ $pendingTransfersNav ?? 0 }}, linkId: 'nav-all-transfers' },
+                { id: 'online-orders', count: {{ $onlineOrdersCount ?? 0 }}, linkId: 'nav-online-orders' },
+                { id: 'sales-history', count: {{ $todaySalesCount ?? 0 }}, linkId: 'nav-sales-history' }
+            ];
+
+            badges.forEach(badge => {
+                const badgeEl = document.querySelector(`[data-badge-id="${badge.id}"]`);
+                const lastSeenCount = parseInt(localStorage.getItem('last_seen_' + badge.id) || '0');
+                
+                if (badgeEl) {
+                    if (badge.count > lastSeenCount) {
+                        badgeEl.style.display = 'inline-block';
+                    } else {
+                        badgeEl.style.display = 'none';
+                    }
+                }
+
+                const link = document.getElementById(badge.linkId);
+                if (link) {
+                    link.addEventListener('click', function() {
+                        localStorage.setItem('last_seen_' + badge.id, badge.count);
+                        if (badgeEl) {
+                            badgeEl.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        });
     </script>
 </body>
 

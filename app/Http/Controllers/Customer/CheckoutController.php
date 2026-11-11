@@ -125,12 +125,14 @@ class CheckoutController extends Controller
                 $productId = $item['product_id'];
                 $flavorId = $item['flavor_id'] ?? null;
 
-                // Get all branches with stock for this item, sorted by proximity
+                // ✅ FIX: Fetch all, filter in PHP, then sort
                 $availableBranches = BranchInventory::with('branch')
                     ->where('product_id', $productId)
                     ->when($flavorId, fn($q) => $q->where('flavor_id', $flavorId), fn($q) => $q->whereNull('flavor_id'))
-                    ->where('available_quantity', '>', 0)
                     ->get()
+                    ->filter(function($inv) {
+                        return $inv->available_quantity > 0;
+                    })
                     ->sortBy(function($inv) use ($proximityMap, $userBranchId) {
                         if ($userBranchId) {
                             if ($inv->branch_id == $userBranchId) return -1;

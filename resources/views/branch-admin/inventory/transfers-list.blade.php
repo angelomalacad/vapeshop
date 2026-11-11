@@ -257,7 +257,7 @@
                                     <!-- Actions -->
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <!-- Warehouse Transfer Actions (only incoming) -->
+                                                                                        <!-- Warehouse Transfer Actions (only incoming) -->
                                             @if (is_null($transfer->from_branch_id))
                                                 @if ($transfer->to_branch_id == Auth::user()->branch_id)
                                                     @if ($transfer->status == 'approved')
@@ -270,6 +270,12 @@
                                                                 <i class="bi bi-download"></i> Receive
                                                             </button>
                                                         </form>
+                                                        {{-- ✅ NEW: Reject button for Warehouse --}}
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            title="Reject Transfer"
+                                                            onclick="openRejectModal('{{ $transfer->id }}', '{{ $transfer->transfer_number }}')">
+                                                            <i class="bi bi-x-lg"></i> Reject
+                                                        </button>
                                                     @elseif($transfer->status == 'pending')
                                                         <span class="badge bg-warning">Waiting for owner</span>
                                                     @endif
@@ -306,6 +312,12 @@
                                                                 <i class="bi bi-check-lg"></i> Receive
                                                             </button>
                                                         </form>
+                                                        {{-- ✅ NEW: Reject button for Branch-to-Branch --}}
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            title="Reject Transfer"
+                                                            onclick="openRejectModal('{{ $transfer->id }}', '{{ $transfer->transfer_number }}')">
+                                                            <i class="bi bi-x-lg"></i> Reject
+                                                        </button>
                                                     @elseif($transfer->status == 'pending')
                                                         <span class="badge bg-warning">Waiting for source</span>
                                                     @endif

@@ -508,8 +508,9 @@
                                         $item->inventory_id,
                                     )->first();
 
-                                    if ($branchInventory) {
-                                        $stockAvailable = $branchInventory->available_quantity;
+                                                                        if ($branchInventory) {
+                                        // ✅ FIX: Use physical quantity instead of available_quantity
+                                        $stockAvailable = $branchInventory->quantity;
 
                                         if ($stockAvailable <= 0) {
                                             $stockStatus = 'out_of_stock';
