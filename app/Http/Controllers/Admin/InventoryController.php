@@ -318,11 +318,14 @@ public function addStock(Request $request, BranchInventory $inventory)
     ]);
 
     // Check if warehouse has enough stock
-    $warehouseInventory = \App\Models\WarehouseInventory::where('product_id', $inventory->product_id)
-        ->when($inventory->flavor_id, function($query) use ($inventory) {
-            return $query->where('flavor_id', $inventory->flavor_id);
-        })
-        ->first();
+            // Check if warehouse has enough stock
+        $warehouseInventory = \App\Models\WarehouseInventory::where('product_id', $inventory->product_id)
+            ->when($inventory->flavor_id, function($query) use ($inventory) {
+                return $query->where('flavor_id', $inventory->flavor_id);
+            }, function($query) {
+                return $query->whereNull('flavor_id');
+            })
+            ->first();
 
     if (!$warehouseInventory) {
         if ($request->ajax()) {
@@ -831,9 +834,16 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
         return redirect()->back()->with('error', 'Only pending transfers can be rejected.');
     }
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
     try {
+        // 🔑 Clean up reservation records if this transfer was branch-admin-created.
+        // Stock numbers are still decremented manually below (works for both flows),
+        // but the reservation rows would otherwise stay 'active' forever.
+        \App\Models\InventoryReservation::where('stock_transfer_id', $transfer->id)
+            ->where('status', 'active')
+            ->update(['status' => 'released', 'released_at' => now()]);
+
         $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
             ->where('product_id', $transfer->product_id)
             ->when($transfer->flavor_id, function($query) use ($transfer) {
@@ -982,9 +992,14 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
         return redirect()->back()->with('error', 'Only pending or approved transfers can be cancelled.');
     }
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
     try {
+        // 🔑 Same cleanup — mark reservations released before manual decrement
+        \App\Models\InventoryReservation::where('stock_transfer_id', $transfer->id)
+            ->where('status', 'active')
+            ->update(['status' => 'released', 'released_at' => now()]);
+
         if (in_array($transfer->status, ['pending', 'approved'])) {
             $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
                 ->where('product_id', $transfer->product_id)
