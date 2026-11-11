@@ -1337,7 +1337,7 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
     /**
      * Reject a transfer (for SOURCE branch - the one sending stock)
      */
-        public function rejectTransfer(Request $request, StockTransfer $transfer)
+            public function rejectTransfer(Request $request, StockTransfer $transfer)
     {
         $branchId = Auth::user()->branch_id;
 
@@ -1375,6 +1375,43 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
         DB::beginTransaction();
 
         try {
+            // ✅ BUG 1 FIX: If rejecting an APPROVED warehouse transfer, restore
+            // warehouse stock that was deducted by Admin\WarehouseController on approve.
+            // Without this, the warehouse stays short and no branch received the stock.
+            if ($transfer->transfer_type === 'warehouse_to_branch'
+                && $transfer->status === 'approved'
+                && is_null($transfer->from_branch_id)) {
+
+                $warehouseItem = WarehouseInventory::where('product_id', $transfer->product_id)
+                    ->when(
+                        $transfer->flavor_id,
+                        fn($q) => $q->where('flavor_id', $transfer->flavor_id),
+                        fn($q) => $q->whereNull('flavor_id')
+                    )
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($warehouseItem) {
+                    $oldQty = $warehouseItem->quantity;
+                    $newQty = $oldQty + $transfer->quantity;
+                    $warehouseItem->update(['quantity' => $newQty]);
+
+                    StockMovement::create([
+                        'branch_id'         => null,
+                        'product_id'        => $transfer->product_id,
+                        'flavor_id'         => $transfer->flavor_id,
+                        'previous_quantity' => $oldQty,
+                        'new_quantity'      => $newQty,
+                        'quantity_change'   => $transfer->quantity,
+                        'movement_type'     => 'transfer_in',
+                        'reference_type'    => 'stock_transfer',
+                        'reference_id'      => $transfer->id,
+                        'notes'             => 'Restored to warehouse: transfer #' . $transfer->transfer_number . ' rejected by branch',
+                        'created_by'        => Auth::id(),
+                    ]);
+                }
+            }
+
             // Release all active reservations for this transfer so stock goes back to the source branch
             $reservations = InventoryReservation::where('stock_transfer_id', $transfer->id)
                 ->where('status', 'active')
@@ -1410,142 +1447,145 @@ public function receiveWarehouseStock(Request $request, StockTransfer $transfer)
     /**
  * Complete a transfer (for DESTINATION branch - the one receiving stock)
  */
-public function completeTransfer(StockTransfer $transfer)
-{
-    $branchId = Auth::user()->branch_id;
+    public function completeTransfer(StockTransfer $transfer)
+    {
+        $branchId = Auth::user()->branch_id;
 
-    if ($transfer->to_branch_id !== $branchId) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized access. Only the destination branch can complete transfers.'
-        ], 403);
-    }
-
-    if ($transfer->status !== 'approved') {
-        return response()->json([
-            'success' => false,
-            'message' => 'Only approved transfers can be completed.'
-        ], 400);
-    }
-
-    DB::beginTransaction();
-
-    try {
-        // Release all active reservations for this transfer
-        $reservations = InventoryReservation::where('stock_transfer_id', $transfer->id)
-            ->where('status', 'active')
-            ->get();
-
-        foreach ($reservations as $reservation) {
-            $this->reservationService->releaseReservation($reservation->id);
+        if ($transfer->to_branch_id !== $branchId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access. Only the destination branch can complete transfers.'
+            ], 403);
         }
 
-        // --- SOURCE BRANCH INVENTORY (Deduct stock) ---
-        if ($transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
-            $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+        if ($transfer->status !== 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only approved transfers can be completed.'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Release all active reservations for this transfer
+            $reservations = InventoryReservation::where('stock_transfer_id', $transfer->id)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($reservations as $reservation) {
+                $this->reservationService->releaseReservation($reservation->id);
+            }
+
+            // --- SOURCE BRANCH INVENTORY (Deduct stock) ---
+            if ($transfer->from_branch_id && $transfer->transfer_type != 'warehouse_to_branch') {
+                $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
+                    ->where('product_id', $transfer->product_id)
+                    ->when($transfer->flavor_id, function ($query) use ($transfer) {
+                        return $query->where('flavor_id', $transfer->flavor_id);
+                    })
+                    ->first();
+
+                if ($sourceInventory) {
+                    $oldSourceQty = $sourceInventory->quantity;
+                    $newSourceQty = max(0, $sourceInventory->quantity - $transfer->quantity);
+
+                    // ✅ BUG 2 FIX: Only deduct `quantity`. `reserved_quantity` was
+                    // already decremented above by releaseReservation(). Subtracting
+                    // again here would corrupt other orders' active reservations on
+                    // the same branch (a real stock-availability bug).
+                    $sourceInventory->update([
+                        'quantity' => $newSourceQty,
+                    ]);
+
+                    // ✅ LOG SOURCE BRANCH MOVEMENT (Transfer Out)
+                    StockMovement::create([
+                        'branch_id' => $transfer->from_branch_id,
+                        'product_id' => $transfer->product_id,
+                        'flavor_id' => $transfer->flavor_id,
+                        'previous_quantity' => $oldSourceQty,
+                        'new_quantity' => $newSourceQty,
+                        'quantity_change' => -$transfer->quantity,
+                        'movement_type' => 'transfer_out',
+                        'reference_type' => 'transfer',
+                        'reference_id' => $transfer->id,
+                        'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Branch'),
+                        'created_by' => Auth::id(),
+                    ]);
+                }
+            }
+
+            // --- DESTINATION BRANCH INVENTORY (Add stock) ---
+            $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
                 ->where('product_id', $transfer->product_id)
-                ->when($transfer->flavor_id, function($query) use ($transfer) {
+                ->when($transfer->flavor_id, function ($query) use ($transfer) {
                     return $query->where('flavor_id', $transfer->flavor_id);
                 })
                 ->first();
 
-            if ($sourceInventory) {
-                $oldSourceQty = $sourceInventory->quantity;
-                $newSourceQty = max(0, $sourceInventory->quantity - $transfer->quantity);
+            $oldDestQuantity = $destInventory ? $destInventory->quantity : 0;
+            $newDestQuantity = $oldDestQuantity + $transfer->quantity;
 
-                $sourceInventory->update([
-                    'reserved_quantity' => max(0, $sourceInventory->reserved_quantity - $transfer->quantity),
-                    'quantity' => $newSourceQty,
+            if ($destInventory) {
+                $destInventory->update([
+                    'quantity' => $newDestQuantity,
+                    'last_restocked_at' => now(),
                 ]);
-
-                // ✅ LOG SOURCE BRANCH MOVEMENT (Transfer Out)
-                StockMovement::create([
-                    'branch_id' => $transfer->from_branch_id,
+            } else {
+                $destInventory = BranchInventory::create([
+                    'branch_id' => $transfer->to_branch_id,
                     'product_id' => $transfer->product_id,
                     'flavor_id' => $transfer->flavor_id,
-                    'previous_quantity' => $oldSourceQty,
-                    'new_quantity' => $newSourceQty,
-                    'quantity_change' => -$transfer->quantity,
-                    'movement_type' => 'transfer_out',
-                    'reference_type' => 'transfer',
-                    'reference_id' => $transfer->id,
-                    'notes' => 'Transfer to ' . ($transfer->toBranch ? $transfer->toBranch->name : 'Branch'),
-                    'created_by' => Auth::id(),
+                    'quantity' => $transfer->quantity,
+                    'reserved_quantity' => 0,
+                    'low_stock_threshold' => 10,
+                    'reorder_point' => 20,
+                    'optimal_stock' => 50,
+                    'last_restocked_at' => now(),
                 ]);
             }
-        }
 
-        // --- DESTINATION BRANCH INVENTORY (Add stock) ---
-        $destInventory = BranchInventory::where('branch_id', $transfer->to_branch_id)
-            ->where('product_id', $transfer->product_id)
-            ->when($transfer->flavor_id, function($query) use ($transfer) {
-                return $query->where('flavor_id', $transfer->flavor_id);
-            })
-            ->first();
+            // ✅ LOG DESTINATION BRANCH MOVEMENT (Transfer In)
+            $fromSourceName = ($transfer->transfer_type == 'warehouse_to_branch') ? 'Main Warehouse' : ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown');
 
-        $oldDestQuantity = $destInventory ? $destInventory->quantity : 0;
-        $newDestQuantity = $oldDestQuantity + $transfer->quantity;
-
-        if ($destInventory) {
-            $destInventory->update([
-                'quantity' => $newDestQuantity,
-                'last_restocked_at' => now(),
-            ]);
-        } else {
-            $destInventory = BranchInventory::create([
+            StockMovement::create([
                 'branch_id' => $transfer->to_branch_id,
                 'product_id' => $transfer->product_id,
                 'flavor_id' => $transfer->flavor_id,
-                'quantity' => $transfer->quantity,
-                'reserved_quantity' => 0,
-                'low_stock_threshold' => 10,
-                'reorder_point' => 20,
-                'optimal_stock' => 50,
-                'last_restocked_at' => now(),
+                'previous_quantity' => $oldDestQuantity,
+                'new_quantity' => $newDestQuantity,
+                'quantity_change' => $transfer->quantity,
+                'movement_type' => 'transfer_in',
+                'reference_type' => 'transfer',
+                'reference_id' => $transfer->id,
+                'notes' => 'Transfer from ' . $fromSourceName,
+                'created_by' => Auth::id(),
             ]);
+
+            // Update transfer status
+            $transfer->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+                'received_by' => Auth::id(),
+                'received_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transfer completed successfully. Stock has been added to your inventory.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error completing transfer: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error completing transfer: ' . $e->getMessage()
+            ], 500);
         }
-
-        // ✅ LOG DESTINATION BRANCH MOVEMENT (Transfer In)
-        $fromSourceName = ($transfer->transfer_type == 'warehouse_to_branch') ? 'Main Warehouse' : ($transfer->fromBranch ? $transfer->fromBranch->name : 'Unknown');
-
-        StockMovement::create([
-            'branch_id' => $transfer->to_branch_id,
-            'product_id' => $transfer->product_id,
-            'flavor_id' => $transfer->flavor_id,
-            'previous_quantity' => $oldDestQuantity,
-            'new_quantity' => $newDestQuantity,
-            'quantity_change' => $transfer->quantity,
-            'movement_type' => 'transfer_in',
-            'reference_type' => 'transfer',
-            'reference_id' => $transfer->id,
-            'notes' => 'Transfer from ' . $fromSourceName,
-            'created_by' => Auth::id(),
-        ]);
-
-        // Update transfer status
-        $transfer->update([
-            'status' => 'completed',
-            'completed_at' => now(),
-            'received_by' => Auth::id(),
-            'received_at' => now(),
-        ]);
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Transfer completed successfully. Stock has been added to your inventory.'
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Error completing transfer: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error completing transfer: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     /**
      * Cancel transfer (for the requester)
