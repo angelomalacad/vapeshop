@@ -889,9 +889,16 @@ public function updateTransfer(Request $request, StockTransfer $transfer)
         return redirect()->back()->with('error', 'Only approved transfers can be completed.');
     }
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
     try {
+        // 🔑 Clean up reservation records if this transfer was branch-admin-created.
+        // Stock numbers are still decremented manually below (works for both flows),
+        // but the reservation rows would otherwise stay 'active' forever.
+        \App\Models\InventoryReservation::where('stock_transfer_id', $transfer->id)
+            ->where('status', 'active')
+            ->update(['status' => 'released', 'released_at' => now()]);
+
         $sourceInventory = BranchInventory::where('branch_id', $transfer->from_branch_id)
             ->where('product_id', $transfer->product_id)
             ->when($transfer->flavor_id, function($query) use ($transfer) {
